@@ -12,9 +12,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Interception.net\**" />
     <Compile Remove="Tests\**" />
+    <EmbeddedResource Remove="Interception.net\**" />
     <EmbeddedResource Remove="Tests\**" />
+    <None Remove="Interception.net\**" />
     <None Remove="Tests\**" />
+    <Page Remove="Interception.net\**" />
     <Page Remove="Tests\**" />
   </ItemGroup>
 
