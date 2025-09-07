@@ -1,0 +1,138 @@
+{
+    "process_name": "MapleStory",
+    "hp": {
+        "rect": [ 526, 668, 171, 13 ],
+        "pixel": [155, 10],
+        "rgb": [
+            246,
+            72,
+            118
+        ],
+        "key": " ",
+        "active": false
+    },
+    "mp": {
+        "rect": [ 526, 684, 171, 13 ],
+        "pixel": [155, 10],
+        "rgb": [
+            99,
+            224,
+            251
+        ],
+        "key": "page up",
+        "active": false
+    },
+    "ailments": {
+        "seal": {
+            "active": true,
+            "active_delay": 0,
+            "threshold": 800,
+            "macro_commands": [
+                "press* allcure_key",
+                "delay random* 50 125",
+                "release* allcure_key",
+                "delay random* 50 125"
+            ],
+            "image": "images/ailments/silence.gif",
+            "static_rect": [ 0, 0, 0, 0 ]
+        },
+        "weakness": {
+            "active": true,
+            "active_delay": 0,
+            "threshold": 800,
+            "macro_commands": [
+                "press* allcure_key",
+                "delay random* 50 125",
+                "release* allcure_key",
+                "delay random* 50 125"
+            ],
+            "image": "images/ailments/weakness.gif",
+            "static_rect": [ 0, 0, 0, 0 ]
+        },
+        "blind": {
+            "active": true,
+            "active_delay": 0,
+            "threshold": 800,
+            "macro_commands": [
+                "press* allcure_key",
+                "delay random* 50 125",
+                "release* allcure_key",
+                "delay random* 50 125"
+            ],
+            "image": "images/ailments/blind.gif",
+            "static_rect": [ 0, 0, 0, 0 ]
+        },
+        "curse": {
+            "active": true,
+            "active_delay": 0,
+            "threshold": 800,
+            "macro_commands": [
+                "press* allcure_key",
+                "delay random* 50 125",
+                "release* allcure_key",
+                "delay random* 50 125"
+            ],
+            "image": "images/ailments/curse.gif",
+            "static_rect": [ 0, 0, 0, 0 ]
+        },
+        "poison": {
+            "active": true,
+            "active_delay": 0,
+            "threshold": 800,
+            "macro_commands": [
+                "press* allcure_key",
+                "delay random* 50 125",
+                "release* allcure_key",
+                "delay random* 50 125"
+            ],
+            "image": "images/ailments/poison.gif",
+            "static_rect": [ 0, 0, 0, 0 ]
+        },
+        "confusion": {
+            "active": true,
+            "active_delay": 4000,
+            "threshold": 800,
+            "macro_commands": [
+                "invert-keyboard*"
+            ],
+            "image": "images/ailments/confusion.gif",
+            "static_rect": [ 0, 0, 0, 0 ]
+        },
+        "petrification": {
+            "active": true,
+            "active_delay": 4000,
+            "threshold": 800,
+            "macro_commands": [
+                "press* left arrow",
+                "delay random* 25 50",
+                "release* left arrow",
+                "delay random* 25 50",
+                "press* right arrow",
+                "delay random* 25 50",
+                "release* right arrow",
+                "delay random* 25 50"
+            ],
+            "image": "images/ailments/petrification.gif",
+            "static_rect": [ 0, 0, 0, 0 ]
+        },
+        "death": {
+            "active": true,
+            "active_delay": 0,
+            "threshold": 800,
+            "macro_commands": [
+                "stop-bot*"
+            ],
+            "image": "images/ailments/death.gif",
+            "static_rect": [ 0, 0, 1280, 720 ]
+        }
+    },
+    "ailments_allcure_key": "c",
+    "map_icons": {
+        "character": {
+            "image": "images/map_icons/character.gif"
+        },
+        "rune": {
+            "image": "images/map_icons/rune.gif"
+        }
+    }
+}

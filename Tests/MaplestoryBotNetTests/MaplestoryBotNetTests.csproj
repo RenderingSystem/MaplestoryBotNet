@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Systems\AbstractSystem.cs" Link="Systems\AbstractSystem.cs" />
+    <Compile Include="..\..\Systems\Configuration\Configuration.cs" Link="Systems\Configuration\Configuration.cs" />
+    <Compile Include="..\..\Systems\ScreenCapture\ScreenCapture.cs" Link="Systems\ScreenCapture\ScreenCapture.cs" />
+    <Compile Include="..\..\Systems\ScreenCapture\ScreenCaptureSystem.cs" Link="Systems\ScreenCapture\ScreenCaptureSystem.cs" />
+    <Compile Include="..\..\ThreadingUtils\ThreadingUtils.cs" Link="ThreadingUtils\ThreadingUtils.cs" />
+    <Compile Include="..\..\WindowsLibrary\WindowsLibrary.cs" Link="WindowsLibrary\WindowsLibrary.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ScreenCapture.NET.DX11" Version="3.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.8" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Systems\Configuration\Tests\LoadImageTestData.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
