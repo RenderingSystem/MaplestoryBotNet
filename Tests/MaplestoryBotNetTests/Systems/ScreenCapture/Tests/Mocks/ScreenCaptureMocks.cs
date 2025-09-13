@@ -1,11 +1,12 @@
 ﻿using HPPH;
 using MaplestoryBotNet.Systems.ScreenCapture;
-using MaplestoryBotNet.WindowsLibrary;
+using MaplestoryBotNet.LibraryWrappers;
 using ScreenCapture.NET;
 using SixLabors.ImageSharp.PixelFormats;
+using MaplestoryBotNetTests.TestHelpers;
 
 
-namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
+namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks
 {
     public class MockScreenCaptureService : IScreenCaptureService
     {
@@ -14,7 +15,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public int DisposeCalls = 0;
         public void Dispose()
         {
-            var callReference = new TestUtils().Reference(this) + "Dispose";
+            var callReference = new TestUtilities().Reference(this) + "Dispose";
             CallOrder.Add(callReference);
             DisposeCalls++;
         }
@@ -25,7 +26,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<IEnumerable<Display>> GetDisplaysReturn = [];
         public IEnumerable<Display> GetDisplays(GraphicsCard graphicsCard)
         {
-            var callReference = new TestUtils().Reference(this) + "GetDisplays";
+            var callReference = new TestUtilities().Reference(this) + "GetDisplays";
             CallOrder.Add(callReference);
             GetDisplaysCalls++;
             GetDisplaysCallArg_graphicsCard.Add(graphicsCard);
@@ -39,7 +40,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<IEnumerable<GraphicsCard>> GetGraphicsCardsReturn = [];
         public IEnumerable<GraphicsCard> GetGraphicsCards()
         {
-            var callReference = new TestUtils().Reference(this) + "GetGraphicsCards";
+            var callReference = new TestUtilities().Reference(this) + "GetGraphicsCards";
             CallOrder.Add(callReference);
             GetGraphicsCardsCalls++;
             if (GetGraphicsCardsIndex < GetGraphicsCardsReturn.Count)
@@ -53,7 +54,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<IScreenCapture> GetScreenCaptureReturn = [];
         public IScreenCapture GetScreenCapture(Display display)
         {
-            var callReference = new TestUtils().Reference(this) + "GetScreenCapture";
+            var callReference = new TestUtilities().Reference(this) + "GetScreenCapture";
             CallOrder.Add(callReference);
             GetScreenCaptureCalls++;
             if (GetScreenCaptureIndex < GetScreenCaptureReturn.Count)
@@ -84,7 +85,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
 
         public bool CaptureScreen()
         {
-            var callReference = new TestUtils().Reference(this) + "CaptureScreen";
+            var callReference = new TestUtilities().Reference(this) + "CaptureScreen";
             CallOrder.Add(callReference);
             CaptureScreenCalls++;
             if (CaptureScreenIndex < CaptureScreenReturn.Count)
@@ -95,7 +96,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public int DisposeCalls = 0;
         public void Dispose()
         {
-            var callReference = new TestUtils().Reference(this) + "Dispose";
+            var callReference = new TestUtilities().Reference(this) + "Dispose";
             CallOrder.Add(callReference);
             DisposeCalls++;
         }
@@ -115,7 +116,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             int height,
             int downscaleLevel = 0
         ) {
-            var callReference = new TestUtils().Reference(this) + "RegisterCaptureZone";
+            var callReference = new TestUtilities().Reference(this) + "RegisterCaptureZone";
             CallOrder.Add(callReference);
             RegisterCaptureZoneCalls++;
             RegisterCaptureZoneCallArg_x.Add(x);
@@ -131,7 +132,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public int RestartCalls = 0;
         public void Restart()
         {
-            var callReference = new TestUtils().Reference(this) + "Restart";
+            var callReference = new TestUtilities().Reference(this) + "Restart";
             CallOrder.Add(callReference);
             RestartCalls++;
         }
@@ -142,7 +143,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<bool> UnregisterCaptureZoneReturn = [];
         public bool UnregisterCaptureZone(ICaptureZone captureZone)
         {
-            var callReference = new TestUtils().Reference(this) + "UnregisterCaptureZone";
+            var callReference = new TestUtilities().Reference(this) + "UnregisterCaptureZone";
             CallOrder.Add(callReference);
             UnregisterCaptureZoneCalls++;
             if (UnregisterCaptureZoneIndex < UnregisterCaptureZoneReturn.Count)
@@ -165,7 +166,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             int? height = null,
             int? downscaleLevel = null
         ) {
-            var callReference = new TestUtils().Reference(this) + "UpdateCaptureZone";
+            var callReference = new TestUtilities().Reference(this) + "UpdateCaptureZone";
             CallOrder.Add(callReference);
             UpdateCaptureZoneCalls++;
             UpdateCaptureZoneCallArg_captureZone.Add(captureZone);
@@ -231,7 +232,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         private readonly List<Delegate> GetRefImageReturn = new List<Delegate>();
         public RefImage<TColor> GetRefImage<TColor>() where TColor : struct, IColor
         {
-            var callReference = new TestUtils().Reference(this) + "GetRefImage";
+            var callReference = new TestUtilities().Reference(this) + "GetRefImage";
             CallOrder.Add(callReference);
             GetRefImageCalls++;
             if (GetRefImageIndex < GetRefImageReturn.Count)
@@ -244,7 +245,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<IDisposable> LockReturn = [];
         public IDisposable Lock()
         {
-            var callReference = new TestUtils().Reference(this) + "Lock";
+            var callReference = new TestUtilities().Reference(this) + "Lock";
             CallOrder.Add(callReference);
             LockCalls++;
             if (LockIndex < LockReturn.Count)
@@ -255,7 +256,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public int RequestUpdateCalls = 0;
         public void RequestUpdate()
         {
-            var callReference = new TestUtils().Reference(this) + "RequestUpdate";
+            var callReference = new TestUtilities().Reference(this) + "RequestUpdate";
             CallOrder.Add(callReference);
             RequestUpdateCalls++;
         }
@@ -268,7 +269,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<string> CallOrder = [];
         public void Dispose()
         {
-            var callReference = new TestUtils().Reference(this) + "Dispose";
+            var callReference = new TestUtilities().Reference(this) + "Dispose";
             CallOrder.Add(callReference);
             DisposeCalls++;
         }
@@ -284,7 +285,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<nint> GetMonitorInfoCallArg_windowHandle = [];
         public List<MONITORINFOEX?> GetMonitorInfoReturn = [];
         public override MONITORINFOEX? GetMonitorInfo(nint windowHandle) {
-            var callReference = new TestUtils().Reference(this) + "GetMonitorInfo";
+            var callReference = new TestUtilities().Reference(this) + "GetMonitorInfo";
             CallOrder.Add(callReference);
             GetMonitorInfoCalls++;
             GetMonitorInfoCallArg_windowHandle.Add(windowHandle);
@@ -303,7 +304,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<List<Display>> GetDisplaysReturn = [];
         public override IEnumerable<Display> GetDisplays()
         {
-            var callReference = new TestUtils().Reference(this) + "GetDisplays";
+            var callReference = new TestUtilities().Reference(this) + "GetDisplays";
             CallOrder.Add(callReference);
             GetDisplaysCalls++;
             if (GetDisplaysIndex < GetDisplaysReturn.Count)
@@ -314,7 +315,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public int RegisterDisplaysCalls = 0;
         public override void RegisterDisplays()
         {
-            var callReference = new TestUtils().Reference(this) + "RegisterDisplays";
+            var callReference = new TestUtilities().Reference(this) + "RegisterDisplays";
             CallOrder.Add(callReference);
             RegisterDisplaysCalls++;
         }
@@ -333,7 +334,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public override ICaptureZone? GetCaptureZone(
             nint windowHandle, MONITORINFOEX monitorInfo
         ) {
-            var callReference = new TestUtils().Reference(this) + "GetCaptureZone";
+            var callReference = new TestUtilities().Reference(this) + "GetCaptureZone";
             CallOrder.Add(callReference);
             GetCaptureZoneCalls++;
             GetCaptureZoneCallArg_windowHandle.Add(windowHandle);
@@ -351,7 +352,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public override IScreenCapture? GetScreenCapture(
             nint windowHandle, MONITORINFOEX monitorInfo
         ) {
-            var callReference = new TestUtils().Reference(this) + "GetScreenCapture";
+            var callReference = new TestUtilities().Reference(this) + "GetScreenCapture";
             CallOrder.Add(callReference);
             GetScreenCaptureCalls++;
             GetScreenCaptureCallArg_windowHandle.Add(windowHandle);
@@ -365,7 +366,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<IEnumerable<Display>> RegisterScreenCapturesCallArg_displays = [];
         public override void RegisterScreenCaptures(IEnumerable<Display> displays)
         {
-            var callReference = new TestUtils().Reference(this) + "RegisterScreenCaptures";
+            var callReference = new TestUtilities().Reference(this) + "RegisterScreenCaptures";
             CallOrder.Add(callReference);
             RegisterScreenCapturesCalls++;
             RegisterScreenCapturesCallArg_displays.Add(displays);
@@ -379,7 +380,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public override ICaptureZone? UpdateCaptureZone(
             IScreenCapture capture, Tuple<int, int, int, int> captureArea
         ) {
-            var callReference = new TestUtils().Reference(this) + "UpdateCaptureZone";
+            var callReference = new TestUtilities().Reference(this) + "UpdateCaptureZone";
             CallOrder.Add(callReference);
             UpdateCaptureZoneCalls++;
             UpdateCaptureZoneCallArg_capture.Add(capture);
@@ -398,7 +399,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             nint windowHandle, MONITORINFOEX monitorInfo
         )
         {
-            var callReference = new TestUtils().Reference(this) + "GetCaptureArea";
+            var callReference = new TestUtilities().Reference(this) + "GetCaptureArea";
             CallOrder.Add(callReference);
             GetCaptureAreaCalls++;
             GetCaptureAreaCallArg_windowHandle.Add(windowHandle);
@@ -420,7 +421,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<SixLabors.ImageSharp.Image<Bgra32>> GenerateImageReturn = [];
         public override SixLabors.ImageSharp.Image<Bgra32> GenerateImage(ICaptureZone captureZone)
         {
-            var callReference = new TestUtils().Reference(this) + "GenerateImage";
+            var callReference = new TestUtilities().Reference(this) + "GenerateImage";
             CallOrder.Add(callReference);
             GenerateImageCalls++;
             GenerateImageCallArg_captureZone.Add(captureZone);
@@ -440,7 +441,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<nint> FindByProcessReturn = [];
         public override nint FindByProcess(string processName)
         {
-            var callReference = new TestUtils().Reference(this) + "FindByProcess";
+            var callReference = new TestUtilities().Reference(this) + "FindByProcess";
             CallOrder.Add(callReference);
             FindByProcessCalls++;
             FindByProcessCallArg_processName.Add(processName);
@@ -457,7 +458,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public int InitializeCalls = 0;
         public override void Initialize()
         {
-            var callReference = new TestUtils().Reference(this) + "Initialize";
+            var callReference = new TestUtilities().Reference(this) + "Initialize";
             CallOrder.Add(callReference);
             InitializeCalls++;
         }
@@ -468,7 +469,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<SixLabors.ImageSharp.Image<Bgra32>?> CaptureReturn = [];
         public override SixLabors.ImageSharp.Image<Bgra32>? Capture(nint windowHandle)
         {
-            var callReference = new TestUtils().Reference(this) + "Capture";
+            var callReference = new TestUtilities().Reference(this) + "Capture";
             CallOrder.Add(callReference);
             CaptureCalls++;
             CaptureCallArg_windowHandle.Add(windowHandle);
@@ -489,7 +490,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<SixLabors.ImageSharp.Image<Bgra32>?> CaptureReturn = [];
         public override SixLabors.ImageSharp.Image<Bgra32>? Capture(string processName)
         {
-            var callReference = new TestUtils().Reference(this) + "Capture";
+            var callReference = new TestUtilities().Reference(this) + "Capture";
             CallOrder.Add(callReference);
             CaptureCalls++;
             CaptureCallArg_processName.Add(processName);

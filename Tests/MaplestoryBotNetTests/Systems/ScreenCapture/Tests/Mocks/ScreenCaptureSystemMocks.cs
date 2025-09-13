@@ -1,9 +1,10 @@
 ﻿using MaplestoryBotNet.Systems.ScreenCapture;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using MaplestoryBotNetTests.TestHelpers;
 
 
-namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
+namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks
 {
     public class MockScreenCaptureStore : AbstractScreenCaptureStore
     {
@@ -14,7 +15,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<Image<Bgra32>?> GetLatestReturn = [];
         public override Image<Bgra32>? GetLatest()
         {
-            var callReference = new TestUtils().Reference(this) + "GetLatest";
+            var callReference = new TestUtilities().Reference(this) + "GetLatest";
             CallOrder.Add(callReference);
             GetLatestCalls++;
             if (GetLatestIndex < GetLatestReturn.Count)
@@ -26,7 +27,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<Image<Bgra32>> SetLatestCallArg_image = [];
         public override void SetLatest(Image<Bgra32> image)
         {
-            var callReference = new TestUtils().Reference(this) + "SetLatest";
+            var callReference = new TestUtilities().Reference(this) + "SetLatest";
             CallOrder.Add(callReference);
             SetLatestCalls++;
             SetLatestCallArg_image.Add(image);
@@ -46,7 +47,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public bool WaitForNotificationSpy = false;
         public override void WaitForNotification()
         {
-            var callReference = new TestUtils().Reference(this) + "WaitForNotification";
+            var callReference = new TestUtilities().Reference(this) + "WaitForNotification";
             CallOrder.Add(callReference);
             WaitForNotificationCalls++;
             if (WaitForNotificationSpy)
@@ -57,7 +58,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public int ProcessImageCalls = 0;
         public override void ProcessImage()
         {
-            var callReference = new TestUtils().Reference(this) + "ProcessImage";
+            var callReference = new TestUtilities().Reference(this) + "ProcessImage";
             CallOrder.Add(callReference);
             ProcessImageCalls++;
         }
@@ -68,7 +69,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<bool> NotifyCallArg_updated = [];
         public override void Notify(Image<Bgra32> image, bool updated)
         {
-            var callReference = new TestUtils().Reference(this) + "Notify";
+            var callReference = new TestUtilities().Reference(this) + "Notify";
             CallOrder.Add(callReference);
             NotifyCalls++;
             NotifyCallArg_image.Add(image);
@@ -86,7 +87,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public int CountDownCalls = 0;
         public override void CountDown()
         {
-            var callReference = new TestUtils().Reference(this) + "CountDown";
+            var callReference = new TestUtilities().Reference(this) + "CountDown";
             CallOrder.Add(callReference);
             CountDownCalls++;
         }
@@ -95,7 +96,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<int> SetCountDownCallArg_countDown = [];
         public override void SetCountDown(int countDown)
         {
-            var callReference = new TestUtils().Reference(this) + "SetCountDown";
+            var callReference = new TestUtilities().Reference(this) + "SetCountDown";
             CallOrder.Add(callReference);
             SetCountDownCalls++;
             SetCountDownCallArg_countDown.Add(countDown);
@@ -104,7 +105,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public int WaitCountDownCalls = 0;
         public override void WaitCountDown()
         {
-            var callReference = new TestUtils().Reference(this) + "WaitCountDown";
+            var callReference = new TestUtilities().Reference(this) + "WaitCountDown";
             CallOrder.Add(callReference);
             WaitCountDownCalls++;
         }
@@ -118,7 +119,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public int NotifyCompleteCalls = 0;
         public override void NotifyComplete()
         {
-            var callReference = new TestUtils().Reference(this) + "NotifyComplete";
+            var callReference = new TestUtilities().Reference(this) + "NotifyComplete";
             CallOrder.Add(callReference);
             NotifyCompleteCalls++;
         }
@@ -128,7 +129,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public List<bool> PublishCallArg_updated = [];
         public override void Publish(Image<Bgra32> image, bool updated)
         {
-            var callReference = new TestUtils().Reference(this) + "Publish";
+            var callReference = new TestUtilities().Reference(this) + "Publish";
             CallOrder.Add(callReference);
             PublishCalls++;
             PublishCallArg_image.Add(image);

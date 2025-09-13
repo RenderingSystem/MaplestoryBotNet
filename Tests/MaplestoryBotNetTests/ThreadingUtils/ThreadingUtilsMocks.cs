@@ -1,4 +1,5 @@
 ﻿using MaplestoryBotNet.ThreadingUtils;
+using MaplestoryBotNetTests.TestHelpers;
 
 
 namespace MaplestoryBotNetTests.ThreadingUtils
@@ -12,7 +13,7 @@ namespace MaplestoryBotNetTests.ThreadingUtils
         public List<bool> IsRunningReturn = [];
         public override bool IsRunning()
         {
-            var callReference = new TestUtils().Reference(this) + "IsRunning";
+            var callReference = new TestUtilities().Reference(this) + "IsRunning";
             CallOrder.Add(callReference);
             IsRunningCalls++;
             if (IsRunningIndex < IsRunningReturn.Count)
@@ -24,7 +25,7 @@ namespace MaplestoryBotNetTests.ThreadingUtils
         public List<bool> SetRunningCallArg_running = [];
         public override void SetRunning(bool running)
         {
-            var callReference = new TestUtils().Reference(this) + "SetRunning";
+            var callReference = new TestUtilities().Reference(this) + "SetRunning";
             CallOrder.Add(callReference);
             SetRunningCalls++;
             SetRunningCallArg_running.Add(running);
@@ -41,7 +42,7 @@ namespace MaplestoryBotNetTests.ThreadingUtils
         public List<AbstractThread> CreateThreadReturn = [];
         public override AbstractThread CreateThread()
         {
-            var callReference = new TestUtils().Reference(this) + "CreateThread";
+            var callReference = new TestUtilities().Reference(this) + "CreateThread";
             CallOrder.Add(callReference);
             CreateThreadCalls++;
             if (CreateThreadIndex < CreateThreadReturn.Count)
@@ -63,7 +64,7 @@ namespace MaplestoryBotNetTests.ThreadingUtils
         public int ThreadLoopCalls = 0;
         public override void ThreadLoop()
         {
-            var callReference = new TestUtils().Reference(this) + "ThreadLoop";
+            var callReference = new TestUtilities().Reference(this) + "ThreadLoop";
             CallOrder.Add(callReference);
             ThreadLoopCalls++;
         }
@@ -72,7 +73,7 @@ namespace MaplestoryBotNetTests.ThreadingUtils
         public bool ThreadStartSpy = false;
         public override void ThreadStart()
         {
-            var callReference = new TestUtils().Reference(this) + "ThreadStart";
+            var callReference = new TestUtilities().Reference(this) + "ThreadStart";
             CallOrder.Add(callReference);
             ThreadStartCalls++;
             if (ThreadStartSpy)
@@ -83,7 +84,7 @@ namespace MaplestoryBotNetTests.ThreadingUtils
         public bool ThreadStopSpy = false;
         public override void ThreadStop()
         {
-            var callReference = new TestUtils().Reference(this) + "ThreadStop";
+            var callReference = new TestUtilities().Reference(this) + "ThreadStop";
             CallOrder.Add(callReference);
             ThreadStopCalls++;
             if (ThreadStopSpy)
@@ -97,7 +98,7 @@ namespace MaplestoryBotNetTests.ThreadingUtils
         public List<bool> ThreadJoinReturn = [];
          public override bool ThreadJoin(int milliseconds)
         {
-            var callReference = new TestUtils().Reference(this) + "ThreadJoin";
+            var callReference = new TestUtilities().Reference(this) + "ThreadJoin";
             CallOrder.Add(callReference);
             ThreadJoinCalls++;
             ThreadJoinCallArg_milliseconds.Add(milliseconds);
@@ -107,6 +108,19 @@ namespace MaplestoryBotNetTests.ThreadingUtils
                 return ThreadJoinReturn[ThreadJoinIndex++];
             else
                 throw new IndexOutOfRangeException();
+        }
+
+        public int ThreadResultCalls = 0;
+        public int ThreadResultIndex = 0;
+        public List<object?> ThreadResultReturn = [];
+        public override object? ThreadResult()
+        {
+            var callReference = new TestUtilities().Reference(this) + "ThreadResult";
+            CallOrder.Add(callReference);
+            ThreadResultCalls++;
+            if (ThreadResultIndex < ThreadResultReturn.Count)
+                return ThreadResultReturn[ThreadResultIndex++];
+            return new IndexOutOfRangeException();
         }
     }
 

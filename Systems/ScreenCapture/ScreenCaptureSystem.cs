@@ -478,9 +478,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             var subscriberThreadFactories = _subscriberThreadFactories(publisher, subscribers);
             var publisherSystem = _publisherSystem(publisherThreadFactory);
             var subscriberSystem = _subscriberSystem(subscriberThreadFactories);
-            _captureSystem = new GameScreenCaptureSystem(
-                [publisherSystem, subscriberSystem]
-            );
+            _captureSystem = new GameScreenCaptureSystem([publisherSystem, subscriberSystem]);
         }
 
         public override void InitializeSystem()

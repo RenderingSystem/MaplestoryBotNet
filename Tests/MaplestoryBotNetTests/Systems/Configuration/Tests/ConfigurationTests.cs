@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
-using MaplestoryBotNet.Systems.Configuration;
+using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -85,9 +85,10 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
          * preventing it from trying to interact with the wrong application
          * or failing to find the game entirely.
          */
-        private void _testProcessName()
+        private void _testDeserializeName()
         {
-            var output = new MaplestoryBotConfigurationDeserializer().Deserialize(_fixture());
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
             Debug.Assert(output.ProcessName == "some_process");
         }
 
@@ -98,9 +99,9 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
          * and execute the configured response when health drops below certain thresholds,
          * ensuring the character doesn't unexpectedly die during automation.
          */
-        private void _testDeserializeHp()
-        {
-            var output = new MaplestoryBotConfigurationDeserializer().Deserialize(_fixture());
+        private void _testDeserializeHp() {
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
             Debug.Assert(output.Hp.Rect.SequenceEqual([123, 234, 345, 456]));
             Debug.Assert(output.Hp.Pixel.SequenceEqual([234, 345]));
             Debug.Assert(output.Hp.Rgb.SequenceEqual([345, 456, 567]));
@@ -117,7 +118,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
          */
         private void _testDeserializeMp()
         {
-            var output = new MaplestoryBotConfigurationDeserializer().Deserialize(_fixture());
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
             Debug.Assert(output.Mp.Rect.SequenceEqual([234, 345, 567, 678]));
             Debug.Assert(output.Mp.Pixel.SequenceEqual([345, 456]));
             Debug.Assert(output.Mp.Rgb.SequenceEqual([456, 567, 678]));
@@ -132,9 +134,10 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
          * status ailments (like seal or weakness) with the configured macros
          * and timings, preventing the character from being disabled by debuffs.
          */
-        private void _testAilments()
+        private void _testDeserializeAilments()
         {
-            var output = new MaplestoryBotConfigurationDeserializer().Deserialize(_fixture());
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
             Debug.Assert(output.Ailments["seal"].Active == true);
             Debug.Assert(output.Ailments["seal"].ActiveDelay == 123);
             Debug.Assert(output.Ailments["seal"].Threshold == 234);
@@ -157,9 +160,10 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
          * like the player character and runes, enabling accurate navigation
          * and interaction with the game environment.
          */
-        private void _testMapIcons()
+        private void _testDeserializeMapIcons()
         {
-            var output = new MaplestoryBotConfigurationDeserializer().Deserialize(_fixture());
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
             Debug.Assert(output.MapIcons["character"].Image == "some_image_3");
             Debug.Assert(output.MapIcons["rune"].Image == "some_image_4");
         }
@@ -173,11 +177,11 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
          */
         public void Run()
         {
-            _testProcessName();
+            _testDeserializeName();
             _testDeserializeHp();
             _testDeserializeMp();
-            _testAilments();
-            _testMapIcons();
+            _testDeserializeAilments();
+            _testDeserializeMapIcons();
         }
     }
 
@@ -511,7 +515,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
          */
         private void _testLoadImage()
         {
-            var imagePath = "Systems/Configuration/Tests/LoadImageTestData.gif";
+            var imagePath = "Systems/Configuration/Tests/TestData/LoadImageTestData.gif";
             var image = new MaplestoryBotImageLoader().LoadImage(imagePath);
             Debug.Assert(image.Frames.Count == 3);
             for (int i = 0; i < image.Frames.Count; i++)

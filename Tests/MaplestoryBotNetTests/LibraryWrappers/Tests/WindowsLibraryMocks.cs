@@ -1,4 +1,6 @@
-﻿using MaplestoryBotNet.WindowsLibrary;
+﻿using MaplestoryBotNet.LibraryWrappers;
+using MaplestoryBotNetTests.TestHelpers;
+
 
 namespace MaplestoryBotNetTests.WindowsLibrary.Tests
 {
@@ -13,7 +15,7 @@ namespace MaplestoryBotNetTests.WindowsLibrary.Tests
         public List<bool> GetClientRectReturn = [];
         public override bool GetClientRect(IntPtr hWnd, out RECT lpRect)
         {
-            var callReference = new TestUtils().Reference(this) + "GetClientRect";
+            var callReference = new TestUtilities().Reference(this) + "GetClientRect";
             CallOrder.Add(callReference);
             GetClientRectCalls++;
             GetClientRectCallArg_hWnd.Add(hWnd);
@@ -33,7 +35,7 @@ namespace MaplestoryBotNetTests.WindowsLibrary.Tests
         public List<bool> ClientToScreenReturn = [];
         public override bool ClientToScreen(IntPtr hWnd, ref POINTSTRUCT lpPoint)
         {
-            var callReference = new TestUtils().Reference(this) + "ClientToScreen";
+            var callReference = new TestUtilities().Reference(this) + "ClientToScreen";
             CallOrder.Add(callReference);
             ClientToScreenCalls++;
             ClientToScreenCallArg_hWnd.Add(hWnd);
@@ -49,7 +51,6 @@ namespace MaplestoryBotNetTests.WindowsLibrary.Tests
             if (ClientToScreenIndex < ClientToScreenReturn.Count)
                 return ClientToScreenReturn[ClientToScreenIndex++];
             throw new IndexOutOfRangeException();
-
         }
 
         public int MonitorFromWindowCalls = 0;
@@ -59,7 +60,7 @@ namespace MaplestoryBotNetTests.WindowsLibrary.Tests
         public List<IntPtr> MonitorFromWindowReturn = [];
         public override IntPtr MonitorFromWindow(IntPtr hWnd, uint dwFlags)
         {
-            var callReference = new TestUtils().Reference(this) + "MonitorFromWindow";
+            var callReference = new TestUtilities().Reference(this) + "MonitorFromWindow";
             CallOrder.Add(callReference);
             MonitorFromWindowCalls++;
             MonitorFromWindowCallArg_hWnd.Add(hWnd);
@@ -76,7 +77,7 @@ namespace MaplestoryBotNetTests.WindowsLibrary.Tests
         public List<bool> GetMonitorInfoReturn = [];
         public override bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFOEX lpmi)
         {
-            var callReference = new TestUtils().Reference(this) + "GetMonitorInfo";
+            var callReference = new TestUtilities().Reference(this) + "GetMonitorInfo";
             CallOrder.Add(callReference);
             GetMonitorInfoCalls++;
             GetMonitorInfoCallArg_hMonitor.Add(hMonitor);
@@ -95,7 +96,6 @@ namespace MaplestoryBotNetTests.WindowsLibrary.Tests
             if (GetMonitorInfoIndex < GetMonitorInfoReturn.Count)
                 return GetMonitorInfoReturn[GetMonitorInfoIndex++];
             throw new IndexOutOfRangeException();
-
         }
 
         public int GetProcessDpiAwarenessCalls = 0;
@@ -105,7 +105,7 @@ namespace MaplestoryBotNetTests.WindowsLibrary.Tests
         public List<int> GetProcessDpiAwarenessReturn = [];
         public override int GetProcessDpiAwareness(IntPtr hProcess, out int value)
         {
-            var callReference = new TestUtils().Reference(this) + "GetProcessDpiAwareness";
+            var callReference = new TestUtilities().Reference(this) + "GetProcessDpiAwareness";
             CallOrder.Add(callReference);
             GetProcessDpiAwarenessCalls++;
             GetProcessDpiAwarenessCallArg_hProcess.Add(hProcess);
@@ -127,7 +127,7 @@ namespace MaplestoryBotNetTests.WindowsLibrary.Tests
         public List<int> SetProcessDpiAwarenessReturn = [];
         public override int SetProcessDpiAwareness(int value)
         {
-            var callReference = new TestUtils().Reference(this) + "SetProcessDpiAwareness";
+            var callReference = new TestUtilities().Reference(this) + "SetProcessDpiAwareness";
             CallOrder.Add(callReference);
             SetProcessDpiAwarenessCalls++;
             SetProcessDpiAwarenessCallArg_value.Add(value);
@@ -141,7 +141,7 @@ namespace MaplestoryBotNetTests.WindowsLibrary.Tests
         public List<bool> SetProcessDPIAwareReturn = [];
         public override bool SetProcessDPIAware()
         {
-            var callReference = new TestUtils().Reference(this) + "SetProcessDPIAware";
+            var callReference = new TestUtilities().Reference(this) + "SetProcessDPIAware";
             CallOrder.Add(callReference);
             if (SetProcessDPIAwareIndex < SetProcessDPIAwareReturn.Count)
                 return SetProcessDPIAwareReturn[SetProcessDPIAwareIndex++];
@@ -154,7 +154,7 @@ namespace MaplestoryBotNetTests.WindowsLibrary.Tests
         public List<bool> IsWindowReturn = [];
         public override bool IsWindow(IntPtr hWnd)
         {
-            var callReference = new TestUtils().Reference(this) + "IsWindow";
+            var callReference = new TestUtilities().Reference(this) + "IsWindow";
             CallOrder.Add(callReference);
             IsWindowCalls++;
             IsWindowCallArg_hWnd.Add(hWnd);

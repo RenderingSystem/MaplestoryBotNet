@@ -7,12 +7,29 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\..\Interception.net\Interception\InterceptionInterop.cs" Link="Interception.net\Interception\InterceptionInterop.cs" />
+    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32.cs" Link="Interception.net\Interception\WinApi\Kernel32.cs" />
+    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\AccessMask.cs" Link="Interception.net\Interception\WinApi\Kernel32\AccessMask.cs" />
+    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\FileCreationDisposition.cs" Link="Interception.net\Interception\WinApi\Kernel32\FileCreationDisposition.cs" />
+    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\FileFlagsAndAttributes.cs" Link="Interception.net\Interception\WinApi\Kernel32\FileFlagsAndAttributes.cs" />
+    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\FileShareMode.cs" Link="Interception.net\Interception\WinApi\Kernel32\FileShareMode.cs" />
+    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\HeapFlags.cs" Link="Interception.net\Interception\WinApi\Kernel32\HeapFlags.cs" />
+    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\NativeOverlapped.cs" Link="Interception.net\Interception\WinApi\Kernel32\NativeOverlapped.cs" />
+    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\SecurityAttributes.cs" Link="Interception.net\Interception\WinApi\Kernel32\SecurityAttributes.cs" />
+    <Compile Include="..\..\LibraryWrappers\InterceptionLibrary.cs" Link="LibraryWrappers\InterceptionLibrary.cs" />
+    <Compile Include="..\..\LibraryWrappers\WindowsLibrary.cs" Link="LibraryWrappers\WindowsLibrary.cs" />
     <Compile Include="..\..\Systems\AbstractSystem.cs" Link="Systems\AbstractSystem.cs" />
-    <Compile Include="..\..\Systems\Configuration\Configuration.cs" Link="Systems\Configuration\Configuration.cs" />
-    <Compile Include="..\..\Systems\ScreenCapture\ScreenCapture.cs" Link="Systems\ScreenCapture\ScreenCapture.cs" />
+    <Compile Include="..\..\Systems\Configuration\ConfigurationSystem.cs" Link="Systems\Configuration\ConfigurationSystem.cs" />
+    <Compile Include="..\..\Systems\Configuration\SubSystems\AbstractConfiguration.cs" Link="Systems\Configuration\SubSystems\AbstractConfiguration.cs" />
+    <Compile Include="..\..\Systems\Configuration\SubSystems\Configuration.cs" Link="Systems\Configuration\SubSystems\Configuration.cs" />
+    <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationImages.cs" Link="Systems\Configuration\SubSystems\ConfigurationImages.cs" />
+    <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationKeyboard.cs" Link="Systems\Configuration\SubSystems\ConfigurationKeyboard.cs" />
+    <Compile Include="..\..\Systems\Configuration\SubSystems\FileReader.cs" Link="Systems\Configuration\SubSystems\FileReader.cs" />
+    <Compile Include="..\..\Systems\Keyboard\KeyboardDeviceDetector.cs" Link="Systems\Keyboard\KeyboardDeviceDetector.cs" />
+    <Compile Include="..\..\Systems\Keyboard\KeystrokeTransmitter.cs" Link="Systems\Keyboard\KeystrokeTransmitter.cs" />
     <Compile Include="..\..\Systems\ScreenCapture\ScreenCaptureSystem.cs" Link="Systems\ScreenCapture\ScreenCaptureSystem.cs" />
+    <Compile Include="..\..\Systems\ScreenCapture\SubSystems\ScreenCapture.cs" Link="Systems\ScreenCapture\SubSystems\ScreenCapture.cs" />
     <Compile Include="..\..\ThreadingUtils\ThreadingUtils.cs" Link="ThreadingUtils\ThreadingUtils.cs" />
-    <Compile Include="..\..\WindowsLibrary\WindowsLibrary.cs" Link="WindowsLibrary\WindowsLibrary.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ScreenCapture.NET.DX11" Version="3.0.0" />
@@ -20,8 +37,31 @@
     <PackageReference Include="System.Drawing.Common" Version="9.0.8" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="Systems\Configuration\Tests\LoadImageTestData.gif">
+    <None Update="Systems\Configuration\Tests\TestData\ConfigurationImagesTestData1.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Systems\Configuration\Tests\ConfigurationImagesTestData1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Systems\Configuration\Tests\TestData\ConfigurationImagesTestData2.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Systems\Configuration\Tests\ConfigurationImagesTestData2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Systems\Configuration\Tests\TestData\ConfigurationImagesTestData3.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Systems\Configuration\Tests\ConfigurationImagesTestData3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Systems\Configuration\Tests\TestData\LoadImageTestData.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Interception.net\Interception\WinApi\Kernel32\" />
+    <Folder Include="Systems\Configuration\SubSystems\" />
+    <Folder Include="Systems\ScreenCapture\SubSystems\" />
   </ItemGroup>
 </Project>

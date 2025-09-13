@@ -5,6 +5,9 @@ using System.Diagnostics;
 using MaplestoryBotNetTests.ThreadingUtils;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNet.Systems;
+using MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks;
+using MaplestoryBotNetTests.TestHelpers;
+
 
 namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
 {
@@ -353,7 +356,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         private void _testPublishWaitsForCountDownAfterNotifyingSubscribers()
         {
             var publisher = _fixture();
-            var utils = new TestUtils();
+            var utils = new TestUtilities();
             publisher.Publish(_image, false);
             var setCountDownIndex = _callOrder.IndexOf(utils.Reference(_countDown) + "SetCountDown");
             var waitCountDownIndex = _callOrder.IndexOf(utils.Reference(_countDown) + "WaitCountDown");
@@ -600,7 +603,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
          */
         private void _testSubscriberProcessingSequence()
         {
-            var utils = new TestUtils();
+            var utils = new TestUtilities();
             for (int i = 0; i < 10; i++)
             {
                 var subscriberThread = _fixture();

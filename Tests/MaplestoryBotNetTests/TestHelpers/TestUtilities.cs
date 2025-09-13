@@ -1,8 +1,9 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace MaplestoryBotNetTests
+
+namespace MaplestoryBotNetTests.TestHelpers
 {
-    public class TestUtils
+    public class TestUtilities
     {
         public string Reference(object obj)
         {

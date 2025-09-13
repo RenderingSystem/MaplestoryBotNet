@@ -17,6 +17,11 @@
 
         public abstract void ThreadLoop();
 
+        public virtual object? ThreadResult()
+        {
+            return null;
+        }
+
         public virtual void ThreadStart()
         {
             if (_runningState.IsRunning())

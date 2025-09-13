@@ -23,9 +23,35 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove=".gitignore" />
+    <None Remove=".gitmodules" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Interception.net\Interception\InterceptionInterop.cs" />
+    <Compile Include="Interception.net\Interception\WinApi\Kernel32.cs" />
+    <Compile Include="Interception.net\Interception\WinApi\Kernel32\AccessMask.cs" />
+    <Compile Include="Interception.net\Interception\WinApi\Kernel32\FileCreationDisposition.cs" />
+    <Compile Include="Interception.net\Interception\WinApi\Kernel32\FileFlagsAndAttributes.cs" />
+    <Compile Include="Interception.net\Interception\WinApi\Kernel32\FileShareMode.cs" />
+    <Compile Include="Interception.net\Interception\WinApi\Kernel32\HeapFlags.cs" />
+    <Compile Include="Interception.net\Interception\WinApi\Kernel32\NativeOverlapped.cs" />
+    <Compile Include="Interception.net\Interception\WinApi\Kernel32\SecurityAttributes.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ScreenCapture.NET.DX11" Version="3.0.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Configuration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="KeyboardEncoding.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -5,10 +5,9 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
 
-
-namespace MaplestoryBotNet.Systems.Configuration
+namespace MaplestoryBotNet.Systems.Configuration.SubSystems
 {
-    public class Resource
+    public class Resource : AbstractConfiguration
     {
         [JsonPropertyName("rect")]
         public int[] Rect { get; set; } = [0, 0, 0, 0];
@@ -24,10 +23,21 @@ namespace MaplestoryBotNet.Systems.Configuration
 
         [JsonPropertyName("active")]
         public bool Active { get; set; } = false;
+
+        public override AbstractConfiguration Copy()
+        {
+            var resource =  new Resource();
+            Rect.CopyTo(resource.Rect, 0);
+            Pixel.CopyTo(resource.Pixel, 0);
+            Rgb.CopyTo(resource.Rgb, 0);
+            resource.Key = new string(Key);
+            resource.Active = Active;
+            return resource;
+        }
     }
 
 
-    public class Ailment
+    public class Ailment : AbstractConfiguration
     {
         [JsonPropertyName("active")]
         public bool Active { get; set; } = false;
@@ -46,17 +56,36 @@ namespace MaplestoryBotNet.Systems.Configuration
 
         [JsonPropertyName("static_rect")]
         public int[] StaticRect { get; set; } = [];
+
+        public override AbstractConfiguration Copy()
+        {
+            var ailment = new Ailment();
+            ailment.Active = Active;
+            ailment.ActiveDelay = ActiveDelay;
+            ailment.Threshold = Threshold;
+            MacroCommands.CopyTo(ailment.MacroCommands, 0);
+            ailment.Image = new string(Image);
+            StaticRect.CopyTo(ailment.StaticRect, 0);
+            return ailment;
+        }
     }
 
 
-    public class MapIcon
+    public class MapIcon : AbstractConfiguration
     {
         [JsonPropertyName("image")]
         public string Image { get; set; } = "";
+
+        public override AbstractConfiguration Copy()
+        {
+            var mapIcon = new MapIcon();
+            mapIcon.Image = new string(Image);
+            return mapIcon;
+        }
     }
 
 
-    public class MaplestoryBotConfiguration
+    public class MaplestoryBotConfiguration : AbstractConfiguration
     {
         [JsonPropertyName("process_name")]
         public string ProcessName { get; set; } = "";
@@ -75,18 +104,32 @@ namespace MaplestoryBotNet.Systems.Configuration
 
         [JsonPropertyName("map_icons")]
         public Dictionary<string, MapIcon> MapIcons { get; set; } = new Dictionary<string, MapIcon>();
+
+        public override AbstractConfiguration Copy()
+        {
+            var configuration = new MaplestoryBotConfiguration();
+            configuration.ProcessName = new string(ProcessName);
+            configuration.Hp = (Resource)Hp.Copy();
+            configuration.Mp = (Resource)Mp.Copy();
+            foreach (var item in Ailments)
+                configuration.Ailments.Add(new string(item.Key), (Ailment)item.Value.Copy());
+            configuration.AilmentsAllcureKey = new string(AilmentsAllcureKey);
+            foreach (var item in MapIcons)
+                configuration.MapIcons.Add(new string(item.Key), (MapIcon)item.Value.Copy());
+            return configuration;
+        }
     }
 
 
-    public abstract class AbstractMaplestoryBotConfigurationSerializer
+    public abstract class AbstractMaplestoryBotConfigurationSerializer : AbstractSerializer
     {
-        public abstract string Serialize(MaplestoryBotConfiguration configuration);
+        public abstract string SerializeBotConfiguration(MaplestoryBotConfiguration configuration);
     }
 
 
-    public abstract class AbstractMaplestoryBotConfigurationDeserializer
+    public abstract class AbstractMaplestoryBotConfigurationDeserializer : AbstractDeserializer
     {
-        public abstract MaplestoryBotConfiguration Deserialize(string jsonString);
+        public abstract MaplestoryBotConfiguration DeserializeBotConfiguration(string jsonString);
     }
 
 
@@ -99,7 +142,7 @@ namespace MaplestoryBotNet.Systems.Configuration
 
     public class MaplestoryBotConfigurationDeserializer : AbstractMaplestoryBotConfigurationDeserializer
     {
-        public override MaplestoryBotConfiguration Deserialize(string jsonString)
+        public override MaplestoryBotConfiguration DeserializeBotConfiguration(string jsonString)
         {
             var options = new JsonSerializerOptions
             {
@@ -111,12 +154,17 @@ namespace MaplestoryBotNet.Systems.Configuration
             Debug.Assert(result != null);
             return result;
         }
+
+        public override object Deserialize(string data)
+        {
+            return DeserializeBotConfiguration(data);
+        }
     }
 
 
     public class MaplestoryBotConfigurationSerializer : AbstractMaplestoryBotConfigurationSerializer
     {
-        public override string Serialize(MaplestoryBotConfiguration configuration)
+        public override string SerializeBotConfiguration(MaplestoryBotConfiguration configuration)
         {
             var options = new JsonSerializerOptions
             {
@@ -128,6 +176,11 @@ namespace MaplestoryBotNet.Systems.Configuration
             };
             var result = JsonSerializer.Serialize(configuration, options);
             return result;
+        }
+
+        public override string Serialize(object obj)
+        {
+            return SerializeBotConfiguration((MaplestoryBotConfiguration) obj);
         }
     }
 

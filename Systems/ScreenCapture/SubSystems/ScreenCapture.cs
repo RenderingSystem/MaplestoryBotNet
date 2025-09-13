@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using MaplestoryBotNet.WindowsLibrary;
+using MaplestoryBotNet.LibraryWrappers;
 using ScreenCapture.NET;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -204,7 +204,6 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             }
             return captureZone;
         }
-
 
         public override Tuple<int, int, int, int>? GetCaptureArea(
             nint windowHandle, MONITORINFOEX monitorInfo

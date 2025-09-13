@@ -1,9 +1,10 @@
-﻿using MaplestoryBotNet.Systems.Configuration;
+﻿using MaplestoryBotNetTests.TestHelpers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using MaplestoryBotNet.Systems.Configuration.SubSystems;
 
 
-namespace MaplestoryBotNetTests.Systems.Configuration.Tests
+namespace MaplestoryBotNetTests.Systems.Configuration.Tests.Mocks
 {
     public class MockMaplestoryBotConfigurationDeserializer : AbstractMaplestoryBotConfigurationDeserializer
     {
@@ -13,15 +14,20 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         public int DeserializeIndex = 0;
         public List<string> DeserializeCallArg_jsonString = [];
         public List<MaplestoryBotConfiguration> DeserializeReturn = [];
-        public override MaplestoryBotConfiguration Deserialize(string jsonString)
+        public override MaplestoryBotConfiguration DeserializeBotConfiguration(string jsonString)
         {
-            var callReference = new TestUtils().Reference(this) + "Deserialize";
+            var callReference = new TestUtilities().Reference(this) + "Deserialize";
             CallOrder.Add(callReference);
             DeserializeCalls++;
             DeserializeCallArg_jsonString.Add(jsonString);
             if (DeserializeIndex < DeserializeReturn.Count)
                 return DeserializeReturn[DeserializeIndex++];
             throw new IndexOutOfRangeException();
+        }
+
+        public override object Deserialize(string data)
+        {
+            return DeserializeBotConfiguration(data);
         }
     }
 
@@ -34,14 +40,19 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         public int SerializeIndex = 0;
         public List<MaplestoryBotConfiguration> SerializeCallArg_configuration = [];
         public List<string> SerializeReturn = [];
-        public override string Serialize(MaplestoryBotConfiguration configuration)
+        public override string SerializeBotConfiguration(MaplestoryBotConfiguration configuration)
         {
-            var callReference = new TestUtils().Reference(this) + "Serialize";
+            var callReference = new TestUtilities().Reference(this) + "Serialize";
             CallOrder.Add(callReference);
             SerializeCalls++;
             if (SerializeIndex < SerializeReturn.Count)
                 return SerializeReturn[SerializeIndex++];
             throw new IndexOutOfRangeException();
+        }
+
+        public override string Serialize(object obj)
+        {
+            return SerializeBotConfiguration((MaplestoryBotConfiguration)obj);
         }
     }
 
@@ -56,7 +67,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         public List<Image<Bgra32>> LoadImageReturn = [];
         public override Image<Bgra32> LoadImage(string imagePath)
         {
-            var callReference = new TestUtils().Reference(this) + "LoadImage";
+            var callReference = new TestUtilities().Reference(this) + "LoadImage";
             CallOrder.Add(callReference);
             LoadImageCalls++;
             if (LoadImageIndex < LoadImageReturn.Count)

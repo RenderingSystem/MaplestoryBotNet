@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using MaplestoryBotNet.Systems.ScreenCapture;
-using MaplestoryBotNet.WindowsLibrary;
+using MaplestoryBotNet.LibraryWrappers;
+using MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks;
 using MaplestoryBotNetTests.WindowsLibrary.Tests;
 using ScreenCapture.NET;
+using MaplestoryBotNetTests.TestHelpers;
 
 
 namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
@@ -143,7 +145,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             Debug.Assert(capture != null);
             Debug.Assert(captureZone != null);
             var mockCapture = (MockScreenCapture)capture;
-            var mockCaptureRef = new TestUtils().Reference(mockCapture);
+            var mockCaptureRef = new TestUtilities().Reference(mockCapture);
             var result = helper.UpdateCaptureZone(capture, captureArea);
             var updateCaptureZoneIndex = mockCapture.CallOrder.IndexOf(mockCaptureRef + "UpdateCaptureZone");
             var captureScreenIndex = mockCapture.CallOrder.IndexOf(mockCaptureRef + "CaptureScreen");
@@ -616,7 +618,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         private void _testInitializeRegistersDisplays()
         {
             var screenCapture = _fixture();
-            var callReference = new TestUtils().Reference(_monitorDisplaysHelper);
+            var callReference = new TestUtilities().Reference(_monitorDisplaysHelper);
             screenCapture.Initialize();
             Debug.Assert(_monitorDisplaysHelper.CallOrder.Count == 2);
             Debug.Assert(_monitorDisplaysHelper.CallOrder[0] == callReference + "RegisterDisplays");
@@ -711,7 +713,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
          */
         private void _testCapturePerformsScreenCaptureBeforeGeneratingImage()
         {
-            var utils = new TestUtils();
+            var utils = new TestUtilities();
             var screenCapture = _fixture();
             var captureScreenRef = utils.Reference(_screenCapture) + "CaptureScreen";
             var generateImageRef = utils.Reference(_captureImageGenerator) + "GenerateImage";
@@ -871,7 +873,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
           */
         private void _testCapturePerformsInitializationBeforeScreenCapture()
         {
-            var utils = new TestUtils();
+            var utils = new TestUtilities();
             var captureOrchestrator = _fixture();
             var windowsLibraryRef = utils.Reference(_windowsLibrary);
             var screenCaptureModuleRef = utils.Reference(_screenCaptureModule);
@@ -892,7 +894,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
          */
         private void _testCaptureAfterFindingWindowOnlyCapturesAndDoesntInitialize()
         {
-            var utils = new TestUtils();
+            var utils = new TestUtilities();
             var captureOrchestrator = _fixture();
             var windowsLibraryRef = utils.Reference(_windowsLibrary);
             var screenCaptureModuleRef = utils.Reference(_screenCaptureModule);
