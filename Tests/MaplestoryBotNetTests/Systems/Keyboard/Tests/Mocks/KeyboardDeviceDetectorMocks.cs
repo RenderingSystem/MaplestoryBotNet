@@ -1,8 +1,8 @@
-﻿using MaplestoryBotNet.Systems.Keyboard;
+﻿using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using MaplestoryBotNetTests.TestHelpers;
 
 
-namespace MaplestoryBotNetTests.Systems.Keyboard.Mocks
+namespace MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks
 {
     internal class MockKeyboardDeviceDetector : AbstractKeyboardDeviceDetector
     {

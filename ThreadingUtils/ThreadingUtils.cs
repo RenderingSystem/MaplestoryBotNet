@@ -42,7 +42,10 @@
         public virtual bool ThreadJoin(int milliseconds)
         {
             if (_thread != null && _thread.IsAlive)
-                return _thread.Join(milliseconds);
+            {
+                int timeout = milliseconds < 0 ? Timeout.Infinite : milliseconds;
+                return _thread.Join(timeout);
+            }
             return true;
         }
     }

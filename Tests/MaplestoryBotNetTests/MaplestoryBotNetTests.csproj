@@ -25,8 +25,10 @@
     <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationImages.cs" Link="Systems\Configuration\SubSystems\ConfigurationImages.cs" />
     <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationKeyboard.cs" Link="Systems\Configuration\SubSystems\ConfigurationKeyboard.cs" />
     <Compile Include="..\..\Systems\Configuration\SubSystems\FileReader.cs" Link="Systems\Configuration\SubSystems\FileReader.cs" />
-    <Compile Include="..\..\Systems\Keyboard\KeyboardDeviceDetector.cs" Link="Systems\Keyboard\KeyboardDeviceDetector.cs" />
-    <Compile Include="..\..\Systems\Keyboard\KeystrokeTransmitter.cs" Link="Systems\Keyboard\KeystrokeTransmitter.cs" />
+    <Compile Include="..\..\Systems\Keyboard\KeyboardSystem.cs" Link="Systems\Keyboard\KeyboardSystem.cs" />
+    <Compile Include="..\..\Systems\Keyboard\SubSystems\KeyboardDeviceDetector.cs" Link="Systems\Keyboard\SubSystems\KeyboardDeviceDetector.cs" />
+    <Compile Include="..\..\Systems\Keyboard\SubSystems\KeystrokeTransmitter.cs" Link="Systems\Keyboard\SubSystems\KeystrokeTransmitter.cs" />
+    <Compile Include="..\..\Systems\MainSystem.cs" Link="Systems\MainSystem.cs" />
     <Compile Include="..\..\Systems\ScreenCapture\ScreenCaptureSystem.cs" Link="Systems\ScreenCapture\ScreenCaptureSystem.cs" />
     <Compile Include="..\..\Systems\ScreenCapture\SubSystems\ScreenCapture.cs" Link="Systems\ScreenCapture\SubSystems\ScreenCapture.cs" />
     <Compile Include="..\..\ThreadingUtils\ThreadingUtils.cs" Link="ThreadingUtils\ThreadingUtils.cs" />

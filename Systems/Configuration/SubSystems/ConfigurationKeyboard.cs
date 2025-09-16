@@ -33,6 +33,19 @@ namespace MaplestoryBotNet.Systems.Configuration
                 keyboardMapping.Functions.Add(item.Key, item.Value);
             return keyboardMapping;
         }
+
+        public string GetMapping(string key)
+        {
+            if (Functions.ContainsKey(key))
+                return Functions[key];
+            if (Specials.ContainsKey(key))
+                return Specials[key];
+            if (Characters.ContainsKey(key))
+                return Characters[key];
+            if (Numpad.ContainsKey(key))
+                return Numpad[key];
+            return "";
+        }
     }
 
 

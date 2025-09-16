@@ -70,13 +70,13 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             var result = (KeyboardMapping) deserializer.Deserialize(_fixture());
             var expected = _expected();
             foreach (var kvp in expected.Characters)
-                Debug.Assert(result.Characters[kvp.Key] == kvp.Value);
+                Debug.Assert(result.GetMapping(kvp.Key) == kvp.Value);
             foreach (var kvp in expected.Specials)
-                Debug.Assert(result.Specials[kvp.Key] == kvp.Value);
+                Debug.Assert(result.GetMapping(kvp.Key) == kvp.Value);
             foreach (var kvp in expected.Numpad)
-                Debug.Assert(result.Numpad[kvp.Key] == kvp.Value);
+                Debug.Assert(result.GetMapping(kvp.Key) == kvp.Value);
             foreach (var kvp in expected.Functions)
-                Debug.Assert(result.Functions[kvp.Key] == kvp.Value);
+                Debug.Assert(result.GetMapping(kvp.Key) == kvp.Value);
         }
 
         public void Run()

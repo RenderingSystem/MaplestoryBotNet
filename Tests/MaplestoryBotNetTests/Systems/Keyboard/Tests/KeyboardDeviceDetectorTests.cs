@@ -1,9 +1,10 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
 using MaplestoryBotNet.Systems;
-using MaplestoryBotNet.Systems.Keyboard;
+using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using MaplestoryBotNetTests.LibraryWrappers.Tests;
-using MaplestoryBotNetTests.Systems.Keyboard.Mocks;
+using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
 

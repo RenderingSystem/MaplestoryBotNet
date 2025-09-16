@@ -400,18 +400,13 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
     }
 
 
-    public class GameScreenCaptureSystemFacade : AbstractSystem
+    public class GameScreenCaptureSystemBuilder : AbstractSystemBuilder
     {
-        private GameScreenCaptureSystem _captureSystem;
+        private List<AbstractScreenCaptureSubscriber> _subscribers = [];
+
         private AbstractScreenCaptureStore _store()
         {
             return new GameScreenCaptureStore();
-        }
-
-        private List<AbstractScreenCaptureSubscriber> _subscribers()
-        {
-            var semaphore = new SemaphoreSlim(0, 1);
-            return [new NullScreenCaptureSubscriber(semaphore)];
         }
 
         private AbstractThreadFactory _subscriberThreadFactory(
@@ -420,7 +415,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         )
         {
             return new GameScreenCaptureSubscriberThreadFactory(
-                    subscriber, publisher
+                subscriber, publisher
             );
         }
 
@@ -430,7 +425,8 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         )
         {
             var subscriberThreadFactories = new List<AbstractThreadFactory>();
-            for (int i = 0; i < subscribers.Count; i++) {
+            for (int i = 0; i < subscribers.Count; i++)
+            {
                 var subscriber = subscribers[i];
                 var subscriberThreadFactory = _subscriberThreadFactory(publisher, subscriber);
                 subscriberThreadFactories.Add(subscriberThreadFactory);
@@ -469,26 +465,23 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             return new GameScreenCaptureSubscriberSystem(subscriberThreadFactories);
         }
 
-        public GameScreenCaptureSystemFacade()
+        public override AbstractSystem Build()
         {
             var store = _store();
-            var subscribers = _subscribers();
-            var publisher = _publisher(subscribers);
+            var publisher = _publisher(_subscribers);
             var publisherThreadFactory = _publisherThreadFactory(store, publisher);
-            var subscriberThreadFactories = _subscriberThreadFactories(publisher, subscribers);
+            var subscriberThreadFactories = _subscriberThreadFactories(publisher, _subscribers);
             var publisherSystem = _publisherSystem(publisherThreadFactory);
             var subscriberSystem = _subscriberSystem(subscriberThreadFactories);
-            _captureSystem = new GameScreenCaptureSystem([publisherSystem, subscriberSystem]);
+            return new GameScreenCaptureSystem([publisherSystem, subscriberSystem]);
         }
 
-        public override void InitializeSystem()
+        public override AbstractSystemBuilder WithArg(object arg)
         {
-            _captureSystem.InitializeSystem();
-        }
-
-        public override void StartSystem()
-        {
-            _captureSystem.StartSystem();
+            if (arg is AbstractScreenCaptureSubscriber)
+                _subscribers.Add((AbstractScreenCaptureSubscriber)arg);
+            return this;
         }
     }
+
 }

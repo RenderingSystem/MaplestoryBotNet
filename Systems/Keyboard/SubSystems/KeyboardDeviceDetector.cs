@@ -1,9 +1,8 @@
-﻿using System.Windows.Input;
-using MaplestoryBotNet.LibraryWrappers;
+﻿using MaplestoryBotNet.LibraryWrappers;
 using MaplestoryBotNet.ThreadingUtils;
 
 
-namespace MaplestoryBotNet.Systems.Keyboard
+namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
 {
     public class KeyboardDeviceContext
     {
@@ -118,17 +117,17 @@ namespace MaplestoryBotNet.Systems.Keyboard
 
         private KeyboardDeviceContext? _keyboardDevice;
 
-        private AbstractInjector _injector;
+        private AbstractInjector _keyboardDeviceInjector;
 
         public KeyboardDeviceDetectorSystem(
             AbstractThreadFactory keyboardDeviceDetectorThreadFactory,
-            AbstractInjector injector
+            AbstractInjector keyboardDeviceInjector
         )
         {
             _keyboardDeviceDetectorThreadFactory = keyboardDeviceDetectorThreadFactory;
             _keyboardDeviceDetectorThread = null;
             _keyboardDevice = null;
-            _injector = injector;
+            _keyboardDeviceInjector = keyboardDeviceInjector;
         }
 
         public override void InitializeSystem()
@@ -145,12 +144,13 @@ namespace MaplestoryBotNet.Systems.Keyboard
 
         public override void UpdateSystem()
         {
-            if (_keyboardDevice != null)
-                return;
-            if (_keyboardDeviceDetectorThread != null)
-                _keyboardDevice = (KeyboardDeviceContext?)_keyboardDeviceDetectorThread.ThreadResult();
-            if (_keyboardDevice != null)
-                _injector.Inject(SystemInjectType.KeyboardDevice, _keyboardDevice);
+            if (_keyboardDevice == null)
+            {
+                if (_keyboardDeviceDetectorThread != null)
+                    _keyboardDevice = (KeyboardDeviceContext?)_keyboardDeviceDetectorThread.ThreadResult();
+                if (_keyboardDevice != null)
+                    _keyboardDeviceInjector.Inject(SystemInjectType.KeyboardDevice, _keyboardDevice);
+            }
         }
     }
 
@@ -176,3 +176,4 @@ namespace MaplestoryBotNet.Systems.Keyboard
     }
 
 }
+     

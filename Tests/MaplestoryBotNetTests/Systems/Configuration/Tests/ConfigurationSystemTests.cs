@@ -2,6 +2,7 @@
 using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNetTests.Systems.Configuration.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Tests;
 
 
 namespace MaplestoryBotNetTests.Systems.Configuration.Tests
@@ -15,6 +16,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         List<MockConfiguration> _configurations = [];
 
         List<MockConfiguration> _configurationCopies = [];
+
+        MockInjector _injector = new MockInjector();
 
         /**
          * @brief Creates a complete test environment for configuration system testing
@@ -46,8 +49,9 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             ];
             _reader = new MockFileReader();
             _reader.ReadFileReturn = ["content_1", "content_2", "content_3"];
+            _injector = new MockInjector();
             _setupConfigurations();
-            return new ConfigurationSystem(_configurationEntries, _reader);
+            return new ConfigurationSystem(_configurationEntries, _reader, _injector);
         }
 
 

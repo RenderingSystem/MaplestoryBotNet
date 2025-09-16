@@ -122,13 +122,14 @@ namespace MaplestoryBotNetTests.LibraryWrappers.Tests
         public int SendIndex = 0;
         public List<nint> SendCallArg_context = [];
         public List<int> SendCallArg_device = [];
-        public List<nint> SendCallArg_stroke = [];
+        public List<InterceptionInterop.Stroke> SendCallArg_stroke = [];
         public List<int> SendCallArg_nstroke = [];
         public List<int> SendReturn = [];
         public override unsafe int Send(
             nint context,
             int device,
-            InterceptionInterop.Stroke* stroke, int nstroke
+            InterceptionInterop.Stroke* stroke,
+            int nstroke
         )
         {
             var callReference = new TestUtilities().Reference(this) + "Send";
@@ -136,7 +137,7 @@ namespace MaplestoryBotNetTests.LibraryWrappers.Tests
             SendCalls++;
             SendCallArg_context.Add(context);
             SendCallArg_device.Add(device);
-            SendCallArg_stroke.Add((nint)stroke);
+            SendCallArg_stroke.Add(*stroke);
             SendCallArg_nstroke.Add(nstroke);
             if (SendIndex < SendCallArg_context.Count)
                 return SendReturn[SendIndex++];

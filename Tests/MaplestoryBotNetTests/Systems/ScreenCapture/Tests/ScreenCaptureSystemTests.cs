@@ -7,6 +7,7 @@ using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNet.Systems;
 using MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
+using MaplestoryBotNetTests.Systems.Tests;
 
 
 namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests

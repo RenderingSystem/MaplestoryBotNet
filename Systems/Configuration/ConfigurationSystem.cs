@@ -46,12 +46,16 @@ namespace MaplestoryBotNet.Systems.Configuration
 
         private AbstractFileReader _fileReader;
 
+        private AbstractInjector _configurationInjector;
+
         public ConfigurationSystem(
             List<ConfigurationEntry> configurationEntries,
-            AbstractFileReader fileReader
+            AbstractFileReader fileReader,
+            AbstractInjector configurationInjector
         ) {
             _configurationEntries = configurationEntries;
             _fileReader = fileReader;
+            _configurationInjector = configurationInjector;
         }
 
         public override void InitializeSystem()
@@ -69,6 +73,15 @@ namespace MaplestoryBotNet.Systems.Configuration
 
         public override void StartSystem()
         {
+            for (int i = 0; i < _configurationEntries.Count; i++) {
+                var configurationEntry = _configurationEntries[i];
+                if (configurationEntry.Deserialized != null)
+                {
+                    _configurationInjector.Inject(
+                        SystemInjectType.Configuration, configurationEntry.Deserialized
+                    );
+                }
+            }
         }
 
         public virtual AbstractConfiguration? GetConfiguration(ConfigurationType key)
@@ -96,6 +109,7 @@ namespace MaplestoryBotNet.Systems.Configuration
 
         public virtual void SetConfiguration(ConfigurationType key, AbstractConfiguration configuration)
         {
+            bool updated = false;
             for (int i = 0; i < _configurationEntries.Count; i++)
             {
                 var entry = _configurationEntries[i];
@@ -105,6 +119,7 @@ namespace MaplestoryBotNet.Systems.Configuration
                     if (entry.ConfigType == key)
                     {
                         entry.Deserialized = configuration;
+                        updated = true;
                         break;
                     }
                 }
@@ -113,17 +128,23 @@ namespace MaplestoryBotNet.Systems.Configuration
                     entry.ReaderWriterLock.ExitWriteLock();
                 }
             }
+            if (updated)
+            {
+                _configurationInjector.Inject(
+                    SystemInjectType.ConfigurationUpdate, configuration
+                );
+            }
         }
     }
 
 
-    public class ConfigurationSystemFacade : AbstractSystem
+    public class ConfigurationSystemBuilder : AbstractSystemBuilder
     {
-        ConfigurationSystem? configurationSystem = null;
+        private List<AbstractSystem> _systems = [];
 
-        public ConfigurationSystemFacade()
+        public override AbstractSystem Build()
         {
-            configurationSystem = new ConfigurationSystem(
+            return new ConfigurationSystem(
                 [
                     new ConfigurationEntry(
                         ConfigurationType.MainConfiguration,
@@ -142,22 +163,18 @@ namespace MaplestoryBotNet.Systems.Configuration
                         ConfigurationType.KeyboardConfiguration,
                         "KeyboardEncoding.json",
                         new KeyboardMappingDeserializer()
-                    )
+                    ),
                 ],
-                new FileReader()
+                new FileReader(),
+                new SystemInjector(_systems)
             );
         }
 
-        public override void InitializeSystem()
+        public override AbstractSystemBuilder WithArg(object arg)
         {
-            if (configurationSystem != null)
-                configurationSystem.InitializeSystem();
-        }
-
-        public override void StartSystem()
-        {
-            if (configurationSystem != null)
-                configurationSystem.StartSystem();
+            if (arg is AbstractSystem)
+                _systems.Add((AbstractSystem)arg);
+            return this;
         }
     }
 }
