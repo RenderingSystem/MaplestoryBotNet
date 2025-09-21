@@ -69,7 +69,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private void _testInitializationCreatesDetectorThread()
         {
             var keyboardSystem = _fixture();
-            keyboardSystem.InitializeSystem();
+            keyboardSystem.Initialize();
             Debug.Assert(_keyboardDeviceDetectorThreadFactory.CreateThreadCalls == 1);
         }
 
@@ -83,8 +83,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private void _testInitializationOnlyCreatesOneThread()
         {
             var keyboardSystem = _fixture();
-            keyboardSystem.InitializeSystem();
-            keyboardSystem.InitializeSystem();
+            keyboardSystem.Initialize();
+            keyboardSystem.Initialize();
             Debug.Assert(_keyboardDeviceDetectorThreadFactory.CreateThreadCalls == 1);
         }
 
@@ -98,8 +98,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private void _testStartSystemStartsDetectorThread()
         {
             var keyboardSystem = _fixture();
-            keyboardSystem.InitializeSystem();
-            keyboardSystem.StartSystem();
+            keyboardSystem.Initialize();
+            keyboardSystem.Start();
             Debug.Assert(_keyboardDeviceDetectorThread.ThreadStartCalls == 1);
         }
 
@@ -113,7 +113,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private void _testStartSystemCannotStartDetectorThreadWithoutInitialization()
         {
             var keyboardSystem = _fixture();
-            keyboardSystem.StartSystem();
+            keyboardSystem.Start();
             Debug.Assert(_keyboardDeviceDetectorThread.ThreadStartCalls == 0);
         }
 
@@ -128,8 +128,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         {
             var keyboardSystem = _fixture();
             _keyboardDeviceDetectorThread.ThreadResultReturn.Add(null);
-            keyboardSystem.InitializeSystem();
-            keyboardSystem.UpdateSystem();
+            keyboardSystem.Initialize();
+            keyboardSystem.Update();
             Debug.Assert(_keyboardDeviceInjector.InjectCalls == 0);
         }
 
@@ -145,8 +145,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             var keyboardSystem = _fixture();
             var deviceContext = new KeyboardDeviceContext(0x1234, 0x2345);
             _keyboardDeviceDetectorThread.ThreadResultReturn.Add(deviceContext);
-            keyboardSystem.InitializeSystem();
-            keyboardSystem.UpdateSystem();
+            keyboardSystem.Initialize();
+            keyboardSystem.Update();
             Debug.Assert(_keyboardDeviceInjector.InjectCalls == 1);
             Debug.Assert(_keyboardDeviceInjector.InjectCallArg_dataType[0] == SystemInjectType.KeyboardDevice);
             Debug.Assert(_keyboardDeviceInjector.InjectCallArg_data[0] == deviceContext);
@@ -164,9 +164,9 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             var keyboardSystem = _fixture();
             var deviceContext = new KeyboardDeviceContext(0x1234, 0x2345);
             _keyboardDeviceDetectorThread.ThreadResultReturn.Add(deviceContext);
-            keyboardSystem.InitializeSystem();
-            keyboardSystem.UpdateSystem();
-            keyboardSystem.UpdateSystem();
+            keyboardSystem.Initialize();
+            keyboardSystem.Update();
+            keyboardSystem.Update();
             Debug.Assert(_keyboardDeviceInjector.InjectCalls == 1);
             Debug.Assert(_keyboardDeviceInjector.InjectCallArg_dataType[0] == SystemInjectType.KeyboardDevice);
             Debug.Assert(_keyboardDeviceInjector.InjectCallArg_data[0] == deviceContext);
@@ -183,7 +183,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         {
             var keyboardDeviceDetectorSystem = _fixture();
             _keyboardDeviceDetectorThread.ThreadResultReturn.Add(null);
-            keyboardDeviceDetectorSystem.UpdateSystem();
+            keyboardDeviceDetectorSystem.Update();
             Debug.Assert(_keyboardDeviceInjector.InjectCalls == 0);
         }
 

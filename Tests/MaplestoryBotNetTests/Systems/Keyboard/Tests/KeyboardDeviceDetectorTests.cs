@@ -238,7 +238,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private void _testInitializationCreatesDetectorThread()
         {
             var keyboardDeviceDetectorSystem = _fixture();
-            keyboardDeviceDetectorSystem.InitializeSystem();
+            keyboardDeviceDetectorSystem.Initialize();
             Debug.Assert(_threadFactory.CreateThreadCalls == 1);
         }
 
@@ -252,8 +252,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private void _testInitializationOnlyCreatesOneThread()
         {
             var keyboardDeviceDetectorSystem = _fixture();
-            keyboardDeviceDetectorSystem.InitializeSystem();
-            keyboardDeviceDetectorSystem.InitializeSystem();
+            keyboardDeviceDetectorSystem.Initialize();
+            keyboardDeviceDetectorSystem.Initialize();
             Debug.Assert(_threadFactory.CreateThreadCalls == 1);
         }
 
@@ -267,8 +267,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private void _testStartSystemStartsDetectorThread()
         {
             var keyboardDeviceDetectorSystem = _fixture();
-            keyboardDeviceDetectorSystem.InitializeSystem();
-            keyboardDeviceDetectorSystem.StartSystem();
+            keyboardDeviceDetectorSystem.Initialize();
+            keyboardDeviceDetectorSystem.Start();
             Debug.Assert(_thread.ThreadStartCalls == 1);
         }
 
@@ -282,7 +282,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private void _testStartSystemCannotStartDetectorThreadWithoutInitialization()
         {
             var keyboardDeviceDetectorSystem = _fixture();
-            keyboardDeviceDetectorSystem.StartSystem();
+            keyboardDeviceDetectorSystem.Start();
             Debug.Assert(_thread.ThreadStartCalls == 0);
         }
 
@@ -297,8 +297,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         {
             var keyboardDeviceDetectorSystem = _fixture();
             _thread.ThreadResultReturn.Add(null);
-            keyboardDeviceDetectorSystem.InitializeSystem();
-            keyboardDeviceDetectorSystem.UpdateSystem();
+            keyboardDeviceDetectorSystem.Initialize();
+            keyboardDeviceDetectorSystem.Update();
             Debug.Assert(_injector.InjectCalls == 0);
         }
 
@@ -314,8 +314,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             var keyboardDeviceDetectorSystem = _fixture();
             var deviceContext = new KeyboardDeviceContext(0x1234, 0x2345);
             _thread.ThreadResultReturn.Add(deviceContext);
-            keyboardDeviceDetectorSystem.InitializeSystem();
-            keyboardDeviceDetectorSystem.UpdateSystem();
+            keyboardDeviceDetectorSystem.Initialize();
+            keyboardDeviceDetectorSystem.Update();
             Debug.Assert(_injector.InjectCalls == 1);
             Debug.Assert(_injector.InjectCallArg_dataType[0] == SystemInjectType.KeyboardDevice);
             Debug.Assert(_injector.InjectCallArg_data[0] == deviceContext);
@@ -333,9 +333,9 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             var keyboardDeviceDetectorSystem = _fixture();
             var deviceContext = new KeyboardDeviceContext(0x1234, 0x2345);
             _thread.ThreadResultReturn.Add(deviceContext);
-            keyboardDeviceDetectorSystem.InitializeSystem();
-            keyboardDeviceDetectorSystem.UpdateSystem();
-            keyboardDeviceDetectorSystem.UpdateSystem();
+            keyboardDeviceDetectorSystem.Initialize();
+            keyboardDeviceDetectorSystem.Update();
+            keyboardDeviceDetectorSystem.Update();
             Debug.Assert(_injector.InjectCalls == 1);
             Debug.Assert(_injector.InjectCallArg_dataType[0] == SystemInjectType.KeyboardDevice);
             Debug.Assert(_injector.InjectCallArg_data[0] == deviceContext);
@@ -352,7 +352,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         {
             var keyboardDeviceDetectorSystem = _fixture();
             _thread.ThreadResultReturn.Add(null);
-            keyboardDeviceDetectorSystem.UpdateSystem();
+            keyboardDeviceDetectorSystem.Update();
             Debug.Assert(_injector.InjectCalls == 0);
         }
 

@@ -131,7 +131,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var mainSubSystem = new MainSubSystem(_subSystemInfoFixture());
             _callOrder.Clear();
-            mainSubSystem.InitializeSystem();
+            mainSubSystem.Initialize();
             var ref0 = new TestUtilities().Reference(_systems[0]);
             var ref1 = new TestUtilities().Reference(_systems[1]);
             var ref2 = new TestUtilities().Reference(_systems[2]);
@@ -152,7 +152,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var mainSubSystem = new MainSubSystem(_subSystemInfoFixture());
             _callOrder.Clear();
-            mainSubSystem.StartSystem();
+            mainSubSystem.Start();
             var ref0 = new TestUtilities().Reference(_systems[0]);
             var ref1 = new TestUtilities().Reference(_systems[1]);
             var ref2 = new TestUtilities().Reference(_systems[2]);
@@ -173,7 +173,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var mainSubSystem = new MainSubSystem(_subSystemInfoFixture());
             _callOrder.Clear();
-            mainSubSystem.UpdateSystem();
+            mainSubSystem.Update();
             var ref0 = new TestUtilities().Reference(_systems[0]);
             var ref1 = new TestUtilities().Reference(_systems[1]);
             var ref2 = new TestUtilities().Reference(_systems[2]);
@@ -325,7 +325,15 @@ namespace MaplestoryBotNetTests.Systems.Tests
         }
     }
 
-
+    /**
+     * @class MainSystemTestSuite
+     * 
+     * @brief Comprehensive test suite for main subsystem functionality
+     * 
+     * This class aggregates all tests related to the main subsystem, providing
+     * a single entry point to execute the full suite of unit tests that validate
+     * the correct coordination, prioritization, and threaded operation of subsystems.
+     */
     public class MainSystemTestSuite
     {
         public void Run()

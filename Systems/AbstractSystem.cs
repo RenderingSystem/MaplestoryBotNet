@@ -5,17 +5,19 @@
         Configuration = 0,
         ConfigurationUpdate = 1,
         KeyboardDevice = 2,
-        KeystrokeTransmitter = 3
+        KeystrokeTransmitter = 3,
+        MacroTranslator = 4,
+        AgentData = 5
     }
 
 
     public abstract class AbstractSystem
     {
-        public abstract void InitializeSystem();
+        public abstract void Initialize();
 
-        public abstract void StartSystem();
+        public abstract void Start();
 
-        public virtual void UpdateSystem()
+        public virtual void Update()
         {
 
         }
@@ -53,7 +55,9 @@
         public override void Inject(SystemInjectType dataType, object data)
         {
             for (int i = 0; i < _systems.Count; i++)
+            {
                 _systems[i].Inject(dataType, data);
+            }
         }
     }
 

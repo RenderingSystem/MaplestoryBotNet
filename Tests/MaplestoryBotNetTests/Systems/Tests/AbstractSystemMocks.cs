@@ -9,7 +9,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         public List<string> CallOrder = [];
 
         public int InitializeSystemCalls = 0;
-        public override void InitializeSystem()
+        public override void Initialize()
         {
             var callReference = new TestUtilities().Reference(this) + "InitializeSystem";
             CallOrder.Add(callReference);
@@ -17,7 +17,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         }
 
         public int StartSystemCalls = 0;
-        public override void StartSystem()
+        public override void Start()
         {
             var callReference = new TestUtilities().Reference(this) + "StartSystem";
             CallOrder.Add(callReference);
@@ -25,7 +25,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         }
 
         public int UpdateSystemCalls = 0;
-        public override void UpdateSystem()
+        public override void Update()
         {
             var callReference = new TestUtilities().Reference(this) + "UpdateSystem";
             CallOrder.Add(callReference);

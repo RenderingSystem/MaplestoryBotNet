@@ -59,6 +59,66 @@
     }
 
 
+    public abstract class AbstractExecutionFlag
+    {
+        public abstract void Flag();
+
+        public abstract void Unflag();
+
+        public abstract bool Flagged();
+
+        public abstract void Wait();
+    }
+
+
+    public class ThreadExecutionFlag : AbstractExecutionFlag
+    {
+        private ManualResetEventSlim _executionFlag;
+
+        private object _executionFlagLock;
+
+        private bool _flagged;
+
+        public ThreadExecutionFlag()
+        {
+            _executionFlag = new ManualResetEventSlim();
+            _executionFlagLock = new object();
+            _flagged = false;
+        }
+
+        public override void Flag()
+        {
+            lock (_executionFlagLock)
+            {
+                _flagged = true;
+                _executionFlag.Set();
+            }
+        }
+
+        public override bool Flagged()
+        {
+            lock (_executionFlagLock)
+            {
+                return _flagged;
+            }
+        }
+
+        public override void Unflag()
+        {
+            lock (_executionFlagLock)
+            {
+                _flagged = false;
+                _executionFlag.Reset();
+            }
+        }
+
+        public override void Wait()
+        {
+            _executionFlag.Wait();
+        }
+    }
+
+
     public class ThreadRunningState : AbstractThreadRunningState
     {
         private object _isRunningLockObject = new object();

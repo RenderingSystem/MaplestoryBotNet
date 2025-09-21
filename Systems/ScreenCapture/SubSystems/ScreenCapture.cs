@@ -275,6 +275,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         }
     }
 
+
     public class GameScreenCaptureModule : AbstractScreenCaptureModule
     {
         private AbstractWindowsLibrary _windowsLibrary;

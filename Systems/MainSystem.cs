@@ -49,38 +49,38 @@ namespace MaplestoryBotNet.Systems
             _buildSubSystem(subSystemInfo);
         }
 
-        public override void InitializeSystem()
+        public override void Initialize()
         {
             for (int i = 0; i < _initializationList.Count; i++)
             {
                 var system = _initializationList[i].System;
                 if (system != null)
                 {
-                    system.InitializeSystem();
+                    system.Initialize();
                 }
             }
         }
 
-        public override void StartSystem()
+        public override void Start()
         {
             for (int i = 0; i < _startList.Count; i++)
             {
                 var system = _startList[i].System;
                 if (system != null)
                 {
-                    system.StartSystem();
+                    system.Start();
                 }
             }
         }
 
-        public override void UpdateSystem()
+        public override void Update()
         {
             for (int i = 0; i < _updateList.Count; i++)
             {
                 var system = _updateList[i].System;
                 if (system != null)
                 {
-                    system.UpdateSystem();
+                    system.Update();
                 }
             }
         }
@@ -101,11 +101,11 @@ namespace MaplestoryBotNet.Systems
 
         public override void ThreadLoop()
         {
-            _mainSystem.InitializeSystem();
-            _mainSystem.StartSystem();
+            _mainSystem.Initialize();
+            _mainSystem.Start();
             while (_runningState.IsRunning())
             {
-                _mainSystem.UpdateSystem();
+                _mainSystem.Update();
             }
         }
     }
@@ -159,12 +159,12 @@ namespace MaplestoryBotNet.Systems
             _mainSubSystemThreadFactory = mainSubSystemThreadFactory;
         }
 
-        public override void InitializeSystem()
+        public override void Initialize()
         {
             _mainSubSystemThread = _mainSubSystemThreadFactory.CreateThread();
         }
 
-        public override void StartSystem()
+        public override void Start()
         {
             if (_mainSubSystemThread != null)
             {

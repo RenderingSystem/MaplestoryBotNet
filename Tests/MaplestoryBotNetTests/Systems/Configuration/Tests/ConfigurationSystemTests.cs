@@ -88,7 +88,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         private void _testSystemInitializationReadsFromAllImagePaths()
         {
             var configurationSystem = _fixture();
-            configurationSystem.InitializeSystem();
+            configurationSystem.Initialize();
             Debug.Assert(_reader.ReadFileCalls == 3);
             Debug.Assert(_reader.ReadFileCallArg_filePath.IndexOf("image_path_1") != -1);
             Debug.Assert(_reader.ReadFileCallArg_filePath.IndexOf("image_path_2") != -1);
@@ -105,7 +105,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         private void _testSystemInitializationDeserializesAllImageContents()
         {
             var configurationSystem = _fixture();
-            configurationSystem.InitializeSystem();
+            configurationSystem.Initialize();
             for (int i = 0; i < _configurationEntries.Count; i++)
             {
                 var deserializer = (MockDeserializer)_configurationEntries[i].Deserializer;
@@ -124,7 +124,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         private void _testSystemGetsCorrectConfiguration()
         {
             var configurationSystem = _fixture();
-            configurationSystem.InitializeSystem();
+            configurationSystem.Initialize();
             for (int i = 0; i < _configurationEntries.Count; i++)
             {
                 var entry = _configurationEntries[i];
@@ -146,7 +146,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         private void _testSystemSetsCorrectConfiguration()
         {
             var configurationSystem = _fixture();
-            configurationSystem.InitializeSystem();
+            configurationSystem.Initialize();
             var configuration = new MockConfiguration();
             var configurationCopy = new MockConfiguration();
             configuration.CopyReturn.Add(configurationCopy);

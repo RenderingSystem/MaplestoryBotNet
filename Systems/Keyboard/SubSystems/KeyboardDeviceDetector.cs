@@ -130,19 +130,19 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
             _keyboardDeviceInjector = keyboardDeviceInjector;
         }
 
-        public override void InitializeSystem()
+        public override void Initialize()
         {
             if (_keyboardDeviceDetectorThread == null)
                 _keyboardDeviceDetectorThread = _keyboardDeviceDetectorThreadFactory.CreateThread();
         }
 
-        public override void StartSystem()
+        public override void Start()
         {
             if (_keyboardDeviceDetectorThread != null)
                 _keyboardDeviceDetectorThread.ThreadStart();
         }
 
-        public override void UpdateSystem()
+        public override void Update()
         {
             if (_keyboardDevice == null)
             {

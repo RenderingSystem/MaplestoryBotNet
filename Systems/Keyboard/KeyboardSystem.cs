@@ -27,14 +27,14 @@ namespace MaplestoryBotNet.Systems.Keyboard
             _keystrokeTransmitter = null;
         }
 
-        public override void InitializeSystem()
+        public override void Initialize()
         {
-            _keyboardDeviceDetectorSystem.InitializeSystem();
+            _keyboardDeviceDetectorSystem.Initialize();
         }
 
-        public override void StartSystem()
+        public override void Start()
         {
-            _keyboardDeviceDetectorSystem.StartSystem();
+            _keyboardDeviceDetectorSystem.Start();
         }
 
         public override void Inject(SystemInjectType dataType, object data)
@@ -51,9 +51,9 @@ namespace MaplestoryBotNet.Systems.Keyboard
             }
         }
 
-        public override void UpdateSystem()
+        public override void Update()
         {
-            _keyboardDeviceDetectorSystem.UpdateSystem();
+            _keyboardDeviceDetectorSystem.Update();
         }
     }
 

@@ -58,7 +58,7 @@ namespace MaplestoryBotNet.Systems.Configuration
             _configurationInjector = configurationInjector;
         }
 
-        public override void InitializeSystem()
+        public override void Initialize()
         {
             for (int i = 0; i < _configurationEntries.Count; i++)
             {
@@ -71,7 +71,7 @@ namespace MaplestoryBotNet.Systems.Configuration
             }
         }
 
-        public override void StartSystem()
+        public override void Start()
         {
             for (int i = 0; i < _configurationEntries.Count; i++) {
                 var configurationEntry = _configurationEntries[i];

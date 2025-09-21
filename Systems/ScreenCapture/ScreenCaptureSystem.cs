@@ -320,12 +320,12 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             _publisherThread = null;
         }
 
-        public override void InitializeSystem()
+        public override void Initialize()
         {
 			_publisherThread = _publisherThreadFactory.CreateThread();
         }
 
-        public override void StartSystem()
+        public override void Start()
         {
             if (_publisherThread != null)
                 _publisherThread.ThreadStart();
@@ -347,7 +347,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             _subscriberThreads = [];
         }
 
-        public override void InitializeSystem()
+        public override void Initialize()
         {
             for (int i = 0; i < _subscriberThreadFactories.Count; i++)
             {
@@ -357,7 +357,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             }
         }
 
-        public override void StartSystem()
+        public override void Start()
         {
             for (int i = 0; i < _subscriberThreads.Count; i++)
             {
@@ -379,22 +379,21 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             _subSystems = subSystems;
         }
 
-        public override void InitializeSystem()
+        public override void Initialize()
         {
             for (int i = 0; i < _subSystems.Count; i++)
             {
                 var subSystem = _subSystems[i];
-                subSystem.InitializeSystem();
+                subSystem.Initialize();
             }
         }
 
-
-        public override void StartSystem()
+        public override void Start()
         {
             for (int i = 0; i < _subSystems.Count; i++)
             {
                 var subSystem = _subSystems[i];
-                subSystem.StartSystem();
+                subSystem.Start();
             }
         }
     }

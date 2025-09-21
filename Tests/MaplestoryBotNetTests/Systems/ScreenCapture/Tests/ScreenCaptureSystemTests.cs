@@ -696,10 +696,10 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         private void _testPublisherSystemInitializesAndStartsPublisherThread()
         {
             var publisherSystem = _fixture();
-            publisherSystem.InitializeSystem();
+            publisherSystem.Initialize();
             Debug.Assert(_mockThreadFactory.CreateThreadCalls == 1);
             Debug.Assert(_mockThread.ThreadStartCalls == 0);
-            publisherSystem.StartSystem();
+            publisherSystem.Start();
             Debug.Assert(_mockThreadFactory.CreateThreadCalls == 1);
             Debug.Assert(_mockThread.ThreadStartCalls == 1);
         }
@@ -775,7 +775,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         private void _testSubscriberSystemInitializesAndStartsSubscriberThreads()
         {
             var subscriberSystem = _fixture();
-            subscriberSystem.InitializeSystem();
+            subscriberSystem.Initialize();
             for (int i = 0; i < _mockThreadFactories.Count; i++)
             {
                 var mockThreadFactory = (MockThreadFactory)_mockThreadFactories[i];
@@ -783,7 +783,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
                 Debug.Assert(mockThreadFactory.CreateThreadCalls == 1);
                 Debug.Assert(mockThread.ThreadStartCalls == 0);
             }
-            subscriberSystem.StartSystem();
+            subscriberSystem.Start();
             for (int i = 0; i < _mockThreadFactories.Count; i++)
             {
                 var mockThreadFactory = (MockThreadFactory)_mockThreadFactories[i];
@@ -846,14 +846,14 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         private void _testCaptureSystemInitializesAndStartsAllSubSystems()
         {
             var captureSystem = _fixture();
-            captureSystem.InitializeSystem();
+            captureSystem.Initialize();
             for (int i = 0; i < _mockSubSystems.Count; i++)
             {
                 var mockSystem = (MockSystem)_mockSubSystems[i];
                 Debug.Assert(mockSystem.InitializeSystemCalls == 1);
                 Debug.Assert(mockSystem.StartSystemCalls == 0);
             }
-            captureSystem.StartSystem();
+            captureSystem.Start();
             for (int i = 0; i < _mockSubSystems.Count; i++)
             {
                 var mockSystem = (MockSystem)_mockSubSystems[i];

@@ -124,4 +124,46 @@ namespace MaplestoryBotNetTests.ThreadingUtils
         }
     }
 
+
+    public class MockExecutionFlag : AbstractExecutionFlag
+    {
+        public List<string> CallOrder = [];
+
+        public int FlagCalls = 0;
+        public override void Flag()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Flag";
+            CallOrder.Add(callReference);
+            FlagCalls++;
+        }
+
+        public int FlaggedCalls = 0;
+        public int FlaggedIndex = 0;
+        public List<bool> FlaggedReturn = [];
+        public override bool Flagged()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Flagged";
+            CallOrder.Add(callReference);
+            FlagCalls++;
+            if (FlaggedIndex < FlaggedReturn.Count)
+                return FlaggedReturn[FlaggedIndex++];
+            throw new IndexOutOfRangeException();
+        }
+
+        public int UnflagCalls = 0;
+        public override void Unflag()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Unflag";
+            CallOrder.Add(callReference);
+            UnflagCalls++;
+        }
+
+        public int WaitCalls = 0;
+        public override void Wait()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Wait";
+            CallOrder.Add(callReference);
+            WaitCalls++;
+        }
+    }
 }
