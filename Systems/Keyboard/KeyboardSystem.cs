@@ -37,7 +37,7 @@ namespace MaplestoryBotNet.Systems.Keyboard
             _keyboardDeviceDetectorSystem.Start();
         }
 
-        public override void Inject(SystemInjectType dataType, object data)
+        public override void Inject(SystemInjectType dataType, object? data)
         {
             if (
                 dataType == SystemInjectType.Configuration

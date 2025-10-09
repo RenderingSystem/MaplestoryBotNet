@@ -106,9 +106,13 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             var hMonitor = _windowsLibrary.MonitorFromWindow(windowHandle, 2);
             var hMonitorInfo = new MONITORINFOEX { cbSize = Marshal.SizeOf<MONITORINFOEX>() };
             if (hMonitor == nint.Zero)
+            {
                 return null;
+            }
             if (!_windowsLibrary.GetMonitorInfo(hMonitor, ref hMonitorInfo))
+            {
                 return null;
+            }
             return hMonitorInfo;
         }
     }
@@ -182,24 +186,26 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
 
         public override ICaptureZone? UpdateCaptureZone(
             IScreenCapture capture, Tuple<int, int, int, int> captureArea
-        ) {
+        )
+        {
             var index = _screenCaptures.IndexOf(capture);
             if (index < 0)
+            {
                 return null;
+            }
             var captureZone = _screenCaptureZones[index];
+            int x = Math.Max(0, Math.Min(captureArea.Item1, capture.Display.Width - 1));
+            int y = Math.Max(0, Math.Min(captureArea.Item2, capture.Display.Height - 1));
+            int width = Math.Max(1, Math.Min(captureArea.Item3, capture.Display.Width - x));
+            int height = Math.Max(1, Math.Min(captureArea.Item4, capture.Display.Height - y));
             if (
-                captureZone.X != captureArea.Item1 ||
-                captureZone.Y != captureArea.Item2 ||
-                captureZone.Width != captureArea.Item3 ||
-                captureZone.Height != captureArea.Item4
-            ) {
-                capture.UpdateCaptureZone(
-                    captureZone,
-                    captureArea.Item1,
-                    captureArea.Item2,
-                    captureArea.Item3,
-                    captureArea.Item4
-                );
+                captureZone.X != x ||
+                captureZone.Y != y ||
+                captureZone.Width != width ||
+                captureZone.Height != height
+            )
+            {
+                capture.UpdateCaptureZone(captureZone, x, y, width, height);
                 capture.CaptureScreen();
             }
             return captureZone;
@@ -211,9 +217,13 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             var clientRect = new RECT { bottom = 0, left = 0, top = 0, right = 0 };
             var topLeft = new POINTSTRUCT { x = 0, y = 0 };
             if (!_windowsLibrary.GetClientRect(windowHandle, out clientRect))
+            {
                 return null;
+            }
             if (!_windowsLibrary.ClientToScreen(windowHandle, ref topLeft))
+            {
                 return null;
+            }
             int left = topLeft.x - monitorInfo.rcMonitor.left;
             int top = topLeft.y - monitorInfo.rcMonitor.top;
             int width = clientRect.right - clientRect.left;
@@ -265,7 +275,9 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
                 var graphicsCard = _graphicsCards.ElementAt(i);
                 var displays = _screenCaptureService.GetDisplays(graphicsCard);
                 for (int j = 0; j < displays.Count(); j++)
+                {
                     _displays.Add(displays.ElementAt(j));
+                }
             }
         }
 
@@ -315,16 +327,24 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         {
             var monitorInfo = _captureMonitorHelper.GetMonitorInfo(windowHandle);
             if (monitorInfo == null)
+            {
                 return null;
+            }
             var captureArea = _screenCaptureHelper.GetCaptureArea(windowHandle, monitorInfo);
             if (captureArea == null)
+            {
                 return null;
+            }
             var screenCapture = _screenCaptureHelper.GetScreenCapture(windowHandle, monitorInfo);
             if (screenCapture == null)
+            {
                 return null;
+            }
             var captureZone = _screenCaptureHelper.UpdateCaptureZone(screenCapture, captureArea);
             if (captureZone == null)
+            {
                 return null;
+            }
             screenCapture.CaptureScreen();
             return _captureImageGenerator.GenerateImage(captureZone);
         }

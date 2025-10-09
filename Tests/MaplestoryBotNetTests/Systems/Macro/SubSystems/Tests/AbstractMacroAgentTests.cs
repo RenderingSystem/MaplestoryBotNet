@@ -76,8 +76,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
                 var waitRef = new TestUtilities().Reference(_executionFlag) + "Wait";
                 var executeRef = new TestUtilities().Reference(_macroAgent) + "Execute";
                 _setLoopCount(i);
-                macroAgentThread.ThreadStart();
-                macroAgentThread.ThreadJoin(10000);
+                macroAgentThread.Start();
+                macroAgentThread.Join(10000);
                 Debug.Assert(_callOrder.Count == i * 2);
                 for (int j = 0; j < _callOrder.Count; j+=2)
                 {

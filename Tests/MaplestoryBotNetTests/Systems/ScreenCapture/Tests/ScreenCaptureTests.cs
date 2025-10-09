@@ -42,7 +42,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         {
             _displays.Clear();
             for (int i = 0; i < displayCount; i++) {
-                var display = new Display(i, "meow_" + i, i, i, Rotation.None, new GraphicsCard());
+                var display = new Display(i, "meow_" + i, 1000, 1000, Rotation.None, new GraphicsCard());
                 _captureZones.Add(new MockCaptureZone());
                 _captureZones[i].Display = display;
                 _captureZones[i].RawBufferArray = new byte[i];

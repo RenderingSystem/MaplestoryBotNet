@@ -1,4 +1,5 @@
-﻿using MaplestoryBotNet.ThreadingUtils;
+﻿using MaplestoryBotNet.Systems;
+using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.TestHelpers;
 
 
@@ -71,24 +72,24 @@ namespace MaplestoryBotNetTests.ThreadingUtils
 
         public int ThreadStartCalls = 0;
         public bool ThreadStartSpy = false;
-        public override void ThreadStart()
+        public override void Start()
         {
             var callReference = new TestUtilities().Reference(this) + "ThreadStart";
             CallOrder.Add(callReference);
             ThreadStartCalls++;
             if (ThreadStartSpy)
-                base.ThreadStart();
+                base.Start();
         }
 
         public int ThreadStopCalls = 0;
         public bool ThreadStopSpy = false;
-        public override void ThreadStop()
+        public override void Stop()
         {
             var callReference = new TestUtilities().Reference(this) + "ThreadStop";
             CallOrder.Add(callReference);
             ThreadStopCalls++;
             if (ThreadStopSpy)
-                base.ThreadStop();
+                base.Stop();
         }
 
         public int ThreadJoinCalls = 0;
@@ -96,14 +97,14 @@ namespace MaplestoryBotNetTests.ThreadingUtils
         public bool ThreadJoinSpy = false;
         public List<int> ThreadJoinCallArg_milliseconds = [];
         public List<bool> ThreadJoinReturn = [];
-         public override bool ThreadJoin(int milliseconds)
+         public override bool Join(int milliseconds)
         {
             var callReference = new TestUtilities().Reference(this) + "ThreadJoin";
             CallOrder.Add(callReference);
             ThreadJoinCalls++;
             ThreadJoinCallArg_milliseconds.Add(milliseconds);
             if (ThreadJoinSpy)
-                return base.ThreadJoin(milliseconds);
+                return base.Join(milliseconds);
             else if (ThreadJoinIndex < ThreadJoinReturn.Count)
                 return ThreadJoinReturn[ThreadJoinIndex++];
             else
@@ -113,7 +114,7 @@ namespace MaplestoryBotNetTests.ThreadingUtils
         public int ThreadResultCalls = 0;
         public int ThreadResultIndex = 0;
         public List<object?> ThreadResultReturn = [];
-        public override object? ThreadResult()
+        public override object? Result()
         {
             var callReference = new TestUtilities().Reference(this) + "ThreadResult";
             CallOrder.Add(callReference);
@@ -121,6 +122,31 @@ namespace MaplestoryBotNetTests.ThreadingUtils
             if (ThreadResultIndex < ThreadResultReturn.Count)
                 return ThreadResultReturn[ThreadResultIndex++];
             return new IndexOutOfRangeException();
+        }
+
+        public int ThreadInjectCalls = 0;
+        public List<SystemInjectType> ThreadInjectCallArg_dataType = [];
+        public List<object?> ThreadInjectCallArg_value = [];
+        public override void Inject(SystemInjectType dataType, object? value)
+        {
+            var callReference = new TestUtilities().Reference(this) + "ThreadInject";
+            CallOrder.Add(callReference);
+            ThreadInjectCalls++;
+            ThreadInjectCallArg_dataType.Add(dataType);
+            ThreadInjectCallArg_value.Add(value);
+        }
+
+        public int ThreadStateCalls = 0;
+        public int ThreadStateIndex = 0;
+        public List<object?> ThreadStateReturn = [];
+        public override object? State()
+        {
+            var callReference = new TestUtilities().Reference(this) + "ThreadState";
+            CallOrder.Add(callReference);
+            ThreadStateCalls++;
+            if (ThreadStateIndex < ThreadStateReturn.Count)
+                return ThreadStateReturn[ThreadStateIndex++];
+            throw new IndexOutOfRangeException();
         }
     }
 

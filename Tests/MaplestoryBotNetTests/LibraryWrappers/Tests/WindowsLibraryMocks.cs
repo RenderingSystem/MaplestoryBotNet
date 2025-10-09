@@ -162,5 +162,43 @@ namespace MaplestoryBotNetTests.WindowsLibrary.Tests
                 return IsWindowReturn[IsWindowIndex++];
             throw new IndexOutOfRangeException();
         }
+
+        public int GetWindowLongCalls = 0;
+        public int GetWindowLongIndex = 0;
+        public List<nint> GetWindowLongCallArg_hWnd = [];
+        public List<int> GetWindowLongCallArg_nIndex = [];
+        public List<int> GetWindowLongReturn = [];
+        public override int GetWindowLong(nint hWnd, int nIndex)
+        {
+            var callReference = new TestUtilities().Reference(this) + "GetWindowLong";
+            CallOrder.Add(callReference);
+            GetWindowLongCalls++;
+            GetWindowLongCallArg_hWnd.Add(hWnd);
+            GetWindowLongCallArg_nIndex.Add(nIndex);
+            GetWindowLongReturn.Add(nIndex);
+            if (GetWindowLongIndex < GetWindowLongReturn.Count)
+                return GetWindowLongReturn[GetWindowLongIndex++];
+            throw new IndexOutOfRangeException();
+        }
+
+        public int SetWindowLongCalls = 0;
+        public int SetWindowLongIndex = 0;
+        public List<nint> SetWindowLongCallArg_hWnd = [];
+        public List<int> SetWindowLongCallArg_nIndex = [];
+        public List<int> SetWindowLongCallArg_dwNewLong = [];
+        public List<int> SetWindowLongReturn = [];
+        public override int SetWindowLong(nint hWnd, int nIndex, int dwNewLong)
+        {
+            var callReference = new TestUtilities().Reference(this) + "SetWindowLong";
+            CallOrder.Add(callReference);
+            SetWindowLongCalls++;
+            SetWindowLongCallArg_hWnd.Add(hWnd);
+            SetWindowLongCallArg_nIndex.Add(nIndex);
+            SetWindowLongCallArg_dwNewLong.Add(dwNewLong);
+            SetWindowLongReturn.Add(nIndex);
+            if (SetWindowLongIndex < SetWindowLongReturn.Count)
+                return SetWindowLongReturn[SetWindowLongIndex++];
+            throw new IndexOutOfRangeException();
+        }
     }
 }

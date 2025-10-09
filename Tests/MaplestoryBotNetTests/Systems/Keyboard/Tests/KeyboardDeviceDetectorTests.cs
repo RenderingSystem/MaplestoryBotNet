@@ -72,10 +72,13 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _interceptionLibrary.CreateContextReturn.Add(0x1234);
             _interceptionLibrary.WaitWithTimeoutReturn.Add(0x2345);
             var keyboardDeviceContext = keyboardDeviceDetector.Detect();
-            Debug.Assert(_interceptionLibrary.SetFilterCalls == 1);
+            Debug.Assert(_interceptionLibrary.SetFilterCalls == 2);
             Debug.Assert(_interceptionLibrary.SetFilterCallArg_context[0] == 0x1234);
             Debug.Assert(_interceptionLibrary.SetFilterCallArg_interception_predicate[0] == _interceptionLibrary.IsKeyboard);
             Debug.Assert(_interceptionLibrary.SetFilterCallArg_filter[0] == Interception.InterceptionInterop.Filter.All);
+            Debug.Assert(_interceptionLibrary.SetFilterCallArg_context[1] == 0x1234);
+            Debug.Assert(_interceptionLibrary.SetFilterCallArg_interception_predicate[1] == _interceptionLibrary.IsKeyboard);
+            Debug.Assert(_interceptionLibrary.SetFilterCallArg_filter[1] == Interception.InterceptionInterop.Filter.None);
         }
 
         /**
@@ -171,9 +174,9 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private void _testDetectorThreadDetectsAndReturnsContext()
         {
             var keyboardDeviceDetectorThread = _fixture();
-            keyboardDeviceDetectorThread.ThreadStart();
-            keyboardDeviceDetectorThread.ThreadJoin(10000);
-            var result = (KeyboardDeviceContext?) keyboardDeviceDetectorThread.ThreadResult();
+            keyboardDeviceDetectorThread.Start();
+            keyboardDeviceDetectorThread.Join(10000);
+            var result = (KeyboardDeviceContext?) keyboardDeviceDetectorThread.Result();
             Debug.Assert(result != null);
             Debug.Assert(result.Context == 0x1234);
             Debug.Assert(result.Device == 0x2345);

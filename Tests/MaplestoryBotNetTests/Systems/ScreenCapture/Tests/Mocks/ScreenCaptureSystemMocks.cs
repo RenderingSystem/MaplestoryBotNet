@@ -2,6 +2,7 @@
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using MaplestoryBotNetTests.TestHelpers;
+using MaplestoryBotNet.Systems;
 
 
 namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks
@@ -77,6 +78,18 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks
             if (NotifySpy)
                 base.Notify(image, updated);
         }
+
+        public int InjectCalls = 0;
+        public List<SystemInjectType> InjectCallArg_dataType = [];
+        public List<object?> InjectCallArg_data = [];
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Inject";
+            CallOrder.Add(callReference);
+            InjectCalls++;
+            InjectCallArg_dataType.Add(dataType);
+            InjectCallArg_data.Add(data);
+        }
     }
 
 
@@ -134,6 +147,18 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks
             PublishCalls++;
             PublishCallArg_image.Add(image);
             PublishCallArg_updated.Add(updated);
+        }
+
+        public int InjectCalls = 0;
+        public List<SystemInjectType> InjectCallArg_dataType = [];
+        public List<object?> InjectCallArg_data = [];
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Inject";
+            CallOrder.Add(callReference);
+            InjectCalls++;
+            InjectCallArg_dataType.Add(dataType);
+            InjectCallArg_data.Add(data);
         }
     }
 }

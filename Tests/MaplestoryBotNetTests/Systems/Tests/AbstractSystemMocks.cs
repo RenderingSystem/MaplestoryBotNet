@@ -34,14 +34,27 @@ namespace MaplestoryBotNetTests.Systems.Tests
 
         public int InjectCalls = 0;
         public List<SystemInjectType> InjectCallArg_dataType = [];
-        public List<object> InjectCallArg_data = [];
-        public override void Inject(SystemInjectType dataType, object data)
+        public List<object?> InjectCallArg_data = [];
+        public override void Inject(SystemInjectType dataType, object? data)
         {
             var callReference = new TestUtilities().Reference(this) + "Inject";
             CallOrder.Add(callReference);
             InjectCalls++;
             InjectCallArg_dataType.Add(dataType);
             InjectCallArg_data.Add(data);
+        }
+
+        public int StateCalls = 0;
+        public int StateIndex = 0;
+        public List<object?> StateReturn = [];
+        public override object? State()
+        {
+            var callReference = new TestUtilities().Reference(this) + "State";
+            CallOrder.Add(callReference);
+            StateCalls++;
+            if (StateIndex < StateReturn.Count)
+                return StateReturn[StateIndex++];
+            throw new IndexOutOfRangeException();
         }
     }
 
@@ -82,8 +95,8 @@ namespace MaplestoryBotNetTests.Systems.Tests
 
         public int InjectCalls = 0;
         public List<SystemInjectType> InjectCallArg_dataType = [];
-        public List<object> InjectCallArg_data = [];
-        public override void Inject(SystemInjectType dataType, object data)
+        public List<object?> InjectCallArg_data = [];
+        public override void Inject(SystemInjectType dataType, object? data)
         {
             var callReference = new TestUtilities().Reference(this) + "Inject";
             CallOrder.Add(callReference);
@@ -100,14 +113,51 @@ namespace MaplestoryBotNetTests.Systems.Tests
 
         public int GetSubSystemInfoCalls = 0;
         public int GetSubSystemInfoIndex = 0;
-        public List<List<SubSystemInformation>> GetSubSystemInfoReturn = [];
-        public override List<SubSystemInformation> GetSubSystemInfo()
+        public List<List<SystemInformation>> GetSubSystemInfoReturn = [];
+        public override List<SystemInformation> GetSubSystemInfo()
         {
             var callReference = new TestUtilities().Reference(this) + "GetSubSystemInfo";
             CallOrder.Add(callReference);
             GetSubSystemInfoCalls++;
             if (GetSubSystemInfoIndex < GetSubSystemInfoReturn.Count)
                 return GetSubSystemInfoReturn[GetSubSystemInfoIndex++];
+            throw new IndexOutOfRangeException();
+        }
+    }
+
+
+    public class MockApplication : AbstractApplication
+    {
+        public List<string> CallOrder = [];
+
+        public int LaunchCalls = 0;
+        public List<List<string>> LaunchCallArg_args = [];
+        public override void Launch(List<string> args)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Launch";
+            CallOrder.Add(callReference);
+            LaunchCallArg_args.Add(args);
+            LaunchCalls++;
+        }
+
+        public int ShutDownCalls = 0;
+        public override void ShutDown()
+        {
+            var callReference = new TestUtilities().Reference(this) + "ShutDown";
+            CallOrder.Add(callReference);
+            ShutDownCalls++;
+        }
+
+        public int SystemCalls = 0;
+        public int SystemIndex = 0;
+        public List<AbstractSystem> SystemReturn = [];
+        public override AbstractSystem System()
+        {
+            var callReference = new TestUtilities().Reference(this) + "System";
+            CallOrder.Add(callReference);
+            SystemCalls++;
+            if (SystemIndex < SystemReturn.Count)
+                return SystemReturn[SystemIndex++];
             throw new IndexOutOfRangeException();
         }
     }

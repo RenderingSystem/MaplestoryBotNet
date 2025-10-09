@@ -42,6 +42,11 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
                 Interception.InterceptionInterop.Filter.All
             );
             var device = _interceptionLibrary.Wait(context);
+            _interceptionLibrary.SetFilter(
+                context,
+                _interceptionLibrary.IsKeyboard,
+                Interception.InterceptionInterop.Filter.None
+            );
             return new KeyboardDeviceContext(context, device);
         }
     }
@@ -79,7 +84,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
             }
         }
 
-        public override object? ThreadResult()
+        public override object? Result()
         {
             KeyboardDeviceContext? keyboardDevice = null;
             try
@@ -139,7 +144,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
         public override void Start()
         {
             if (_keyboardDeviceDetectorThread != null)
-                _keyboardDeviceDetectorThread.ThreadStart();
+                _keyboardDeviceDetectorThread.Start();
         }
 
         public override void Update()
@@ -147,7 +152,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
             if (_keyboardDevice == null)
             {
                 if (_keyboardDeviceDetectorThread != null)
-                    _keyboardDevice = (KeyboardDeviceContext?)_keyboardDeviceDetectorThread.ThreadResult();
+                    _keyboardDevice = (KeyboardDeviceContext?)_keyboardDeviceDetectorThread.Result();
                 if (_keyboardDevice != null)
                     _keyboardDeviceInjector.Inject(SystemInjectType.KeyboardDevice, _keyboardDevice);
             }

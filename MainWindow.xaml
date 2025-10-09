@@ -5,79 +5,28 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MaplestoryBotNet"
         mc:Ignorable="d"
-        Title="MainWindow" Height="500" Width="880" Background="Black"
+        Title="Microsoft Teams" Height="600" Width="800" Background="Black"
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize">
-    <Grid Height="485" Width="880">
-        <Grid Margin="10,10,515,195" Width="345" Height="280">
-            <Frame Content="Frame" BorderThickness="2,2,2,2" Margin="0,0,0,0" BorderBrush="Gray"/>
-            <Grid Margin="10,10,10,30">
-                <Frame Content="Frame" Background="Black" BorderThickness="2,2,2,2" BorderBrush="White"/>
-                <Image x:Name="map_box" Margin="0,0,0,0" Panel.ZIndex="1"/>
-            </Grid>
-            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,0">
-                <Label Content="FPS:" Margin="5,0,0,4" Foreground="White" FontFamily="Courier New" VerticalAlignment="Bottom"/>
-                <Label x:Name="fps_value" Content="999" Margin="0,0,0,4" Foreground="#FF00F900" FontFamily="Courier New" VerticalAlignment="Bottom"/>
-            </StackPanel>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="File">
+                <MenuItem x:Name="ExitMenuItem" Header="Exit"/>
+            </MenuItem>
+            <MenuItem Header="Edit">
+                <MenuItem Header="Ailments"/>
+                <MenuItem Header="Auto-potion"/>
+                <MenuItem Header="Petfood"/>
+                <MenuItem Header="Skills"/>
+            </MenuItem>
+            <MenuItem Header="View">
+                <MenuItem x:Name="SnapshotsMenuItem" Header="Snapshots" IsCheckable="True"/>
+                <MenuItem x:Name="MinimapMenuItem" Header="Minimap" IsCheckable="True"/>
+                <MenuItem x:Name="NCCMenuItem" Header="NCC" IsCheckable="True"/>
+            </MenuItem>
+        </Menu>
+        <Grid Height="600" Width="800">
+            <Image x:Name="ImageView"  HorizontalAlignment="Center"  VerticalAlignment="Center"  Stretch="Uniform"/>
         </Grid>
-        <Grid Margin="365,10,05,195" Width="495" Height="280">
-            <Frame Content="Frame" BorderThickness="2,2,2,2" BorderBrush="Gray"/>
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-                <Label Content="Resolve ailments:" Foreground="White" FontFamily="Courier New" VerticalAlignment="Top" Margin="7,5,0,0"/>
-                <Label Content="Macro commands:" Foreground="White" FontFamily="Courier New" VerticalAlignment="Top" Margin="40,5,0,0"/>
-                <Label Content="Ailment image:" Foreground="White" FontFamily="Courier New" VerticalAlignment="Top" Margin="60,5,0,0"/>
-            </StackPanel>
-            <Grid Margin="357,30,10,190">
-                <Frame Content="Frame" Background="Black" BorderThickness="2,2,2,2" BorderBrush="White"/>
-                <Image x:Name="ailment_image" Margin="0,0,0,0" Panel.ZIndex="1"/>
-            </Grid>
-            <ListBox x:Name="resolve_ailments_listbox" Margin="12,30,318,13" Width="165" Background="Black" BorderBrush="White" BorderThickness="2,2,2,2"/>
-            <ListBox x:Name="macro_commands_listbox" Margin="184,30,146,44" Width="165" Background="Black" BorderBrush="White" BorderThickness="2,2,2,2"/>
-            <Button x:Name="ailment_command_remove_button" Margin="228,242,0,0" Content="Remove" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25" Width="57" FontFamily="Courier New" Foreground="White" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2"/>
-            <Button x:Name="ailment_command_add_button" Margin="290,242,0,0" Content="Add" HorizontalAlignment="Left" VerticalAlignment="Top" Height="25" Width="59" FontFamily="Courier New" Foreground="White" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2" RenderTransformOrigin="0.508,1.402"/>
-            <Label Content="Command" HorizontalAlignment="Left" Margin="357,90,0,0" VerticalAlignment="Top" Foreground="White" FontFamily="Courier New"/>
-            <Label Content="Threshold" HorizontalAlignment="Left" Margin="357,134,0,0" VerticalAlignment="Top" Foreground="White" FontFamily="Courier New"/>
-            <Label Content="Allcure" HorizontalAlignment="Left" Margin="357,178,0,58" Foreground="White" FontFamily="Courier New"/>
-            <Label Content="Verify delay" HorizontalAlignment="Left" Margin="357,224,0,0" Foreground="White" FontFamily="Courier New" Height="23" VerticalAlignment="Top" Width="98"/>
-            <TextBox x:Name="ailment_command_textbox" Margin="357,114,0,0" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2" FontFamily="Courier New" Text="Lorem Ipsum" HorizontalAlignment="Left" VerticalAlignment="Top" Width="128" Foreground="White" Height="20"/>
-            <TextBox x:Name="ailment_threshold_textbox" Margin="357,158,0,0" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2" FontFamily="Courier New" Text="Lorem Ipsum" HorizontalAlignment="Left" VerticalAlignment="Top" Width="128" Foreground="White" Height="20"/>
-            <TextBox x:Name="ailment_verify_delay_textbox" Margin="357,247,0,0" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2" FontFamily="Courier New" Text="Lorem Ipsum" HorizontalAlignment="Left" VerticalAlignment="Top" Width="128" Foreground="White" Height="20"/>
-            <ComboBox x:Name="ailment_allcure_combobox" Margin="357,201,0,0" BorderBrush="Gray" BorderThickness="2,2,2,2" FontFamily="Courier New" Text="Lorem Ipsum" HorizontalAlignment="Left" VerticalAlignment="Top" Width="128" Foreground="Black" Height="20" Background="Black" SelectedIndex="0">
-                <ListBoxItem Content="Lorem Ipsum"/>
-            </ComboBox>
-        </Grid>
-        <Grid Margin="10,295,355,10" Width="505" Height="179">
-            <Frame Content="Frame" BorderThickness="2,2,2,2" BorderBrush="Gray" Grid.RowSpan="2"/>
-            <Label Content="Profile matcher:" Foreground="White" FontFamily="Courier New" Margin="7,5,0,0" Grid.RowSpan="2"/>
-            <ListBox x:Name="profile_feature_listbox" Margin="10,25,330,15" Width="165" Background="Black" BorderBrush="White" BorderThickness="2,2,2,2" d:ItemsSource="{d:SampleData ItemCount=5}" Grid.RowSpan="2"/>
-            <Label Content="Feature:" Foreground="White" FontFamily="Courier New" Margin="180,5,0,0" Grid.RowSpan="2"/>
-            <Label Content="Match:" Foreground="White" FontFamily="Courier New" Margin="180,85,0,0" Grid.RowSpan="2"/>
-            <Label Content="Cached tracking timeout:" Foreground="White" FontFamily="Courier New" Margin="315,5,0,0" Grid.RowSpan="2"/>
-            <Label Content="Tracking period:" Foreground="White" FontFamily="Courier New" Margin="315,48,0,-8" Grid.RowSpan="2"/>
-            <Label Content="NCC Match threshold:" Foreground="White" FontFamily="Courier New" Margin="315,88,0,-18" Grid.RowSpan="2"/>
-            <Label Content="Cached tracking box:" Foreground="White" FontFamily="Courier New" Margin="313,128,2,5"/>
-            <Grid Margin="180,25,197,94" Width="128" Height="60">
-                <Frame Content="Frame" Background="Black" BorderThickness="2,2,2,2" BorderBrush="White"/>
-                <Image x:Name="profile_feature_image" Margin="0,0,0,0" Panel.ZIndex="1"/>
-            </Grid>
-            <Grid Margin="180,105,197,15" Width="128" Height="60" Grid.RowSpan="2">
-                <Frame Content="Frame" Background="Black" BorderThickness="2,2,2,2" BorderBrush="White"/>
-                <Image x:Name="profile_match_image" Margin="0,0,0,0" Panel.ZIndex="1"/>
-            </Grid>
-            <Label Content="s" Foreground="White" FontFamily="Courier New" Margin="315,25,0,0" Grid.RowSpan="2"/>
-            <Label Content="ms" Foreground="White" FontFamily="Courier New" Margin="385,25,-5,0" Grid.RowSpan="2"/>
-            <TextBox x:Name="cached_tracking_timeout_seconds_textbox" Margin="336,28,0,0" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2" FontFamily="Courier New" Text="Lorem Ipsum" HorizontalAlignment="Left" VerticalAlignment="Top" Width="44" Foreground="White" Height="20"/>
-            <TextBox x:Name="cached_tracking_timeout_milliseconds_textbox" Margin="414,28,0,0" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2" FontFamily="Courier New" Text="Lorem Ipsum" HorizontalAlignment="Left" VerticalAlignment="Top" Width="44" Foreground="White" Height="20"/>
-            <Label Content="s" Foreground="White" FontFamily="Courier New" Margin="315,67,0,-12" Grid.RowSpan="2"/>
-            <Label Content="ms" Foreground="White" FontFamily="Courier New" Margin="385,67,-5,-12" Grid.RowSpan="2"/>
-            <TextBox x:Name="tracking_period_seconds_textbox" Margin="336,70,0,0" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2" FontFamily="Courier New" Text="Lorem Ipsum" HorizontalAlignment="Left" VerticalAlignment="Top" Width="44" Foreground="White" Height="20"/>
-            <TextBox x:Name="tracking_period_milliseconds_textbox" Margin="414,70,0,0" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2" FontFamily="Courier New" Text="Lorem Ipsum" HorizontalAlignment="Left" VerticalAlignment="Top" Width="44" Foreground="White" Height="20" RenderTransformOrigin="1.045,0.702"/>
-            <TextBox x:Name="ncc_match_threshold_textbox" Margin="315,110,0,0" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2" FontFamily="Courier New" Text="Lorem Ipsum" HorizontalAlignment="Left" VerticalAlignment="Top" Width="128" Foreground="White" Height="20"/>
-            <TextBox x:Name="cached_tracking_box_x" Margin="315,150,0,0" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2" FontFamily="Courier New" Text="Lorem Ipsum" HorizontalAlignment="Left" VerticalAlignment="Top" Width="44" Foreground="White" Height="20" Grid.RowSpan="2"/>
-            <TextBox x:Name="cached_tracking_box_y" Margin="360,150,0,0" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2" FontFamily="Courier New" Text="Lorem Ipsum" HorizontalAlignment="Left" VerticalAlignment="Top" Width="44" Foreground="White" Height="20" Grid.RowSpan="2"/>
-            <TextBox x:Name="cached_tracking_box_width" Margin="405,150,0,0" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2" FontFamily="Courier New" Text="Lorem Ipsum" HorizontalAlignment="Left" VerticalAlignment="Top" Width="44" Foreground="White" Height="20" Grid.RowSpan="2"/>
-            <TextBox x:Name="cached_tracking_box_height" Margin="450,150,0,0" BorderBrush="Gray" Background="Black" BorderThickness="2,2,2,2" FontFamily="Courier New" Text="Lorem Ipsum" HorizontalAlignment="Left" VerticalAlignment="Top" Width="44" Foreground="White" Height="20" Grid.RowSpan="2"/>
-        </Grid>
-    </Grid>
-
+    </DockPanel>
 </Window>

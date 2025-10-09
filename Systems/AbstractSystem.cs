@@ -1,13 +1,19 @@
-﻿namespace MaplestoryBotNet.Systems
+﻿using MaplestoryBotNet.UserInterface;
+
+namespace MaplestoryBotNet.Systems
 {
     public enum SystemInjectType
     {
         Configuration = 0,
-        ConfigurationUpdate = 1,
-        KeyboardDevice = 2,
-        KeystrokeTransmitter = 3,
-        MacroTranslator = 4,
-        AgentData = 5
+        ConfigurationUpdate,
+        KeyboardDevice,
+        KeystrokeTransmitter,
+        MacroTranslator,
+        AgentData,
+        ViewModifier,
+        ViewCheckbox,
+        ShutDown,
+        SystemInjectTypeMaxNum
     }
 
 
@@ -22,9 +28,14 @@
 
         }
 
-        public virtual void Inject(SystemInjectType dataType, object data)
+        public virtual void Inject(SystemInjectType dataType, object? data)
         {
 
+        }
+
+        public virtual object? State()
+        {
+            return null;
         }
     }
 
@@ -39,7 +50,17 @@
 
     public abstract class AbstractInjector
     {
-        public abstract void Inject(SystemInjectType dataType, object data);
+        public abstract void Inject(SystemInjectType dataType, object? data);
+    }
+
+
+    public abstract class AbstractApplication
+    {
+        public abstract void Launch(List<string> args);
+
+        public abstract void ShutDown();
+
+        public abstract AbstractSystem System();
     }
 
 
@@ -52,7 +73,7 @@
             _systems = systems;
         }
 
-        public override void Inject(SystemInjectType dataType, object data)
+        public override void Inject(SystemInjectType dataType, object? data)
         {
             for (int i = 0; i < _systems.Count; i++)
             {
@@ -62,11 +83,39 @@
     }
 
 
-    public class SubSystemInformation
+    public abstract class AbstractSubSystemInfoList
+    {
+        public abstract List<SystemInformation> GetSubSystemInfo();
+    }
+
+
+    public abstract class AbstractApplicationInitializer
+    {
+        public abstract void Synchronize();
+
+        public abstract void Initialize();
+    }
+
+
+    public abstract class AbstractApplicationInitializerBuilder
+    {
+        public abstract AbstractApplicationInitializer Build();
+
+        public abstract AbstractApplicationInitializerBuilder WithViewUpdaterActionHandler(AbstractWindowActionHandler handler);
+
+        public abstract AbstractApplicationInitializerBuilder WithViewCheckboxActionHandler(AbstractWindowActionHandler handler);
+
+        public abstract AbstractApplicationInitializerBuilder WithApplication(AbstractApplication application);
+    }
+
+
+    public class SystemInformation
     {
         public AbstractSystemBuilder SystemBuilder;
 
-        public List<SubSystemInformation> BuildDependencies;
+        public List<SystemInformation> BuildDependencies;
+
+        public List<object> BuildObjects;
 
         public AbstractSystem? System;
 
@@ -76,9 +125,10 @@
 
         public int UpdatePriority;
 
-        public SubSystemInformation(
+        public SystemInformation(
             AbstractSystemBuilder systemBuilder,
-            List<SubSystemInformation> dependencies,
+            List<SystemInformation> dependencies,
+            List<object> objects,
             int initializationPriority,
             int startPriority,
             int updatePriority
@@ -86,16 +136,11 @@
         {
             SystemBuilder = systemBuilder;
             BuildDependencies = dependencies;
+            BuildObjects = objects;
             System = null;
             InitializationPriority = initializationPriority;
             StartPriority = startPriority;
             UpdatePriority = updatePriority;
         }
-    }
-
-
-    public abstract class AbstractSubSystemInfoList
-    {
-        public abstract List<SubSystemInformation> GetSubSystemInfo();
     }
 }

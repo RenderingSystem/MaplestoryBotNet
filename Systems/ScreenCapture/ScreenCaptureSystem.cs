@@ -1,4 +1,7 @@
-﻿using MaplestoryBotNet.ThreadingUtils;
+﻿using System.Configuration;
+using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.ThreadingUtils;
+using MaplestoryBotNet.UserInterface;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -42,20 +45,50 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
 
     public class GameScreenCaptureStoreThread : AbstractThread
     {
-        private string _processName;
+        private string _processName = "";
+
+        private ReaderWriterLockSlim _processNameLock;
 
         private AbstractScreenCaptureOrchestrator _orchestrator;
 
         private AbstractScreenCaptureStore _store;
 
+        protected string ProcessName
+        {
+            get
+            {
+                try
+                {
+                    _processNameLock.EnterReadLock();
+                    return _processName;
+                }
+                finally
+                {
+                    _processNameLock.ExitReadLock();
+                }
+            }
+            set
+            {
+                try
+                {
+                    _processNameLock.EnterWriteLock();
+                    _processName = value;
+                }
+                finally
+                {
+                    _processNameLock.ExitWriteLock();
+                }
+            }
+        }
+
         public GameScreenCaptureStoreThread(
-            string processName,
             AbstractScreenCaptureOrchestrator orchestrator,
             AbstractScreenCaptureStore store,
             AbstractThreadRunningState runningState
         ) : base(runningState)
         {
-            _processName = processName;
+            _processName = "";
+            _processNameLock = new ReaderWriterLockSlim();
             _orchestrator = orchestrator;
             _store = store;
         }
@@ -64,9 +97,86 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         {
             while (_runningState.IsRunning())
             {
-                var nextImage = _orchestrator.Capture(_processName);
-                if (nextImage != null)
-                    _store.SetLatest(nextImage);
+                var processName = ProcessName;
+                if (processName != "")
+                {
+                    var nextImage = _orchestrator.Capture(processName);
+                    if (nextImage != null)
+                    {
+                        _store.SetLatest(nextImage);
+                    }
+                }
+            }
+        }
+
+        public override void Inject(SystemInjectType dataType, object? value)
+        {
+            if (dataType == SystemInjectType.Configuration
+                && value is MaplestoryBotConfiguration configuration
+            )
+            {
+                ProcessName = configuration.ProcessName;
+            }
+        }
+    }
+
+
+    public class GameScreenCaptureStoreThreadFactory : AbstractThreadFactory
+    {
+        private AbstractScreenCaptureOrchestrator _orchestrator;
+
+        private AbstractScreenCaptureStore _store;
+
+        public GameScreenCaptureStoreThreadFactory(
+            AbstractScreenCaptureOrchestrator orchestrator,
+            AbstractScreenCaptureStore store
+        )
+        {
+            _orchestrator = orchestrator;
+            _store = store;
+        }
+
+        public override AbstractThread CreateThread()
+        {
+            return new GameScreenCaptureStoreThread(
+                _orchestrator, _store, new ThreadRunningState()
+            );
+        }
+    }
+
+
+    public class GameScreenCaptureStoreSystem : AbstractSystem
+    {
+        private AbstractThreadFactory _storeThreadFactory;
+
+        private AbstractThread? _storeThread;
+
+        public GameScreenCaptureStoreSystem(
+            AbstractThreadFactory storeThreadFactory
+        )
+        {
+            _storeThreadFactory = storeThreadFactory;
+            _storeThread = null;
+        }
+
+        public override void Initialize()
+        {
+            _storeThread = _storeThreadFactory.CreateThread();
+        }
+
+        public override void Start()
+        {
+            if (_storeThread != null)
+            {
+                _storeThread.Start();
+            }
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (_storeThread != null)
+            {
+                _storeThread.Inject(dataType, data);
             }
         }
     }
@@ -77,6 +187,11 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         public abstract void Publish(Image<Bgra32> image, bool updated);
 
         public abstract void NotifyComplete();
+
+        public virtual void Inject(SystemInjectType dataType, object? data)
+        {
+
+        }
     }
 
 
@@ -152,6 +267,40 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
 
         private Image<Bgra32>? _latestImage;
 
+        private bool _imageChanged;
+
+        private AbstractWindowStateModifier? _windowViewCheckbox;
+
+        private ReaderWriterLockSlim _windowViewCheckboxLock;
+
+        private AbstractWindowStateModifier? WindowViewCheckbox
+        {
+            get
+            {
+                try
+                {
+                    _windowViewCheckboxLock.EnterReadLock();
+                    return _windowViewCheckbox;
+                }
+                finally
+                {
+                    _windowViewCheckboxLock.ExitReadLock();
+                }
+            }
+            set
+            {
+                try
+                {
+                    _windowViewCheckboxLock.EnterWriteLock();
+                    _windowViewCheckbox = value;
+                }
+                finally
+                {
+                    _windowViewCheckboxLock.ExitWriteLock();
+                }
+            }
+        }
+
         public GameScreenCapturePublisherThread(
             AbstractScreenCaptureStore store,
             AbstractScreenCapturePublisher publisher,
@@ -161,23 +310,54 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             _store = store;
             _publisher = publisher;
             _latestImage = null;
+            _imageChanged = false;
+            _windowViewCheckbox = null;
+            _windowViewCheckboxLock = new ReaderWriterLockSlim();
+        }
+
+        private void _update()
+        {
+            var latest = _store.GetLatest();
+            _imageChanged = false;
+            if (latest != null && latest != _latestImage)
+            {
+                _latestImage = latest;
+                _imageChanged = true;
+            }
+        }
+
+        private void _publish()
+        {
+            if (_latestImage != null)
+            {
+                var viewCheckbox = WindowViewCheckbox;
+                if (
+                    viewCheckbox != null
+                    && (ViewTypes?)viewCheckbox.State(0) == ViewTypes.Snapshots
+                )
+                {
+                    _publisher.Publish(_latestImage, _imageChanged);
+                }
+            }
         }
 
         public override void ThreadLoop()
         {
             while (_runningState.IsRunning())
             {
-                var latest = _store.GetLatest();
-                bool imageChanged = false;
-                if (latest != null && latest != _latestImage)
-                {
-                    _latestImage = latest;
-                    imageChanged = true;
-                }
-                if (_latestImage != null)
-                {
-                    _publisher.Publish(_latestImage, imageChanged);
-                }
+                _update();
+                _publish();
+            }
+        }
+
+        public override void Inject(SystemInjectType dataType, object? value)
+        {
+            if (
+                dataType == SystemInjectType.ViewCheckbox
+                && value is AbstractWindowStateModifier windowViewCheckbox
+            )
+            {
+                WindowViewCheckbox = windowViewCheckbox;
             }
         }
     }
@@ -236,6 +416,11 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             _semaphore.Wait();
         }
 
+        public virtual void Inject(SystemInjectType dataType, object? data)
+        {
+
+        }
+
         public abstract void ProcessImage();
     }
 
@@ -250,6 +435,59 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         public override void ProcessImage()
         {
             
+        }
+    }
+
+
+    public class GameScreenCaptureSubscriber : AbstractScreenCaptureSubscriber
+    {
+        AbstractWindowStateModifier? _viewModifier;
+
+        ReaderWriterLockSlim _viewModifierLock;
+
+        public GameScreenCaptureSubscriber(
+            SemaphoreSlim semaphore
+        ) : base(semaphore)
+        {
+            _viewModifier = null;
+            _viewModifierLock = new ReaderWriterLockSlim();
+        }
+
+        public override void ProcessImage()
+        {
+            AbstractWindowStateModifier? viewModifier = null;
+            try
+            {
+                _viewModifierLock.EnterReadLock();
+                viewModifier = _viewModifier;
+            }
+            finally
+            {
+                _viewModifierLock.ExitReadLock();
+            }
+            if (viewModifier != null)
+            {
+                viewModifier.Modify(_image);
+            }
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (
+                dataType is SystemInjectType.ViewModifier
+                && data is AbstractWindowStateModifier viewModifier
+            )
+            {
+                try
+                {
+                    _viewModifierLock.EnterWriteLock();
+                    _viewModifier = viewModifier;
+                }
+                finally
+                {
+                    _viewModifierLock.ExitWriteLock();
+                }
+            }
         }
     }
 
@@ -278,6 +516,12 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
                 _subscriber.ProcessImage();
                 _publisher.NotifyComplete();
             }
+        }
+
+        public override void Inject(SystemInjectType dataType, object? value)
+        {
+            _subscriber.Inject(dataType, value);
+            _publisher.Inject(dataType, value);
         }
     }
 
@@ -328,7 +572,17 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         public override void Start()
         {
             if (_publisherThread != null)
-                _publisherThread.ThreadStart();
+            {
+                _publisherThread.Start();
+            }
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (_publisherThread != null)
+            {
+                _publisherThread.Inject(dataType, data);
+            }
         }
     }
 
@@ -362,7 +616,16 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             for (int i = 0; i < _subscriberThreads.Count; i++)
             {
                 var subscriberThread = _subscriberThreads[i];
-                subscriberThread.ThreadStart();
+                subscriberThread.Start();
+            }
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            for (int i = 0; i < _subscriberThreads.Count; i++)
+            {
+                var subscriberThread = _subscriberThreads[i];
+                subscriberThread.Inject(dataType, data);
             }
         }
     }
@@ -396,6 +659,15 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
                 subSystem.Start();
             }
         }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            for (int i = 0; i < _subSystems.Count; i++)
+            {
+                var subSystem = _subSystems[i];
+                subSystem.Inject(dataType, data);
+            }
+        }
     }
 
 
@@ -406,6 +678,15 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         private AbstractScreenCaptureStore _store()
         {
             return new GameScreenCaptureStore();
+        }
+
+        private AbstractSystem _storeSystem(AbstractScreenCaptureStore store)
+        {
+            return new GameScreenCaptureStoreSystem(
+                new GameScreenCaptureStoreThreadFactory(
+                    new ScreenCaptureOrchestratorFacade(), store
+                )
+            );
         }
 
         private AbstractThreadFactory _subscriberThreadFactory(
@@ -467,12 +748,13 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         public override AbstractSystem Build()
         {
             var store = _store();
+            var storeSystem = _storeSystem(store);
             var publisher = _publisher(_subscribers);
             var publisherThreadFactory = _publisherThreadFactory(store, publisher);
             var subscriberThreadFactories = _subscriberThreadFactories(publisher, _subscribers);
             var publisherSystem = _publisherSystem(publisherThreadFactory);
             var subscriberSystem = _subscriberSystem(subscriberThreadFactories);
-            return new GameScreenCaptureSystem([publisherSystem, subscriberSystem]);
+            return new GameScreenCaptureSystem([storeSystem, publisherSystem, subscriberSystem]);
         }
 
         public override AbstractSystemBuilder WithArg(object arg)

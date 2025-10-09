@@ -1,13 +1,16 @@
-﻿using MaplestoryBotNet.Systems.ScreenCapture;
+﻿using MaplestoryBotNet.Systems;
+using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.Systems.ScreenCapture;
+using MaplestoryBotNet.ThreadingUtils;
+using MaplestoryBotNet.UserInterface;
+using MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Tests;
+using MaplestoryBotNetTests.TestHelpers;
+using MaplestoryBotNetTests.ThreadingUtils;
+using MaplestoryBotNetTests.UserInterface.Tests.Mocks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Diagnostics;
-using MaplestoryBotNetTests.ThreadingUtils;
-using MaplestoryBotNet.ThreadingUtils;
-using MaplestoryBotNet.Systems;
-using MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks;
-using MaplestoryBotNetTests.TestHelpers;
-using MaplestoryBotNetTests.Systems.Tests;
 
 
 namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
@@ -68,6 +71,8 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
 
         GameScreenCaptureStore _store = new GameScreenCaptureStore();
 
+        MaplestoryBotConfiguration _configuration = new MaplestoryBotConfiguration { ProcessName = "meow" };
+
         Image<Bgra32> _image = new Image<Bgra32>(1, 1);
 
         /**
@@ -105,7 +110,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             _store = new GameScreenCaptureStore();
             _image = new Image<Bgra32>(1, 1);
             return new GameScreenCaptureStoreThread(
-                "meow", _screenCaptureOrchestrator, _store, _runningState
+                _screenCaptureOrchestrator, _store, _runningState
             );
         }
 
@@ -121,10 +126,29 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             var storeThread = _fixture();
             _screenCaptureOrchestrator.CaptureReturn.Add(_image);
             _setupThreadStates(1);
-            storeThread.ThreadStart();
-            storeThread.ThreadJoin(10000);
+            storeThread.Inject(SystemInjectType.Configuration, _configuration);
+            storeThread.Start();
+            storeThread.Join(10000);
             Debug.Assert(_screenCaptureOrchestrator.CaptureCalls == 1);
             Debug.Assert(_screenCaptureOrchestrator.CaptureCallArg_processName[0] == "meow");
+        }
+
+        /**
+         * @brief Tests capture prevention when target process is unspecified
+         * 
+         * Validates that the bot correctly prevents screen capture attempts when
+         * no target process has been configured, ensuring system resources are not
+         * wasted on undefined capture operations and preventing potential errors
+         * from unconfigured capture targets.
+         */
+        private void _testCaptureNotCalledIfNoProcessNameIsInjected()
+        {
+            var storeThread = _fixture();
+            _screenCaptureOrchestrator.CaptureReturn.Add(_image);
+            _setupThreadStates(1);
+            storeThread.Start();
+            storeThread.Join(10000);
+            Debug.Assert(_screenCaptureOrchestrator.CaptureCalls == 0);
         }
 
         /**
@@ -139,8 +163,9 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             var storeThread = _fixture();
             _screenCaptureOrchestrator.CaptureReturn.Add(_image);
             _setupThreadStates(1);
-            storeThread.ThreadStart();
-            storeThread.ThreadJoin(10000);
+            storeThread.Inject(SystemInjectType.Configuration, _configuration);
+            storeThread.Start();
+            storeThread.Join(10000);
             Debug.Assert(_store.GetLatest() == _image);
         }
 
@@ -157,8 +182,9 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             _screenCaptureOrchestrator.CaptureReturn.Add(_image);
             _screenCaptureOrchestrator.CaptureReturn.Add(null);
             _setupThreadStates(2);
-            storeThread.ThreadStart();
-            storeThread.ThreadJoin(10000);
+            storeThread.Inject(SystemInjectType.Configuration, _configuration);
+            storeThread.Start();
+            storeThread.Join(10000);
             Debug.Assert(_store.GetLatest() == _image);
         }
 
@@ -173,8 +199,9 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             var storeThread = _fixture();
             _screenCaptureOrchestrator.CaptureReturn.Add(null);
             _setupThreadStates(1);
-            storeThread.ThreadStart();
-            storeThread.ThreadJoin(10000);
+            storeThread.Inject(SystemInjectType.Configuration, _configuration);
+            storeThread.Start();
+            storeThread.Join(10000);
             Debug.Assert(_store.GetLatest() == null);
         }
 
@@ -193,11 +220,11 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             _screenCaptureOrchestrator.CaptureReturn.Add(oldImage);
             _screenCaptureOrchestrator.CaptureReturn.Add(newImage);
             _setupThreadStates(2);
-            storeThread.ThreadStart();
-            storeThread.ThreadJoin(10000);
+            storeThread.Inject(SystemInjectType.Configuration, _configuration);
+            storeThread.Start();
+            storeThread.Join(10000);
             Debug.Assert(_store.GetLatest() == newImage);
         }
-
 
         /**
          * @brief Tests consistent capture performance during operation
@@ -211,10 +238,11 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             {
                 var storeThread = _fixture();
                 _setupThreadStates(i);
+                storeThread.Inject(SystemInjectType.Configuration, _configuration);
                 for (int j = 0; j < i; j++)
                     _screenCaptureOrchestrator.CaptureReturn.Add(new Image<Bgra32>(1, 1));
-                storeThread.ThreadStart();
-                storeThread.ThreadJoin(10000);
+                storeThread.Start();
+                storeThread.Join(10000);
                 Debug.Assert(_screenCaptureOrchestrator.CaptureCalls == i);
             }
         }
@@ -230,11 +258,106 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public void Run()
         {
             _testCaptureUsesTheCorrectProcess();
+            _testCaptureNotCalledIfNoProcessNameIsInjected();
             _testCaptureForLatestNonNullImage();
             _testCaptureForLatestNullImage();
             _testCaptureForImageNotFound();
             _testCaptureLatestImage();
             _testCaptureAttemptsForEveryRunningLoop();
+        }
+    }
+
+
+    /**
+     * @class GameScreenCaptureStoreSystemTests
+     * 
+     * @brief Unit tests for screen capture store system thread management
+     * 
+     * This test class validates that the screen capture store system properly manages
+     * its background thread lifecycle, ensuring reliable coordination between image
+     * capture operations and shared image storage access for multiple consumer threads.
+     */
+    public class GameScreenCaptureStoreSystemTest
+    {
+        private MockThreadFactory _storeThreadFactory = new MockThreadFactory();
+
+        private MockThread _storeThread = new MockThread(new ThreadRunningState());
+
+        /**
+         * @brief Creates test environment with mock thread dependencies
+         * 
+         * @return Configured GameScreenCaptureStoreSystem instance for testing
+         * 
+         * Prepares a test environment with mock thread factory and thread components
+         * to isolate store system behavior from actual thread execution while
+         * maintaining the shared image storage coordination semantics.
+         */
+        private GameScreenCaptureStoreSystem _fixture()
+        {
+            _storeThreadFactory = new MockThreadFactory();
+            _storeThread = new MockThread(new ThreadRunningState());
+            _storeThreadFactory.CreateThreadReturn.Add(_storeThread);
+            return new GameScreenCaptureStoreSystem(_storeThreadFactory);
+        }
+
+        /**
+         * @brief Tests background thread creation during system initialization
+         * 
+         * Validates that the store system creates its background capture thread
+         * during initialization, establishing the foundation for continuous image
+         * capture and shared storage management for multiple consumer threads.
+         */
+        private void _testInitializeCreatesStoreThread()
+        {
+            var gameScreenCaptureStoreSystem = _fixture();
+            gameScreenCaptureStoreSystem.Initialize();
+            Debug.Assert(_storeThreadFactory.CreateThreadCalls == 1);
+        }
+
+        /**
+         * @brief Tests background thread activation during system startup
+         * 
+         * Validates that the store system activates its background capture thread
+         * during startup, ensuring continuous image capture begins and the shared
+         * image store starts receiving updates for consumer thread access.
+         */
+        private void _testStartStartsStoreThread()
+        {
+            var gameScreenCaptureStoreSystem = _fixture();
+            gameScreenCaptureStoreSystem.Initialize();
+            gameScreenCaptureStoreSystem.Start();
+            Debug.Assert(_storeThread.ThreadStartCalls == 1);
+        }
+
+        /**
+         * @brief Tests configuration propagation to background thread
+         * 
+         * Validates that the store system correctly propagates configuration data
+         * to its background capture thread, ensuring capture parameters and process
+         * targeting are properly communicated for consistent shared image generation.
+         */
+        private void _testInjectInjectsToStoreThread()
+        {
+            var gameScreenCaptureStoreSystem = _fixture();
+            gameScreenCaptureStoreSystem.Initialize();
+            gameScreenCaptureStoreSystem.Inject((SystemInjectType)0x1234, 0x2345);
+            Debug.Assert(_storeThread.ThreadInjectCalls == 1);
+            Debug.Assert((int)_storeThread.ThreadInjectCallArg_dataType[0] == 0x1234);
+            Debug.Assert((int?)_storeThread.ThreadInjectCallArg_value[0] == 0x2345);
+        }
+
+        /**
+         * @brief Executes all store system thread management tests
+         * 
+         * Runs the complete test suite to ensure the screen capture store system
+         * properly manages background thread lifecycle and configuration propagation,
+         * providing confidence in reliable shared image storage for multiple consumers.
+         */
+        public void Run()
+        {
+            _testInitializeCreatesStoreThread();
+            _testStartStartsStoreThread();
+            _testInjectInjectsToStoreThread();
         }
     }
 
@@ -408,6 +531,8 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
 
         MockScreenCapturePublisher _publisher = new MockScreenCapturePublisher();
 
+        MockWindowStateModifier _modifier = new MockWindowStateModifier();
+
         /**
          * @brief Configures the running state simulation for thread lifecycle testing
          * 
@@ -441,6 +566,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             _publisher = new MockScreenCapturePublisher();
             _runningState = new MockRunningState();
             _store = new MockScreenCaptureStore();
+            _modifier = new MockWindowStateModifier();
             return new GameScreenCapturePublisherThread(
                 _store, _publisher, _runningState
             );
@@ -463,8 +589,12 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             _store.GetLatestReturn.Add(oldImage);
             _store.GetLatestReturn.Add(newImage);
             _store.GetLatestReturn.Add(null);
-            publisherThread.ThreadStart();
-            publisherThread.ThreadJoin(10000);
+            _modifier.StateReturn.Add(ViewTypes.Snapshots);
+            _modifier.StateReturn.Add(ViewTypes.Snapshots);
+            _modifier.StateReturn.Add(ViewTypes.Snapshots);
+            publisherThread.Inject(SystemInjectType.ViewCheckbox, _modifier);
+            publisherThread.Start();
+            publisherThread.Join(10000);
             Debug.Assert(_publisher.PublishCalls == 3);
             Debug.Assert(_publisher.PublishCallArg_image[0] == oldImage);
             Debug.Assert(_publisher.PublishCallArg_updated[0] == true);
@@ -475,9 +605,34 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         }
 
         /**
+         * @brief Tests publishing prevention when view control dependency is missing
+         * 
+         * Validates that the publisher correctly prevents image distribution when
+         * the required view control dependency has not been provided, ensuring
+         * system resources are not wasted on unauthorized publishing operations
+         * and maintaining proper access control over image distribution.
+         */
+        private void _testPublisherDoesNotpublishWithoutViewCheckboxModifier()
+        {
+            var publisherThread = _fixture();
+            _setupThreadStates(3);
+            var oldImage = new Image<Bgra32>(1, 1);
+            var newImage = new Image<Bgra32>(1, 1);
+            _store.GetLatestReturn.Add(oldImage);
+            _store.GetLatestReturn.Add(newImage);
+            _store.GetLatestReturn.Add(null);
+            _modifier.StateReturn.Add(ViewTypes.Snapshots);
+            _modifier.StateReturn.Add(ViewTypes.Snapshots);
+            _modifier.StateReturn.Add(ViewTypes.Snapshots);
+            publisherThread.Start();
+            publisherThread.Join(10000);
+            Debug.Assert(_publisher.PublishCalls == 0);
+        }
+
+        /**
          * @brief Tests proper handling of initial empty image store conditions
          * 
-         * Validates that the bot correctly handles situations where no screen captures
+         * Validates that the bot correctly handles situations where no screen capturess
          * are initially available, ensuring the publishing thread waits for valid
          * game state information before beginning distribution to subscribers.
          */
@@ -488,8 +643,10 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             var newImage = new Image<Bgra32>(1, 1);
             _store.GetLatestReturn.Add(null);
             _store.GetLatestReturn.Add(newImage);
-            publisherThread.ThreadStart();
-            publisherThread.ThreadJoin(10000);
+            _modifier.StateReturn.Add(ViewTypes.Snapshots);
+            publisherThread.Inject(SystemInjectType.ViewCheckbox, _modifier);
+            publisherThread.Start();
+            publisherThread.Join(10000);
             Debug.Assert(_publisher.PublishCalls == 1);
             Debug.Assert(_publisher.PublishCallArg_image[0] == newImage);
             Debug.Assert(_publisher.PublishCallArg_updated[0] == true);
@@ -506,6 +663,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public void Run()
         {
             _testPublisherPublishesLatestImage();
+            _testPublisherDoesNotpublishWithoutViewCheckboxModifier();
             _testPublisherStartsPublishingAfterFirstLatestImage();
         }
     }
@@ -611,8 +769,8 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
                 _setupThreadStates(i);
                 var subscriberRef = utils.Reference(_subscriber);
                 var publisherRef = utils.Reference(_publisher);
-                subscriberThread.ThreadStart();
-                subscriberThread.ThreadJoin(10000);
+                subscriberThread.Start();
+                subscriberThread.Join(10000);
                 Debug.Assert(_callOrder.Count == (3 * i));
                 for (int j = 0; j < i; j++)
                 {
@@ -624,14 +782,35 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         }
 
         /**
+         * @brief Tests configuration propagation to publisher and subscriber components
+         * 
+         * Validates that the subscriber thread correctly propagates injected configuration
+         * data to both the publisher and subscriber components, ensuring consistent
+         * system-wide configuration and proper coordination between all screen capture
+         * processing elements during operation.
+         */
+        private void _testInjectPassesInjectedDataOntoPublisherAndSubscriber()
+        {
+            var subscriberThread = _fixture();
+            subscriberThread.Inject((SystemInjectType)0x1234, 0x2345);
+            Debug.Assert(_subscriber.InjectCalls == 1);
+            Debug.Assert((int)_subscriber.InjectCallArg_dataType[0] == 0x1234);
+            Debug.Assert((int?)_subscriber.InjectCallArg_data[0] == 0x2345);
+            Debug.Assert(_publisher.InjectCalls == 1);
+            Debug.Assert((int)_publisher.InjectCallArg_dataType[0] == 0x1234);
+            Debug.Assert((int?)_publisher.InjectCallArg_data[0] == 0x2345);
+        }       
+
+        /**
          * @brief Executes the subscriber thread processing test
          * 
-         * Runs the test to ensure the subscriber thread correctly
+         * Runs the test to ensure the subscriber thread corr   ectly
          * processes screen captures and coordinates with the publisher,
          */
         public void Run()
         {
             _testSubscriberProcessingSequence();
+            _testInjectPassesInjectedDataOntoPublisherAndSubscriber();
         }
     }
 
@@ -705,6 +884,24 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         }
 
         /**
+         * @brief Tests configuration propagation to publisher worker thread
+         * 
+         * Validates that the publisher system correctly forwards all configuration
+         * and runtime data to its worker thread, ensuring consistent system-wide
+         * settings and proper coordination between the publisher system and its
+         * active publishing components during screen capture distribution.
+         */
+        private void _testPublisherSystemInjectsToPublisherThread()
+        {
+            var publisherSystem = _fixture();
+            publisherSystem.Initialize();
+            publisherSystem.Inject((SystemInjectType)0x1234, 0x2345);
+            Debug.Assert(_mockThread.ThreadInjectCalls == 1);
+            Debug.Assert((int)_mockThread.ThreadInjectCallArg_dataType[0] == 0x1234);
+            Debug.Assert((int?)_mockThread.ThreadInjectCallArg_value[0] == 0x2345);
+        }
+
+        /**
          * @brief Executes the publisher system initialization test
          * 
          * Runs the test to ensure the publisher system correctly initializes
@@ -714,6 +911,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public void Run()
         {
             _testPublisherSystemInitializesAndStartsPublisherThread();
+            _testPublisherSystemInjectsToPublisherThread();
         }
     }
 
@@ -795,6 +993,28 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         }
 
         /**
+         * @brief Tests configuration propagation to all subscriber worker threads
+         * 
+         * Validates that the subscriber system correctly forwards all configuration
+         * and runtime data to every subscriber worker thread, ensuring consistent
+         * system-wide settings and proper coordination across all subscriber
+         * components during screen capture processing operations.
+         */
+        private void _testSubscriberSystemInjectsToSubscriberThreads()
+        {
+            var subscriberSystem = _fixture();
+            subscriberSystem.Initialize();
+            subscriberSystem.Inject((SystemInjectType)0x1234, 0x2345);
+            for (int i = 0; i < _mockThreadFactories.Count; i++)
+            {
+                var mockThread = (MockThread)_mockThreads[i];
+                Debug.Assert(mockThread.ThreadInjectCalls == 1);
+                Debug.Assert((int)mockThread.ThreadInjectCallArg_dataType[0] == 0x1234);
+                Debug.Assert((int?)mockThread.ThreadInjectCallArg_value[0] == 0x2345);
+            }
+        }
+
+        /**
          * @brief Executes the subscriber system initialization test
          * 
          * Runs the test to ensure the subscriber system correctly initializes
@@ -805,6 +1025,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public void Run()
         {
             _testSubscriberSystemInitializesAndStartsSubscriberThreads();
+            _testSubscriberSystemInjectsToSubscriberThreads();
         }
     }
 
@@ -863,6 +1084,28 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         }
 
         /**
+         * @brief Tests configuration propagation to all subsystem components
+         * 
+         * Validates that the main screen capture system correctly forwards all configuration
+         * and runtime data to every subsystem component, ensuring consistent system-wide
+         * settings and proper coordination across the entire screen capture pipeline
+         * during game monitoring operations.
+         */
+        private void _testCaptureSystemInjectsToSubSystems()
+        {
+            var captureSystem = _fixture();
+            captureSystem.Initialize();
+            captureSystem.Inject((SystemInjectType)0x1234, 0x2345);
+            for (int i = 0; i < _mockSubSystems.Count; i++)
+            {
+                var mockSystem = (MockSystem)_mockSubSystems[i];
+                Debug.Assert(mockSystem.InjectCalls == 1);
+                Debug.Assert((int)mockSystem.InjectCallArg_dataType[0] == 0x1234);
+                Debug.Assert((int?)mockSystem.InjectCallArg_data[0] == 0x2345);
+            }
+        }
+
+        /**
          * @brief Executes the complete system coordination test
          * 
          * Runs the test to ensure the main screen capture system correctly coordinates
@@ -872,6 +1115,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         public void Run()
         {
             _testCaptureSystemInitializesAndStartsAllSubSystems();
+            _testCaptureSystemInjectsToSubSystems();
         }
     }
 
@@ -882,10 +1126,11 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         {
             new GameScreenCaptureStoreTests().Run();
             new GameScreenCaptureStoreThreadTests().Run();
+            new GameScreenCaptureStoreSystemTest().Run();
             new GameScreenCapturePublisherTest().Run();
             new GameScreenCapturePublisherThreadTest().Run();
-            new GameScreenCaptureSubscriberThreadTest().Run();
             new GameScreenCapturePublisherSystemTest().Run();
+            new GameScreenCaptureSubscriberThreadTest().Run();
             new GameScreenCaptureSubscriberSystemTest().Run();
             new GameScreenCaptureSystemTests().Run();
         }

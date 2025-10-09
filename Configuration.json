@@ -129,10 +129,10 @@
     "ailments_allcure_key": "c",
     "map_icons": {
         "character": {
-            "image": "images/map_icons/character.gif"
+            "image": "images/mapicons/character.gif"
         },
         "rune": {
-            "image": "images/map_icons/rune.gif"
+            "image": "images/mapicons/rune.gif"
         }
     }
 }

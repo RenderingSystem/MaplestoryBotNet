@@ -184,7 +184,9 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
         public override AbstractKeystrokeTransmitter Build()
         {
             if (_keyboardMapping == null)
+            {
                 _keyboardMapping = new KeyboardMapping();
+            }
             return new KeystrokeTransmitter(
                 new InterceptionLibrary(),
                 new KeystrokeConverter(),

@@ -60,6 +60,12 @@ namespace MaplestoryBotNet.LibraryWrappers
 
         [DllImport("user32.dll")]
         public static extern bool IsWindow(Context hWnd);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll")]
+        public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
     }
 
 
@@ -80,6 +86,10 @@ namespace MaplestoryBotNet.LibraryWrappers
         public abstract bool SetProcessDPIAware();
 
         public abstract bool IsWindow(Context hWnd);
+
+        public abstract int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        public abstract int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
     }
 
 
@@ -121,6 +131,16 @@ namespace MaplestoryBotNet.LibraryWrappers
         public override bool IsWindow(Context hWnd)
         {
             return WindowsLibraryImports.IsWindow(hWnd);
+        }
+
+        public override int GetWindowLong(IntPtr hWnd, int nIndex)
+        {
+            return WindowsLibraryImports.GetWindowLong(hWnd, nIndex);
+        }
+
+        public override int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong)
+        {
+            return WindowsLibraryImports.SetWindowLong(hWnd, nIndex, dwNewLong);
         }
     }
 

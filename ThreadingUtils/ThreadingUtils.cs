@@ -1,4 +1,6 @@
-﻿namespace MaplestoryBotNet.ThreadingUtils
+﻿using MaplestoryBotNet.Systems;
+
+namespace MaplestoryBotNet.ThreadingUtils
 {
     public abstract class AbstractThread
     {
@@ -17,12 +19,17 @@
 
         public abstract void ThreadLoop();
 
-        public virtual object? ThreadResult()
+        public virtual object? Result()
         {
             return null;
         }
 
-        public virtual void ThreadStart()
+        public virtual object? State()
+        {
+            return null;
+        }
+
+        public virtual void Start()
         {
             if (_runningState.IsRunning())
                 return;
@@ -32,14 +39,14 @@
             _thread.Start();
         }
 
-        public virtual void ThreadStop()
+        public virtual void Stop()
         {
             if (!_runningState.IsRunning())
                 return;
             _runningState.SetRunning(false);
         }
 
-        public virtual bool ThreadJoin(int milliseconds)
+        public virtual bool Join(int milliseconds)
         {
             if (_thread != null && _thread.IsAlive)
             {
@@ -47,6 +54,11 @@
                 return _thread.Join(timeout);
             }
             return true;
+        }
+
+        public virtual void Inject(SystemInjectType dataType, object? value)
+        {
+
         }
     }
 
