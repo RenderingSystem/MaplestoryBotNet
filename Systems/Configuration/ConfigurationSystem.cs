@@ -172,6 +172,10 @@ namespace MaplestoryBotNet.Systems.Configuration
 
         public override AbstractSystemBuilder WithArg(object arg)
         {
+            if (arg is AbstractSystem system)
+            {
+                _systems.Add(system);
+            }
             return this;
         }
     }
