@@ -18,5 +18,10 @@ namespace MaplestoryBotNet.Systems.Macro
         {
             throw new NotImplementedException();
         }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

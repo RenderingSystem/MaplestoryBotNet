@@ -89,14 +89,14 @@ namespace MaplestoryBotNetTests.Systems.Tests
     }
 
 
-    public class MockInjector : AbstractInjector
+    public class MockInjector : ISystemInjectable
     {
         public List<string> CallOrder = [];
 
         public int InjectCalls = 0;
         public List<SystemInjectType> InjectCallArg_dataType = [];
         public List<object?> InjectCallArg_data = [];
-        public override void Inject(SystemInjectType dataType, object? data)
+        public void Inject(SystemInjectType dataType, object? data)
         {
             var callReference = new TestUtilities().Reference(this) + "Inject";
             CallOrder.Add(callReference);
@@ -162,4 +162,70 @@ namespace MaplestoryBotNetTests.Systems.Tests
         }
     }
 
+
+    public class MockSystemInjectable : ISystemInjectable
+    {
+        public List<string> CallOrder = [];
+        public int InjectCalls = 0;
+        public List<SystemInjectType> InjectCallArg_dataType = [];
+        public List<object?> InjectCallArg_data = [];
+        public void Inject(SystemInjectType dataType, object? data)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Inject";
+            CallOrder.Add(callReference);
+            InjectCalls++;
+            InjectCallArg_dataType.Add(dataType);
+            InjectCallArg_data.Add(data);
+        }
+    }
+
+
+    public class MockDispatcher : AbstractDispatcher
+    {
+        public List<string> CallOrder = [];
+
+        public int DispatchCalls = 0;
+        public List<Action> DispatchCallArg_action = [];
+        public override void Dispatch(Action action)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Dispatch";
+            CallOrder.Add(callReference);
+            DispatchCalls++;
+            DispatchCallArg_action.Add(action);
+        }
+    }
+
+
+    public class MockSystemWindow : AbstractSystemWindow
+    {
+        public List<string> CallOrder = [];
+
+        public int ShowCalls = 0;
+        public override void Show()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Show";
+            CallOrder.Add(callReference);
+            ShowCalls++;
+        }
+
+        public int CloseCalls = 0;
+        public override void Close()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Close";
+            CallOrder.Add(callReference);
+            CloseCalls++;
+        }
+
+        public int GetWindowCalls = 0;
+        public int GetWindowIndex = 0;
+        public List<object?> GetWindowReturn = [];
+        public override object? GetWindow()
+        {
+            var callReference = new TestUtilities().Reference(this) + "GetWindow";
+            CallOrder.Add(callReference);
+            if (GetWindowIndex < GetWindowReturn.Count)
+                return GetWindowReturn[GetWindowIndex++];
+            throw new IndexOutOfRangeException();
+        }
+    }
 }

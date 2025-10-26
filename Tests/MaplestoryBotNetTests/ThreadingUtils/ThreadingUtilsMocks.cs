@@ -124,16 +124,16 @@ namespace MaplestoryBotNetTests.ThreadingUtils
             return new IndexOutOfRangeException();
         }
 
-        public int ThreadInjectCalls = 0;
-        public List<SystemInjectType> ThreadInjectCallArg_dataType = [];
-        public List<object?> ThreadInjectCallArg_value = [];
+        public int InjectCalls = 0;
+        public List<SystemInjectType> InjectCallArg_dataType = [];
+        public List<object?> InjectCallArg_data = [];
         public override void Inject(SystemInjectType dataType, object? value)
         {
             var callReference = new TestUtilities().Reference(this) + "ThreadInject";
             CallOrder.Add(callReference);
-            ThreadInjectCalls++;
-            ThreadInjectCallArg_dataType.Add(dataType);
-            ThreadInjectCallArg_value.Add(value);
+            InjectCalls++;
+            InjectCallArg_dataType.Add(dataType);
+            InjectCallArg_data.Add(value);
         }
 
         public int ThreadStateCalls = 0;

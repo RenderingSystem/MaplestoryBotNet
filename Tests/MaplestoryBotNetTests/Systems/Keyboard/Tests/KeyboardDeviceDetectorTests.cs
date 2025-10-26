@@ -7,6 +7,7 @@ using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
+using MaplestoryBotNetTests.UserInterface.Tests.Mocks;
 
 namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 {
@@ -146,6 +147,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 
         MockKeyboardDeviceDetector _keyboardDeviceDetector = new MockKeyboardDeviceDetector();
 
+        MockWindowStateModifier _splashScreenModifier = new MockWindowStateModifier();
+
         /**
          * @brief Creates a test environment for threaded keyboard detection testing
          * 
@@ -161,7 +164,10 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _runningState.IsRunningReturn.Add(false);
             _keyboardDeviceDetector = new MockKeyboardDeviceDetector();
             _keyboardDeviceDetector.DetectReturn.Add(new KeyboardDeviceContext(0x1234, 0x2345));
-            return new KeyboardDeviceDetectorThread(_keyboardDeviceDetector, _runningState);
+            _splashScreenModifier = new MockWindowStateModifier();
+            var detectorThread = new KeyboardDeviceDetectorThread(_keyboardDeviceDetector, _runningState);
+            detectorThread.Inject(SystemInjectType.SplashScreen, _splashScreenModifier);
+            return detectorThread;
         }
 
         /**
@@ -211,8 +217,6 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 
         private MockThread _thread = new MockThread(new MockRunningState());
 
-        private MockInjector _injector = new MockInjector();
-
         /**
          * @brief Creates a test environment for keyboard detection system testing
          * 
@@ -226,9 +230,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         {
             _threadFactory = new MockThreadFactory();
             _thread = new MockThread(new MockRunningState());
-            _injector = new MockInjector();
             _threadFactory.CreateThreadReturn.Add(_thread);
-            return new KeyboardDeviceDetectorSystem(_threadFactory, _injector);
+            return new KeyboardDeviceDetectorSystem(_threadFactory);
         }
 
         /**
@@ -289,21 +292,6 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             Debug.Assert(_thread.ThreadStartCalls == 0);
         }
 
-        /**
-         * @brief Tests proper handling of incomplete device detection
-         * 
-         * Validates that the keyboard detection system correctly handles
-         * situations where device detection is not yet complete, preventing
-         * premature injection of incomplete device context information.
-         */
-        private void _testUpdateSystemDoesNotInjectWithoutThreadResult()
-        {
-            var keyboardDeviceDetectorSystem = _fixture();
-            _thread.ThreadResultReturn.Add(null);
-            keyboardDeviceDetectorSystem.Initialize();
-            keyboardDeviceDetectorSystem.Update();
-            Debug.Assert(_injector.InjectCalls == 0);
-        }
 
         /**
          * @brief Tests successful device context injection
@@ -312,51 +300,15 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
          * detected keyboard device context into the system, ensuring
          * keyboard input monitoring can be properly established.
          */
-        private void _testUpdateSystemInjectsWithThreadResult()
+        private void _testUpdateSystemInjectsKeyboardDevice()
         {
             var keyboardDeviceDetectorSystem = _fixture();
             var deviceContext = new KeyboardDeviceContext(0x1234, 0x2345);
-            _thread.ThreadResultReturn.Add(deviceContext);
             keyboardDeviceDetectorSystem.Initialize();
-            keyboardDeviceDetectorSystem.Update();
-            Debug.Assert(_injector.InjectCalls == 1);
-            Debug.Assert(_injector.InjectCallArg_dataType[0] == SystemInjectType.KeyboardDevice);
-            Debug.Assert(_injector.InjectCallArg_data[0] == deviceContext);
-        }
-
-        /**
-         * @brief Tests idempotent behavior of device context injection
-         * 
-         * Validates that the keyboard detection system injects device context
-         * only once, preventing duplicate injections and ensuring system
-         * stability after successful device identification.
-         */
-        private void _testUpdateSystemInjectsWithThreadResultOnlyOnce()
-        {
-            var keyboardDeviceDetectorSystem = _fixture();
-            var deviceContext = new KeyboardDeviceContext(0x1234, 0x2345);
-            _thread.ThreadResultReturn.Add(deviceContext);
-            keyboardDeviceDetectorSystem.Initialize();
-            keyboardDeviceDetectorSystem.Update();
-            keyboardDeviceDetectorSystem.Update();
-            Debug.Assert(_injector.InjectCalls == 1);
-            Debug.Assert(_injector.InjectCallArg_dataType[0] == SystemInjectType.KeyboardDevice);
-            Debug.Assert(_injector.InjectCallArg_data[0] == deviceContext);
-        }
-
-        /**
-         * @brief Tests proper handling of missing thread results
-         * 
-         * Validates that the keyboard detection system correctly handles
-         * situations where no thread result is available, preventing
-         * injection of invalid device context information.
-         */
-        private void _testUpdateSystemDoesNotInjectWithNoThreadResult()
-        {
-            var keyboardDeviceDetectorSystem = _fixture();
-            _thread.ThreadResultReturn.Add(null);
-            keyboardDeviceDetectorSystem.Update();
-            Debug.Assert(_injector.InjectCalls == 0);
+            keyboardDeviceDetectorSystem.Inject(SystemInjectType.KeyboardDevice, deviceContext);
+            Debug.Assert(_thread.InjectCalls == 1);
+            Debug.Assert(_thread.InjectCallArg_dataType[0] == SystemInjectType.KeyboardDevice);
+            Debug.Assert(_thread.InjectCallArg_data[0] == deviceContext);
         }
 
         /**
@@ -373,10 +325,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _testInitializationOnlyCreatesOneThread();
             _testStartSystemStartsDetectorThread();
             _testStartSystemCannotStartDetectorThreadWithoutInitialization();
-            _testUpdateSystemDoesNotInjectWithoutThreadResult();
-            _testUpdateSystemInjectsWithThreadResult();
-            _testUpdateSystemInjectsWithThreadResultOnlyOnce();
-            _testUpdateSystemDoesNotInjectWithNoThreadResult();
+            _testUpdateSystemInjectsKeyboardDevice();
         }
     }
 

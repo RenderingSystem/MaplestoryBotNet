@@ -1,4 +1,5 @@
-﻿using SixLabors.ImageSharp;
+﻿using MaplestoryBotNet.Systems;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Diagnostics;
@@ -7,25 +8,15 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 
 
 namespace MaplestoryBotNet.UserInterface
 {
-    public enum ViewTypes
-    {
-        Snapshots = 0,
-        Minimap,
-        NCC,
-        ViewTypesMaxNum
-    }
-
-
     public class WindowViewCheckbox : AbstractWindowStateModifier
     {
         private List<MenuItem> _menuItems = [];
 
-        private ViewTypes _selectedViewType = ViewTypes.ViewTypesMaxNum;
+        private ViewTypes _selectedViewType;
 
         private ReaderWriterLockSlim _menuItemsLock;
 
@@ -36,23 +27,7 @@ namespace MaplestoryBotNet.UserInterface
             _menuItems = menuItems;
             _menuItemsLock = new ReaderWriterLockSlim();
             _selectedViewType = ViewTypes.ViewTypesMaxNum;
-        }
-
-        public override void Initialize()
-        {
-            try
-            {
-                _menuItemsLock.EnterWriteLock();
-                for (int i = 0; i < _menuItems.Count; i++)
-                {
-                    _menuItems[i].IsChecked = false;
-                }
-                _selectedViewType = ViewTypes.ViewTypesMaxNum;
-            }
-            finally
-            {
-                _menuItemsLock.ExitWriteLock();
-            }
+            Modify(ViewTypes.Snapshots);
         }
 
         public override void Modify(object? value)
@@ -64,18 +39,24 @@ namespace MaplestoryBotNet.UserInterface
             try
             {
                 _menuItemsLock.EnterWriteLock();
-                var isChecked = false;
+                for (int i = 0; i < _menuItems.Count; i++)
+                {
+                    _menuItems[i].IsChecked = false;
+                }
                 for (int i = 0; i < _menuItems.Count; i++)
                 {
                     var header = _menuItems[i].Header.ToString();
-                    _menuItems[i].IsChecked = (
+                    if (
                         header != null
                         && Enum.TryParse<ViewTypes>(header, out var currentViewType)
                         && currentViewType == inputViewType
-                    );
-                    isChecked = isChecked || _menuItems[i].IsChecked;
+                    )
+                    {
+                        _menuItems[i].IsChecked = true;
+                        break;
+                    }
                 }
-                _selectedViewType = isChecked ? inputViewType : ViewTypes.ViewTypesMaxNum;
+                _selectedViewType = inputViewType;
             }
             finally
             {
@@ -101,7 +82,7 @@ namespace MaplestoryBotNet.UserInterface
     public class WindowViewUpdater : AbstractWindowStateModifier
     {
 
-        private Dispatcher _dispatcher;
+        private AbstractDispatcher _dispatcher;
 
         private System.Windows.Controls.Image _image;
 
@@ -139,7 +120,7 @@ namespace MaplestoryBotNet.UserInterface
         }
 
         public WindowViewUpdater(
-            Dispatcher dispatcher,
+            AbstractDispatcher dispatcher,
             System.Windows.Controls.Image image
         )
         {
@@ -181,13 +162,12 @@ namespace MaplestoryBotNet.UserInterface
                 if (SettingImage == false)
                 {
                     SettingImage = true;
-                    _dispatcher.BeginInvoke(
+                    _dispatcher.Dispatch(
                         () =>
                         {
                             SettingImage = false;
                             _image.Source = bitmapSource;
-                        },
-                        DispatcherPriority.Background
+                        }
                     );
                 }
             }
@@ -199,9 +179,9 @@ namespace MaplestoryBotNet.UserInterface
     {
         public override void Modify(object? value)
         {
-            if (value is Window window)
+            if (value is AbstractSystemWindow systemWindow)
             {
-                window.Close();
+                systemWindow.Close();
             }
         }
     }
@@ -209,14 +189,14 @@ namespace MaplestoryBotNet.UserInterface
 
     public class WindowExitActionHandler : AbstractWindowActionHandler
     {
-        private Window _window;
+        private AbstractSystemWindow _window;
 
         private MenuItem _exitMenuItem;
 
         private AbstractWindowStateModifier _windowStateModifier;
 
         public WindowExitActionHandler(
-            Window window,
+            AbstractSystemWindow window,
             MenuItem exitMenuItem,
             AbstractWindowStateModifier windowStateModifier
         )
@@ -277,7 +257,7 @@ namespace MaplestoryBotNet.UserInterface
 
     public class WindowExitActionHandlerBuilder : AbstractWindowActionHandlerBuilder
     {
-        private Window? _window;
+        private AbstractSystemWindow? _window;
 
         private MenuItem? _exitMenuItem;
 
@@ -296,7 +276,7 @@ namespace MaplestoryBotNet.UserInterface
 
         public override AbstractWindowActionHandlerBuilder WithArgs(object? args)
         {
-            if (args is Window window)
+            if (args is AbstractSystemWindow window)
             {
                 _window = window;
             }
@@ -313,7 +293,7 @@ namespace MaplestoryBotNet.UserInterface
     {
         private List<MenuItem>? _menuItems;
 
-        private Dispatcher? _dispatcher;
+        private AbstractDispatcher? _dispatcher;
 
         private System.Windows.Controls.Image? _image;
 
@@ -340,7 +320,7 @@ namespace MaplestoryBotNet.UserInterface
             {
                 _menuItems = menuItems;
             }
-            if (args is Dispatcher dispatcher)
+            if (args is AbstractDispatcher dispatcher)
             {
                 _dispatcher = dispatcher;
             }
@@ -362,11 +342,19 @@ namespace MaplestoryBotNet.UserInterface
             _menuItems = null;
         }
 
+        private AbstractWindowStateModifier _createModifier()
+        {
+            Debug.Assert(_menuItems != null);
+            var modifier = new WindowViewCheckbox(_menuItems);
+            modifier.Initialize();
+            return modifier;
+        }
+
         public override AbstractWindowActionHandler Build()
         {
             Debug.Assert(_menuItems != null);
             return new WindowMenuItemClickActionHandler(
-                _menuItems, new WindowViewCheckbox(_menuItems)
+                _menuItems, _createModifier()
             );
         }
 
@@ -379,5 +367,4 @@ namespace MaplestoryBotNet.UserInterface
             return this;
         }
     }
-
 }

@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using MaplestoryBotNet.Systems.Configuration.SubSystems;
+﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNet.UserInterface;
 using SixLabors.ImageSharp;
@@ -182,16 +181,13 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
     }
 
 
-    public abstract class AbstractScreenCapturePublisher
+    public abstract class AbstractScreenCapturePublisher : ISystemInjectable
     {
         public abstract void Publish(Image<Bgra32> image, bool updated);
 
         public abstract void NotifyComplete();
 
-        public virtual void Inject(SystemInjectType dataType, object? data)
-        {
-
-        }
+        public abstract void Inject(SystemInjectType dataType, object? data);
     }
 
 
@@ -255,6 +251,10 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         public override void NotifyComplete()
         {
             _countDown.CountDown();
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
         }
     }
 
@@ -331,10 +331,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             if (_latestImage != null)
             {
                 var viewCheckbox = WindowViewCheckbox;
-                if (
-                    viewCheckbox != null
-                    && (ViewTypes?)viewCheckbox.State(0) == ViewTypes.Snapshots
-                )
+                if (viewCheckbox != null && (ViewTypes?)viewCheckbox.State(0) == ViewTypes.Snapshots)
                 {
                     _publisher.Publish(_latestImage, _imageChanged);
                 }
@@ -387,7 +384,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
     }
 
 
-    public abstract class AbstractScreenCaptureSubscriber
+    public abstract class AbstractScreenCaptureSubscriber : ISystemInjectable
     {
         protected Image<Bgra32> _image;
 

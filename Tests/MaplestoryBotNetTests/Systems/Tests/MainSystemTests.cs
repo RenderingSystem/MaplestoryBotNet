@@ -251,7 +251,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
             for (int i = 0; i < _systems.Count; i++)
             {
                 Debug.Assert(((MockSystem)_systems[i]).InjectCallArg_dataType[0] == (SystemInjectType)0x1234);
-                Debug.Assert((int)((MockSystem)_systems[i]).InjectCallArg_data[0] == 0x2345);
+                Debug.Assert((int?)((MockSystem)_systems[i]).InjectCallArg_data[0] == 0x2345);
             }
         }
 
@@ -607,9 +607,9 @@ namespace MaplestoryBotNetTests.Systems.Tests
             var mainSystem = _fixture();
             mainSystem.Initialize();
             mainSystem.Inject((SystemInjectType)0x1234, 0x2345);
-            Debug.Assert(_mainSubSystemThread.ThreadInjectCalls == 1);
-            Debug.Assert((int)_mainSubSystemThread.ThreadInjectCallArg_dataType[0] == 0x1234);
-            Debug.Assert((int?)_mainSubSystemThread.ThreadInjectCallArg_value[0] == 0x2345);
+            Debug.Assert(_mainSubSystemThread.InjectCalls == 1);
+            Debug.Assert((int)_mainSubSystemThread.InjectCallArg_dataType[0] == 0x1234);
+            Debug.Assert((int?)_mainSubSystemThread.InjectCallArg_data[0] == 0x2345);
         }
 
         /**
@@ -755,6 +755,8 @@ namespace MaplestoryBotNetTests.Systems.Tests
 
         MockWindowActionHandler _windowViewCheckboxActionHandler = new MockWindowActionHandler();
 
+        MockWindowActionHandler _splashScreenCompleteActionHandler = new MockWindowActionHandler();
+
         /**
          * @brief Creates test environment with mock application dependencies
          * 
@@ -770,8 +772,12 @@ namespace MaplestoryBotNetTests.Systems.Tests
             _mainApplication.SystemReturn.Add(_mainSystem);
             _windowViewUpdaterActionHandler = new MockWindowActionHandler();
             _windowViewCheckboxActionHandler = new MockWindowActionHandler();
+            _splashScreenCompleteActionHandler = new MockWindowActionHandler();
             return new MainApplicationInitializer(
-                _mainApplication, _windowViewUpdaterActionHandler, _windowViewCheckboxActionHandler
+                _mainApplication,
+                _windowViewUpdaterActionHandler,
+                _windowViewCheckboxActionHandler,
+                _splashScreenCompleteActionHandler
             );
         }
 
@@ -807,16 +813,21 @@ namespace MaplestoryBotNetTests.Systems.Tests
             var mainApplicationInitializer = _fixture();
             var windowViewUpdateModifier = new MockWindowStateModifier();
             var windowViewCheckboxModifier = new MockWindowStateModifier();
+            var splashScreenModifier = new MockWindowStateModifier();
             _windowViewUpdaterActionHandler.ModifierReturn.Add(windowViewUpdateModifier);
             _windowViewCheckboxActionHandler.ModifierReturn.Add(windowViewCheckboxModifier);
+            _splashScreenCompleteActionHandler.ModifierReturn.Add(splashScreenModifier);
             mainApplicationInitializer.Initialize();
             var viewModifierIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.ViewModifier);
-            var viewCHeckboxIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.ViewCheckbox);
-            Debug.Assert(_mainSystem.InjectCalls == 2);
+            var viewCheckboxIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.ViewCheckbox);
+            var splashScreenIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.SplashScreen);
+            Debug.Assert(_mainSystem.InjectCalls == 3);
             Debug.Assert(viewModifierIndex != -1);
-            Debug.Assert(viewCHeckboxIndex != -1);
+            Debug.Assert(viewCheckboxIndex != -1);
+            Debug.Assert(splashScreenIndex != -1);
             Debug.Assert(_mainSystem.InjectCallArg_data[viewModifierIndex] == windowViewUpdateModifier);
-            Debug.Assert(_mainSystem.InjectCallArg_data[viewCHeckboxIndex] == windowViewCheckboxModifier);
+            Debug.Assert(_mainSystem.InjectCallArg_data[viewCheckboxIndex] == windowViewCheckboxModifier);
+            Debug.Assert(_mainSystem.InjectCallArg_data[splashScreenIndex] == splashScreenModifier);
         }
 
         /**

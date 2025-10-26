@@ -2,7 +2,7 @@
 
 namespace MaplestoryBotNet.ThreadingUtils
 {
-    public abstract class AbstractThread
+    public abstract class AbstractThread : ISystemInjectable
     {
         protected Thread? _thread = null;
 

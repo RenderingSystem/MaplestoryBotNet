@@ -4,6 +4,14 @@ using System.Windows;
 
 namespace MaplestoryBotNet.UserInterface
 {
+    public enum ViewTypes
+    {
+        Snapshots = 0,
+        Minimap,
+        NCC,
+        ViewTypesMaxNum
+    }
+
     public abstract class AbstractWindowStateModifier
     {
         public virtual void Initialize()
@@ -22,7 +30,10 @@ namespace MaplestoryBotNet.UserInterface
 
     public abstract class AbstractWindowActionHandler
     {
-        public abstract void OnEvent(object sender, EventArgs e);
+        public virtual void OnEvent(object sender, EventArgs e)
+        {
+
+        }
 
         public abstract AbstractWindowStateModifier Modifier();
     }

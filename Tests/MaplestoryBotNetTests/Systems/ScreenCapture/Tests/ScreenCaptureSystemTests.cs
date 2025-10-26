@@ -341,9 +341,9 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             var gameScreenCaptureStoreSystem = _fixture();
             gameScreenCaptureStoreSystem.Initialize();
             gameScreenCaptureStoreSystem.Inject((SystemInjectType)0x1234, 0x2345);
-            Debug.Assert(_storeThread.ThreadInjectCalls == 1);
-            Debug.Assert((int)_storeThread.ThreadInjectCallArg_dataType[0] == 0x1234);
-            Debug.Assert((int?)_storeThread.ThreadInjectCallArg_value[0] == 0x2345);
+            Debug.Assert(_storeThread.InjectCalls == 1);
+            Debug.Assert((int)_storeThread.InjectCallArg_dataType[0] == 0x1234);
+            Debug.Assert((int?)_storeThread.InjectCallArg_data[0] == 0x2345);
         }
 
         /**
@@ -896,9 +896,9 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             var publisherSystem = _fixture();
             publisherSystem.Initialize();
             publisherSystem.Inject((SystemInjectType)0x1234, 0x2345);
-            Debug.Assert(_mockThread.ThreadInjectCalls == 1);
-            Debug.Assert((int)_mockThread.ThreadInjectCallArg_dataType[0] == 0x1234);
-            Debug.Assert((int?)_mockThread.ThreadInjectCallArg_value[0] == 0x2345);
+            Debug.Assert(_mockThread.InjectCalls == 1);
+            Debug.Assert((int)_mockThread.InjectCallArg_dataType[0] == 0x1234);
+            Debug.Assert((int?)_mockThread.InjectCallArg_data[0] == 0x2345);
         }
 
         /**
@@ -1008,9 +1008,9 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             for (int i = 0; i < _mockThreadFactories.Count; i++)
             {
                 var mockThread = (MockThread)_mockThreads[i];
-                Debug.Assert(mockThread.ThreadInjectCalls == 1);
-                Debug.Assert((int)mockThread.ThreadInjectCallArg_dataType[0] == 0x1234);
-                Debug.Assert((int?)mockThread.ThreadInjectCallArg_value[0] == 0x2345);
+                Debug.Assert(mockThread.InjectCalls == 1);
+                Debug.Assert((int)mockThread.InjectCallArg_dataType[0] == 0x1234);
+                Debug.Assert((int?)mockThread.InjectCallArg_data[0] == 0x2345);
             }
         }
 

@@ -1,5 +1,7 @@
 ﻿using MaplestoryBotNet.LibraryWrappers;
 using MaplestoryBotNet.ThreadingUtils;
+using MaplestoryBotNet.UserInterface;
+using System.Windows.Input;
 
 
 namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
@@ -60,6 +62,66 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
 
         private ReaderWriterLockSlim _keyboardDeviceLock;
 
+        private AbstractWindowStateModifier? _splashScreenModifier;
+
+        private ReaderWriterLockSlim _splashScreenModifierLock;
+
+        protected AbstractWindowStateModifier? SplashScreenModifier
+        {
+            get
+            {
+                try
+                {
+                    _splashScreenModifierLock.EnterReadLock();
+                    return _splashScreenModifier;
+                }
+                finally
+                {
+                    _splashScreenModifierLock.ExitReadLock();
+                }
+            }
+            set
+            {
+                try
+                {
+                    _splashScreenModifierLock.EnterWriteLock();
+                    _splashScreenModifier = value;
+                }
+                finally
+                {
+                    _splashScreenModifierLock.ExitWriteLock();
+                }
+            }
+        }
+
+        protected KeyboardDeviceContext? KeyboardDeviceContext
+        {
+            get
+            {
+                try
+                {
+                    _keyboardDeviceLock.EnterReadLock();
+                    return _keyboardDevice;
+                }
+                finally
+                {
+                    _keyboardDeviceLock.ExitReadLock();
+                }
+            }
+            set
+            {
+                try
+                {
+                    _keyboardDeviceLock.EnterWriteLock();
+                    _keyboardDevice = value;
+                }
+                finally
+                {
+                    _keyboardDeviceLock.ExitWriteLock();
+                }
+            }
+        }
+
         public KeyboardDeviceDetectorThread(
             AbstractKeyboardDeviceDetector keyboardDeviceDetector,
             AbstractThreadRunningState runningState
@@ -68,35 +130,32 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
             _keyboardDeviceDetector = keyboardDeviceDetector;
             _keyboardDevice = null;
             _keyboardDeviceLock = new ReaderWriterLockSlim();
+            _splashScreenModifier = null;
+            _splashScreenModifierLock = new ReaderWriterLockSlim();
         }
 
         public override void ThreadLoop()
         {
             var keyboardDevice = _keyboardDeviceDetector.Detect();
-            try
-            {
-                _keyboardDeviceLock.EnterWriteLock();
-                _keyboardDevice = keyboardDevice;
-            }
-            finally
-            {
-                _keyboardDeviceLock.ExitWriteLock();
-            }
+            KeyboardDeviceContext = keyboardDevice;
+            while (SplashScreenModifier == null) ;
+            SplashScreenModifier.Modify(KeyboardDeviceContext);
         }
 
         public override object? Result()
         {
-            KeyboardDeviceContext? keyboardDevice = null;
-            try
+            return KeyboardDeviceContext;
+        }
+
+        public override void Inject(SystemInjectType dataType, object? value)
+        {
+            if (
+                dataType == SystemInjectType.SplashScreen
+                && value is AbstractWindowStateModifier splashScreenModifier
+            )
             {
-                _keyboardDeviceLock.EnterReadLock();
-                keyboardDevice = _keyboardDevice;
+                SplashScreenModifier = splashScreenModifier;
             }
-            finally
-            {
-                _keyboardDeviceLock.ExitReadLock();
-            }
-            return keyboardDevice;
         }
     }
 
@@ -120,41 +179,35 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
 
         private AbstractThread? _keyboardDeviceDetectorThread;
 
-        private KeyboardDeviceContext? _keyboardDevice;
-
-        private AbstractInjector _keyboardDeviceInjector;
-
         public KeyboardDeviceDetectorSystem(
-            AbstractThreadFactory keyboardDeviceDetectorThreadFactory,
-            AbstractInjector keyboardDeviceInjector
+            AbstractThreadFactory keyboardDeviceDetectorThreadFactory
         )
         {
             _keyboardDeviceDetectorThreadFactory = keyboardDeviceDetectorThreadFactory;
             _keyboardDeviceDetectorThread = null;
-            _keyboardDevice = null;
-            _keyboardDeviceInjector = keyboardDeviceInjector;
         }
 
         public override void Initialize()
         {
             if (_keyboardDeviceDetectorThread == null)
+            {
                 _keyboardDeviceDetectorThread = _keyboardDeviceDetectorThreadFactory.CreateThread();
+            }
         }
 
         public override void Start()
         {
             if (_keyboardDeviceDetectorThread != null)
+            {
                 _keyboardDeviceDetectorThread.Start();
+            }
         }
 
-        public override void Update()
+        public override void Inject(SystemInjectType dataType, object? data)
         {
-            if (_keyboardDevice == null)
+            if (_keyboardDeviceDetectorThread != null)
             {
-                if (_keyboardDeviceDetectorThread != null)
-                    _keyboardDevice = (KeyboardDeviceContext?)_keyboardDeviceDetectorThread.Result();
-                if (_keyboardDevice != null)
-                    _keyboardDeviceInjector.Inject(SystemInjectType.KeyboardDevice, _keyboardDevice);
+                _keyboardDeviceDetectorThread.Inject(dataType, data);
             }
         }
     }
@@ -162,20 +215,15 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
 
     public class KeyboardDeviceDetectorSystemBuilder : AbstractSystemBuilder
     {
-        private List<AbstractSystem> _systems = [];
-
         public override AbstractSystem Build()
         {
             return new KeyboardDeviceDetectorSystem(
-                new KeyboardDeviceDetectorThreadFactory(),
-                new SystemInjector(_systems)
+                new KeyboardDeviceDetectorThreadFactory()
             );
         }
 
         public override AbstractSystemBuilder WithArg(object arg)
         {
-            if (arg is AbstractSystem)
-                _systems.Add((AbstractSystem)arg);
             return this;
         }
     }

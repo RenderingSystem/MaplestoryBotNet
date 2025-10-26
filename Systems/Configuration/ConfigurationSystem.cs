@@ -46,12 +46,12 @@ namespace MaplestoryBotNet.Systems.Configuration
 
         private AbstractFileReader _fileReader;
 
-        private AbstractInjector _configurationInjector;
+        private ISystemInjectable _configurationInjector;
 
         public ConfigurationSystem(
             List<ConfigurationEntry> configurationEntries,
             AbstractFileReader fileReader,
-            AbstractInjector configurationInjector
+            ISystemInjectable configurationInjector
         ) {
             _configurationEntries = configurationEntries;
             _fileReader = fileReader;
@@ -172,8 +172,6 @@ namespace MaplestoryBotNet.Systems.Configuration
 
         public override AbstractSystemBuilder WithArg(object arg)
         {
-            if (arg is AbstractSystem)
-                _systems.Add((AbstractSystem)arg);
             return this;
         }
     }

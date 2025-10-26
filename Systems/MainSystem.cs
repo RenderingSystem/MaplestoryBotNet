@@ -334,15 +334,19 @@ namespace MaplestoryBotNet.Systems
 
         AbstractWindowActionHandler _windowViewCheckboxActionHandler;
 
+        AbstractWindowActionHandler _splashScreenCompleteActionHandler;
+
         public MainApplicationInitializer(
             AbstractApplication mainApplication,
             AbstractWindowActionHandler windowViewUpdaterActionHandler,
-            AbstractWindowActionHandler windowViewCheckboxActionHandler
+            AbstractWindowActionHandler windowViewCheckboxActionHandler,
+            AbstractWindowActionHandler splashScreenCompleteActionHandler
         )
         {
             _mainApplication = mainApplication;
             _windowViewUpdaterActionHandler = windowViewUpdaterActionHandler;
             _windowViewCheckboxActionHandler = windowViewCheckboxActionHandler;
+            _splashScreenCompleteActionHandler = splashScreenCompleteActionHandler;
         }
 
         public override void Synchronize()
@@ -352,7 +356,8 @@ namespace MaplestoryBotNet.Systems
             do
             {
                 state = mainSystem.State();
-            } while (state == null || (bool)state == false);
+            }
+            while (state == null || (bool)state == false);
         }
 
         public override void Initialize()
@@ -360,8 +365,10 @@ namespace MaplestoryBotNet.Systems
             var mainSystem = _mainApplication.System();
             var viewUpdateModifier = _windowViewUpdaterActionHandler.Modifier();
             var viewCheckboxModifier = _windowViewCheckboxActionHandler.Modifier();
+            var splashScreenModifier = _splashScreenCompleteActionHandler.Modifier();
             mainSystem.Inject(SystemInjectType.ViewModifier, viewUpdateModifier);
             mainSystem.Inject(SystemInjectType.ViewCheckbox, viewCheckboxModifier);
+            mainSystem.Inject(SystemInjectType.SplashScreen, splashScreenModifier);
         }
     }
 
@@ -373,6 +380,8 @@ namespace MaplestoryBotNet.Systems
         AbstractWindowActionHandler? _windowViewUpdaterActionHandler;
 
         AbstractWindowActionHandler? _windowViewCheckboxActionHandler;
+
+        AbstractWindowActionHandler? _splashScreenCompleteActionHandler;
 
         public MainApplicationInitializerBuilder()
         {
@@ -386,16 +395,24 @@ namespace MaplestoryBotNet.Systems
             Debug.Assert(_mainApplication != null);
             Debug.Assert(_windowViewUpdaterActionHandler != null);
             Debug.Assert(_windowViewCheckboxActionHandler != null);
+            Debug.Assert(_splashScreenCompleteActionHandler != null);
             return new MainApplicationInitializer(
                 _mainApplication,
                 _windowViewUpdaterActionHandler,
-                _windowViewCheckboxActionHandler
+                _windowViewCheckboxActionHandler,
+                _splashScreenCompleteActionHandler
             );
         }
 
         public override AbstractApplicationInitializerBuilder WithApplication(AbstractApplication application)
         {
             _mainApplication = application;
+            return this;
+        }
+
+        public override AbstractApplicationInitializerBuilder WithSplashScreenCompleteActionHandler(AbstractWindowActionHandler handler)
+        {
+            _splashScreenCompleteActionHandler = handler;
             return this;
         }
 

@@ -1,5 +1,6 @@
 ﻿using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+using MaplestoryBotNet.UserInterface;
 
 
 namespace MaplestoryBotNet.Systems.Keyboard
@@ -7,8 +8,6 @@ namespace MaplestoryBotNet.Systems.Keyboard
 
     public class KeyboardSystem : AbstractSystem
     {
-        private AbstractInjector _keystrokeTransmitterInjector;
-
         private AbstractSystem _keyboardDeviceDetectorSystem;
 
         private AbstractKeystrokeTransmitter? _keystrokeTransmitter;
@@ -17,13 +16,11 @@ namespace MaplestoryBotNet.Systems.Keyboard
 
         public KeyboardSystem(
             AbstractSystem keyboardDeviceDetectorSystem,
-            AbstractKeystrokeTransmitterBuilder keystrokeTransmitterBuilder,
-            AbstractInjector keystrokeTransmitterInjector
+            AbstractKeystrokeTransmitterBuilder keystrokeTransmitterBuilder
         )
         {
             _keyboardDeviceDetectorSystem = keyboardDeviceDetectorSystem;
             _keystrokeTransmitterBuilder = keystrokeTransmitterBuilder;
-            _keystrokeTransmitterInjector = keystrokeTransmitterInjector;
             _keystrokeTransmitter = null;
         }
 
@@ -41,19 +38,18 @@ namespace MaplestoryBotNet.Systems.Keyboard
         {
             if (
                 dataType == SystemInjectType.Configuration
-                && data is KeyboardMapping
+                && data is KeyboardMapping keyboardMapping
             )
             {
-                var keyboardMapping = (KeyboardMapping)((KeyboardMapping)data).Copy();
+                keyboardMapping = (KeyboardMapping)(keyboardMapping.Copy());
                 _keystrokeTransmitterBuilder.WithKeyboardMapping(keyboardMapping);
                 _keystrokeTransmitter = _keystrokeTransmitterBuilder.Build();
-                _keystrokeTransmitterInjector.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
+                _keyboardDeviceDetectorSystem.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             }
-        }
-
-        public override void Update()
-        {
-            _keyboardDeviceDetectorSystem.Update();
+            else
+            {
+                _keyboardDeviceDetectorSystem.Inject(dataType, data);
+            }
         }
     }
 
@@ -62,12 +58,9 @@ namespace MaplestoryBotNet.Systems.Keyboard
     {
         private AbstractSystemBuilder _keyboardDeviceDetectorSystemBuilder;
 
-        private List<AbstractSystem> _systems;
-
         public KeyboardSystemBuilder()
         {
             _keyboardDeviceDetectorSystemBuilder = new KeyboardDeviceDetectorSystemBuilder();
-            _systems = [];
         }
 
         public override AbstractSystem Build()
@@ -75,15 +68,12 @@ namespace MaplestoryBotNet.Systems.Keyboard
             var keyboardDeviceDetectorSystem = _keyboardDeviceDetectorSystemBuilder.Build();
             return new KeyboardSystem(
                 keyboardDeviceDetectorSystem,
-                new KeystrokeTransmitterBuilder(),
-                new SystemInjector(_systems)
+                new KeystrokeTransmitterBuilder()
             );
         }
 
         public override AbstractSystemBuilder WithArg(object arg)
         {
-            if (arg is AbstractSystem)
-                _systems.Add((AbstractSystem)arg);
             _keyboardDeviceDetectorSystemBuilder.WithArg(arg);
             return this;
         }

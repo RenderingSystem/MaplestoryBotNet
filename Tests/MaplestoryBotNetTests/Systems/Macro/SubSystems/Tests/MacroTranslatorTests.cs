@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Macro.SubSystems;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
@@ -210,7 +211,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsEmptyWhenKeyboardMappingIsntInjected()
         {
             var keydownMacroTranslator = _fixture();
-            keydownMacroTranslator.Inject(_keystrokeTransmitter);
+            keydownMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keystrokeTransmitter);
             var result = keydownMacroTranslator.Translate("keydown*a");
             Debug.Assert(result.Count == 0);
         }
@@ -226,7 +227,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsEmptyWhenKeystrokeTransmitterIsntInjected()
         {
             var keydownMacroTranslator = _fixture();
-            keydownMacroTranslator.Inject(_keyboardMapping);
+            keydownMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
             var result = keydownMacroTranslator.Translate("keydown*a");
             Debug.Assert(result.Count == 0);
         }
@@ -241,8 +242,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsCorrectActionWhenBothAreInjected()
         {
             var keydownMacroTranslator = _fixture();
-            keydownMacroTranslator.Inject(_keyboardMapping);
-            keydownMacroTranslator.Inject(_keystrokeTransmitter);
+            keydownMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            keydownMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             var result = keydownMacroTranslator.Translate("keydown*a");
             var action = (KeyDownMacroAction)result[0];
             Debug.Assert(result.Count == 1);
@@ -261,8 +262,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateActionExecutesCorrectly()
         {
             var keydownMacroTranslator = _fixture();
-            keydownMacroTranslator.Inject(_keyboardMapping);
-            keydownMacroTranslator.Inject(_keystrokeTransmitter);
+            keydownMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            keydownMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             var result = keydownMacroTranslator.Translate("keydown*a");
             var action = (KeyDownMacroAction)result[0];
             action.Execute();
@@ -280,8 +281,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsEmptyOnInvalidInputs()
         {
             var keydownMacroTranslator = _fixture();
-            keydownMacroTranslator.Inject(_keyboardMapping);
-            keydownMacroTranslator.Inject(_keystrokeTransmitter);
+            keydownMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            keydownMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             List<string> invalidInput = ["", "meow", "keydown*", "12 34", "keydown*unknownkey"];
             for (int i = 0; i < invalidInput.Count; i++)
             {
@@ -308,8 +309,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
             for (int i = 0; i < validInput.Count; i++)
             {
                 var keydownMacroTranslator = _fixture();
-                keydownMacroTranslator.Inject(_keyboardMapping);
-                keydownMacroTranslator.Inject(_keystrokeTransmitter);
+                keydownMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+                keydownMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
                 var input = validInput[i];
                 var result = keydownMacroTranslator.Translate(input);
                 var action = (KeyDownMacroAction)result[0];
@@ -394,7 +395,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsEmptyWhenKeyboardMappingIsntInjected()
         {
             var KeyupMacroTranslator = _fixture();
-            KeyupMacroTranslator.Inject(_keystrokeTransmitter);
+            KeyupMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             var result = KeyupMacroTranslator.Translate("Keyup*a");
             Debug.Assert(result.Count == 0);
         }
@@ -410,7 +411,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsEmptyWhenKeystrokeTransmitterIsntInjected()
         {
             var KeyupMacroTranslator = _fixture();
-            KeyupMacroTranslator.Inject(_keyboardMapping);
+            KeyupMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
             var result = KeyupMacroTranslator.Translate("Keyup*a");
             Debug.Assert(result.Count == 0);
         }
@@ -425,8 +426,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsCorrectActionWhenBothAreInjected()
         {
             var KeyupMacroTranslator = _fixture();
-            KeyupMacroTranslator.Inject(_keyboardMapping);
-            KeyupMacroTranslator.Inject(_keystrokeTransmitter);
+            KeyupMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            KeyupMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             var result = KeyupMacroTranslator.Translate("Keyup*a");
             var action = (KeyUpMacroAction)result[0];
             Debug.Assert(result.Count == 1);
@@ -445,8 +446,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateActionExecutesCorrectly()
         {
             var KeyupMacroTranslator = _fixture();
-            KeyupMacroTranslator.Inject(_keyboardMapping);
-            KeyupMacroTranslator.Inject(_keystrokeTransmitter);
+            KeyupMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            KeyupMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             var result = KeyupMacroTranslator.Translate("Keyup*a");
             var action = (KeyUpMacroAction)result[0];
             action.Execute();
@@ -464,8 +465,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsEmptyOnInvalidInputs()
         {
             var KeyupMacroTranslator = _fixture();
-            KeyupMacroTranslator.Inject(_keyboardMapping);
-            KeyupMacroTranslator.Inject(_keystrokeTransmitter);
+            KeyupMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            KeyupMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             List<string> invalidInput = ["", "meow", "Keyup*", "12 34", "Keyup*unknownkey"];
             for (int i = 0; i < invalidInput.Count; i++)
             {
@@ -492,8 +493,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
             for (int i = 0; i < validInput.Count; i++)
             {
                 var KeyupMacroTranslator = _fixture();
-                KeyupMacroTranslator.Inject(_keyboardMapping);
-                KeyupMacroTranslator.Inject(_keystrokeTransmitter);
+                KeyupMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+                KeyupMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
                 var input = validInput[i];
                 var result = KeyupMacroTranslator.Translate(input);
                 var action = (KeyUpMacroAction)result[0];
@@ -576,7 +577,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsEmptyWhenKeyboardMappingIsntInjected()
         {
             var keypressMacroTranslator = _fixture();
-            keypressMacroTranslator.Inject(_keystrokeTransmitter);
+            keypressMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             var result = keypressMacroTranslator.Translate("keypress*1234 a");
             Debug.Assert(result.Count == 0);
         }
@@ -590,7 +591,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsEmptyWhenKeystrokeTransmitterIsntInjected()
         {
             var keypressMacroTranslator = _fixture();
-            keypressMacroTranslator.Inject(_keyboardMapping);
+            keypressMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
             var result = keypressMacroTranslator.Translate("keypress*1234 a");
             Debug.Assert(result.Count == 0);
         }
@@ -604,8 +605,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsCorrectActionWhenBothAreInjected()
         {
             var keypressMacroTranslator = _fixture();
-            keypressMacroTranslator.Inject(_keyboardMapping);
-            keypressMacroTranslator.Inject(_keystrokeTransmitter);
+            keypressMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            keypressMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             var result = keypressMacroTranslator.Translate("keypress*1234 a");
             var action = (KeyPressMacroAction)result[0];
             Debug.Assert(result.Count == 1);
@@ -623,8 +624,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateUsesCorrectRandomizedDelayParameters()
         {
             var keypressMacroTranslator = _fixture();
-            keypressMacroTranslator.Inject(_keyboardMapping);
-            keypressMacroTranslator.Inject(_keystrokeTransmitter);
+            keypressMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            keypressMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             _macroRandom.NextReturn.Add(2345);
             var result = keypressMacroTranslator.Translate("keypress*1234 3456 a");
             Debug.Assert(_macroRandom.NextCalls == 1);
@@ -641,8 +642,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsCorrectRandomizedDelayAction()
         {
             var keypressMacroTranslator = _fixture();
-            keypressMacroTranslator.Inject(_keyboardMapping);
-            keypressMacroTranslator.Inject(_keystrokeTransmitter);
+            keypressMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            keypressMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             _macroRandom.NextReturn.Add(2345);
             var result = keypressMacroTranslator.Translate("keypress*1234 3456 a");
             var action = (KeyPressMacroAction)result[0];
@@ -662,8 +663,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateUsesCorrectRandomizedKeystrokeParameters()
         {
             var keypressMacroTranslator = _fixture();
-            keypressMacroTranslator.Inject(_keyboardMapping);
-            keypressMacroTranslator.Inject(_keystrokeTransmitter);
+            keypressMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            keypressMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             _macroRandom.NextReturn.Add(2);
             var result = keypressMacroTranslator.Translate("keypress*1234 a b c");
             Debug.Assert(_macroRandom.NextCalls == 1);
@@ -681,8 +682,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsCorrectRandomizedKeystrokeAction()
         {
             var keypressMacroTranslator = _fixture();
-            keypressMacroTranslator.Inject(_keyboardMapping);
-            keypressMacroTranslator.Inject(_keystrokeTransmitter);
+            keypressMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            keypressMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             _macroRandom.NextReturn.Add(2);
             var result = keypressMacroTranslator.Translate("keypress*1234 a b c");
             var action = (KeyPressMacroAction)result[0];
@@ -702,8 +703,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateReturnsEmptyIfInvalidKeyboardMappingIsFound()
         {
             var keypressMacroTranslator = _fixture();
-            keypressMacroTranslator.Inject(_keyboardMapping);
-            keypressMacroTranslator.Inject(_keystrokeTransmitter);
+            keypressMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            keypressMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             _macroRandom.NextReturn.Add(2);
             var result = keypressMacroTranslator.Translate("keypress*1234 a b c d");
             Debug.Assert(result.Count == 0);
@@ -718,8 +719,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateWithRandomDelayUsesCorrectRandomizedKeystrokeParameters()
         {
             var keypressMacroTranslator = _fixture();
-            keypressMacroTranslator.Inject(_keyboardMapping);
-            keypressMacroTranslator.Inject(_keystrokeTransmitter);
+            keypressMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            keypressMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             _macroRandom.NextReturn.Add(3);
             _macroRandom.NextReturn.Add(2345);
             var result = keypressMacroTranslator.Translate("keypress*1234 3456 a b c");
@@ -738,8 +739,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateWithRandomDelayReturnsCorrectRandomizedAction()
         {
             var keypressMacroTranslator = _fixture();
-            keypressMacroTranslator.Inject(_keyboardMapping);
-            keypressMacroTranslator.Inject(_keystrokeTransmitter);
+            keypressMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            keypressMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             _macroRandom.NextReturn.Add(3);
             _macroRandom.NextReturn.Add(2345);
             var result = keypressMacroTranslator.Translate("keypress*1234 3456 a b c");
@@ -765,8 +766,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
             for (int i = 0; i < invalidMacroTexts.Count; i++)
             {
                 var keypressMacroTranslator = _fixture();
-                keypressMacroTranslator.Inject(_keyboardMapping);
-                keypressMacroTranslator.Inject(_keystrokeTransmitter);
+                keypressMacroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+                keypressMacroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
                 var result = keypressMacroTranslator.Translate(invalidMacroTexts[i]);
                 Debug.Assert(result.Count == 0);
             }
@@ -858,8 +859,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateMultipleCommandsResultsInOrderedResult()
         {
             var macroTranslator = _fixture();
-            macroTranslator.Inject(_keyboardMapping);
-            macroTranslator.Inject(_keystrokeTransmitter);
+            macroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            macroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             var result = macroTranslator.Translate(
                 "keydown*a\n" +
                 "delay*1234\n" +
@@ -888,8 +889,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testTranslateMultipleCommandsExecutesInCorrectOrder()
         {
             var macroTranslator = _fixture();
-            macroTranslator.Inject(_keyboardMapping);
-            macroTranslator.Inject(_keystrokeTransmitter);
+            macroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
+            macroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             var result = macroTranslator.Translate(
                 "keydown*a\n" +
                 "delay*1234\n" +
@@ -924,7 +925,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testNotInjectingKeyboardMappingResultsInNoActions()
         {
             var macroTranslator = _fixture();
-            macroTranslator.Inject(_keystrokeTransmitter);
+            macroTranslator.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             var result = macroTranslator.Translate(
                 "keydown*a\n" +
                 "delay*1234\n" +
@@ -945,7 +946,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests
         private void _testNotInjectingKeystrokeTransmitterResultsInNoActions()
         {
             var macroTranslator = _fixture();
-            macroTranslator.Inject(_keyboardMapping);
+            macroTranslator.Inject(SystemInjectType.KeyboardMapping, _keyboardMapping);
             var result = macroTranslator.Translate(
                 "keydown*a\n" +
                 "delay*1234\n" +

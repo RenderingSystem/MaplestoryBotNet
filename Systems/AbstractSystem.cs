@@ -1,4 +1,6 @@
 ﻿using MaplestoryBotNet.UserInterface;
+using System.Windows;
+using System.Windows.Threading;
 
 namespace MaplestoryBotNet.Systems
 {
@@ -6,18 +8,25 @@ namespace MaplestoryBotNet.Systems
     {
         Configuration = 0,
         ConfigurationUpdate,
+        KeyboardMapping,
         KeyboardDevice,
         KeystrokeTransmitter,
         MacroTranslator,
         AgentData,
         ViewModifier,
         ViewCheckbox,
+        SplashScreen,
         ShutDown,
         SystemInjectTypeMaxNum
     }
 
+    public interface ISystemInjectable
+    {
+        public abstract void Inject(SystemInjectType dataType, object? data);
+    }
 
-    public abstract class AbstractSystem
+
+    public abstract class AbstractSystem : ISystemInjectable
     {
         public abstract void Initialize();
 
@@ -25,32 +34,72 @@ namespace MaplestoryBotNet.Systems
 
         public virtual void Update()
         {
-
-        }
-
-        public virtual void Inject(SystemInjectType dataType, object? data)
-        {
-
         }
 
         public virtual object? State()
         {
             return null;
         }
+
+        public virtual void Inject(SystemInjectType dataType, object? data)
+        {
+        }
     }
 
+    public class SystemInjector : ISystemInjectable
+    {
+        List<AbstractSystem> _systems;
+
+        public SystemInjector(List<AbstractSystem> systems)
+        {
+            _systems = systems;
+        }
+
+        public void Inject(SystemInjectType dataType, object? data)
+        {
+            for (int i = 0; i < _systems.Count; i++)
+            {
+                _systems[i].Inject(dataType, data);
+            }
+        }
+    }
+
+
+    public abstract class AbstractSystemWindow
+    {
+        protected Window? _window;
+
+        public virtual void Show()
+        {
+            _window?.Show();
+        }
+
+        public virtual void Close()
+        {
+            _window?.Close();
+        }
+
+        public virtual object? GetWindow()
+        {
+            return _window;
+        }
+    }
+
+
+    public class SystemWindow : AbstractSystemWindow
+    {
+        public SystemWindow(Window window)
+        {
+            _window = window;
+        }
+    }
+    
 
     public abstract class AbstractSystemBuilder
     {
         public abstract AbstractSystemBuilder WithArg(object arg);
 
         public abstract AbstractSystem Build();
-    }
-
-
-    public abstract class AbstractInjector
-    {
-        public abstract void Inject(SystemInjectType dataType, object? data);
     }
 
 
@@ -61,25 +110,6 @@ namespace MaplestoryBotNet.Systems
         public abstract void ShutDown();
 
         public abstract AbstractSystem System();
-    }
-
-
-    public class SystemInjector : AbstractInjector
-    {
-        List<AbstractSystem> _systems;
-
-        public SystemInjector(List<AbstractSystem> systems)
-        {
-            _systems = systems;
-        }
-
-        public override void Inject(SystemInjectType dataType, object? data)
-        {
-            for (int i = 0; i < _systems.Count; i++)
-            {
-                _systems[i].Inject(dataType, data);
-            }
-        }
     }
 
 
@@ -105,7 +135,16 @@ namespace MaplestoryBotNet.Systems
 
         public abstract AbstractApplicationInitializerBuilder WithViewCheckboxActionHandler(AbstractWindowActionHandler handler);
 
+        public abstract AbstractApplicationInitializerBuilder WithSplashScreenCompleteActionHandler(AbstractWindowActionHandler handler);
+
         public abstract AbstractApplicationInitializerBuilder WithApplication(AbstractApplication application);
+
+    }
+
+
+    public abstract class AbstractDispatcher
+    {
+        public abstract void Dispatch(Action action);
     }
 
 
@@ -141,6 +180,28 @@ namespace MaplestoryBotNet.Systems
             InitializationPriority = initializationPriority;
             StartPriority = startPriority;
             UpdatePriority = updatePriority;
+        }
+    }
+
+
+    public class SystemAsyncDispatcher : AbstractDispatcher
+    {
+        private Dispatcher _dispatcher;
+
+        private DispatcherPriority _priority;
+
+        public SystemAsyncDispatcher(
+            Dispatcher dispatcher,
+            DispatcherPriority priority
+        )
+        {
+            _dispatcher = dispatcher;
+            _priority = priority;
+        }
+
+        public override void Dispatch(Action action)
+        {
+            _dispatcher.BeginInvoke(action, _priority);
         }
     }
 }

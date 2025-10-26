@@ -22,11 +22,11 @@ namespace MaplestoryBotNet.Systems.Macro.SubSystems
     }
 
 
-    public abstract class AbstractMacroTranslator
+    public abstract class AbstractMacroTranslator : ISystemInjectable
     {
         public abstract List<AbstractMacroAction> Translate(string macroText);
 
-        public virtual void Inject(object arg)
+        public virtual void Inject(SystemInjectType dataType, object? data)
         {
         }
     }
@@ -235,12 +235,16 @@ namespace MaplestoryBotNet.Systems.Macro.SubSystems
             }
         }
 
-        public override void Inject(object arg)
+        public override void Inject(SystemInjectType dataType, object? data)
         {
-            if (arg is AbstractKeystrokeTransmitter)
-                _keystrokeTransmitter = (AbstractKeystrokeTransmitter)arg;
-            if (arg is KeyboardMapping)
-                _keyboardMapping = (KeyboardMapping)arg;
+            if (data is AbstractKeystrokeTransmitter keystrokeTransmitter)
+            {
+                _keystrokeTransmitter = keystrokeTransmitter;
+            }
+            if (data is KeyboardMapping keyboardMapping)
+            {
+                _keyboardMapping = keyboardMapping;
+            }
         }
     }
 
@@ -279,17 +283,21 @@ namespace MaplestoryBotNet.Systems.Macro.SubSystems
             }
         }
 
-        public override void Inject(object arg)
+        public override void Inject(SystemInjectType dataType, object? data)
         {
-            if (arg is AbstractKeystrokeTransmitter)
-                _keystrokeTransmitter = (AbstractKeystrokeTransmitter)arg;
-            if (arg is KeyboardMapping)
-                _keyboardMapping = (KeyboardMapping)arg;
+            if (data is AbstractKeystrokeTransmitter keystrokeTransmitter)
+            {
+                _keystrokeTransmitter = keystrokeTransmitter;
+            }
+            if (data is KeyboardMapping keyboardMapping)
+            {
+                _keyboardMapping = keyboardMapping;
+            }
         }
     }
 
 
-    public class KeypressMacroTranslator : AbstractMacroTranslator
+    public class KeypressMacroTranslator : AbstractMacroTranslator, ISystemInjectable 
     {
         private AbstractKeystrokeTransmitter? _keystrokeTransmitter;
 
@@ -351,12 +359,16 @@ namespace MaplestoryBotNet.Systems.Macro.SubSystems
             }
         }
 
-        public override void Inject(object arg)
+        public override void Inject(SystemInjectType dataType, object? data)
         {
-            if (arg is AbstractKeystrokeTransmitter)
-                _keystrokeTransmitter = (AbstractKeystrokeTransmitter)arg;
-            if (arg is KeyboardMapping)
-                _keyboardMapping = (KeyboardMapping)arg;
+            if (data is AbstractKeystrokeTransmitter keystrokeTransmitter)
+            {
+                _keystrokeTransmitter = keystrokeTransmitter;
+            }
+            if (data is KeyboardMapping keyboardMapping)
+            {
+                _keyboardMapping = keyboardMapping;
+            }
         }
     }
 
@@ -407,17 +419,21 @@ namespace MaplestoryBotNet.Systems.Macro.SubSystems
             return translated;
         }
 
-        public override void Inject(object arg)
+        public override void Inject(SystemInjectType dataType, object? data)
         {
-            if (arg is AbstractKeystrokeTransmitter)
-                _keystrokeTransmitter = (AbstractKeystrokeTransmitter)arg;
-            if (arg is KeyboardMapping)
-                _keyboardMapping = (KeyboardMapping)arg;
-            if (arg is AbstractKeystrokeTransmitter || arg is KeyboardMapping)
+            if (data is AbstractKeystrokeTransmitter keystrokeTransmitter)
+            {
+                _keystrokeTransmitter = keystrokeTransmitter;
+            }
+            if (data is KeyboardMapping keyboardMapping)
+            {
+                _keyboardMapping = keyboardMapping;
+            }
+            if (data is AbstractKeystrokeTransmitter || data is KeyboardMapping)
             {
                 for (int i = 0; i < _translators.Count; i++)
                 {
-                    _translators[i].Inject(arg);
+                    _translators[i].Inject(dataType, data);
                 }
             }
         }

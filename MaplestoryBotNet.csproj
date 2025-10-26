@@ -25,6 +25,7 @@
   <ItemGroup>
     <None Remove=".gitignore" />
     <None Remove=".gitmodules" />
+    <None Remove="Xaml\SplashScreenImage.jpg" />
   </ItemGroup>
 
   <ItemGroup>
@@ -86,6 +87,16 @@
 
   <ItemGroup>
     <Folder Include="Images\Ailments\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="App.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Xaml\SplashScreenImage.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
 </Project>
