@@ -179,9 +179,13 @@ namespace MaplestoryBotNet.UserInterface
     {
         public override void Modify(object? value)
         {
-            if (value is AbstractSystemWindow systemWindow)
+            if (value is List<AbstractSystemWindow> systemWindows)
             {
-                systemWindow.Close();
+                foreach (var systemWindow in systemWindows)
+                {
+                    systemWindow.ShutdownFlag = true;
+                    systemWindow.Close();
+                }
             }
         }
     }
@@ -214,7 +218,7 @@ namespace MaplestoryBotNet.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            _windowStateModifier.Modify(_window);
+            _windowStateModifier.Modify(new List<AbstractSystemWindow>{ _window });
         }
     }
 
@@ -243,7 +247,7 @@ namespace MaplestoryBotNet.UserInterface
             return _windowStateModifier;
         }
 
-        public override void OnEvent(object sender, EventArgs e)
+        public override void OnEvent(object? sender, EventArgs e)
         {
             var source = (MenuItem)((RoutedEventArgs)e).OriginalSource;
             var header = source.Header.ToString();
@@ -251,6 +255,68 @@ namespace MaplestoryBotNet.UserInterface
             {
                 _windowStateModifier.Modify(viewType);
             }
+        }
+    }
+
+
+    public class ApplicationClosingActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractSystemWindow _closingWindow;
+
+        private List<AbstractSystemWindow> _windowsToClose;
+
+        private AbstractWindowStateModifier _windowExiter;
+
+        public ApplicationClosingActionHandler(
+            AbstractSystemWindow closingWindow,
+            List<AbstractSystemWindow> windowsToClose,
+            AbstractWindowStateModifier windowExiter
+        )
+        {
+            _closingWindow = closingWindow;
+            _windowsToClose = windowsToClose;
+            _windowExiter = windowExiter;
+            ((Window?)_closingWindow.GetWindow())!.Closing += OnEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _windowExiter;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _windowExiter.Modify(_windowsToClose);
+        }
+    }
+
+
+    public class ApplicationClosingActionHandlerBuilder : AbstractWindowActionHandlerBuilder
+    {
+        private AbstractSystemWindow? _closingWindow;
+
+        private List<AbstractSystemWindow>? _windowsToClose;
+
+        public override AbstractWindowActionHandler Build()
+        {
+            Debug.Assert(_closingWindow != null);
+            Debug.Assert(_windowsToClose != null);
+            return new ApplicationClosingActionHandler(
+                _closingWindow, _windowsToClose, new WindowExiter()
+            );
+        }
+
+        public override AbstractWindowActionHandlerBuilder WithArgs(object? args)
+        {
+            if (args is AbstractSystemWindow closingWindow)
+            {
+                _closingWindow = closingWindow;
+            }
+            if (args is List<AbstractSystemWindow> windowsToClose)
+            {
+                _windowsToClose = windowsToClose;
+            }
+            return this;
         }
     }
 

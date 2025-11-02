@@ -37,6 +37,7 @@
     <Compile Include="..\..\Systems\ScreenCapture\SubSystems\ScreenCapture.cs" Link="Systems\ScreenCapture\SubSystems\ScreenCapture.cs" />
     <Compile Include="..\..\ThreadingUtils\ThreadingUtils.cs" Link="ThreadingUtils\ThreadingUtils.cs" />
     <Compile Include="..\..\UserInterface\AbstractWindowStateHandlers.cs" Link="UserInterface\AbstractWindowStateHandlers.cs" />
+    <Compile Include="..\..\UserInterface\WindowMenuItemPopupHandlers.cs" Link="UserInterface\WindowMenuItemPopupHandlers.cs" />
     <Compile Include="..\..\UserInterface\WindowSplashScreenStateHandlers.cs" Link="UserInterface\WindowSplashScreenStateHandlers.cs" />
     <Compile Include="..\..\UserInterface\WindowViewStateHandlers.cs" Link="UserInterface\WindowViewStateHandlers.cs" />
   </ItemGroup>

@@ -5,7 +5,7 @@ using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using MaplestoryBotNet.UserInterface;
 using MaplestoryBotNetTests.Systems.Tests;
 using System.Diagnostics;
-using System.Windows;
+
 
 namespace MaplestoryBotNetTests.UserInterface.Tests
 {

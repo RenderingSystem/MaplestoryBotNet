@@ -1,8 +1,6 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using System.Diagnostics;
-using System.Windows;
-using System.Windows.Threading;
 
 
 namespace MaplestoryBotNet.UserInterface
@@ -40,6 +38,7 @@ namespace MaplestoryBotNet.UserInterface
                         _keyboardDeviceContextInjectable.Inject(
                             SystemInjectType.KeyboardDevice, keyboardDeviceContext
                         );
+                        _splashScreen.ShutdownFlag = true;
                         _splashScreen.Close();
                         _mainWindow.Show();
                     }
@@ -92,7 +91,10 @@ namespace MaplestoryBotNet.UserInterface
             Debug.Assert(_keyboardDeviceContextInjectable != null);
             return new WindowSplashScreenCompleteActionHandler(
                 new WindowSplashScreenCompleter(
-                    _splashScreen, _mainWindow, _dispatcher, _keyboardDeviceContextInjectable
+                    _splashScreen,
+                    _mainWindow,
+                    _dispatcher,
+                    _keyboardDeviceContextInjectable
                 )
             );
         }

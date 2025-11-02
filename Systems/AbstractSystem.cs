@@ -69,14 +69,40 @@ namespace MaplestoryBotNet.Systems
     {
         protected Window? _window;
 
+        protected bool _shutDownFlag = false;
+
+        public bool ShutdownFlag
+        {
+            get
+            {
+                return _shutDownFlag;
+            }
+            set
+            {
+                _shutDownFlag = value;
+            }
+        }
+
         public virtual void Show()
         {
             _window?.Show();
         }
 
+        public virtual void Hide()
+        {
+            _window?.Hide();
+        }
+
         public virtual void Close()
         {
-            _window?.Close();
+            if (ShutdownFlag)
+            {
+                _window?.Close();
+            }
+            else
+            {
+                _window?.Hide();
+            }
         }
 
         public virtual object? GetWindow()

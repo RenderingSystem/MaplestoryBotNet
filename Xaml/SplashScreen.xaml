@@ -12,7 +12,8 @@
         WindowStyle="None"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
-        Topmost="True" Background="Black">
+        Topmost="True"
+        Background="Black">
 
     <Grid>
         <Grid.RowDefinitions>

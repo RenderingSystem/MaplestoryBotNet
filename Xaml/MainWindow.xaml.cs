@@ -1,14 +1,17 @@
-﻿using System.Windows;
+﻿using MaplestoryBotNet.Systems;
+using MaplestoryBotNet.UserInterface;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using MaplestoryBotNet.Systems;
-using MaplestoryBotNet.UserInterface;
 
 
 namespace MaplestoryBotNet
 {
+
     public partial class MainWindow : Window
     {
+        private AbstractSystemWindow? _systemWindow = null;
+
         protected List<MenuItem> ViewMenuItems
         {
             get
@@ -20,7 +23,7 @@ namespace MaplestoryBotNet
         public AbstractWindowActionHandler InstantiateWindowExiter()
         {
             return new WindowExitActionHandlerBuilder()
-                .WithArgs(new SystemWindow(this))
+                .WithArgs(GetSystemWindow())
                 .WithArgs(ExitMenuItem)
                 .Build();
         }
@@ -40,6 +43,26 @@ namespace MaplestoryBotNet
                 .WithArgs(ViewMenuItems)
                 .Build();
         }
+
+        public AbstractWindowActionHandler InstantiateMacroWindowMenuItemPopupHandler(
+            AbstractSystemWindow systemWindow
+        )
+        {
+            return new WindowMenuItemPopupHandlerBuilder()
+                .WithArgs(systemWindow)
+                .WithArgs(MacroMenuItem)
+                .Build();
+        }
+
+        public AbstractSystemWindow GetSystemWindow()
+        {
+            if (_systemWindow == null)
+            {
+                _systemWindow = new SystemWindow(this);
+            }
+            return _systemWindow;
+        }
+
 
         public MainWindow()
         {

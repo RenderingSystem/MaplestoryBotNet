@@ -30,7 +30,7 @@ namespace MaplestoryBotNet.UserInterface
 
     public abstract class AbstractWindowActionHandler
     {
-        public virtual void OnEvent(object sender, EventArgs e)
+        public virtual void OnEvent(object? sender, EventArgs e)
         {
 
         }

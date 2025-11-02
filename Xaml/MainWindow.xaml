@@ -25,6 +25,11 @@
                 <MenuItem x:Name="MinimapMenuItem" Header="Minimap" IsCheckable="True"/>
                 <MenuItem x:Name="NCCMenuItem" Header="NCC" IsCheckable="True"/>
             </MenuItem>
+            <MenuItem Header="Botting">
+                <MenuItem x:Name="MacroMenuItem" Header="Macro"/>
+                <MenuItem x:Name="LocationMenuItem" Header="Location"/>
+                <MenuItem x:Name="RuneMenuItem" Header="Rune"/>
+            </MenuItem>
         </Menu>
         <Grid Height="600" Width="800">
             <Image x:Name="ImageView"  HorizontalAlignment="Center"  VerticalAlignment="Center"  Stretch="Uniform"/>

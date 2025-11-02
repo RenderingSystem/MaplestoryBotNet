@@ -1,5 +1,6 @@
 ﻿
 
+using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.UserInterface;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.UserInterface.Tests.Mocks;
@@ -260,7 +261,7 @@ namespace MaplestoryBotNetTests.UserInterface.Tests
         private void _testModifyClosesWindow()
         {
             var windowExiter = _fixture();
-            windowExiter.Modify(_systemWindow);
+            windowExiter.Modify(new List<AbstractSystemWindow> { _systemWindow });
             Debug.Assert(_systemWindow.CloseCalls == 1);
         }
 
@@ -327,7 +328,7 @@ namespace MaplestoryBotNetTests.UserInterface.Tests
             var windowExiterActionHandler = _fixture();
             _exitMenuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
             Debug.Assert(_windowStateModifier.ModifyCalls == 1);
-            Debug.Assert(_windowStateModifier.ModifyCallArg_value[0] == _systemWindow);
+            Debug.Assert(((List<AbstractSystemWindow>)_windowStateModifier.ModifyCallArg_value[0]!)[0] == _systemWindow);
         }
 
         /**
@@ -414,9 +415,8 @@ namespace MaplestoryBotNetTests.UserInterface.Tests
                 var menuItem = _menuItems[i];
                 menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
                 Debug.Assert(_windowStateModifier.ModifyCalls == i + 1);
-                var expectedViewType = (ViewTypes)i;
                 Debug.Assert(
-                    (ViewTypes?)_windowStateModifier.ModifyCallArg_value[i] == expectedViewType
+                    (ViewTypes?)_windowStateModifier.ModifyCallArg_value[i] == (ViewTypes)i
                 );
             }
         }
@@ -451,6 +451,70 @@ namespace MaplestoryBotNetTests.UserInterface.Tests
     }
 
 
+    /**
+     * @brief Tests for complete application closing behavior
+     * 
+     * Verifies that when users close the main application window,
+     * all open windows in the application close properly and clean up their resources.
+     */
+    public class ApplicationClosingActionHandlerTests
+    {
+        private SystemWindow _closingWindow = new SystemWindow(new Window());
+
+        private Window _window = new Window();
+
+        private List<AbstractSystemWindow> _windowsToClose = [];
+
+        /**
+         * @brief Prepares the test scenario with windows and closing handler
+         * 
+         * @return Configured application closing handler ready for testing
+         */
+        public ApplicationClosingActionHandler _fixture()
+        {
+            _window = new Window();
+            _closingWindow = new SystemWindow(_window);
+            _windowsToClose = [
+                new MockSystemWindow(),
+                new MockSystemWindow(),
+                new MockSystemWindow()
+            ];
+            return (ApplicationClosingActionHandler) new ApplicationClosingActionHandlerBuilder()
+                .WithArgs(_closingWindow)
+                .WithArgs(_windowsToClose)
+                .Build();
+        }
+
+        /**
+         * @brief Verifies closing main window triggers complete application shutdown
+         * 
+         * @test Ensures all windows close when user exits via main window
+         * 
+         * When users close the main application window, this test confirms that
+         * all other open windows in the application also close completely,
+         * ensuring a clean application exit without leftover windows.
+         */
+        public void _testClosingWindowInvokesSubWindowExiters()
+        {
+            var handler = _fixture();
+            _window.Close();
+            foreach (var systemWindow in _windowsToClose)
+            {
+                Debug.Assert(systemWindow.ShutdownFlag == true);
+                Debug.Assert(((MockSystemWindow)systemWindow).CloseCalls == 1);
+            }
+        }
+
+        /**
+         * @brief Executes all application closing behavior tests
+         */
+        public void Run()
+        {
+            _testClosingWindowInvokesSubWindowExiters();
+        }
+    }
+
+
     public class WindowViewStateHandlersTestSuite
     {
         public void Run()
@@ -460,6 +524,7 @@ namespace MaplestoryBotNetTests.UserInterface.Tests
             new WindowExiterTests().Run();
             new WindowExitActionHandlerTests().Run();
             new WindowMenuItemClickActionHandlerTests().Run();
+            new ApplicationClosingActionHandlerTests().Run();
         }
     }
 }

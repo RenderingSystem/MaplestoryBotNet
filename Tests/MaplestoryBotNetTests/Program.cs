@@ -29,6 +29,7 @@ void UnitTestSuite()
     // Test the user interface
     new WindowSplashScreenStateHandlersTestSuite().Run();
     new WindowViewStateHandlersTestSuite().Run();
+    new WIndowMenuItemPopupHandlersTestSuite().Run();
 }
 
 

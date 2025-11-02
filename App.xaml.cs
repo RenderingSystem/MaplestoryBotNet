@@ -1,5 +1,6 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.UserInterface;
+using MaplestoryBotNet.Xaml;
 using System.Diagnostics;
 using System.Windows;
 
@@ -15,18 +16,27 @@ namespace MaplestoryBotNet
 
         SplashScreen? _splashScreen = null;
 
+        MacroBottingWindow? _windowMacroPopup = null;
+
         AbstractWindowActionHandler? _windowViewUpdaterActionHandler = null;
 
         AbstractWindowActionHandler? _windowViewCheckboxActionHandler = null;
 
         AbstractWindowActionHandler? _windowSplashScreenActionHandler = null;
 
+        AbstractWindowActionHandler? _windowMacroMenuItemPopupHandler = null;
+
+        AbstractWindowActionHandler? _windowMacroMenuItemVisibilityHandler = null;
+
         AbstractWindowActionHandler? _windowExiter = null;
+
+        AbstractWindowActionHandler? _applicationClosingActionHandler = null;
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
             _mainWindow = CreateMainWindow();
+            _windowMacroPopup = CreateMacroBottingWindow();
             _mainApplication = CreateMainApplication();
             _splashScreen = CreateSplashScreen();
             _splashScreen.Show();
@@ -39,6 +49,11 @@ namespace MaplestoryBotNet
             return new MainWindow();
         }
 
+        protected MacroBottingWindow CreateMacroBottingWindow()
+        {
+            return new MacroBottingWindow();
+        }
+
         protected AbstractApplication CreateMainApplication()
         {
             return new MainApplicationFacade();
@@ -48,7 +63,7 @@ namespace MaplestoryBotNet
         {
             Debug.Assert(_mainWindow != null);
             Debug.Assert(_mainApplication != null);
-            return new SplashScreen(_mainWindow, _mainApplication.System());
+            return new SplashScreen(_mainApplication.System());
         }
 
         protected AbstractApplicationInitializer CreateApplicationInitializer(
@@ -65,14 +80,28 @@ namespace MaplestoryBotNet
                 .WithSplashScreenCompleteActionHandler(_windowSplashScreenActionHandler)
                 .Build();
         }
+        public AbstractWindowActionHandler InstantiateApplicationClosingActionHandler(
+            List<AbstractSystemWindow> closingSystemWindows
+        )
+        {
+            Debug.Assert(_mainWindow != null);
+            return new ApplicationClosingActionHandlerBuilder()
+                .WithArgs(_mainWindow.GetSystemWindow())
+                .WithArgs(closingSystemWindows)
+                .Build();
+        }
 
         protected void CreateMainWindowActionHandlers()
         {
             Debug.Assert(_mainWindow != null);
             Debug.Assert(_splashScreen != null);
+            Debug.Assert(_windowMacroPopup != null);
             _windowViewUpdaterActionHandler = _mainWindow.InstantiateWindowViewUpdaterActionHandler();
             _windowViewCheckboxActionHandler = _mainWindow.InstantiateWindowViewCheckboxActionHandler();
-            _windowSplashScreenActionHandler = _splashScreen.InstantiateSplashScreenActionHandler();
+            _windowMacroMenuItemPopupHandler = _mainWindow.InstantiateMacroWindowMenuItemPopupHandler(_windowMacroPopup.GetSystemWindow());
+            _windowSplashScreenActionHandler = _splashScreen.InstantiateSplashScreenActionHandler(_mainWindow.GetSystemWindow());
+            _windowMacroMenuItemVisibilityHandler = _windowMacroPopup.InstantiateWindowMenuItemHideHandler();
+            _applicationClosingActionHandler = InstantiateApplicationClosingActionHandler([_windowMacroPopup.GetSystemWindow()]);
             _windowExiter = _mainWindow.InstantiateWindowExiter();
         }
 

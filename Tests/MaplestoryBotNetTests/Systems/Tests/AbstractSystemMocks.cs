@@ -216,6 +216,14 @@ namespace MaplestoryBotNetTests.Systems.Tests
             CloseCalls++;
         }
 
+        public int HideCalls = 0;
+        public override void Hide()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Hide";
+            CallOrder.Add(callReference);
+            HideCalls++;
+        }
+
         public int GetWindowCalls = 0;
         public int GetWindowIndex = 0;
         public List<object?> GetWindowReturn = [];
