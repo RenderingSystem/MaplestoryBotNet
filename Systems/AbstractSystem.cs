@@ -1,4 +1,4 @@
-﻿using MaplestoryBotNet.UserInterface;
+﻿using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -13,11 +13,9 @@ namespace MaplestoryBotNet.Systems
         KeystrokeTransmitter,
         MacroTranslator,
         AgentData,
-        ViewModifier,
-        ViewCheckbox,
-        SplashScreen,
         ShutDown,
-        SystemInjectTypeMaxNum
+        ActionHandler,
+        SystemInjectTypeMaxNum,
     }
 
     public interface ISystemInjectable
@@ -28,12 +26,19 @@ namespace MaplestoryBotNet.Systems
 
     public abstract class AbstractSystem : ISystemInjectable
     {
-        public abstract void Initialize();
+        public virtual void Initialize()
+        {
 
-        public abstract void Start();
+        }
+
+        public virtual void Start()
+        {
+
+        }
 
         public virtual void Update()
         {
+
         }
 
         public virtual object? State()
@@ -43,6 +48,7 @@ namespace MaplestoryBotNet.Systems
 
         public virtual void Inject(SystemInjectType dataType, object? data)
         {
+
         }
     }
 
@@ -157,14 +163,7 @@ namespace MaplestoryBotNet.Systems
     {
         public abstract AbstractApplicationInitializer Build();
 
-        public abstract AbstractApplicationInitializerBuilder WithViewUpdaterActionHandler(AbstractWindowActionHandler handler);
-
-        public abstract AbstractApplicationInitializerBuilder WithViewCheckboxActionHandler(AbstractWindowActionHandler handler);
-
-        public abstract AbstractApplicationInitializerBuilder WithSplashScreenCompleteActionHandler(AbstractWindowActionHandler handler);
-
-        public abstract AbstractApplicationInitializerBuilder WithApplication(AbstractApplication application);
-
+        public abstract AbstractApplicationInitializerBuilder WithArgs(object args);
     }
 
 

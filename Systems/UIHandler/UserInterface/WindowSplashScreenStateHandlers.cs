@@ -3,7 +3,7 @@ using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using System.Diagnostics;
 
 
-namespace MaplestoryBotNet.UserInterface
+namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 {
     public class WindowSplashScreenCompleter : AbstractWindowStateModifier
     {
@@ -13,19 +13,19 @@ namespace MaplestoryBotNet.UserInterface
 
         private AbstractDispatcher _dispatcher;
 
-        private ISystemInjectable _keyboardDeviceContextInjectable;
+        private ISystemInjectable _keyboardDeviceInjectable;
 
         public WindowSplashScreenCompleter(
             AbstractSystemWindow splashScreen,
             AbstractSystemWindow mainWindow,
             AbstractDispatcher dispatcher,
-            ISystemInjectable keyboardDeviceContextInjectable
+            ISystemInjectable keyboardDeviceInjectable
         )
         {
             _splashScreen = splashScreen;
             _mainWindow = mainWindow;
             _dispatcher = dispatcher;
-            _keyboardDeviceContextInjectable = keyboardDeviceContextInjectable;
+            _keyboardDeviceInjectable = keyboardDeviceInjectable;
         }
 
         public override void Modify(object? value)
@@ -35,7 +35,7 @@ namespace MaplestoryBotNet.UserInterface
                 _dispatcher.Dispatch(
                     () =>
                     {
-                        _keyboardDeviceContextInjectable.Inject(
+                        _keyboardDeviceInjectable.Inject(
                             SystemInjectType.KeyboardDevice, keyboardDeviceContext
                         );
                         _splashScreen.ShutdownFlag = true;

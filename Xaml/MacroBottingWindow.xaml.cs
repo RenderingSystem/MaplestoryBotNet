@@ -1,5 +1,5 @@
 ﻿using MaplestoryBotNet.Systems;
-using MaplestoryBotNet.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using System.Windows;
 
 
@@ -17,7 +17,7 @@ namespace MaplestoryBotNet.Xaml
             InitializeComponent();
         }
 
-        public AbstractWindowActionHandler InstantiateWindowMenuItemHideHandler()
+        public AbstractWindowActionHandler InstantiateWindowMenuItemHideActionHandler()
         {
             return new WindowMenuItemHideHandlerBuilder()
                 .WithArgs(GetSystemWindow())

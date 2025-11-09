@@ -1,8 +1,9 @@
-﻿using MaplestoryBotNet.UserInterface;
+﻿using MaplestoryBotNet.Systems;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNetTests.TestHelpers;
 
 
-namespace MaplestoryBotNetTests.UserInterface.Tests.Mocks
+namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks
 {
     public class MockWindowStateModifier : AbstractWindowStateModifier
     {
@@ -64,13 +65,25 @@ namespace MaplestoryBotNetTests.UserInterface.Tests.Mocks
         public int OnEventCalls = 0;
         public List<object> OnEventCallArg_sender = [];
         public List<EventArgs> OnEventCallArg_e = [];
-        public override void OnEvent(object sender, EventArgs e)
+        public override void OnEvent(object? sender, EventArgs e)
         {
             var callReference = new TestUtilities().Reference(this) + "OnEvent";
             CallOrder.Add(callReference);
             OnEventCalls++;
             OnEventCallArg_sender.Add(sender);
             OnEventCallArg_e.Add(e);
+        }
+
+        public int InjectCalls = 0;
+        public List<SystemInjectType> InjectCallArg_dataType = [];
+        public List<object?> InjectCallArg_data = [];
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Inject";
+            CallOrder.Add(callReference);
+            InjectCalls++;
+            InjectCallArg_dataType.Add(dataType);
+            InjectCallArg_data.Add(data);
         }
     }
 

@@ -1,5 +1,5 @@
 ﻿using MaplestoryBotNet.Systems;
-using MaplestoryBotNet.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -20,7 +20,7 @@ namespace MaplestoryBotNet
             }
         }
 
-        public AbstractWindowActionHandler InstantiateWindowExiter()
+        public AbstractWindowActionHandler InstantiateWindowExiterActionHandler()
         {
             return new WindowExitActionHandlerBuilder()
                 .WithArgs(GetSystemWindow())
@@ -44,7 +44,7 @@ namespace MaplestoryBotNet
                 .Build();
         }
 
-        public AbstractWindowActionHandler InstantiateMacroWindowMenuItemPopupHandler(
+        public AbstractWindowActionHandler InstantiateMacroWindowMenuItemPopupActionHandler(
             AbstractSystemWindow systemWindow
         )
         {

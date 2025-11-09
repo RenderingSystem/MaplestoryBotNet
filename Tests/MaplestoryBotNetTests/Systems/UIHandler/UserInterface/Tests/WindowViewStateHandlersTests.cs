@@ -1,9 +1,9 @@
 ﻿
 
 using MaplestoryBotNet.Systems;
-using MaplestoryBotNet.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNetTests.Systems.Tests;
-using MaplestoryBotNetTests.UserInterface.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Diagnostics;

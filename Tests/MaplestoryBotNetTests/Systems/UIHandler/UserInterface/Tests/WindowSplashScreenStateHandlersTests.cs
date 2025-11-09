@@ -2,12 +2,12 @@
 
 using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
-using MaplestoryBotNet.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNetTests.Systems.Tests;
 using System.Diagnostics;
 
 
-namespace MaplestoryBotNetTests.UserInterface.Tests
+namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 {
     /**
      * @class WindowSplashScreenCompleterTests

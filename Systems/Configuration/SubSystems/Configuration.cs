@@ -105,6 +105,9 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("map_icons")]
         public Dictionary<string, MapIcon> MapIcons { get; set; } = new Dictionary<string, MapIcon>();
 
+        [JsonPropertyName("macro_directory")]
+        public string MacroDirectory { get; set; } = "";
+
         public override AbstractConfiguration Copy()
         {
             var configuration = new MaplestoryBotConfiguration();
@@ -116,6 +119,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
             configuration.AilmentsAllcureKey = new string(AilmentsAllcureKey);
             foreach (var item in MapIcons)
                 configuration.MapIcons.Add(new string(item.Key), (MapIcon)item.Value.Copy());
+            configuration.MacroDirectory = new string(MacroDirectory);
             return configuration;
         }
     }

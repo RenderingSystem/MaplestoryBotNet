@@ -1,7 +1,6 @@
 ﻿using MaplestoryBotNet.LibraryWrappers;
 using MaplestoryBotNet.ThreadingUtils;
-using MaplestoryBotNet.UserInterface;
-using System.Windows.Input;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 
 
 namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
@@ -150,11 +149,11 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
         public override void Inject(SystemInjectType dataType, object? value)
         {
             if (
-                dataType == SystemInjectType.SplashScreen
-                && value is AbstractWindowStateModifier splashScreenModifier
+                dataType == SystemInjectType.ActionHandler
+                && value is WindowSplashScreenCompleteActionHandler splashScreen
             )
             {
-                SplashScreenModifier = splashScreenModifier;
+                SplashScreenModifier = splashScreen.Modifier();
             }
         }
     }

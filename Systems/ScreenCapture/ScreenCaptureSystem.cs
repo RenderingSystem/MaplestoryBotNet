@@ -1,6 +1,6 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.ThreadingUtils;
-using MaplestoryBotNet.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -350,11 +350,11 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         public override void Inject(SystemInjectType dataType, object? value)
         {
             if (
-                dataType == SystemInjectType.ViewCheckbox
-                && value is AbstractWindowStateModifier windowViewCheckbox
+                dataType == SystemInjectType.ActionHandler
+                && value is WindowViewCheckboxActionHandler windowViewCheckbox
             )
             {
-                WindowViewCheckbox = windowViewCheckbox;
+                WindowViewCheckbox = windowViewCheckbox.Modifier();
             }
         }
     }
@@ -471,14 +471,14 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         public override void Inject(SystemInjectType dataType, object? data)
         {
             if (
-                dataType is SystemInjectType.ViewModifier
-                && data is AbstractWindowStateModifier viewModifier
+                dataType is SystemInjectType.ActionHandler
+                && data is WindowViewUpdaterActionHandler viewModifier
             )
             {
                 try
                 {
                     _viewModifierLock.EnterWriteLock();
-                    _viewModifier = viewModifier;
+                    _viewModifier = viewModifier.Modifier();
                 }
                 finally
                 {

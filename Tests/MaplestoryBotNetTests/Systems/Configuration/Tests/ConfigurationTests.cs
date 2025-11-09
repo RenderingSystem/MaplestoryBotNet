@@ -73,6 +73,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                         "image": "some_image_4"
                     }
                 },
+                "macro_directory": "cool_macros"
             }
             """;
         }
@@ -169,6 +170,20 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         }
 
         /**
+         * @brief Tests correct parsing of the macro directory location
+         * 
+         * Validates that the bot will look for macro files in the correct folder,
+         * ensuring that all automated key sequences and complex commands can be
+         * properly loaded and executed during gameplay.
+         */
+        private void _testDeserializeMacroDirectory()
+        {
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
+            Debug.Assert(output.MacroDirectory == "cool_macros");
+        }
+
+        /**
          * @brief Executes all configuration parsing tests
          * 
          * Runs the complete test suite to ensure the bot will correctly
@@ -182,6 +197,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             _testDeserializeMp();
             _testDeserializeAilments();
             _testDeserializeMapIcons();
+            _testDeserializeMacroDirectory();
         }
     }
 
@@ -256,7 +272,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     {
                         Image="some_image_4"
                     }
-                }
+                },
+                MacroDirectory="cool_macros"
 
             };
             return configuration;
@@ -358,7 +375,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     "rune": {
                         "image": "some_image_4"
                     }
-                }
+                },
+                "macro_directory": "cool_macros"
             }
             """;
         }

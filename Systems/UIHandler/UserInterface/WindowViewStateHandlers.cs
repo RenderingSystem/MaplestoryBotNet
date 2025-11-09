@@ -10,7 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 
-namespace MaplestoryBotNet.UserInterface
+namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 {
     public class WindowViewCheckbox : AbstractWindowStateModifier
     {
@@ -259,6 +259,24 @@ namespace MaplestoryBotNet.UserInterface
     }
 
 
+    public class WindowViewUpdaterActionHandler : WindowMenuItemClickActionHandler
+    {
+        public WindowViewUpdaterActionHandler(
+            List<MenuItem> menuItems,
+            AbstractWindowStateModifier windowStateModifier
+        ) : base(menuItems, windowStateModifier) {}
+    }
+
+
+    public class WindowViewCheckboxActionHandler : WindowMenuItemClickActionHandler
+    {
+        public WindowViewCheckboxActionHandler(
+            List<MenuItem> menuItems,
+            AbstractWindowStateModifier windowStateModifier
+        ) : base(menuItems, windowStateModifier) {}
+    }
+
+
     public class ApplicationClosingActionHandler : AbstractWindowActionHandler
     {
         private AbstractSystemWindow _closingWindow;
@@ -375,7 +393,7 @@ namespace MaplestoryBotNet.UserInterface
             Debug.Assert(_menuItems != null);
             Debug.Assert(_dispatcher != null);
             Debug.Assert(_image != null);
-            return new WindowMenuItemClickActionHandler(
+            return new WindowViewUpdaterActionHandler(
                 _menuItems, new WindowViewUpdater(_dispatcher, _image)
             );
         }
@@ -419,7 +437,7 @@ namespace MaplestoryBotNet.UserInterface
         public override AbstractWindowActionHandler Build()
         {
             Debug.Assert(_menuItems != null);
-            return new WindowMenuItemClickActionHandler(
+            return new WindowViewCheckboxActionHandler(
                 _menuItems, _createModifier()
             );
         }

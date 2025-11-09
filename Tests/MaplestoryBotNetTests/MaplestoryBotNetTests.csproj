@@ -35,11 +35,12 @@
     <Compile Include="..\..\Systems\MainSystem.cs" Link="Systems\MainSystem.cs" />
     <Compile Include="..\..\Systems\ScreenCapture\ScreenCaptureSystem.cs" Link="Systems\ScreenCapture\ScreenCaptureSystem.cs" />
     <Compile Include="..\..\Systems\ScreenCapture\SubSystems\ScreenCapture.cs" Link="Systems\ScreenCapture\SubSystems\ScreenCapture.cs" />
+    <Compile Include="..\..\Systems\UIHandler\UIHandlerSystem.cs" Link="Systems\UIHandler\UIHandlerSystem.cs" />
+    <Compile Include="..\..\Systems\UIHandler\UserInterface\AbstractWindowStateHandlers.cs" Link="Systems\UIHandler\UserInterface\AbstractWindowStateHandlers.cs" />
+    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMenuItemPopupHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMenuItemPopupHandlers.cs" />
+    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" />
+    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" />
     <Compile Include="..\..\ThreadingUtils\ThreadingUtils.cs" Link="ThreadingUtils\ThreadingUtils.cs" />
-    <Compile Include="..\..\UserInterface\AbstractWindowStateHandlers.cs" Link="UserInterface\AbstractWindowStateHandlers.cs" />
-    <Compile Include="..\..\UserInterface\WindowMenuItemPopupHandlers.cs" Link="UserInterface\WindowMenuItemPopupHandlers.cs" />
-    <Compile Include="..\..\UserInterface\WindowSplashScreenStateHandlers.cs" Link="UserInterface\WindowSplashScreenStateHandlers.cs" />
-    <Compile Include="..\..\UserInterface\WindowViewStateHandlers.cs" Link="UserInterface\WindowViewStateHandlers.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\Images\Ailments\blind.gif" Link="Images\Ailments\blind.gif" />

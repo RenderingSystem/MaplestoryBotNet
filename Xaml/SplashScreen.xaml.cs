@@ -1,6 +1,5 @@
 ﻿using MaplestoryBotNet.Systems;
-using MaplestoryBotNet.UserInterface;
-using System.Diagnostics;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using System.Windows;
 using System.Windows.Threading;
 

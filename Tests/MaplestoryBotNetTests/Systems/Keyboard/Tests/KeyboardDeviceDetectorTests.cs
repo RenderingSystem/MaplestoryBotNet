@@ -1,13 +1,13 @@
 ﻿using System.Diagnostics;
-using System.Drawing;
 using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNetTests.LibraryWrappers.Tests;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
-using MaplestoryBotNetTests.Systems.Tests;
+using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
-using MaplestoryBotNetTests.UserInterface.Tests.Mocks;
+
 
 namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 {
@@ -147,6 +147,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 
         MockKeyboardDeviceDetector _keyboardDeviceDetector = new MockKeyboardDeviceDetector();
 
+        AbstractWindowActionHandler _splashScreenActionHandler = new MockWindowActionHandler();
+
         MockWindowStateModifier _splashScreenModifier = new MockWindowStateModifier();
 
         /**
@@ -165,8 +167,9 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _keyboardDeviceDetector = new MockKeyboardDeviceDetector();
             _keyboardDeviceDetector.DetectReturn.Add(new KeyboardDeviceContext(0x1234, 0x2345));
             _splashScreenModifier = new MockWindowStateModifier();
+            _splashScreenActionHandler = new WindowSplashScreenCompleteActionHandler(_splashScreenModifier);
             var detectorThread = new KeyboardDeviceDetectorThread(_keyboardDeviceDetector, _runningState);
-            detectorThread.Inject(SystemInjectType.SplashScreen, _splashScreenModifier);
+            detectorThread.Inject(SystemInjectType.ActionHandler, _splashScreenActionHandler);
             return detectorThread;
         }
 

@@ -1,8 +1,8 @@
 ﻿
-using System.Windows;
+using MaplestoryBotNet.Systems;
 
 
-namespace MaplestoryBotNet.UserInterface
+namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 {
     public enum ViewTypes
     {
@@ -28,7 +28,7 @@ namespace MaplestoryBotNet.UserInterface
     }
 
 
-    public abstract class AbstractWindowActionHandler
+    public abstract class AbstractWindowActionHandler : ISystemInjectable
     {
         public virtual void OnEvent(object? sender, EventArgs e)
         {
@@ -36,6 +36,11 @@ namespace MaplestoryBotNet.UserInterface
         }
 
         public abstract AbstractWindowStateModifier Modifier();
+
+        public virtual void Inject(SystemInjectType dataType, object? data)
+        {
+
+        }
     }
 
 

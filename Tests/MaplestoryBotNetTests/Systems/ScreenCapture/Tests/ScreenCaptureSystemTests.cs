@@ -2,12 +2,12 @@
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.ThreadingUtils;
-using MaplestoryBotNet.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.Tests;
+using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
-using MaplestoryBotNetTests.UserInterface.Tests.Mocks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Diagnostics;
@@ -531,6 +531,8 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
 
         MockScreenCapturePublisher _publisher = new MockScreenCapturePublisher();
 
+        AbstractWindowActionHandler _viewCheckbox = new MockWindowActionHandler();
+
         MockWindowStateModifier _modifier = new MockWindowStateModifier();
 
         /**
@@ -567,6 +569,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             _runningState = new MockRunningState();
             _store = new MockScreenCaptureStore();
             _modifier = new MockWindowStateModifier();
+            _viewCheckbox = new WindowViewCheckboxActionHandler([], _modifier);
             return new GameScreenCapturePublisherThread(
                 _store, _publisher, _runningState
             );
@@ -592,7 +595,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             _modifier.StateReturn.Add(ViewTypes.Snapshots);
             _modifier.StateReturn.Add(ViewTypes.Snapshots);
             _modifier.StateReturn.Add(ViewTypes.Snapshots);
-            publisherThread.Inject(SystemInjectType.ViewCheckbox, _modifier);
+            publisherThread.Inject(SystemInjectType.ActionHandler, _viewCheckbox);
             publisherThread.Start();
             publisherThread.Join(10000);
             Debug.Assert(_publisher.PublishCalls == 3);
@@ -644,7 +647,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             _store.GetLatestReturn.Add(null);
             _store.GetLatestReturn.Add(newImage);
             _modifier.StateReturn.Add(ViewTypes.Snapshots);
-            publisherThread.Inject(SystemInjectType.ViewCheckbox, _modifier);
+            publisherThread.Inject(SystemInjectType.ActionHandler, _viewCheckbox);
             publisherThread.Start();
             publisherThread.Join(10000);
             Debug.Assert(_publisher.PublishCalls == 1);

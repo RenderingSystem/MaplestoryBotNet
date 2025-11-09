@@ -1,6 +1,6 @@
 ﻿using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
-using MaplestoryBotNet.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 
 
 namespace MaplestoryBotNet.Systems.Keyboard

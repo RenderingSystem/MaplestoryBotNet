@@ -3,10 +3,12 @@ using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Keyboard;
 using MaplestoryBotNet.Systems.ScreenCapture;
+using MaplestoryBotNet.Systems.UIHandler;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.ThreadingUtils;
+using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
-using MaplestoryBotNetTests.UserInterface.Tests.Mocks;
 
 
 namespace MaplestoryBotNetTests.Systems.Tests
@@ -442,7 +444,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var subSystemInfoList = new MainSubSystemInfoList();
             var subSystemInfo = subSystemInfoList.GetSubSystemInfo();
-            Debug.Assert(subSystemInfo.Count == 3);
+            Debug.Assert(subSystemInfo.Count == 4);
         }
 
         /**
@@ -502,7 +504,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
                 info => info.SystemBuilder is ConfigurationSystemBuilder
             );
             Debug.Assert(configInfo != null);
-            Debug.Assert(configInfo.BuildDependencies.Count == 2);
+            Debug.Assert(configInfo.BuildDependencies.Count == 3);
             Debug.Assert(
                 configInfo.BuildDependencies.Any(
                     dep => dep.SystemBuilder is GameScreenCaptureSystemBuilder
@@ -513,9 +515,35 @@ namespace MaplestoryBotNetTests.Systems.Tests
                     dep => dep.SystemBuilder is KeyboardSystemBuilder
                 )
             );
+            Debug.Assert(
+                configInfo.BuildDependencies.Any(
+                    dep => dep.SystemBuilder is UIHandlerSystemBuilder
+                )
+            );
             Debug.Assert(configInfo.InitializationPriority == 0);
             Debug.Assert(configInfo.StartPriority == 0);
             Debug.Assert(configInfo.UpdatePriority == 0);
+        }
+
+        /**
+         * @brief Tests UI handler subsystem configuration
+         * 
+         * Validates that the UI handler subsystem is properly configured with correct
+         * execution priorities and no external dependencies, ensuring user interface
+         * components are managed with appropriate system coordination and response timing.
+         */
+        private void _testGetSubSystemInfoObtainsCorrectUIHandlerSystemInfo()
+        {
+            var subSystemInfoList = new MainSubSystemInfoList();
+            var subSystemInfo = subSystemInfoList.GetSubSystemInfo();
+            var uiHandlerInfo = subSystemInfo.FirstOrDefault(
+                info => info.SystemBuilder is UIHandlerSystemBuilder
+            );
+            Debug.Assert(uiHandlerInfo != null);
+            Debug.Assert(uiHandlerInfo.BuildDependencies.Count == 0);
+            Debug.Assert(uiHandlerInfo.InitializationPriority == 3);
+            Debug.Assert(uiHandlerInfo.StartPriority == 3);
+            Debug.Assert(uiHandlerInfo.UpdatePriority == 3);
         }
 
         /**
@@ -531,6 +559,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
             _testGetSubSystemInfoObtainsCorrectKeyboardInfo();
             _testGetSubSystemInfoObtainsCorrectScreenCaptureInfo();
             _testGetSubSystemInfoObtainsCorrectConfigurationSystemInfo();
+            _testGetSubSystemInfoObtainsCorrectUIHandlerSystemInfo();
         }
     }
 
@@ -751,11 +780,17 @@ namespace MaplestoryBotNetTests.Systems.Tests
 
         MockSystem _mainSystem = new MockSystem();
 
-        MockWindowActionHandler _windowViewUpdaterActionHandler = new MockWindowActionHandler();
+        MockWindowStateModifier _windowViewUpdaterModifier = new MockWindowStateModifier();
 
-        MockWindowActionHandler _windowViewCheckboxActionHandler = new MockWindowActionHandler();
+        MockWindowStateModifier _windowViewCheckboxModifier = new MockWindowStateModifier();
 
-        MockWindowActionHandler _splashScreenCompleteActionHandler = new MockWindowActionHandler();
+        MockWindowStateModifier _splashScreenModifier = new MockWindowStateModifier();
+
+        AbstractWindowActionHandler _windowViewUpdaterActionHandler = new MockWindowActionHandler();
+
+        AbstractWindowActionHandler _windowViewCheckboxActionHandler = new MockWindowActionHandler();
+
+        AbstractWindowActionHandler _splashScreenCompleteActionHandler = new MockWindowActionHandler();
 
         /**
          * @brief Creates test environment with mock application dependencies
@@ -770,14 +805,17 @@ namespace MaplestoryBotNetTests.Systems.Tests
             _mainApplication = new MockApplication();
             _mainSystem = new MockSystem();
             _mainApplication.SystemReturn.Add(_mainSystem);
-            _windowViewUpdaterActionHandler = new MockWindowActionHandler();
-            _windowViewCheckboxActionHandler = new MockWindowActionHandler();
-            _splashScreenCompleteActionHandler = new MockWindowActionHandler();
+            _windowViewCheckboxModifier = new MockWindowStateModifier();
+            _windowViewUpdaterActionHandler = new WindowViewUpdaterActionHandler([], _windowViewCheckboxModifier);
+            _windowViewCheckboxActionHandler = new WindowViewCheckboxActionHandler([], _windowViewCheckboxModifier);
+            _splashScreenCompleteActionHandler = new WindowSplashScreenCompleteActionHandler(_splashScreenModifier);
             return new MainApplicationInitializer(
                 _mainApplication,
-                _windowViewUpdaterActionHandler,
-                _windowViewCheckboxActionHandler,
-                _splashScreenCompleteActionHandler
+                [
+                    _windowViewUpdaterActionHandler,
+                    _windowViewCheckboxActionHandler,
+                    _splashScreenCompleteActionHandler
+                ]
             );
         }
 
@@ -811,23 +849,15 @@ namespace MaplestoryBotNetTests.Systems.Tests
         private void _testInitializeInjectsModifiersToMainSystem()
         {
             var mainApplicationInitializer = _fixture();
-            var windowViewUpdateModifier = new MockWindowStateModifier();
-            var windowViewCheckboxModifier = new MockWindowStateModifier();
-            var splashScreenModifier = new MockWindowStateModifier();
-            _windowViewUpdaterActionHandler.ModifierReturn.Add(windowViewUpdateModifier);
-            _windowViewCheckboxActionHandler.ModifierReturn.Add(windowViewCheckboxModifier);
-            _splashScreenCompleteActionHandler.ModifierReturn.Add(splashScreenModifier);
             mainApplicationInitializer.Initialize();
-            var viewModifierIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.ViewModifier);
-            var viewCheckboxIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.ViewCheckbox);
-            var splashScreenIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.SplashScreen);
             Debug.Assert(_mainSystem.InjectCalls == 3);
-            Debug.Assert(viewModifierIndex != -1);
-            Debug.Assert(viewCheckboxIndex != -1);
-            Debug.Assert(splashScreenIndex != -1);
-            Debug.Assert(_mainSystem.InjectCallArg_data[viewModifierIndex] == windowViewUpdateModifier);
-            Debug.Assert(_mainSystem.InjectCallArg_data[viewCheckboxIndex] == windowViewCheckboxModifier);
-            Debug.Assert(_mainSystem.InjectCallArg_data[splashScreenIndex] == splashScreenModifier);
+            Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_windowViewUpdaterActionHandler) != -1);
+            Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_windowViewCheckboxActionHandler) != -1);
+            Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_splashScreenCompleteActionHandler) != -1);
+            for (int i = 0; i < 3; i++)
+            {
+                Debug.Assert(_mainSystem.InjectCallArg_dataType[i] == SystemInjectType.ActionHandler);
+            }
         }
 
         /**

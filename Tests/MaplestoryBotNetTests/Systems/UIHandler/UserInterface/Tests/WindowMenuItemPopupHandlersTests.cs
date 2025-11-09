@@ -1,11 +1,11 @@
-﻿using MaplestoryBotNet.UserInterface;
+﻿using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNetTests.Systems.Tests;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 
 
-namespace MaplestoryBotNetTests.UserInterface.Tests
+namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 {
 
     /**

@@ -134,5 +134,6 @@
         "rune": {
             "image": "images/mapicons/rune.gif"
         }
-    }
+    },
+    "macro_directory": "macros"
 }

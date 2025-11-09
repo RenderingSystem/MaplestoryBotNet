@@ -100,7 +100,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="UserInterface\WindowMenuItemPopupHandlers.cs">
+    <Compile Update="Systems\UIHandler\UserInterface\WindowMenuItemPopupHandlers.cs">
       <Generator>MSBuild:Compile</Generator>
     </Compile>
   </ItemGroup>

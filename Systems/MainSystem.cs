@@ -2,8 +2,9 @@
 using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Keyboard;
 using MaplestoryBotNet.Systems.ScreenCapture;
+using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.ThreadingUtils;
-using MaplestoryBotNet.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 
 
 namespace MaplestoryBotNet.Systems
@@ -195,12 +196,20 @@ namespace MaplestoryBotNet.Systems
             );
         }
 
+        private SystemInformation _uiHandlerSystemInfo()
+        {
+            return new SystemInformation(
+                new UIHandlerSystemBuilder(), [], [], 3, 3, 3
+            );
+        }
+
         public override List<SystemInformation> GetSubSystemInfo()
         {
             var keyboardInfo = _keyboardInfo();
             var screenCaptureInfo = _screenCaptureInfo();
-            var configInfo = _configInfo([keyboardInfo, screenCaptureInfo]);
-            return [configInfo, keyboardInfo, screenCaptureInfo];
+            var uiHandlerInfo = _uiHandlerSystemInfo();
+            var configInfo = _configInfo([keyboardInfo, screenCaptureInfo, uiHandlerInfo]);
+            return [configInfo, keyboardInfo, screenCaptureInfo, uiHandlerInfo];
         }
     }
 
@@ -330,23 +339,15 @@ namespace MaplestoryBotNet.Systems
     {
         AbstractApplication _mainApplication;
 
-        AbstractWindowActionHandler _windowViewUpdaterActionHandler;
-
-        AbstractWindowActionHandler _windowViewCheckboxActionHandler;
-
-        AbstractWindowActionHandler _splashScreenCompleteActionHandler;
+        List<AbstractWindowActionHandler> _uiHandlers;
 
         public MainApplicationInitializer(
             AbstractApplication mainApplication,
-            AbstractWindowActionHandler windowViewUpdaterActionHandler,
-            AbstractWindowActionHandler windowViewCheckboxActionHandler,
-            AbstractWindowActionHandler splashScreenCompleteActionHandler
+            List<AbstractWindowActionHandler> uiHandlers
         )
         {
             _mainApplication = mainApplication;
-            _windowViewUpdaterActionHandler = windowViewUpdaterActionHandler;
-            _windowViewCheckboxActionHandler = windowViewCheckboxActionHandler;
-            _splashScreenCompleteActionHandler = splashScreenCompleteActionHandler;
+            _uiHandlers = uiHandlers;
         }
 
         public override void Synchronize()
@@ -363,12 +364,10 @@ namespace MaplestoryBotNet.Systems
         public override void Initialize()
         {
             var mainSystem = _mainApplication.System();
-            var viewUpdateModifier = _windowViewUpdaterActionHandler.Modifier();
-            var viewCheckboxModifier = _windowViewCheckboxActionHandler.Modifier();
-            var splashScreenModifier = _splashScreenCompleteActionHandler.Modifier();
-            mainSystem.Inject(SystemInjectType.ViewModifier, viewUpdateModifier);
-            mainSystem.Inject(SystemInjectType.ViewCheckbox, viewCheckboxModifier);
-            mainSystem.Inject(SystemInjectType.SplashScreen, splashScreenModifier);
+            for (int i = 0; i < _uiHandlers.Count; i++)
+            {
+                mainSystem.Inject(SystemInjectType.ActionHandler, _uiHandlers[i]);
+            }
         }
     }
 
@@ -377,54 +376,34 @@ namespace MaplestoryBotNet.Systems
     {
         AbstractApplication? _mainApplication;
 
-        AbstractWindowActionHandler? _windowViewUpdaterActionHandler;
-
-        AbstractWindowActionHandler? _windowViewCheckboxActionHandler;
-
-        AbstractWindowActionHandler? _splashScreenCompleteActionHandler;
+        List<AbstractWindowActionHandler>? _handlers;
 
         public MainApplicationInitializerBuilder()
         {
             _mainApplication = null;
-            _windowViewUpdaterActionHandler = null;
-            _windowViewCheckboxActionHandler = null;
+            _handlers = null;
         }
 
         public override AbstractApplicationInitializer Build()
         {
             Debug.Assert(_mainApplication != null);
-            Debug.Assert(_windowViewUpdaterActionHandler != null);
-            Debug.Assert(_windowViewCheckboxActionHandler != null);
-            Debug.Assert(_splashScreenCompleteActionHandler != null);
+            Debug.Assert(_handlers != null);
             return new MainApplicationInitializer(
                 _mainApplication,
-                _windowViewUpdaterActionHandler,
-                _windowViewCheckboxActionHandler,
-                _splashScreenCompleteActionHandler
+                _handlers
             );
         }
 
-        public override AbstractApplicationInitializerBuilder WithApplication(AbstractApplication application)
+        public override AbstractApplicationInitializerBuilder WithArgs(object args)
         {
-            _mainApplication = application;
-            return this;
-        }
-
-        public override AbstractApplicationInitializerBuilder WithSplashScreenCompleteActionHandler(AbstractWindowActionHandler handler)
-        {
-            _splashScreenCompleteActionHandler = handler;
-            return this;
-        }
-
-        public override AbstractApplicationInitializerBuilder WithViewCheckboxActionHandler(AbstractWindowActionHandler handler)
-        {
-            _windowViewCheckboxActionHandler = handler;
-            return this;
-        }
-
-        public override AbstractApplicationInitializerBuilder WithViewUpdaterActionHandler(AbstractWindowActionHandler handler)
-        {
-            _windowViewUpdaterActionHandler = handler;
+            if (args is AbstractApplication application)
+            {
+                _mainApplication = application;
+            }
+            if (args is List<AbstractWindowActionHandler> handlers)
+            {
+                _handlers = handlers;
+            }
             return this;
         }
     }

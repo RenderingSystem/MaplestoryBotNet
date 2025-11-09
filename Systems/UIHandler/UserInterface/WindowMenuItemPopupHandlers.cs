@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Windows.Controls;
 
 
-namespace MaplestoryBotNet.UserInterface
+namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 {
     public class WindowMenuItemPopupModifier : AbstractWindowStateModifier
     {

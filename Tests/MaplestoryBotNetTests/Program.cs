@@ -3,6 +3,8 @@ using MaplestoryBotNetTests.Systems.Keyboard.Tests;
 using MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests;
 using MaplestoryBotNetTests.Systems.ScreenCapture.Tests;
 using MaplestoryBotNetTests.Systems.Tests;
+using MaplestoryBotNetTests.Systems.UIHandler.Tests;
+using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests;
 using MaplestoryBotNetTests.UserInterface.Tests;
 
 
@@ -30,6 +32,7 @@ void UnitTestSuite()
     new WindowSplashScreenStateHandlersTestSuite().Run();
     new WindowViewStateHandlersTestSuite().Run();
     new WIndowMenuItemPopupHandlersTestSuite().Run();
+    new UIHandlerSystemTestSuite().Run();
 }
 
 
