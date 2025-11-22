@@ -152,7 +152,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private ListBox _listBox;
 
-        private List<string> _comboBoxContents;
+        private ComboBox _comboBox;
 
         private List<string> _expectedContents;
 
@@ -172,11 +172,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             _saveButton = new Button();
             _listBox = new ListBox();
-            _comboBoxContents = ["A", "B", "C"];
-            _expectedContents = ["D", "E", "F"];
+            _comboBox = new ComboBox();
             _macroDataDeserializer = new MacroDataDeserializer();
             _loadFileDialog = new MockLoadFileDialog();
             _loadFileDialog.PromptReturn = [];
+            _expectedContents = ["D", "E", "F"];
             _windowLoadMenuModifier = new WindowLoadMenuModifier(_loadFileDialog);
         }
 
@@ -193,16 +193,19 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             _saveButton = new Button();
             _listBox = new ListBox();
-            _comboBoxContents = ["A", "B", "C"];
-            _expectedContents = ["D", "E", "F"];
+            _comboBox = new ComboBox();
+            _comboBox.Items.Add(new ComboBoxItem { Content = "A" });
+            _comboBox.Items.Add(new ComboBoxItem { Content = "B" });
+            _comboBox.Items.Add(new ComboBoxItem { Content = "C" });
             _macroDataDeserializer = new MacroDataDeserializer();
             _loadFileDialog = new MockLoadFileDialog();
             _loadFileDialog.PromptReturn.Add("{\"macro\":[\"D\",\"E\",\"F\"]}");
+            _expectedContents = ["D", "E", "F"];
             _windowLoadMenuModifier = new WindowLoadMenuModifier(_loadFileDialog);
             return new WindowLoadMenuActionHandler(
                 _saveButton,
                 _listBox,
-                _comboBoxContents,
+                _comboBox,
                 _macroDataDeserializer,
                 _windowLoadMenuModifier
             );
@@ -234,11 +237,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             for (int i = 0; i < _expectedContents.Count; i++)
             {
                 Debug.Assert(((ComboBox)_listBox.Items[i]).Text == _expectedContents[i]);
-                for (int j = 0; j < _comboBoxContents.Count; j++)
+                for (int j = 0; j < _comboBox.Items.Count; j++)
                 {
                     Debug.Assert(
                         ((ComboBoxItem)((ComboBox)_listBox.Items[i]).Items[j]).Content.ToString()
-                        == _comboBoxContents[j]
+                        == ((ComboBoxItem)_comboBox.Items[j]).Content.ToString()
                     );
                 }
             }

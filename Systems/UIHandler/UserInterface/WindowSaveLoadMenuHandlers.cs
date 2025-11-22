@@ -163,11 +163,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
                 macroListBox,
                 new MacroDataSerializer(),
                 new WindowSaveMenuModifier(
-                    new WindowSaveFileDialog(
-                        "Save Macro",
-                        "JSON files (*.json)|*.json",
-                        ".json"
-                    )
+                    new WindowSaveFileDialog("Save Macro", "JSON files (*.json)|*.json", ".json")
                 )
             );
         }
@@ -269,7 +265,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
 
         private ListBox _listBox;
 
-        private List<string> _comboBoxContents;
+        private ComboBox _comboBoxTemplate;
 
         private AbstractMacroDataDeserializer _macroDataDeserializer;
 
@@ -280,14 +276,14 @@ namespace MaplestoryBotNet.Systems.UIHandler
         public WindowLoadMenuActionHandler(
             Button saveButton,
             ListBox listBox,
-            List<string> comboBoxContents,
+            ComboBox comboBoxTemplate,
             AbstractMacroDataDeserializer macroDataDeserializer,
             AbstractWindowStateModifier windowLoadMenuModifier
         )
         {
             _saveButton = saveButton;
             _listBox = listBox;
-            _comboBoxContents = comboBoxContents;
+            _comboBoxTemplate = comboBoxTemplate;
             _macroDataDeserializer = macroDataDeserializer;
             _windowLoadMenuModifier = windowLoadMenuModifier;
             _saveButton.Click += OnEvent;
@@ -309,14 +305,9 @@ namespace MaplestoryBotNet.Systems.UIHandler
 
         private List<ComboBoxItem> _comboBoxItems()
         {
-            return _comboBoxContents
-                .Select(
-                    content => new ComboBoxItem
-                    {
-                        Content = content,
-                        FontSize = 10
-                    }
-                )
+            return _comboBoxTemplate.Items
+                .Cast<ComboBoxItem>()
+                .Select(item => new ComboBoxItem{ Content = item.Content })
                 .ToList();
         }
 
@@ -325,9 +316,9 @@ namespace MaplestoryBotNet.Systems.UIHandler
             var comboBox = new ComboBox
             {
                 Text = command,
-                Width = _listBox.Width - 25,
-                IsEditable = true,
-                FontSize = 10,
+                Width = _comboBoxTemplate.Width,
+                IsEditable = _comboBoxTemplate.IsEditable,
+                FontSize = _comboBoxTemplate.FontSize,
                 ItemsSource = _comboBoxItems()
             };
             _listBox.Items.Add(comboBox);
@@ -368,25 +359,17 @@ namespace MaplestoryBotNet.Systems.UIHandler
         
         public WindowLoadMenuActionHandlerFacade(
             Button loadButton,
-            ListBox macroListBox
-        )
+            ListBox macroListBox,
+            ComboBox comboBoxTemplate
+        ) 
         {
             _loadMenuActionHandler = new WindowLoadMenuActionHandler(
                 loadButton,
                 macroListBox,
-                new List<string>
-                {
-                    "Wait {#} {#}",
-                    "Key press {{key}, ...} {#} {#}",
-                    "Key down {key}",
-                    "Key up {key}"
-                },
+                comboBoxTemplate,
                 new MacroDataDeserializer(),
                 new WindowLoadMenuModifier(
-                    new WindowLoadFileDialog(
-                        "Load Macro",
-                        "JSON files (*.json)|*.json"
-                    )
+                    new WindowLoadFileDialog("Load Macro", "JSON files (*.json)|*.json")
                 )
             );
         }
@@ -406,5 +389,4 @@ namespace MaplestoryBotNet.Systems.UIHandler
             _loadMenuActionHandler.Inject(dataType, data);
         }
     }
-
 }

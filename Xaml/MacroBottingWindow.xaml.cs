@@ -24,7 +24,11 @@ namespace MaplestoryBotNet.Xaml
         
         public AbstractWindowActionHandler InstantiateLoadMenuActionHandler()
         {
-            return new WindowLoadMenuActionHandlerFacade(LoadButton, MacroListBox);
+            var handler = new WindowLoadMenuActionHandlerFacade(
+                LoadButton, MacroListBox, ComboBoxTemplate
+            );
+            MacroListBox.Items.Clear();
+            return handler;
         }
 
         public AbstractWindowActionHandler InstantiateSaveMenuActionHandler()
