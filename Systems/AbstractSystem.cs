@@ -137,7 +137,7 @@ namespace MaplestoryBotNet.Systems
 
     public abstract class AbstractApplication
     {
-        public abstract void Launch(List<string> args);
+        public abstract void Launch();
 
         public abstract void ShutDown();
 

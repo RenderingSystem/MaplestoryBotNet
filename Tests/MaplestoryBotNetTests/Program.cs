@@ -26,6 +26,7 @@ void UnitTestSuite()
     new MacroTranslatorTestSuite().Run();
     new ScriptedMacroAgentTestSuite().Run();
     new AbstractMacroAgentTestSuite().Run();
+    new MacroDataTestSuite().Run();
     // Test the main system
     new MainSystemTestSuite().Run();
     // Test the user interface
@@ -33,6 +34,7 @@ void UnitTestSuite()
     new WindowViewStateHandlersTestSuite().Run();
     new WIndowMenuItemPopupHandlersTestSuite().Run();
     new UIHandlerSystemTestSuite().Run();
+    new WindowSaveLoadMenuHandlersTestSuite().Run();
 }
 
 

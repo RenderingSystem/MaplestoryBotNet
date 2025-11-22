@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using MaplestoryBotNet.Systems;
+﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Keyboard;
 using MaplestoryBotNet.Systems.ScreenCapture;
@@ -9,6 +8,8 @@ using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
+using System.Diagnostics;
+using System.Linq;
 
 
 namespace MaplestoryBotNetTests.Systems.Tests
@@ -712,7 +713,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var mainApplication = _fixture();
             var reference = new TestUtilities().Reference(_mainSystem);
-            mainApplication.Launch([]);
+            mainApplication.Launch();
             Debug.Assert(_mainSystem.CallOrder.Count == 2);
             Debug.Assert(_mainSystem.CallOrder[0] == reference + "InitializeSystem");
             Debug.Assert(_mainSystem.CallOrder[1] == reference + "StartSystem");
@@ -850,7 +851,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var mainApplicationInitializer = _fixture();
             mainApplicationInitializer.Initialize();
-            Debug.Assert(_mainSystem.InjectCalls == 3);
+            Debug.Assert(_mainSystem.InjectCalls == 4);
             Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_windowViewUpdaterActionHandler) != -1);
             Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_windowViewCheckboxActionHandler) != -1);
             Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_splashScreenCompleteActionHandler) != -1);
@@ -858,6 +859,25 @@ namespace MaplestoryBotNetTests.Systems.Tests
             {
                 Debug.Assert(_mainSystem.InjectCallArg_dataType[i] == SystemInjectType.ActionHandler);
             }
+        }
+
+        /**
+         * @brief Tests update trigger injection during initialization
+         * 
+         * Validates that the application initializer injects a configuration update signal
+         * to force immediate configuration updates on certain subsystems, ensuring that all
+         * components refresh their state and synchronize properly after the initialization
+         * process completes.
+         */
+        private void _testInitializeInjectsUpdaterToMainSystem()
+        {
+            var mainApplicationInitializer = _fixture();
+            mainApplicationInitializer.Initialize();
+            var updateIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.ConfigurationUpdate);
+            var dataIndex = _mainSystem.InjectCallArg_data.IndexOf(0)!;
+            Debug.Assert(updateIndex != -1);
+            Debug.Assert(dataIndex != -1);
+            Debug.Assert(updateIndex == dataIndex);
         }
 
         /**
@@ -871,6 +891,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             _testSynchronizeChecksMainSystemStateUntilReady();
             _testInitializeInjectsModifiersToMainSystem();
+            _testInitializeInjectsUpdaterToMainSystem();
         }
     }
 

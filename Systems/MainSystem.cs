@@ -285,7 +285,7 @@ namespace MaplestoryBotNet.Systems
             _mainSystem = mainSystem;
         }
 
-        public override void Launch(List<string> args)
+        public override void Launch()
         {
             _mainSystem.Initialize();
             _mainSystem.Start();
@@ -318,9 +318,9 @@ namespace MaplestoryBotNet.Systems
             );
         }
 
-        public override void Launch(List<string> args)
+        public override void Launch()
         {
-            _mainApplication.Launch(args);
+            _mainApplication.Launch();
         }
 
         public override void ShutDown()
@@ -368,6 +368,7 @@ namespace MaplestoryBotNet.Systems
             {
                 mainSystem.Inject(SystemInjectType.ActionHandler, _uiHandlers[i]);
             }
+            mainSystem.Inject(SystemInjectType.ConfigurationUpdate, 0);
         }
     }
 

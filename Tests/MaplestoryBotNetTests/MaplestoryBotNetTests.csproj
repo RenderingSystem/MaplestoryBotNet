@@ -26,6 +26,7 @@
     <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationImages.cs" Link="Systems\Configuration\SubSystems\ConfigurationImages.cs" />
     <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationKeyboard.cs" Link="Systems\Configuration\SubSystems\ConfigurationKeyboard.cs" />
     <Compile Include="..\..\Systems\Configuration\SubSystems\FileReader.cs" Link="Systems\Configuration\SubSystems\FileReader.cs" />
+    <Compile Include="..\..\Systems\Configuration\SubSystems\MacroData.cs" Link="Systems\Configuration\SubSystems\MacroData.cs" />
     <Compile Include="..\..\Systems\Keyboard\KeyboardSystem.cs" Link="Systems\Keyboard\KeyboardSystem.cs" />
     <Compile Include="..\..\Systems\Keyboard\SubSystems\KeyboardDeviceDetector.cs" Link="Systems\Keyboard\SubSystems\KeyboardDeviceDetector.cs" />
     <Compile Include="..\..\Systems\Keyboard\SubSystems\KeystrokeTransmitter.cs" Link="Systems\Keyboard\SubSystems\KeystrokeTransmitter.cs" />
@@ -38,6 +39,7 @@
     <Compile Include="..\..\Systems\UIHandler\UIHandlerSystem.cs" Link="Systems\UIHandler\UIHandlerSystem.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\AbstractWindowStateHandlers.cs" Link="Systems\UIHandler\UserInterface\AbstractWindowStateHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMenuItemPopupHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMenuItemPopupHandlers.cs" />
+    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowSaveLoadMenuHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowSaveLoadMenuHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" />
     <Compile Include="..\..\ThreadingUtils\ThreadingUtils.cs" Link="ThreadingUtils\ThreadingUtils.cs" />

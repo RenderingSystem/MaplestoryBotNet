@@ -63,7 +63,6 @@ namespace MaplestoryBotNet
             return _systemWindow;
         }
 
-
         public MainWindow()
         {
             InitializeComponent();

@@ -91,12 +91,9 @@ namespace MaplestoryBotNet.Systems.Configuration
                 try
                 {
                     entry.ReaderWriterLock.EnterReadLock();
-                    if (entry.ConfigType == key)
+                    if (entry.ConfigType == key && entry.Deserialized != null)
                     {
-                        if (entry.Deserialized != null)
-                        {
-                            return entry.Deserialized.Copy();
-                        }
+                        return entry.Deserialized.Copy();
                     }
                 }
                 finally
@@ -133,6 +130,26 @@ namespace MaplestoryBotNet.Systems.Configuration
                 _configurationInjector.Inject(
                     SystemInjectType.ConfigurationUpdate, configuration
                 );
+            }
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (dataType != SystemInjectType.ConfigurationUpdate)
+            {
+                return;
+            }
+            foreach (var entry in _configurationEntries)
+            {
+                try
+                {
+                    entry.ReaderWriterLock.EnterReadLock();
+                    _configurationInjector.Inject(SystemInjectType.ConfigurationUpdate, entry.Deserialized);
+                }
+                finally
+                {
+                    entry.ReaderWriterLock.ExitReadLock();
+                }
             }
         }
     }

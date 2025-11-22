@@ -14,7 +14,10 @@ namespace MaplestoryBotNet.Systems.UIHandler
                 && data is AbstractWindowActionHandler handler
             )
             {
-                _handlers.Add(handler);
+                if (_handlers.IndexOf(handler) == -1)
+                {
+                    _handlers.Add(handler);
+                }
             }
             else
             {

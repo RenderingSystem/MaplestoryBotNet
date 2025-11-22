@@ -19,20 +19,12 @@
             <ColumnDefinition Width="5*"/>
             <ColumnDefinition Width="27*"/>
         </Grid.ColumnDefinitions>
-        <ListBox HorizontalAlignment="Left" Height="525" Margin="10,10,0,0" VerticalAlignment="Center" Width="500" Background="Black" Foreground="White" FontFamily="Courier New" SelectedIndex="0" Grid.ColumnSpan="4">
-            <ComboBox Width="475" FontSize="10" IsEditable="True" SelectedIndex="0">
-                <ComboBoxItem Content="Key press {key} for {#} milliseconds" FontSize="10"/>
-                <ComboBoxItem Content="Key press random {{keys}, ...} for {#} to {#} milliseconds" FontSize="10"/>
-                <ComboBoxItem Content="Key down {key}" FontSize="10"/>
-                <ComboBoxItem Content="Key up {key}" FontSize="10"/>
-                <ComboBoxItem Content="Wait for {#} to {#} milliseconds" FontSize="10"/>
-            </ComboBox>
-        </ListBox>
+        <ListBox x:Name="MacroListBox" HorizontalAlignment="Left" Height="525" Margin="10,10,0,0" VerticalAlignment="Center" Width="500" Background="Black" Foreground="White" FontFamily="Courier New" SelectedIndex="0" Grid.ColumnSpan="4"/>
         <Label Content="Macro Commands" HorizontalAlignment="Left" Margin="10,2,0,0" VerticalAlignment="Top" Foreground="White" Width="205" FontFamily="Courier New" Grid.ColumnSpan="2"/>
-        <Button Content="Start!" HorizontalAlignment="Left" Margin="30,500,0,0" VerticalAlignment="Top" Height="25" Width="130" FontFamily="Courier New" Foreground="White" Background="Black" BorderBrush="Lime" Grid.Column="3"/>
-        <Button Content="Remove" HorizontalAlignment="Left" Margin="30,152,0,0" VerticalAlignment="Top" Height="26" Width="130" FontFamily="Courier New" Foreground="White" Background="Black" BorderBrush="#FF707070" Grid.Column="3"/>
-        <Button Content="Save" HorizontalAlignment="Left" Margin="30,34,0,0" VerticalAlignment="Top" Height="25" Width="130" FontFamily="Courier New" Foreground="White" Background="Black" BorderBrush="#FF707070" Grid.Column="3"/>
-        <Button Content="Load" HorizontalAlignment="Left" Margin="30,64,0,0" VerticalAlignment="Top" Height="25" Width="130" FontFamily="Courier New" Foreground="White" Background="{x:Null}" BorderBrush="#FF707070" Grid.Column="3"/>
-        <Button Content="Add" HorizontalAlignment="Left" Margin="30,122,0,0" VerticalAlignment="Top" Height="26" Width="130" FontFamily="Courier New" Foreground="White" Background="Black" BorderBrush="#FF707070" Grid.Column="3"/>
+        <Button x:Name="StartButton" Content="Start!" HorizontalAlignment="Left" Margin="30,500,0,0" VerticalAlignment="Top" Height="25" Width="130" FontFamily="Courier New" Foreground="White" Background="Black" BorderBrush="Lime" Grid.Column="3"/>
+        <Button x:Name="RemoveButton" Content="Remove" HorizontalAlignment="Left" Margin="30,152,0,0" VerticalAlignment="Top" Height="26" Width="130" FontFamily="Courier New" Foreground="White" Background="Black" BorderBrush="#FF707070" Grid.Column="3"/>
+        <Button x:Name="SaveButton" Content="Save" HorizontalAlignment="Left" Margin="30,34,0,0" VerticalAlignment="Top" Height="25" Width="130" FontFamily="Courier New" Foreground="White" Background="Black" BorderBrush="#FF707070" Grid.Column="3"/>
+        <Button x:Name="LoadButton" Content="Load" HorizontalAlignment="Left" Margin="30,64,0,0" VerticalAlignment="Top" Height="25" Width="130" FontFamily="Courier New" Foreground="White" Background="{x:Null}" BorderBrush="#FF707070" Grid.Column="3"/>
+        <Button x:Name="AddButton" Content="Add" HorizontalAlignment="Left" Margin="30,122,0,0" VerticalAlignment="Top" Height="26" Width="130" FontFamily="Courier New" Foreground="White" Background="Black" BorderBrush="#FF707070" Grid.Column="3"/>
     </Grid>
 </Window>

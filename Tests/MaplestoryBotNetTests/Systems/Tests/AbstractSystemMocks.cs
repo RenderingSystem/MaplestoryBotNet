@@ -131,12 +131,10 @@ namespace MaplestoryBotNetTests.Systems.Tests
         public List<string> CallOrder = [];
 
         public int LaunchCalls = 0;
-        public List<List<string>> LaunchCallArg_args = [];
-        public override void Launch(List<string> args)
+        public override void Launch()
         {
             var callReference = new TestUtilities().Reference(this) + "Launch";
             CallOrder.Add(callReference);
-            LaunchCallArg_args.Add(args);
             LaunchCalls++;
         }
 

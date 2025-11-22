@@ -1,13 +1,11 @@
 ﻿using MaplestoryBotNet.Systems;
+using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using System.Windows;
 
 
 namespace MaplestoryBotNet.Xaml
 {
-    /// <summary>
-    /// Interaction logic for MacroBottingWindow.xaml
-    /// </summary>
     public partial class MacroBottingWindow : Window
     {
         private AbstractSystemWindow? _systemWindow = null;
@@ -24,6 +22,16 @@ namespace MaplestoryBotNet.Xaml
                 .Build();
         }
         
+        public AbstractWindowActionHandler InstantiateLoadMenuActionHandler()
+        {
+            return new WindowLoadMenuActionHandlerFacade(LoadButton, MacroListBox);
+        }
+
+        public AbstractWindowActionHandler InstantiateSaveMenuActionHandler()
+        {
+            return new WindowSaveMenuActionHandlerFacade(SaveButton, MacroListBox);
+        }
+
         public AbstractSystemWindow GetSystemWindow()
         {
             if (_systemWindow == null)

@@ -63,7 +63,42 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.Tests
                 {
                     Debug.Assert(_mockHandlers[j].InjectCalls == 1);
                     Debug.Assert((int)(_mockHandlers[j].InjectCallArg_dataType[0]!) == 999);
-                    Debug.Assert((int)(_mockHandlers[j].InjectCallArg_data[0]!) ==1234);
+                    Debug.Assert((int)(_mockHandlers[j].InjectCallArg_data[0]!) == 1234);
+                }
+            }
+        }
+
+        /**
+         * @brief Tests duplicate handler injection prevention
+         * 
+         * @test Validates that the same handler instance receives injections only once
+         * 
+         * Verifies that when the same window action handler is registered multiple times,
+         * it only receives dependency injections once, preventing duplicate processing
+         * and ensuring efficient resource usage in the UI system.
+         */
+        private void _testInjectingSameHandler()
+        {
+            for (int i = 1; i < 10; i++)
+            {
+                var uHandlerSystem = _fixture(i);
+                for (int j = 0; j < i; j++)
+                {
+                    uHandlerSystem.Inject(SystemInjectType.ActionHandler, _mockHandlers[0]);
+                }
+                uHandlerSystem.Inject((SystemInjectType)999, 1234);
+                for (int j = 0; j < i; j++)
+                {
+                    if (j == 0)
+                    {
+                        Debug.Assert(_mockHandlers[j].InjectCalls == 1);
+                        Debug.Assert((int)(_mockHandlers[j].InjectCallArg_dataType[0]!) == 999);
+                        Debug.Assert((int)(_mockHandlers[j].InjectCallArg_data[0]!) == 1234);
+                    }
+                    else
+                    {
+                        Debug.Assert(_mockHandlers[j].InjectCalls == 0);
+                    }
                 }
             }
         }
@@ -71,6 +106,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.Tests
         public void Run()
         {
             _testInjectingHandlers();
+            _testInjectingSameHandler();
         }
     }
 

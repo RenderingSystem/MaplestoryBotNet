@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNetTests.Systems.Configuration.Tests.Mocks;
@@ -157,6 +158,28 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         }
 
         /**
+         * @brief Tests configuration update propagation to all dependent systems
+         * 
+         * Validates that when configuration changes occur, the update notifications
+         * are properly broadcast to all components that depend on configuration data.
+         * Ensures that all automation modules receive timely updates when settings
+         * are modified, maintaining consistent behavior across the entire system.
+         */
+        private void _testSystemInjectsConfigurationUpdates()
+        {
+            var configurationSystem = _fixture();
+            configurationSystem.Initialize();
+            configurationSystem.Inject(SystemInjectType.ConfigurationUpdate, 0);
+            Debug.Assert(_injector.InjectCalls == 3);
+            for (int i = 0; i < 3; i++)
+            {
+                var configurationSystemConfiguration = _configurations[i];
+                Debug.Assert(_injector.InjectCallArg_dataType[i] == SystemInjectType.ConfigurationUpdate);
+                Debug.Assert(_injector.InjectCallArg_data[i] == configurationSystemConfiguration);
+            }
+        }
+
+        /**
          * @brief Executes all configuration management tests
          * 
          * Runs the complete test suite to ensure the bot will correctly handle
@@ -169,6 +192,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             _testSystemInitializationDeserializesAllImageContents();
             _testSystemGetsCorrectConfiguration();
             _testSystemSetsCorrectConfiguration();
+            _testSystemInjectsConfigurationUpdates();
         }
     }
 
