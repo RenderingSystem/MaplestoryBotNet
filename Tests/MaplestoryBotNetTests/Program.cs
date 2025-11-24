@@ -35,6 +35,7 @@ void UnitTestSuite()
     new WIndowMenuItemPopupHandlersTestSuite().Run();
     new UIHandlerSystemTestSuite().Run();
     new WindowSaveLoadMenuHandlersTestSuite().Run();
+    new WindowComboBoxScaleHandlersTestSuite().Run();
 }
 
 

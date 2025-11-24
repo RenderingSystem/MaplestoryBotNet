@@ -66,6 +66,9 @@ namespace MaplestoryBotNet.LibraryWrappers
 
         [DllImport("user32.dll")]
         public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        [DllImport("shcore.dll")]
+        public static extern int GetDpiForMonitor(IntPtr hmonitor, int dpiType, out uint dpiX, out uint dpiY);
     }
 
 
@@ -90,6 +93,8 @@ namespace MaplestoryBotNet.LibraryWrappers
         public abstract int GetWindowLong(IntPtr hWnd, int nIndex);
 
         public abstract int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        public abstract int GetDpiForMonitor(IntPtr hmonitor, int dpiType, out uint dpiX, out uint dpiY);
     }
 
 
@@ -141,6 +146,11 @@ namespace MaplestoryBotNet.LibraryWrappers
         public override int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong)
         {
             return WindowsLibraryImports.SetWindowLong(hWnd, nIndex, dwNewLong);
+        }
+
+        public override int GetDpiForMonitor(nint hmonitor, int dpiType, out uint dpiX, out uint dpiY)
+        {
+            return WindowsLibraryImports.GetDpiForMonitor(hmonitor, dpiType, out dpiX, out dpiY);
         }
     }
 

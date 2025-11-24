@@ -115,4 +115,41 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks
             return this;
         }
     }
+
+
+    public class MockWindowActionHandlerRegistry : AbstractWindowActionHandlerRegistry
+    {
+        public List<string> CallOrder = [];
+
+        public int RegisterHandlerCalls = 0;
+        public List<object?> RegisterHandlerCallArg_args = [];
+        public override void RegisterHandler(object? args)
+        {
+            var callReference = new TestUtilities().Reference(this) + "RegisterHandler";
+            CallOrder.Add(callReference);
+            RegisterHandlerCalls++;
+            RegisterHandlerCallArg_args.Add(args);
+        }
+
+        public int ClearHandlersCalls = 0;
+        public override void ClearHandlers()
+        {
+            var callReference = new TestUtilities().Reference(this) + "ClearHandlers";
+            CallOrder.Add(callReference);
+            ClearHandlersCalls++;
+        }
+
+        public int GetHandlersCalls = 0;
+        public int GetHandlersIndex = 0;
+        public List<List<AbstractWindowActionHandler>> GetHandlersReturn = [];
+        public override List<AbstractWindowActionHandler> GetHandlers()
+        {
+            var callReference = new TestUtilities().Reference(this) + "GetHandlers";
+            CallOrder.Add(callReference);
+            GetHandlersCalls++;
+            if (GetHandlersIndex < GetHandlersReturn.Count)
+                return GetHandlersReturn[GetHandlersIndex++];
+            throw new IndexOutOfRangeException();
+        }
+    }
 }

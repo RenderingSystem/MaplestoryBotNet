@@ -12,6 +12,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         ViewTypesMaxNum
     }
 
+
     public abstract class AbstractWindowStateModifier
     {
         public virtual void Initialize()
@@ -51,5 +52,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public abstract AbstractWindowActionHandler Build();
     }
 
+
+    public abstract class AbstractWindowActionHandlerRegistry
+    {
+        public abstract void RegisterHandler(object? args);
+
+        public abstract void ClearHandlers();
+
+        public abstract List<AbstractWindowActionHandler> GetHandlers();
+    }
 }
 

@@ -1,7 +1,6 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using Microsoft.Win32;
-using System.Diagnostics;
 using System.IO;
 using System.Windows.Controls;
 
@@ -267,6 +266,8 @@ namespace MaplestoryBotNet.Systems.UIHandler
 
         private ComboBox _comboBoxTemplate;
 
+        private AbstractWindowActionHandlerRegistry _comboBoxPopupScaleRegistry;
+
         private AbstractMacroDataDeserializer _macroDataDeserializer;
 
         private AbstractWindowStateModifier _windowLoadMenuModifier;
@@ -277,6 +278,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
             Button saveButton,
             ListBox listBox,
             ComboBox comboBoxTemplate,
+            AbstractWindowActionHandlerRegistry comboBoxPopupScaleRegistry,
             AbstractMacroDataDeserializer macroDataDeserializer,
             AbstractWindowStateModifier windowLoadMenuModifier
         )
@@ -284,6 +286,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
             _saveButton = saveButton;
             _listBox = listBox;
             _comboBoxTemplate = comboBoxTemplate;
+            _comboBoxPopupScaleRegistry = comboBoxPopupScaleRegistry;
             _macroDataDeserializer = macroDataDeserializer;
             _windowLoadMenuModifier = windowLoadMenuModifier;
             _saveButton.Click += OnEvent;
@@ -296,6 +299,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
             {
                 var macroData = _macroDataDeserializer.DeserializeMacroData(loadedText);
                 _listBox.Items.Clear();
+                _comboBoxPopupScaleRegistry.ClearHandlers();
                 foreach (var command in macroData.Macro)
                 {
                     _loadComboBoxItem(command);
@@ -321,6 +325,9 @@ namespace MaplestoryBotNet.Systems.UIHandler
                 FontSize = _comboBoxTemplate.FontSize,
                 ItemsSource = _comboBoxItems()
             };
+            _comboBoxPopupScaleRegistry.RegisterHandler(
+                new WindowComboBoxScaleActionHandlerParameters(comboBox)
+            );
             _listBox.Items.Add(comboBox);
         }
 
@@ -367,6 +374,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
                 loadButton,
                 macroListBox,
                 comboBoxTemplate,
+                new WindowComboBoxScaleActionHandlerRegistry(),
                 new MacroDataDeserializer(),
                 new WindowLoadMenuModifier(
                     new WindowLoadFileDialog("Load Macro", "JSON files (*.json)|*.json")

@@ -1,4 +1,5 @@
 ﻿using MaplestoryBotNet.Systems.UIHandler;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNetTests.TestHelpers;
 using System;
 using System.Collections.Generic;

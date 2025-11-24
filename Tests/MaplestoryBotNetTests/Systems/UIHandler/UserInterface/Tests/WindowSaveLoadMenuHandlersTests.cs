@@ -3,6 +3,7 @@ using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
+using MaplestoryBotNetTests.TestHelpers;
 using System.Diagnostics;
 using System.Text.Json;
 using System.Windows.Controls;
@@ -154,6 +155,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private ComboBox _comboBox;
 
+        private AbstractWindowActionHandlerRegistry _comboBoxPopupScaleRegistry;
+
         private List<string> _expectedContents;
 
         private AbstractMacroDataDeserializer _macroDataDeserializer;
@@ -173,6 +176,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _saveButton = new Button();
             _listBox = new ListBox();
             _comboBox = new ComboBox();
+            _comboBoxPopupScaleRegistry = new MockWindowActionHandlerRegistry();
             _macroDataDeserializer = new MacroDataDeserializer();
             _loadFileDialog = new MockLoadFileDialog();
             _loadFileDialog.PromptReturn = [];
@@ -189,11 +193,14 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * and a mock file dialog that returns sample macro data (D, E, F) to verify complete
          * load menu functionality including deserialization and UI integration.
          */
-        private WindowLoadMenuActionHandler _fixture()
+        private WindowLoadMenuActionHandler _fixture(
+            AbstractWindowActionHandlerRegistry comboBoxPopupScaleRegistry
+        )
         {
             _saveButton = new Button();
             _listBox = new ListBox();
             _comboBox = new ComboBox();
+            _comboBoxPopupScaleRegistry = comboBoxPopupScaleRegistry;
             _comboBox.Items.Add(new ComboBoxItem { Content = "A" });
             _comboBox.Items.Add(new ComboBoxItem { Content = "B" });
             _comboBox.Items.Add(new ComboBoxItem { Content = "C" });
@@ -202,34 +209,30 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _loadFileDialog.PromptReturn.Add("{\"macro\":[\"D\",\"E\",\"F\"]}");
             _expectedContents = ["D", "E", "F"];
             _windowLoadMenuModifier = new WindowLoadMenuModifier(_loadFileDialog);
-            return new WindowLoadMenuActionHandler(
+            var handler = new WindowLoadMenuActionHandler(
                 _saveButton,
                 _listBox,
                 _comboBox,
+                _comboBoxPopupScaleRegistry,
                 _macroDataDeserializer,
                 _windowLoadMenuModifier
             );
+            handler.Inject(
+                SystemInjectType.ConfigurationUpdate, new MaplestoryBotConfiguration { MacroDirectory = "MEOW" }
+            );
+            return handler;
         }
 
         /**
-         * @brief Tests complete load menu workflow from button click to UI integration
+         * @brief Tests complete load menu workflow from user perspective
          * 
-         * @test Validates that loading macros properly integrates configuration, file dialogs,
-         *       and UI population in a seamless user experience
-         * 
-         * Verifies the complete macro loading process:
-         * 1. Configuration injection sets the macro directory
-         * 2. Button click triggers file dialog with correct directory
-         * 3. Loaded macro data populates the list box
-         * 4. Each macro command displays with available options
+         * Validates that users can load saved macros and have them
+         * available with all commands properly displayed, ensuring
+         * a seamless transition from storage to active use.
          */
         private void _testLoadButtonClickOpensLoadFileDialog()
         {
-            var handler = _fixture();
-            handler.Inject(
-                SystemInjectType.ConfigurationUpdate,
-                new MaplestoryBotConfiguration { MacroDirectory = "MEOW" }
-            );
+            var handler = _fixture(new WindowComboBoxScaleActionHandlerRegistry());
             _saveButton.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
             Debug.Assert(_loadFileDialog.PromptCalls == 1);
             Debug.Assert(_loadFileDialog.PromptCallArg_initialDirectory[0] == "MEOW");
@@ -248,6 +251,49 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
+         * @brief Tests that ComboBox scaling handlers are properly registered for loaded macros
+         * 
+         * Validates that when macros are loaded into the UI, each ComboBox instance
+         * automatically registers with the scaling system to ensure proper DPI
+         * handling, maintaining consistent visual appearance across different displays.
+         */
+        private void _testLoadButtonClickRegistersComboBoxPopupScalers()
+        {
+            var mockRegistry = new MockWindowActionHandlerRegistry();
+            var handler = _fixture(mockRegistry);
+            _saveButton.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(mockRegistry.RegisterHandlerCalls == 3);
+            for (int i = 0; i < _expectedContents.Count; i++)
+            {
+                var parameters = (WindowComboBoxScaleActionHandlerParameters)mockRegistry.RegisterHandlerCallArg_args[i]!;
+                Debug.Assert(parameters.ScaleComboBox == (ComboBox)_listBox.Items[i]);
+            }    
+        }
+
+
+        /**
+         * @brief Tests proper cleanup and registration order for scaling handlers
+         * 
+         * Ensures that when loading new macros, existing scaling handlers are
+         * cleared before registering new ones, preventing memory leaks and
+         * ensuring only current macro ComboBoxes receive scaling adjustments.
+         */
+        private void _testLoadButtonClickClearsComboBoxPopupScalersBefroreRegisteringNew()
+        {
+            var mockRegistry = new MockWindowActionHandlerRegistry();
+            var handler = _fixture(mockRegistry);
+            _saveButton.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
+            var reference = new TestUtilities().Reference(mockRegistry);
+            var clearCallRef = reference + "ClearHandlers";
+            var registerCallRef = reference + "RegisterHandler";
+            Debug.Assert(mockRegistry.CallOrder.Count == 4);
+            Debug.Assert(mockRegistry.CallOrder[0] == clearCallRef);
+            Debug.Assert(mockRegistry.CallOrder[1] == registerCallRef);
+            Debug.Assert(mockRegistry.CallOrder[2] == registerCallRef);
+            Debug.Assert(mockRegistry.CallOrder[3] == registerCallRef);
+        }
+
+        /**
          * @brief Executes all load menu functionality tests
          * 
          * Runs the complete test suite to ensure the load menu works correctly,
@@ -257,6 +303,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         public void Run()
         {
             _testLoadButtonClickOpensLoadFileDialog();
+            _testLoadButtonClickClearsComboBoxPopupScalersBefroreRegisteringNew();
+            _testLoadButtonClickRegistersComboBoxPopupScalers();
         }
     }
 

@@ -200,5 +200,42 @@ namespace MaplestoryBotNetTests.WindowsLibrary.Tests
                 return SetWindowLongReturn[SetWindowLongIndex++];
             throw new IndexOutOfRangeException();
         }
+
+        public int GetDpiForMonitorCalls = 0;
+        public int GetDpiForMonitorIndex = 0;
+        public List<nint> GetDpiForMonitorCallArg_hmonitor = [];
+        public List<int> GetDpiForMonitorCallArg_dpiType = [];
+        public List<uint> GetDpiForMonitorOutCallArg_dpiX = [];
+        public List<uint> GetDpiForMonitorOutCallArg_dpiY = [];
+        public List<int> GetDpiForMonitorReturn = [];
+        public override int GetDpiForMonitor(nint hmonitor, int dpiType, out uint dpiX, out uint dpiY)
+        {
+            var callReference = new TestUtilities().Reference(this) + "GetDpiForMonitor";
+            CallOrder.Add(callReference);
+            GetDpiForMonitorCalls++;
+            GetDpiForMonitorCallArg_hmonitor.Add(hmonitor);
+            GetDpiForMonitorCallArg_dpiType.Add(dpiType);
+            if (GetDpiForMonitorIndex < GetDpiForMonitorOutCallArg_dpiX.Count)
+            {
+                dpiX = GetDpiForMonitorOutCallArg_dpiX[GetDpiForMonitorIndex];
+            }
+            else
+            {
+                throw new IndexOutOfRangeException();
+            }
+            if (GetDpiForMonitorIndex < GetDpiForMonitorOutCallArg_dpiY.Count)
+            {
+                dpiY = GetDpiForMonitorOutCallArg_dpiY[GetDpiForMonitorIndex];
+            }
+            else
+            {
+                throw new IndexOutOfRangeException();
+            }
+            if (GetDpiForMonitorIndex < GetDpiForMonitorReturn.Count)
+            {
+                return GetDpiForMonitorReturn[GetDpiForMonitorIndex++];
+            }
+            throw new NotImplementedException();
+        }
     }
 }

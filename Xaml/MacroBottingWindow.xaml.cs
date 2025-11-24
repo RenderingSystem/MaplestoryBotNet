@@ -13,6 +13,7 @@ namespace MaplestoryBotNet.Xaml
         public MacroBottingWindow()
         {
             InitializeComponent();
+            MacroListBox.Items.Clear();
         }
 
         public AbstractWindowActionHandler InstantiateWindowMenuItemHideActionHandler()
@@ -24,16 +25,16 @@ namespace MaplestoryBotNet.Xaml
         
         public AbstractWindowActionHandler InstantiateLoadMenuActionHandler()
         {
-            var handler = new WindowLoadMenuActionHandlerFacade(
+            return new WindowLoadMenuActionHandlerFacade(
                 LoadButton, MacroListBox, ComboBoxTemplate
             );
-            MacroListBox.Items.Clear();
-            return handler;
         }
 
         public AbstractWindowActionHandler InstantiateSaveMenuActionHandler()
         {
-            return new WindowSaveMenuActionHandlerFacade(SaveButton, MacroListBox);
+            return new WindowSaveMenuActionHandlerFacade(
+                SaveButton, MacroListBox
+            );
         }
 
         public AbstractSystemWindow GetSystemWindow()
