@@ -151,5 +151,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks
                 return GetHandlersReturn[GetHandlersIndex++];
             throw new IndexOutOfRangeException();
         }
+
+        public int UnregisterHandlerCalls = 0;
+        public List<object?> UnregisterHandlerCallArg_args = [];
+        public override void UnregisterHandler(object? args)
+        {
+            var callReference = new TestUtilities().Reference(this) + "UnregisterHandler";
+            CallOrder.Add(callReference);
+            UnregisterHandlerCalls++;
+            UnregisterHandlerCallArg_args.Add(args);
+        }
     }
 }

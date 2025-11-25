@@ -1,4 +1,5 @@
 ﻿using MaplestoryBotNet.LibraryWrappers;
+using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -105,9 +106,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         public ComboBox ScaleComboBox;
 
-        public WindowComboBoxScaleActionHandlerParameters(
-            ComboBox scaleComboBox
-        )
+        public WindowComboBoxScaleActionHandlerParameters(ComboBox scaleComboBox)
         {
             ScaleComboBox = scaleComboBox;
         }
@@ -116,15 +115,33 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowComboBoxScaleActionHandlerRegistry : AbstractWindowActionHandlerRegistry
     {
-        private List<AbstractWindowActionHandler> _registry = [];
+        private Dictionary<ComboBox, AbstractWindowActionHandler> _registry = [];
 
         public override void RegisterHandler(object? args)
         {
             if (args is WindowComboBoxScaleActionHandlerParameters parameters)
             {
-                _registry.Add(
+                _registry[parameters.ScaleComboBox] = (
                     new WindowComboBoxScaleActionHandlerFacade(parameters.ScaleComboBox)
                 );
+            }
+        }
+
+        public override void UnregisterHandler(object? args)
+        {
+            if (
+                args is WindowComboBoxScaleActionHandlerParameters parameters
+                && _registry.ContainsKey(parameters.ScaleComboBox)
+            )
+            {
+                _registry.Remove(parameters.ScaleComboBox);
+            }
+            if (
+                args is ComboBox comboBox
+                && _registry.ContainsKey(comboBox)
+            )
+            {
+                _registry.Remove(comboBox);
             }
         }
 
@@ -135,7 +152,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override List<AbstractWindowActionHandler> GetHandlers()
         {
-            return [.. _registry];
+            return _registry.Values.ToList();
         }
     }
 }

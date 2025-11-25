@@ -1,4 +1,4 @@
-﻿using MaplestoryBotNet.Systems.UIHandler.UserInterface;
+﻿using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using MaplestoryBotNetTests.TestHelpers;
 using System.Windows;
 

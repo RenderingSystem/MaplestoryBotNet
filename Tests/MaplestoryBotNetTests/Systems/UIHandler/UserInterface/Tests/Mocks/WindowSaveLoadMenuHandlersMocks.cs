@@ -1,11 +1,7 @@
-﻿using MaplestoryBotNet.Systems.UIHandler;
-using MaplestoryBotNet.Systems.UIHandler.UserInterface;
+﻿
+using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using MaplestoryBotNetTests.TestHelpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks
 {

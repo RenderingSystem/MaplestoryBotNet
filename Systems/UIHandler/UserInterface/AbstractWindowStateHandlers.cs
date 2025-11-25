@@ -57,6 +57,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         public abstract void RegisterHandler(object? args);
 
+        public abstract void UnregisterHandler(object? args);
+
         public abstract void ClearHandlers();
 
         public abstract List<AbstractWindowActionHandler> GetHandlers();

@@ -4,7 +4,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 
 
-namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
+namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 {
     public abstract class AbstractDpi
     {

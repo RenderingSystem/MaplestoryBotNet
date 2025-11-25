@@ -90,6 +90,7 @@
 
   <ItemGroup>
     <Folder Include="Images\Ailments\" />
+    <Folder Include="Systems\Minimap\" />
     <Folder Include="Xaml\Resources\" />
   </ItemGroup>
 

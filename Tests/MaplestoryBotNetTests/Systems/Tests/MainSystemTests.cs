@@ -176,7 +176,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
          * priority systems are initialized before lower priority ones.
          */
         private void _testInitializeCallsSubSystemInitializationInOrder()
-        {
+        { 
             var mainSubSystem = new MainSubSystem(_subSystemInfoFixture());
             _callOrder.Clear();
             mainSubSystem.Initialize();

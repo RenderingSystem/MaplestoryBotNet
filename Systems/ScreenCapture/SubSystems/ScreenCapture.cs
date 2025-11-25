@@ -145,7 +145,6 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
                 var capture = _screenCaptures[i];
                 var captureZone = _screenCaptureZones[i];
                 capture.UnregisterCaptureZone(captureZone);
-                capture.Dispose();
             }
             _screenCaptures.Clear();
             _screenCaptureZones.Clear();

@@ -2,6 +2,7 @@
 using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using System.Windows;
+using System.Windows.Controls;
 
 
 namespace MaplestoryBotNet.Xaml
@@ -10,10 +11,13 @@ namespace MaplestoryBotNet.Xaml
     {
         private AbstractSystemWindow? _systemWindow = null;
 
+        private WindowComboBoxScaleActionHandlerRegistry _comboBoxScaleRegistry;
+
         public MacroBottingWindow()
         {
             InitializeComponent();
             MacroListBox.Items.Clear();
+            _comboBoxScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
         }
 
         public AbstractWindowActionHandler InstantiateWindowMenuItemHideActionHandler()
@@ -26,7 +30,38 @@ namespace MaplestoryBotNet.Xaml
         public AbstractWindowActionHandler InstantiateLoadMenuActionHandler()
         {
             return new WindowLoadMenuActionHandlerFacade(
-                LoadButton, MacroListBox, ComboBoxTemplate
+                LoadButton,
+                MacroListBox,
+                ComboBoxTemplate,
+                _comboBoxScaleRegistry
+            );
+        }
+
+        public AbstractWindowActionHandler InstantiateWindowAddMacroCommandActionHandler()
+        {
+            return new WindowAddMacroCommandActionHandlerFacade(
+                AddButton,
+                MacroListBox,
+                ComboBoxTemplate,
+                _comboBoxScaleRegistry
+            );
+        }
+
+        public AbstractWindowActionHandler InstantiateWindowRemoveMacroCommandActionHandler()
+        {
+            return new WindowRemoveMacroCommandActionHandlerFacade(
+                RemoveButton,
+                MacroListBox,
+                _comboBoxScaleRegistry
+            );
+        }
+
+        public AbstractWindowActionHandler InstantiateWindowClearMacroCommandActionHandler()
+        {
+            return new WindowClearMacroCommandsActionHandlerFacade(
+                ClearButton,
+                MacroListBox,
+                _comboBoxScaleRegistry
             );
         }
 

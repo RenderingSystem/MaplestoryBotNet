@@ -51,14 +51,14 @@ namespace MaplestoryBotNet
 
         protected List<AbstractWindowActionHandler> InstantiateActionHandlers()
         {
-            Debug.Assert(_mainWindow != null);
-            Debug.Assert(_splashScreen != null);
-            Debug.Assert(_windowMacroPopup != null);
             return [
-                _splashScreen.InstantiateSplashScreenActionHandler(_mainWindow.GetSystemWindow()),
-                _windowMacroPopup.InstantiateWindowMenuItemHideActionHandler(),
+                _splashScreen!.InstantiateSplashScreenActionHandler(_mainWindow!.GetSystemWindow()),
+                _windowMacroPopup!.InstantiateWindowMenuItemHideActionHandler(),
                 _windowMacroPopup.InstantiateLoadMenuActionHandler(),
                 _windowMacroPopup.InstantiateSaveMenuActionHandler(),
+                _windowMacroPopup.InstantiateWindowAddMacroCommandActionHandler(),
+                _windowMacroPopup.InstantiateWindowRemoveMacroCommandActionHandler(),
+                _windowMacroPopup.InstantiateWindowClearMacroCommandActionHandler(),
                 _mainWindow.InstantiateWindowViewUpdaterActionHandler(),
                 _mainWindow.InstantiateWindowViewCheckboxActionHandler(),
                 _mainWindow.InstantiateMacroWindowMenuItemPopupActionHandler(_windowMacroPopup.GetSystemWindow()),
@@ -75,12 +75,10 @@ namespace MaplestoryBotNet
 
         protected void Initialize()
         {
-            Debug.Assert(_splashScreen != null);
-            Debug.Assert(_mainApplication != null);
-            _splashScreen.Show();
+            _splashScreen!.Show();
             _uiHandlers = InstantiateActionHandlers();
             _mainInitializer = CreateApplicationInitializer();
-            _mainApplication.Launch();
+            _mainApplication!.Launch();
             _mainInitializer.Synchronize();
             _mainInitializer.Initialize();
         }
