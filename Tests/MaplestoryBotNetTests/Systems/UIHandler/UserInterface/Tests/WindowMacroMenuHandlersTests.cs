@@ -479,8 +479,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private ListBox _listBox;
 
-        private ComboBox _comboBox;
-
         private AbstractWindowActionHandlerRegistry _comboBoxPopupScaleRegistry;
 
         /**
@@ -493,7 +491,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             _removeButton = new Button();
             _listBox = new ListBox();
-            _comboBox = new ComboBox();
             _comboBoxPopupScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
         }
 
@@ -514,11 +511,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             _removeButton = new Button();
             _listBox = new ListBox();
-            _comboBox = new ComboBox();
             _comboBoxPopupScaleRegistry = comboBoxPopupScaleRegistry;
-            _comboBox.Items.Add(new ComboBoxItem { Content = "A" });
-            _comboBox.Items.Add(new ComboBoxItem { Content = "B" });
-            _comboBox.Items.Add(new ComboBoxItem { Content = "C" });
             return new WindowRemoveMacroCommandActionHandler(
                 _removeButton,
                 new WindowRemoveMacroCommandModifier(
@@ -606,6 +599,120 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    /**
+     * @class WindowClearMacroCommandActionHandlerTests
+     * 
+     * @brief Unit tests for bulk macro command clearance functionality
+     * 
+     * This test class validates that the clear all macro commands feature properly handles
+     * complete sequence reset, bulk resource cleanup, and scaling handler deregistration.
+     * Ensures that users can reliably reset their entire automation sequence with a single
+     * action while maintaining system integrity and cleaning up all associated resources.
+     */
+    public class WindowClearMacroCommandActionHandlerTests
+    {
+        private Button _clearButton;
+
+        private ListBox _listBox;
+
+        private AbstractWindowActionHandlerRegistry _comboBoxPopupScaleRegistry;
+
+        /**
+         * @brief Initializes test environment with UI components and dependencies
+         * 
+         * Sets up the basic test environment with clear button, list box, and scaling registry
+         * components needed for testing bulk macro command clearance functionality.
+         */
+        public WindowClearMacroCommandActionHandlerTests()
+        {
+            _clearButton = new Button();
+            _listBox = new ListBox();
+            _comboBoxPopupScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
+        }
+
+        /**
+         * @brief Creates test environment with specified scaling registry
+         * 
+         * @param comboBoxPopupScaleRegistry The registry instance for testing bulk scaling handler cleanup
+         * 
+         * @return Configured WindowClearMacroCommandsActionHandler instance ready for testing
+         * 
+         * Prepares a complete test scenario with UI components and the specified scaling registry
+         * to verify bulk macro command clearance behavior and comprehensive resource cleanup.
+         */
+        private AbstractWindowActionHandler _fixture(
+            AbstractWindowActionHandlerRegistry comboBoxPopupScaleRegistry
+        )
+        {
+            _clearButton = new Button();
+            _listBox = new ListBox();
+            _comboBoxPopupScaleRegistry = comboBoxPopupScaleRegistry;
+            return new WindowClearMacroCommandsActionHandler(
+                _clearButton,
+                new WindowClearMacroCommandsModifier(
+                    _listBox,
+                    _comboBoxPopupScaleRegistry
+                )
+            );
+        }
+
+        /**
+         * @brief Tests complete macro sequence clearance
+         * 
+         * @test Validates that clicking clear button removes all commands from the list
+         * 
+         * Verifies that when users click the clear button with multiple commands in the list,
+         * the system properly removes all macro commands simultaneously, ensuring users can
+         * quickly reset their automation sequences and start fresh without manual deletion.
+         */
+        private void _testClearButtonClickRemovesAllCommandsFromListBox()
+        {
+            var handler = _fixture(new WindowComboBoxScaleActionHandlerRegistry());
+            for (int i = 0; i < 4; i++)
+            {
+                _listBox.Items.Add(new ComboBox());
+            }
+            _clearButton.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_listBox.Items.Count == 0);
+        }
+
+        /**
+         * @brief Tests comprehensive scaling handler cleanup during bulk clearance
+         * 
+         * @test Validates that all removed commands deregister from scaling system
+         * 
+         * Verifies that when multiple macro command ComboBoxes are cleared from the list,
+         * they all automatically unregister from the scaling system to prevent memory leaks
+         * and ensure that all system resources are properly cleaned up during bulk operations.
+         */
+        private void _testClearButtonClickUnregistersAllComboBoxPopupScalers()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                var comboBox = new ComboBox();
+                _listBox.Items.Add(comboBox);
+                _comboBoxPopupScaleRegistry.RegisterHandler(comboBox);
+            }
+            _clearButton.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_comboBoxPopupScaleRegistry.GetHandlers().Count == 0);
+        }
+
+
+        /**
+         * @brief Executes all bulk macro command clearance functionality tests
+         * 
+         * Runs the complete test suite to ensure the clear all macro commands feature
+         * works correctly, providing confidence that users can reliably reset their
+         * automation sequences while maintaining system stability and resource efficiency.
+         */
+        public void Run()
+        {
+            _testClearButtonClickRemovesAllCommandsFromListBox();
+            _testClearButtonClickUnregistersAllComboBoxPopupScalers();
+        }
+    }
+
+
     public class WindowSaveLoadMenuHandlersTestSuite
     {
         public void Run()
@@ -614,6 +721,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowLoadMenuActionHandlerTests().Run();
             new WindowAddMacroCommandActionHandlerTests().Run();
             new WindowRemoveMacroCommandActionHandlerTests().Run();
+            new WindowClearMacroCommandActionHandlerTests().Run();
         }
     }
 }
