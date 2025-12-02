@@ -20,7 +20,7 @@ namespace MaplestoryBotNet
             }
         }
 
-        public AbstractWindowActionHandler InstantiateWindowExiterActionHandler()
+        private AbstractWindowActionHandler _instantiateWindowExiterActionHandler()
         {
             return new WindowExitActionHandlerBuilder()
                 .WithArgs(GetSystemWindow())
@@ -28,7 +28,7 @@ namespace MaplestoryBotNet
                 .Build();
         }
 
-        public AbstractWindowActionHandler InstantiateWindowViewUpdaterActionHandler()
+        private AbstractWindowActionHandler _instantiateWindowViewUpdaterActionHandler()
         {
             return new WindowViewUpdaterActionHandlerBuilder()
                 .WithArgs(ViewMenuItems)
@@ -37,14 +37,14 @@ namespace MaplestoryBotNet
                 .Build();
         }
 
-        public AbstractWindowActionHandler InstantiateWindowViewCheckboxActionHandler()
+        private AbstractWindowActionHandler _instantiateWindowViewCheckboxActionHandler()
         {
             return new WindowViewCheckboxActionHandlerBuilder()
                 .WithArgs(ViewMenuItems)
                 .Build();
         }
 
-        public AbstractWindowActionHandler InstantiateMacroWindowMenuItemPopupActionHandler(
+        private AbstractWindowActionHandler _instantiateMacroWindowMenuItemPopupActionHandler(
             AbstractSystemWindow systemWindow
         )
         {
@@ -52,6 +52,18 @@ namespace MaplestoryBotNet
                 .WithArgs(systemWindow)
                 .WithArgs(MacroMenuItem)
                 .Build();
+        }
+
+        public List<AbstractWindowActionHandler> InstantiateActionHandlers(
+            AbstractSystemWindow systemWindow
+        )
+        {
+            return [
+                _instantiateWindowExiterActionHandler(),
+                _instantiateWindowViewUpdaterActionHandler(),
+                _instantiateWindowViewCheckboxActionHandler(),
+                _instantiateMacroWindowMenuItemPopupActionHandler(systemWindow)
+            ];
         }
 
         public AbstractSystemWindow GetSystemWindow()

@@ -30,8 +30,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 var window = Window.GetWindow(popup);
                 var monitorDpi = _hostedMonitorDpi.GetDpi(window);
                 var windowDpi = _windowDpi.GetDpi(window);
-                var adjustedDpiX = windowDpi.Item1 / monitorDpi.Item1;
-                var adjustedDpiY = windowDpi.Item2 / monitorDpi.Item2;
+                var adjustedDpiX = (monitorDpi.Item1 > 0.0001) ?
+                    windowDpi.Item1 / monitorDpi.Item1 : 1.0;
+                var adjustedDpiY = (monitorDpi.Item2 > 0.0001) ?
+                    windowDpi.Item2 / monitorDpi.Item2 : 1.0;
                 popup.LayoutTransform = new ScaleTransform(adjustedDpiX, adjustedDpiY);
             }
         }

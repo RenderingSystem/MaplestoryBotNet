@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Xaml;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows;
 
@@ -16,6 +17,8 @@ namespace MaplestoryBotNet
 
         SplashScreen? _splashScreen = null;
 
+        MapWindow? _mapWindow = null;
+
         MacroBottingWindow? _windowMacroPopup = null;
 
         List<AbstractWindowActionHandler> _uiHandlers = [];
@@ -26,6 +29,7 @@ namespace MaplestoryBotNet
             _mainWindow = new MainWindow();
             _windowMacroPopup = new MacroBottingWindow();
             _mainApplication = new MainApplicationFacade();
+            _mapWindow = new MapWindow();
             _splashScreen = new SplashScreen(_mainApplication.System());
             Initialize();
         }
@@ -52,25 +56,20 @@ namespace MaplestoryBotNet
         protected List<AbstractWindowActionHandler> InstantiateActionHandlers()
         {
             return [
-                _splashScreen!.InstantiateSplashScreenActionHandler(_mainWindow!.GetSystemWindow()),
-                _windowMacroPopup!.InstantiateWindowMenuItemHideActionHandler(),
-                _windowMacroPopup.InstantiateLoadMenuActionHandler(),
-                _windowMacroPopup.InstantiateSaveMenuActionHandler(),
-                _windowMacroPopup.InstantiateWindowAddMacroCommandActionHandler(),
-                _windowMacroPopup.InstantiateWindowRemoveMacroCommandActionHandler(),
-                _windowMacroPopup.InstantiateWindowClearMacroCommandActionHandler(),
-                _mainWindow.InstantiateWindowViewUpdaterActionHandler(),
-                _mainWindow.InstantiateWindowViewCheckboxActionHandler(),
-                _mainWindow.InstantiateMacroWindowMenuItemPopupActionHandler(_windowMacroPopup.GetSystemWindow()),
-                _mainWindow.InstantiateWindowExiterActionHandler(),
+                .. _windowMacroPopup!.InstantiateActionHandlers(),
+                .. _splashScreen!.InstantiateActionHandlers(_mainWindow!.GetSystemWindow()),
+                .. _mainWindow!.InstantiateActionHandlers(_mapWindow!.GetSystemWindow()),
+                .. _mapWindow!.InstantiateActionHandlers(_windowMacroPopup.GetSystemWindow()),
                 InstantiateApplicationClosingActionHandler()
             ];
         }
 
         protected List<AbstractSystemWindow> GetPopupWindows()
         {
-            Debug.Assert(_windowMacroPopup != null);
-            return [_windowMacroPopup.GetSystemWindow()];
+            return [
+                _windowMacroPopup!.GetSystemWindow(),
+                _mapWindow!.GetSystemWindow()
+            ];
         }
 
         protected void Initialize()

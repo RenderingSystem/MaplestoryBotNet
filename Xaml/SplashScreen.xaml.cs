@@ -6,9 +6,6 @@ using System.Windows.Threading;
 
 namespace MaplestoryBotNet
 {
-    /// <summary>
-    /// Interaction logic for Window1.xaml
-    /// </summary>
     public partial class SplashScreen : Window
     {
         private AbstractSystemWindow? _systemWindow = null;
@@ -23,7 +20,7 @@ namespace MaplestoryBotNet
             InitializeComponent();
         }
 
-        public AbstractWindowActionHandler InstantiateSplashScreenActionHandler(
+        private AbstractWindowActionHandler _instantiateSplashScreenActionHandler(
             AbstractSystemWindow mainSystemWindow
         )
         {
@@ -33,6 +30,15 @@ namespace MaplestoryBotNet
                 .WithArgs(new SystemAsyncDispatcher(Dispatcher, DispatcherPriority.Background))
                 .WithArgs(_keyboardDeviceContextInjectable)
                 .Build();
+        }
+
+        public List<AbstractWindowActionHandler> InstantiateActionHandlers(
+            AbstractSystemWindow mainSystemWindow
+        )
+        {
+            return [
+                _instantiateSplashScreenActionHandler(mainSystemWindow)
+            ];
         }
 
         public AbstractSystemWindow GetSystemWindow()
@@ -45,4 +51,3 @@ namespace MaplestoryBotNet
         }
     }
 }
- 

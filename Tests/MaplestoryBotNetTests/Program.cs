@@ -36,6 +36,7 @@ void UnitTestSuite()
     new UIHandlerSystemTestSuite().Run();
     new WindowSaveLoadMenuHandlersTestSuite().Run();
     new WindowComboBoxScaleHandlersTestSuite().Run();
+    new WindowMapEditorHandlersTestSuite().Run();
 }
 
 

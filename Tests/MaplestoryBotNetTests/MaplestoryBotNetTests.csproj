@@ -40,6 +40,7 @@
     <Compile Include="..\..\Systems\UIHandler\UserInterface\AbstractWindowStateHandlers.cs" Link="Systems\UIHandler\UserInterface\AbstractWindowStateHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowComboBoxScaleHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowComboBoxScaleHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMacroMenuHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMacroMenuHandlers.cs" />
+    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMapEditorHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMapEditorHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMenuItemPopupHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMenuItemPopupHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" />

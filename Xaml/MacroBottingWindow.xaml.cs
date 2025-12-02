@@ -20,14 +20,14 @@ namespace MaplestoryBotNet.Xaml
             _comboBoxScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
         }
 
-        public AbstractWindowActionHandler InstantiateWindowMenuItemHideActionHandler()
+        private AbstractWindowActionHandler _instantiateWindowMenuItemHideActionHandler()
         {
             return new WindowMenuItemHideHandlerBuilder()
                 .WithArgs(GetSystemWindow())
                 .Build();
         }
-        
-        public AbstractWindowActionHandler InstantiateLoadMenuActionHandler()
+
+        private AbstractWindowActionHandler _instantiateLoadMenuActionHandler()
         {
             return new WindowLoadMenuActionHandlerFacade(
                 LoadButton,
@@ -37,7 +37,7 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
-        public AbstractWindowActionHandler InstantiateWindowAddMacroCommandActionHandler()
+        private AbstractWindowActionHandler _instantiateWindowAddMacroCommandActionHandler()
         {
             return new WindowAddMacroCommandActionHandlerFacade(
                 AddButton,
@@ -47,7 +47,7 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
-        public AbstractWindowActionHandler InstantiateWindowRemoveMacroCommandActionHandler()
+        private AbstractWindowActionHandler _instantiateWindowRemoveMacroCommandActionHandler()
         {
             return new WindowRemoveMacroCommandActionHandlerFacade(
                 RemoveButton,
@@ -56,7 +56,7 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
-        public AbstractWindowActionHandler InstantiateWindowClearMacroCommandActionHandler()
+        private AbstractWindowActionHandler _instantiateWindowClearMacroCommandActionHandler()
         {
             return new WindowClearMacroCommandsActionHandlerFacade(
                 ClearButton,
@@ -65,11 +65,25 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
-        public AbstractWindowActionHandler InstantiateSaveMenuActionHandler()
+        private AbstractWindowActionHandler _instantiateSaveMenuActionHandler()
         {
             return new WindowSaveMenuActionHandlerFacade(
-                SaveButton, MacroListBox
+                SaveButton,
+                MacroListBox
             );
+        }
+
+        public List<AbstractWindowActionHandler> InstantiateActionHandlers()
+        {
+            return [
+                _instantiateWindowMenuItemHideActionHandler(),
+                _instantiateLoadMenuActionHandler(),
+                _instantiateWindowAddMacroCommandActionHandler(),
+                _instantiateWindowRemoveMacroCommandActionHandler(),
+                _instantiateWindowClearMacroCommandActionHandler(),
+                _instantiateSaveMenuActionHandler()
+            ];
+
         }
 
         public AbstractSystemWindow GetSystemWindow()
