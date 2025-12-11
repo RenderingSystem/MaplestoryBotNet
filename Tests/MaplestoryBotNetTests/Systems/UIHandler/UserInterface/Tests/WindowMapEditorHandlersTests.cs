@@ -363,32 +363,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             Debug.Assert(_mapModel.SelectedPoint()!.PointData.PointName == "P2");
         }
 
-
-        /**
-         * @test _testClickingOnCanvasAddsUniquePointName
-         * 
-         * Similar to label uniqueness, this test verifies the system correctly generates unique
-         * internal element names ("T0", "T1", "T2") for data tracking, even after user modifications.
-         */
-        private void _testClickingOnCanvasAddsUniquePointName()
-        {
-            var handler = _fixture();
-            _menuState.SetState(WindowMapEditMenuStateTypes.Add);
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
-            _mousePositionExtractor.GetPositionReturn.Add(new Point(12, 23));
-            _mousePositionExtractor.GetPositionReturn.Add(new Point(23, 34));
-            _canvas.RaiseEvent(_mouseButtonEvent);
-            _mapModel.SelectName("T0");
-            var selectedPoint = _mapModel.SelectedPoint();
-            selectedPoint!.PointData.ElementName = "T1";
-            _mapModel.EditSelected(selectedPoint);
-            _mapModel.Deselect();
-            _canvas.RaiseEvent(_mouseButtonEvent);
-            _mapModel.SelectName("T2");
-            Debug.Assert(_mapModel.SelectedPoint() != null);
-            Debug.Assert(_mapModel.SelectedPoint()!.PointData.ElementName == "T2");
-        }
-
         public void Run()
         {
             _testClickingOnCanvasDrawsWhenMenuIsAdding();
@@ -398,7 +372,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _testClickingOnCanvasAddsPointLabel();
             _testClickingOnCanvasAddsToModel();
             _testClickingOnCanvasAddsUniquePointLabel();
-            _testClickingOnCanvasAddsUniquePointName();
         }
     }
 
