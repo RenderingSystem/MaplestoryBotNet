@@ -11,12 +11,12 @@ namespace MaplestoryBotNet.Systems
         KeyboardMapping,
         KeyboardDevice,
         KeystrokeTransmitter,
-        MacroTranslator,
-        AgentData,
         ShutDown,
         ActionHandler,
+        MapModel,
         SystemInjectTypeMaxNum,
     }
+
 
     public interface ISystemInjectable
     {
@@ -91,23 +91,33 @@ namespace MaplestoryBotNet.Systems
 
         public virtual void Show()
         {
-            _window?.Show();
+            _window!.Show();
         }
 
         public virtual void Hide()
         {
-            _window?.Hide();
+            _window!.Hide();
+        }
+
+        public virtual void ShowDialog()
+        {
+            _window!.ShowDialog();
+        }
+
+        public virtual void AttachOwner(AbstractSystemWindow owner)
+        {
+            _window!.Owner = (Window)owner.GetWindow()!;
         }
 
         public virtual void Close()
         {
             if (ShutdownFlag)
             {
-                _window?.Close();
+                _window!.Close();
             }
             else
             {
-                _window?.Hide();
+                _window!.Hide();
             }
         }
 

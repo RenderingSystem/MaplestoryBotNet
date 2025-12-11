@@ -10,7 +10,7 @@
     WindowStartupLocation="CenterScreen"
     ResizeMode="NoResize"
     Width="700"
-    Height="600"
+    Height="355"
     Topmost="True"
     Background="Black"
 >
@@ -24,17 +24,19 @@
     </Window.Resources>
 
     <Viewbox Stretch="Fill">
-        <Grid Background="Black">
+        <Grid Background="Black" Width="710">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="355"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="525"/>
-                <ColumnDefinition Width="175"/>
+                <ColumnDefinition Width="480"/>
+                <ColumnDefinition Width="220"/>
             </Grid.ColumnDefinitions>
             <ListBox
                 x:Name="MacroListBox"
-                HorizontalAlignment="Left"
-                Height="525"
-                Margin="10,30,0,15"
-                Width="500"
+                HorizontalAlignment="Center"
+                Margin="0,30,0,41"
+                Width="458"
                 Background="Black"
                 Foreground="White"
                 FontFamily="Courier New"
@@ -42,7 +44,7 @@
             >
                 <ComboBox
                     x:Name="ComboBoxTemplate"
-                    Width="475"
+                    Width="411"
                     IsEditable="True"
                     FontSize="10"
                 >
@@ -59,52 +61,37 @@
                 VerticalAlignment="Top"
                 Foreground="White"
                 Width="205"
-                FontFamily="Courier New"
-            />
-            <Button
-                x:Name="StartButton"
-                Content="Start!"
-                HorizontalAlignment="Left"
-                Margin="10,500,15,0"
-                VerticalAlignment="Top"
-                Height="25"
-                Width="130"
-                FontFamily="Courier New"
-                Foreground="White"
-                Background="Black"
-                BorderBrush="Lime"
-                Grid.Column="3"
+                FontFamily="Courier New" Height="23"
             />
             <Button x:Name="SaveButton"
-                Content="Save"
+                Content="Save Commands"
                 HorizontalAlignment="Left"
-                Margin="10,34,15,0"
+                Margin="110,53,0,0"
                 VerticalAlignment="Top"
                 Height="25"
-                Width="130"
+                Width="106"
                 FontFamily="Courier New"
                 Foreground="White"
                 Background="Black"
                 BorderBrush="#FF707070"
-                Grid.Column="3"
+                Grid.Column="1"
             />
             <Button x:Name="LoadButton"
-                Content="Load"
+                Content="Load Commands"
                 HorizontalAlignment="Left"
-                Margin="10,64 15,0"
+                Margin="480,53,0,0"
                 VerticalAlignment="Top"
                 Height="25"
-                Width="130"
+                Width="107"
                 FontFamily="Courier New"
                 Foreground="White"
                 Background="Black"
-                BorderBrush="#FF707070"
-                Grid.Column="3"
+                BorderBrush="#FF707070" Grid.ColumnSpan="2"
             />
             <Button x:Name="AddButton"
-                Content="Add"
+                Content="Add command"
                 HorizontalAlignment="Left"
-                Margin="10,121,15,0"
+                Margin="10,320,0,0"
                 VerticalAlignment="Top"
                 Height="26"
                 Width="130"
@@ -112,13 +99,12 @@
                 Foreground="White"
                 Background="Black"
                 BorderBrush="#FF707070"
-                Grid.Column="3"
             />
             <Button
                 x:Name="RemoveButton"
-                Content="Remove"
-                HorizontalAlignment="Left"
-                Margin="10,152,15,0"
+                Content="Remove command"
+                HorizontalAlignment="Center"
+                Margin="0,320,0,0"
                 VerticalAlignment="Top"
                 Height="26"
                 Width="130"
@@ -126,13 +112,12 @@
                 Foreground="White"
                 Background="Black"
                 BorderBrush="#FF707070"
-                Grid.Column="3"
             />
             <Button
                 x:Name="ClearButton"
-                Content="Clear"
+                Content="Clear commands"
                 HorizontalAlignment="Left"
-                Margin="10,183,0,0"
+                Margin="339,320,0,0"
                 VerticalAlignment="Top"
                 Height="26"
                 Width="130"
@@ -140,7 +125,112 @@
                 Foreground="White"
                 Background="Black"
                 BorderBrush="#FF707070"
-                Grid.Column="3"
+            />
+            <Label
+                Content="Macros:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="4,79,0,0"
+                VerticalAlignment="Top"
+                Width="90"
+                FontSize="10"
+                Foreground="White"
+                RenderTransformOrigin="0.509,1.614" Grid.Column="1" Height="21"
+            />
+            <Label
+                Content="Macro Label:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="8,95,0,0"
+                VerticalAlignment="Top"
+                Width="80"
+                FontSize="10"
+                Foreground="White"
+                RenderTransformOrigin="0.509,1.614" Grid.Column="1" Height="21"
+            />
+            <Label
+                Content="%Prob.:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="149,95,0,0"
+                VerticalAlignment="Top"
+                Width="57"
+                FontSize="10"
+                Foreground="White"
+                RenderTransformOrigin="0.509,1.614" Grid.Column="1" Height="21"
+            />
+            <ListBox
+                x:Name="PointMacroListBox"
+                Margin="4,113,13,41"
+                Background="Black"
+                Foreground="White" Grid.Column="1"
+            >
+                <Grid
+                    x:Name="PointMacroTemplate"
+                    Height="20"
+                    Width="186"
+                >
+                    <TextBox
+                        Text="Macro 0"
+                        FontFamily="Courier New"
+                        HorizontalAlignment="Left"
+                        VerticalContentAlignment="Center"
+                        Width="139"
+                        FontSize="10"
+                        Background="Black"
+                        Foreground="Lime"
+                        Height="20"
+                        IsTabStop="False"
+                    />
+                    <TextBox
+                        Text="100"
+                        FontFamily="Courier New"
+                        HorizontalAlignment="Left"
+                        VerticalContentAlignment="Center"
+                        HorizontalContentAlignment="Center"
+                        Width="25"
+                        FontSize="10"
+                        Background="Black"
+                        Foreground="Lime"
+                        Height="20"
+                        IsTabStop="False" Margin="144,0,0,0"
+                    />
+                </Grid>
+            </ListBox>
+            <Button
+                x:Name="AddMacroButton"
+                Content="Add macro"
+                HorizontalAlignment="Left"
+                Margin="4,320,0,0"
+                VerticalAlignment="Top"
+                Height="26"
+                Width="93"
+                FontFamily="Courier New"
+                Foreground="White"
+                Background="Black"
+                BorderBrush="#FF707070" Grid.Column="1"
+            />
+            <Button
+                x:Name="RemoveMacroButton"
+                Content="Remove macro"
+                HorizontalAlignment="Left"
+                Margin="114,320,0,0"
+                VerticalAlignment="Top"
+                Height="26"
+                Width="93"
+                FontFamily="Courier New"
+                Foreground="White"
+                Background="Black"
+                BorderBrush="#FF707070" Grid.Column="1"
+            />
+            <Label
+                Content="-Macro Name-"
+                HorizontalAlignment="Left"
+                Margin="480,26,0,0"
+                VerticalAlignment="Top"
+                Foreground="Wheat"
+                Width="205"
+                FontFamily="Courier New" Height="23" Grid.ColumnSpan="2"
             />
         </Grid>
     </Viewbox>

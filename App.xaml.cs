@@ -37,18 +37,15 @@ namespace MaplestoryBotNet
         protected AbstractApplicationInitializer CreateApplicationInitializer(
         )
         {
-            Debug.Assert(_mainApplication != null);
-            Debug.Assert(_uiHandlers != null);
             return new MainApplicationInitializerBuilder()
-                .WithArgs(_mainApplication)
-                .WithArgs(_uiHandlers)
+                .WithArgs(_mainApplication!)
+                .WithArgs(_uiHandlers!)
                 .Build();
         }
         public AbstractWindowActionHandler InstantiateApplicationClosingActionHandler()
         {
-            Debug.Assert(_mainWindow != null);
             return new ApplicationClosingActionHandlerBuilder()
-                .WithArgs(_mainWindow.GetSystemWindow())
+                .WithArgs(_mainWindow!.GetSystemWindow())
                 .WithArgs(GetPopupWindows())
                 .Build();
         }

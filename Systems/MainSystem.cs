@@ -5,6 +5,7 @@ using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.Utilities;
 
 
 namespace MaplestoryBotNet.Systems
@@ -369,6 +370,7 @@ namespace MaplestoryBotNet.Systems
                 mainSystem.Inject(SystemInjectType.ActionHandler, _uiHandlers[i]);
             }
             mainSystem.Inject(SystemInjectType.ConfigurationUpdate, 0);
+            mainSystem.Inject(SystemInjectType.MapModel, new MapModel());
         }
     }
 

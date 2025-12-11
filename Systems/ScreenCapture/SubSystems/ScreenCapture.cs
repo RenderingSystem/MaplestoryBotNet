@@ -151,11 +151,14 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             for (int i = 0; i < displays.Count(); i++)
             {
                 var display = displays.ElementAt(i);
-                var capture = _screenCaptureService.GetScreenCapture(display);
-                var captureZone = capture.RegisterCaptureZone(0, 0, display.Width, display.Height);
-                captureZone.AutoUpdate = true;
-                _screenCaptures.Add(capture);
-                _screenCaptureZones.Add(captureZone);
+                if (display.Width > 0 && display.Height > 0)
+                {
+                    var capture = _screenCaptureService.GetScreenCapture(display);
+                    var captureZone = capture.RegisterCaptureZone(0, 0, display.Width, display.Height);
+                    captureZone.AutoUpdate = true;
+                    _screenCaptures.Add(capture);
+                    _screenCaptureZones.Add(captureZone);
+                }
             }
         }
 

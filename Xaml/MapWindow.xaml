@@ -10,65 +10,78 @@
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
     Title="Map"
-    Height="350"
-    Width="500"
+    Width="600"
+    Height="400"
     Background="Black"
 >
     <Viewbox Stretch="Fill">
-        <Grid Background="Black" >
+        <Grid Background="Black" Height="380" Width="575" >
             <Border 
                 Width="400"
+                Height="350"
                 HorizontalAlignment="Left"
+                VerticalAlignment="Top"
                 Background="Black"
                 BorderBrush="White"
                 BorderThickness="1,1,1,1"
-            >
-                <Image
-                    x:Name="MapImage"
-                    Width="400"
-                    HorizontalAlignment="Left"
-                />
-            </Border>
-            <Button
+            />
+            <Image
+                x:Name="MapImage"
+                Width="400"
+                Height="350"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+            />
+            <Canvas
+                x:Name="MapCanvas"
+                Width="400"
+                Height="350"
+                Background="Transparent"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                IsHitTestVisible="True"
+                Visibility="Visible"
+            />
+            <ToggleButton
                 x:Name="AddButton"
                 FontFamily="Courier New"
-                Content="Add"
+                Content="Add point"
                 HorizontalAlignment="Left"
-                Margin="411,188,0,0"
+                Margin="0,355,0,0"
                 Padding="2,2,2,2"
                 VerticalAlignment="Top"
                 Foreground="White"
                 Background="Black"
                 BorderBrush="White"
-                Width="162"
+                Width="130"
                 IsTabStop="False"
             />
-            <Button
+            <ToggleButton
                 x:Name="RemoveButton"
                 FontFamily="Courier New"
-                Content="Remove"
+                Content="Remove point"
                 HorizontalAlignment="Left"
-                Margin="411,213,0,0"
+                Margin="135,355,0,0"
                 Padding="2,2,2,2"
                 VerticalAlignment="Top"
                 Foreground="White"
                 Background="Black"
                 BorderBrush="White"
-                Width="162"
+                Width="130"
                 IsTabStop="False"
             />
             <Button
                 x:Name="EditButton"
                 FontFamily="Courier New"
-                Content="Edit"
+                Content="Edit point"
                 HorizontalAlignment="Left"
-                Margin="411,238,0,0"
+                Margin="270,355,0,0"
                 Padding="2,2,2,2"
                 VerticalAlignment="Top"
                 Foreground="White"
                 Background="Black"
                 BorderBrush="White"
-                Width="162"
+                Width="130"
                 IsTabStop="False"
             />
             <Button
@@ -76,13 +89,13 @@
                 FontFamily="Courier New"
                 Content="Save"
                 HorizontalAlignment="Left"
-                Margin="411,282,0,0"
+                Margin="412,330,0,0"
                 Padding="2,2,2,2"
                 VerticalAlignment="Top"
                 Foreground="White"
                 Background="Black"
                 BorderBrush="White"
-                Width="162"
+                Width="155"
                 IsTabStop="False"
             />
             <Button
@@ -90,13 +103,13 @@
                 FontFamily="Courier New"
                 Content="Load"
                 HorizontalAlignment="Left"
-                Margin="411,307,0,0"
+                Margin="412,355,0,0"
                 Padding="2,2,2,2"
                 VerticalAlignment="Top"
                 Foreground="White"
                 Background="Black"
                 BorderBrush="White"
-                Width="162"
+                Width="155"
                 IsTabStop="False"
             />
             <Label
@@ -203,7 +216,8 @@
                 RenderTransformOrigin="0.509,1.614"
             />
             <TextBox
-                Margin="464,96,10,221"
+                x:Name="MapAreaBottomTextBox"
+                Margin="464,96,10,265"
                 Background="Black"
                 Foreground="Lime"
                 Text="{Binding NumericPropertyBottom, UpdateSourceTrigger=LostFocus}" 
@@ -212,7 +226,8 @@
                 TabIndex="3"
             />
             <TextBox
-                Margin="464,76,10,240"
+                x:Name="MapAreaRightTextBox"
+                Margin="464,75,10,285"
                 Background="Black"
                 Foreground="Lime"
                 Text="{Binding NumericPropertyRight, UpdateSourceTrigger=LostFocus}"
@@ -221,7 +236,8 @@
                 TabIndex="2"
             />
             <TextBox
-                Margin="464,53,10,261"
+                x:Name="MapAreaTopTextBox"
+                Margin="464,53,10,307"
                 Background="Black"
                 Foreground="Lime"
                 Text="{Binding NumericPropertyTop, UpdateSourceTrigger=LostFocus}"
@@ -230,7 +246,8 @@
                 TabIndex="1"
             />
             <TextBox
-                Margin="464,31,10,284"
+                x:Name="MapAreaLeftTextBox"
+                Margin="464,31,10,328"
                 Background="Black"
                 Foreground="Lime"
                 Text="{Binding NumericPropertyLeft, UpdateSourceTrigger=LostFocus}"

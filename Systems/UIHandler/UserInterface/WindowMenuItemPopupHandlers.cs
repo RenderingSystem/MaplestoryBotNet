@@ -115,10 +115,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override AbstractWindowActionHandler Build()
         {
-            Debug.Assert(_popupWindow != null);
-            Debug.Assert(_menuItem != null);
-            var modifier = new WindowMenuItemPopupModifier(_popupWindow);
-            return new WindowMenuItemPopupHandler(modifier, _menuItem);
+            var modifier = new WindowMenuItemPopupModifier(_popupWindow!);
+            return new WindowMenuItemPopupHandler(modifier, _menuItem!);
         }
     }
 
@@ -134,6 +132,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             }
             return this;
         }
+
         public override AbstractWindowActionHandler Build()
         {
             Debug.Assert(_systemWindow != null);

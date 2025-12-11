@@ -4,12 +4,12 @@ using MaplestoryBotNet.Systems.Keyboard;
 using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
 using System.Diagnostics;
-using System.Linq;
 
 
 namespace MaplestoryBotNetTests.Systems.Tests
@@ -851,7 +851,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var mainApplicationInitializer = _fixture();
             mainApplicationInitializer.Initialize();
-            Debug.Assert(_mainSystem.InjectCalls == 4);
+            Debug.Assert(_mainSystem.InjectCalls == 5);
             Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_windowViewUpdaterActionHandler) != -1);
             Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_windowViewCheckboxActionHandler) != -1);
             Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_splashScreenCompleteActionHandler) != -1);
@@ -881,6 +881,24 @@ namespace MaplestoryBotNetTests.Systems.Tests
         }
 
         /**
+         * @brief Tests MapModel injection during initialization
+         * 
+         * Validates that the application initializer creates and injects a MapModel instance
+         * into the main system. The MapModel serves as the central repository for all macro
+         * points and their associated commands, enabling the macro agent to coordinate
+         * character actions based on spatial context and point-specific instructions.
+         */
+        private void _testInitializeInjectsMapModelToMainSystem()
+        {
+            var mainApplicationInitializer = _fixture();
+            mainApplicationInitializer.Initialize();
+            var mapModelIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.MapModel);
+            var mapModelData = _mainSystem.InjectCallArg_data[mapModelIndex];
+            Debug.Assert(mapModelIndex != -1);
+            Debug.Assert(mapModelData is MapModel);
+        }
+
+        /**
          * @brief Executes all application initialization validation tests
          * 
          * Runs the complete test suite to ensure the application initializer properly
@@ -892,6 +910,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
             _testSynchronizeChecksMainSystemStateUntilReady();
             _testInitializeInjectsModifiersToMainSystem();
             _testInitializeInjectsUpdaterToMainSystem();
+            _testInitializeInjectsMapModelToMainSystem();
         }
     }
 

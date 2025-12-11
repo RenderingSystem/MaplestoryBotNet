@@ -206,12 +206,31 @@ namespace MaplestoryBotNetTests.Systems.Tests
             ShowCalls++;
         }
 
+        public int ShowDialogCalls = 0;
+        public override void ShowDialog()
+        {
+            var callReference = new TestUtilities().Reference(this) + "ShowDialog";
+            CallOrder.Add(callReference);
+            ShowDialogCalls++;
+        }
+
         public int CloseCalls = 0;
         public override void Close()
         {
             var callReference = new TestUtilities().Reference(this) + "Close";
             CallOrder.Add(callReference);
             CloseCalls++;
+        }
+
+        public int AttachOwnerCalls = 0;
+        public List<AbstractSystemWindow> AttachOwnerCallsArg_owner = [];
+        public override void AttachOwner(AbstractSystemWindow owner)
+        {
+
+            var callReference = new TestUtilities().Reference(this) + "AttachOwner";
+            CallOrder.Add(callReference);
+            AttachOwnerCallsArg_owner.Add(owner);
+            AttachOwnerCalls++;
         }
 
         public int HideCalls = 0;

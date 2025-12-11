@@ -1,5 +1,6 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -12,6 +13,8 @@ namespace MaplestoryBotNet.Xaml
     public partial class MapWindow : Window, INotifyPropertyChanged
     {
         private AbstractSystemWindow? _systemWindow = null;
+
+        private WindowMapEditMenuState _editMenuState = new WindowMapEditMenuState();
 
         public MapWindow()
         {
@@ -111,7 +114,23 @@ namespace MaplestoryBotNet.Xaml
             AbstractSystemWindow editWindow
         )
         {
-            return new WindowMapEditMenuActionHandlerFacade(EditButton, editWindow);
+            return new WindowMapEditMenuActionHandlerFacade(
+                EditButton, GetSystemWindow(), editWindow
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateAddPointButtonActionHandler()
+        {
+            return new MapCanvasAddPointButtonActionHandlerFacade(
+                AddButton, [AddButton, RemoveButton], _editMenuState
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiatePointDrawingActionHandler()
+        {
+            return new MapCanvasCirclePointDrawingActionHandler(
+                MapCanvas, _editMenuState, new MouseEventPositionExtractor()
+            );
         }
 
         public List<AbstractWindowActionHandler> InstantiateActionHandlers(
@@ -120,7 +139,9 @@ namespace MaplestoryBotNet.Xaml
         {
             return [
                 _instantiateWindowMenuItemHideActionHandler(),
-                _instantiateEditMenuActionHandler(editWindow)
+                _instantiateEditMenuActionHandler(editWindow),
+                _instantiateAddPointButtonActionHandler(),
+                _instantiatePointDrawingActionHandler()
             ];
         }
 
