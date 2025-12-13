@@ -1,10 +1,12 @@
 ﻿using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Xml.Linq;
 using Vortice.Direct3D11;
 
 
@@ -30,6 +32,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     public abstract class AbstractMapCanvasElementFactory
     {
         public abstract UIElement Create();
+    }
+
+
+    public abstract class AbstractMapCanvasFormatter
+    {
+        public abstract void Format(UIElement canvas, MapModel mapModel);
     }
 
 
@@ -141,35 +149,19 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         public Point ElementPoint = new Point();
 
-        public string ElementText = "";
-
         public MapModel ElementModel = new MapModel();
     }
 
 
-    public class WindowMapCanvasPointDrawer : AbstractWindowStateModifier
+    public class WindowMapCanvasPointFormatter : AbstractMapCanvasFormatter
     {
-        private Canvas _canvas;
-
-        private AbstractMapCanvasElementFactory _pointFactory;
-
-        private UIElement? _createdPoint;
-
-        public WindowMapCanvasPointDrawer(
-            Canvas canvas,
-            AbstractMapCanvasElementFactory pointFactory
+        private void _setupLabelText(
+            UIElement createdPoint, MapModel mapModel, string pointLabel
         )
         {
-            _canvas = canvas;
-            _pointFactory = pointFactory;
-            _createdPoint = null;
-        }
-
-        private void _setupLabelText(MapModel mapModel, string pointLabel)
-        {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(_createdPoint); i++)
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(createdPoint); i++)
             {
-                var child = VisualTreeHelper.GetChild(_createdPoint, i);
+                var child = VisualTreeHelper.GetChild(createdPoint, i);
                 if (child is TextBlock textBlock)
                 {
                     textBlock.Text = pointLabel;
@@ -211,13 +203,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         }
 
         private void _setupMinimapPoint(
-            Point point,
+            UIElement createdPoint,
             MapModel mapModel,
             string pointLabel,
             string elementName
         )
         {
-            if (_createdPoint is Canvas canvasElement)
+            if (createdPoint is Canvas canvasElement)
             {
                 var boundingRect = _getBoundingRect(canvasElement);
                 var pointData = _minimapPointData(
@@ -235,7 +227,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             }
         }
 
-        private string _getElementName(MapModel mapModel)
+        private string _generateElementName(MapModel mapModel)
         {
             var mapPoints = mapModel.Points();
             var elementCount = mapPoints.Count;
@@ -249,7 +241,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return "T" + elementCount;
         }
 
-        private string _getPointLabel(MapModel mapModel)
+        private string _generatePointLabel(MapModel mapModel)
         {
             var mapPoints = mapModel.Points();
             var pointCount = mapPoints.Count;
@@ -263,54 +255,54 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return "P" + pointCount;
         }
 
+        public override void Format(UIElement createdPoint, MapModel mapModel)
+        {
+            var pointLabel = _generatePointLabel(mapModel);
+            var elementName = _generateElementName(mapModel);
+            _setupMinimapPoint(createdPoint, mapModel, pointLabel, elementName);
+            _setupLabelText(createdPoint, mapModel, pointLabel);
+        }
+    }
+
+
+    public class WindowMapCanvasPointDrawer : AbstractWindowStateModifier
+    {
+        private Canvas _canvas;
+
+        private AbstractMapCanvasElementFactory _pointFactory;
+
+        private UIElement? _createdPoint;
+
+        private AbstractMapCanvasFormatter _formatter;
+
+        public WindowMapCanvasPointDrawer(
+            Canvas canvas,
+            AbstractMapCanvasElementFactory pointFactory,
+            AbstractMapCanvasFormatter formatter
+
+        )
+        {
+            _canvas = canvas;
+            _pointFactory = pointFactory;
+            _createdPoint = null;
+            _formatter = formatter;
+        }
+
         public override void Modify(object? value)
         {
             if (value is WindowMapCanvasDrawerParameters parameters)
             {
-                var pointLabel = _getPointLabel(parameters.ElementModel);
-                var elementName = _getElementName(parameters.ElementModel);
                 _createdPoint = _pointFactory.Create();
                 _canvas.Children.Add(_createdPoint);
                 Canvas.SetLeft(_createdPoint, parameters.ElementPoint.X);
                 Canvas.SetTop(_createdPoint, parameters.ElementPoint.Y);
-                _setupMinimapPoint(
-                    parameters.ElementPoint,
-                    parameters.ElementModel,
-                    pointLabel,
-                    elementName
-                );
-                _setupLabelText(
-                    parameters.ElementModel,
-                    pointLabel
-                );
+                _formatter.Format(_createdPoint, parameters.ElementModel);
             }
         }
 
         public override object? State(int stateType)
         {
             return _createdPoint;
-        }
-    }
-
-
-    public class WindowMapCanvasPointEraser : AbstractWindowStateModifier
-    {
-        private Canvas _canvas;
-
-        public WindowMapCanvasPointEraser(Canvas canvas)
-        {
-            _canvas = canvas;
-        }
-
-        public override void Modify(object? value)
-        {
-            if (
-                value is UIElement element
-                && _canvas.Children.Contains(element)
-            )
-            {
-                _canvas.Children.Remove(element);
-            }
         }
     }
 
@@ -429,7 +421,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class MapCanvasPointDrawingActionHandler : AbstractWindowActionHandler
+    public class WindowMapCanvasPointDrawingActionHandler : AbstractWindowActionHandler
     {
         private Canvas _canvas;
 
@@ -441,7 +433,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private MapModel? _mapModel;
 
-        public MapCanvasPointDrawingActionHandler(
+        public WindowMapCanvasPointDrawingActionHandler(
             Canvas canvas,
             WindowMapEditMenuState menuState,
             AbstractMouseEventPositionExtractor mousePositionExtractor,
@@ -463,19 +455,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (
-                _menuState.GetState() == WindowMapEditMenuStateTypes.Add
-                && _mapModel != null
-            )
+            if (_menuState.GetState() == WindowMapEditMenuStateTypes.Add && _mapModel != null)
             {
-                var mousePosition = _mousePositionExtractor.GetPosition(
-                    (MouseButtonEventArgs)e, _canvas
-                );
                 _pointDrawer.Modify(
                     new WindowMapCanvasDrawerParameters
                     {
-                        ElementPoint = mousePosition,
-                        ElementText = "",
+                        ElementPoint = _mousePositionExtractor.GetPosition((MouseButtonEventArgs)e, _canvas),
                         ElementModel = _mapModel,
                     }
                 );
@@ -484,10 +469,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void Inject(SystemInjectType dataType, object? data)
         {
-            if (
-                dataType == SystemInjectType.MapModel
-                && data is MapModel mapModel
-            )
+            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -495,17 +477,17 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class MapCanvasCirclePointDrawingActionHandler : AbstractWindowActionHandler
+    public class WindowMapCanvasPointDrawingActionHandlerFacade : AbstractWindowActionHandler
     {
-        AbstractWindowActionHandler _mapCanvasPointDrawingActionHandler;
+        private AbstractWindowActionHandler _mapCanvasPointDrawingActionHandler;
 
-        public MapCanvasCirclePointDrawingActionHandler(
+        public WindowMapCanvasPointDrawingActionHandlerFacade(
             Canvas canvas,
             WindowMapEditMenuState menuState,
             AbstractMouseEventPositionExtractor mouseEventPositionExtractor
         )
         {
-            _mapCanvasPointDrawingActionHandler = new MapCanvasPointDrawingActionHandler(
+            _mapCanvasPointDrawingActionHandler = new WindowMapCanvasPointDrawingActionHandler(
                 canvas,
                 menuState,
                 mouseEventPositionExtractor,
@@ -527,7 +509,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                             Brushes.White,
                             Brushes.Transparent
                         )
-                    )
+                    ),
+                    new WindowMapCanvasPointFormatter()
                 )
             );
         }
@@ -549,7 +532,146 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class MapCanvasAddPointButtonModifier : AbstractWindowStateModifier
+    public class WindowMapCanvasEraserParameters
+    {
+        public Point ElementPoint = new Point();
+
+        public MapModel ElementModel = new MapModel();
+    }
+
+
+    public class WindowMapCanvasPointEraser : AbstractWindowStateModifier
+    {
+        private Canvas _canvas;
+
+        public WindowMapCanvasPointEraser(Canvas canvas)
+        {
+            _canvas = canvas;
+        }
+
+        private MinimapPoint? _findPointHit(MapModel mapModel, Point point)
+        {
+            return mapModel.Points().LastOrDefault(
+                p =>
+                (
+                    point.X >= p.X - p.XRange / 2 && point.X <= p.X + p.XRange / 2 &&
+                    point.Y >= p.Y - p.YRange / 2 && point.Y <= p.Y + p.YRange / 2
+                )
+            );
+        }
+
+        private UIElement? _findChild(string name)
+        {
+            return _canvas.Children.OfType<Canvas>().FirstOrDefault(c => c.Name == name);
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is WindowMapCanvasEraserParameters parameters)
+            {
+                var pointHit = _findPointHit(parameters.ElementModel, parameters.ElementPoint);
+                if (pointHit == null) return;
+                var pointUI = _findChild(pointHit.PointData.ElementName);
+                if (pointUI == null) return;
+                _canvas.Children.Remove(pointUI);
+                parameters.ElementModel.RemovePoint(pointHit);
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasPointErasingActionHandler : AbstractWindowActionHandler
+    {
+        private Canvas _canvas;
+
+        private WindowMapEditMenuState _menuState;
+
+        private AbstractWindowStateModifier _pointEraser;
+
+        private AbstractMouseEventPositionExtractor _mousePositionExtractor;
+
+        private MapModel? _mapModel;
+
+        public WindowMapCanvasPointErasingActionHandler(
+            Canvas canvas,
+            WindowMapEditMenuState menuState,
+            AbstractMouseEventPositionExtractor mouseEventPositionExtractor,
+            AbstractWindowStateModifier pointEraser
+        )
+        {
+            _canvas = canvas;
+            _menuState = menuState;
+            _pointEraser = pointEraser;
+            _mousePositionExtractor = mouseEventPositionExtractor;
+            _canvas.MouseLeftButtonDown += OnEvent;
+            _mapModel = null;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _pointEraser;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (_menuState.GetState() == WindowMapEditMenuStateTypes.Remove && _mapModel != null)
+            {
+                _pointEraser.Modify(
+                    new WindowMapCanvasEraserParameters
+                    {
+                        ElementPoint = _mousePositionExtractor.GetPosition((MouseButtonEventArgs)e, _canvas),
+                        ElementModel = _mapModel,
+                    }
+                );
+            }
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            {
+                _mapModel = mapModel;
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasPointErasingActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _mapCanvasPointEraserActionHandler;
+
+        public WindowMapCanvasPointErasingActionHandlerFacade(
+            Canvas canvas,
+            WindowMapEditMenuState menuState,
+            AbstractMouseEventPositionExtractor mouseEventPositionExtractor
+        )
+        {
+            _mapCanvasPointEraserActionHandler = new WindowMapCanvasPointErasingActionHandler(
+                canvas,
+                menuState,
+                mouseEventPositionExtractor,
+                new WindowMapCanvasPointEraser(canvas)
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapCanvasPointEraserActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapCanvasPointEraserActionHandler.OnEvent(sender, e);
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            _mapCanvasPointEraserActionHandler.Inject(dataType, data);
+        }
+    }
+
+
+    public class WindowMapCanvasAddPointButtonModifier : AbstractWindowStateModifier
     {
         private WindowMapEditMenuState _menuState;
 
@@ -557,7 +679,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private List<ToggleButton> _radioButtons;
 
-        public MapCanvasAddPointButtonModifier(
+        public WindowMapCanvasAddPointButtonModifier(
             WindowMapEditMenuState menuState,
             ToggleButton addButton,
             List<ToggleButton> radioButtons
@@ -587,13 +709,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class MapCanvasAddPointButtonActionHandler : AbstractWindowActionHandler
+    public class WindowMapAddPointButtonActionHandler : AbstractWindowActionHandler
     {
         private ToggleButton _addPointButton;
 
         private AbstractWindowStateModifier _addStateModifier;
 
-        public MapCanvasAddPointButtonActionHandler(
+        public WindowMapAddPointButtonActionHandler(
             ToggleButton addPointButton,
             AbstractWindowStateModifier addStateModifier
         )
@@ -615,19 +737,19 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class MapCanvasAddPointButtonActionHandlerFacade : AbstractWindowActionHandler
+    public class WindowMapAddPointButtonActionHandlerFacade : AbstractWindowActionHandler
     {
-        private MapCanvasAddPointButtonActionHandler _mapCanvasAddPointButtonActionHandler;
+        private WindowMapAddPointButtonActionHandler _mapCanvasAddPointButtonActionHandler;
 
-        public MapCanvasAddPointButtonActionHandlerFacade(
+        public WindowMapAddPointButtonActionHandlerFacade(
             ToggleButton addPointButton,
             List<ToggleButton> radioButtons,
             WindowMapEditMenuState menuState
         )
         {
-            _mapCanvasAddPointButtonActionHandler = new MapCanvasAddPointButtonActionHandler(
+            _mapCanvasAddPointButtonActionHandler = new WindowMapAddPointButtonActionHandler(
                 addPointButton,
-                new MapCanvasAddPointButtonModifier(menuState, addPointButton, radioButtons)
+                new WindowMapCanvasAddPointButtonModifier(menuState, addPointButton, radioButtons)
             );
         }
 
@@ -639,6 +761,100 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override void OnEvent(object? sender, EventArgs e)
         {
             _mapCanvasAddPointButtonActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowMapRemovePointButtonModifier : AbstractWindowStateModifier
+    {
+        private WindowMapEditMenuState _menuState;
+
+        private ToggleButton _removeButton;
+
+        private List<ToggleButton> _radioButtons;
+
+        public WindowMapRemovePointButtonModifier(
+            WindowMapEditMenuState menuState,
+            ToggleButton addButton,
+            List<ToggleButton> radioButtons
+
+        )
+        {
+            _menuState = menuState;
+            _removeButton = addButton;
+            _radioButtons = radioButtons;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is bool checkedState)
+            {
+                for (int i = 0; i < _radioButtons.Count; i++)
+                {
+                    _radioButtons[i].IsChecked = false;
+                }
+                _removeButton.IsChecked = checkedState;
+                var nextState = checkedState ?
+                    WindowMapEditMenuStateTypes.Remove :
+                    WindowMapEditMenuStateTypes.Select;
+                _menuState.SetState(nextState);
+            }
+        }
+    }
+
+
+    public class WindowMapRemovePointButtonActionHandler : AbstractWindowActionHandler
+    {
+        private ToggleButton _removePointButton;
+
+        private AbstractWindowStateModifier _addStateModifier;
+
+        public WindowMapRemovePointButtonActionHandler(
+            ToggleButton removePointButton,
+            AbstractWindowStateModifier addStateModifier
+        )
+        {
+            _removePointButton = removePointButton;
+            _removePointButton.Click += OnEvent;
+            _addStateModifier = addStateModifier;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _addStateModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _addStateModifier.Modify(_removePointButton.IsChecked);
+        }
+    }
+
+
+    public class WindowMapRemovePointButtonActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private WindowMapRemovePointButtonActionHandler _mapCanvasRemovePointButtonActionHandler;
+
+        public WindowMapRemovePointButtonActionHandlerFacade(
+            ToggleButton removePointButton,
+            List<ToggleButton> radioButtons,
+            WindowMapEditMenuState menuState
+        )
+        {
+            _mapCanvasRemovePointButtonActionHandler = new WindowMapRemovePointButtonActionHandler(
+                removePointButton,
+                new WindowMapRemovePointButtonModifier(menuState, removePointButton, radioButtons)
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapCanvasRemovePointButtonActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapCanvasRemovePointButtonActionHandler.OnEvent(sender, e);
         }
     }
 }

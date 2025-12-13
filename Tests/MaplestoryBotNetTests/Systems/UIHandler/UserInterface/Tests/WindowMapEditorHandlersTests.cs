@@ -11,7 +11,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using System.Xml.Linq;
 
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
@@ -160,7 +159,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 Source = _canvas,
             };
             _mapModel = new MapModel();
-            return new MapCanvasCirclePointDrawingActionHandler(
+            return new WindowMapCanvasPointDrawingActionHandlerFacade(
                 _canvas, _menuState, _mousePositionExtractor
             );
         }
@@ -406,7 +405,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _addPointButton = new ToggleButton();
             _otherButtons = [new ToggleButton(), new ToggleButton(), new ToggleButton()];
             _menuState = new WindowMapEditMenuState();
-            return new MapCanvasAddPointButtonActionHandlerFacade(
+            return new WindowMapAddPointButtonActionHandlerFacade(
                 _addPointButton, _otherButtons, _menuState
             );
         }
@@ -510,6 +509,357 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    public class MapCanvasRemovePointButtonActionHandlerTests
+    {
+        private ToggleButton _removePointButton = new ToggleButton();
+
+        private List<ToggleButton> _otherButtons = [];
+
+        private WindowMapEditMenuState _menuState = new WindowMapEditMenuState();
+
+        /**
+        * @brief Creates test environment with toggle buttons and menu state
+        * 
+        * @return Configured MapCanvasRemovePointButtonActionHandlerFacade instance ready for testing
+        * 
+        * Prepares a test scenario with one primary remove point button, three additional toggle buttons,
+        * and a fresh menu state instance to verify exclusive toggle behavior and state coordination.
+        */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _removePointButton = new ToggleButton();
+            _otherButtons = [new ToggleButton(), new ToggleButton(), new ToggleButton()];
+            _menuState = new WindowMapEditMenuState();
+            return new WindowMapRemovePointButtonActionHandlerFacade(
+                _removePointButton, _otherButtons, _menuState
+            );
+        }
+
+        /**
+        * @brief Tests exclusive toggle behavior when enabling point removeition mode
+        * 
+        * @test Validates that activating remove point button deactivates all other toggle buttons
+        * 
+        * Verifies that when users click to activate the remove point button (entering point placement mode),
+        * all other editing mode buttons are automatically untoggled, maintaining a single active mode
+        * in the editing toolbar to prevent conflicting user interactions.
+        */
+        private void _testTogglingButtonUntogglesOtherButtons()
+        {
+            var handler = _fixture();
+            _otherButtons[0].IsChecked = true;
+            _otherButtons[1].IsChecked = false;
+            _otherButtons[2].IsChecked = true;
+            _removePointButton.IsChecked = true;
+            _removePointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            Debug.Assert(_otherButtons[0].IsChecked == false);
+            Debug.Assert(_otherButtons[1].IsChecked == false);
+            Debug.Assert(_otherButtons[2].IsChecked == false);
+        }
+
+        /**
+        * @brief Tests exclusive toggle behavior when disabling point removeition mode
+        * 
+        * @test Validates that deactivating remove point button also deactivates all other toggle buttons
+        * 
+        * Verifies that even when users click to deactivate the remove point button (exiting point placement
+        * mode without selecting another mode), all other editing mode buttons are also untoggled,
+        * ensuring the toolbar enters a consistent neutral state with no active modes.
+        */
+        private void _testUntogglingButtonUntogglesOtherButtons()
+        {
+            var handler = _fixture();
+            _otherButtons[0].IsChecked = true;
+            _otherButtons[1].IsChecked = false;
+            _otherButtons[2].IsChecked = true;
+            _removePointButton.IsChecked = false;
+            _removePointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            Debug.Assert(_otherButtons[0].IsChecked == false);
+            Debug.Assert(_otherButtons[1].IsChecked == false);
+            Debug.Assert(_otherButtons[2].IsChecked == false);
+        }
+
+        /**
+        * @brief Tests menu state transition when enabling point removeition mode
+        * 
+        * @test Validates that toggling remove point button updates central menu state to Remove mode
+        * 
+        * Verifies that when users activate the remove point button, the central menu state manager
+        * correctly transitions to WindowMapEditMenuStateTypes.Remove, ensuring that subsequent user
+        * interactions (like canvas clicks) are interpreted as point removal operations rather
+        * than selection operations.
+        */
+        private void _testTogglingButtonSetsMenuStateToRemove()
+        {
+            var handler = _fixture();
+            _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+            _removePointButton.IsChecked = true;
+            _removePointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            Debug.Assert(_menuState.GetState() == WindowMapEditMenuStateTypes.Remove);
+        }
+
+        /**
+        * @brief Tests menu state transition when disabling point removeition mode
+        * 
+        * @test Validates that untoggling remove point button reverts central menu state to Select mode
+        * 
+        * Verifies that when users deactivate the remove point button (without choosing another mode),
+        * the central menu state manager automatically transitions back to the default
+        * WindowMapEditMenuStateTypes.Select mode, providing a safe fallback state for user interaction.
+        */
+        private void _testUntogglingButtonSetsMenuStateToSelect()
+        {
+            var handler = _fixture();
+            _removePointButton.UpdateLayout();
+            _menuState.SetState(WindowMapEditMenuStateTypes.Remove);
+            _removePointButton.IsChecked = false;
+            _removePointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            Debug.Assert(_menuState.GetState() == WindowMapEditMenuStateTypes.Select);
+        }
+
+        /**
+        * @brief Executes all point removeition button behavior tests
+        * 
+        * Runs the complete test suite to ensure the remove point button provides reliable
+        * exclusive toggle functionality and proper state coordination within the map editor,
+        * guaranteeing intuitive user experience during map editing operations.
+        */
+        public void Run()
+        {
+            _testTogglingButtonUntogglesOtherButtons();
+            _testUntogglingButtonUntogglesOtherButtons();
+            _testTogglingButtonSetsMenuStateToRemove();
+            _testUntogglingButtonSetsMenuStateToSelect();
+        }
+    }
+
+
+    /**
+     * @class WindowMapCanvasPointErasingActionHandlerTests
+     * 
+     * @brief Unit tests for map point removal functionality on the canvas
+     * 
+     * This test class validates the point erasing action handler's behavior when users
+     * interact with the map canvas to delete existing points. It ensures precise hit detection,
+     * proper state validation, and correct coordination between UI elements and data model
+     * during point removal operations.
+     */
+    public class WindowMapCanvasPointErasingActionHandlerTests
+    {
+        private Canvas _canvas;
+
+        private WindowMapEditMenuState _menuState;
+
+        private MouseEventPositionExtractorMock _mousePositionExtractor;
+
+        private MapModel _mapModel;
+
+        private MouseButtonEventArgs _mouseButtonEvent;
+
+        /**
+         * @brief Initializes common test dependencies
+         * 
+         * Sets up a fresh canvas, menu state manager, mouse event extractor mock,
+         * empty map model, and configured mouse button event to simulate left-clicks
+         * on the canvas for consistent test execution.
+         */
+        public WindowMapCanvasPointErasingActionHandlerTests()
+        {
+            _canvas = new Canvas();
+            _menuState = new WindowMapEditMenuState();
+            _mousePositionExtractor = new MouseEventPositionExtractorMock();
+            _mapModel = new MapModel();
+            _mouseButtonEvent = new MouseButtonEventArgs(
+                Mouse.PrimaryDevice, 123, MouseButton.Left
+            )
+            {
+                RoutedEvent = UIElement.MouseLeftButtonDownEvent,
+                Source = _canvas,
+            };
+        }
+
+        /**
+         * @brief Creates a fresh, configured test fixture
+         * 
+         * @return A new instance of WindowMapCanvasPointErasingActionHandlerFacade ready for testing
+         * 
+         * Initializes all test components with clean instances to ensure test isolation
+         * and prevent state contamination between test methods.
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _canvas = new Canvas();
+            _menuState = new WindowMapEditMenuState();
+            _mousePositionExtractor = new MouseEventPositionExtractorMock();
+            _mapModel = new MapModel();
+            return new WindowMapCanvasPointErasingActionHandlerFacade(
+                _canvas, _menuState, _mousePositionExtractor
+            );
+        }
+
+        /**
+         * @brief Helper method to add a test point to both model and canvas
+         * 
+         * @param x X-coordinate of the point
+         * @param y Y-coordinate of the point
+         * @param xRange Horizontal detection range around the point
+         * @param yRange Vertical detection range around the point
+         * @param label Display label for the point
+         * @param name Internal identifier for the point
+         * 
+         * Creates a complete point representation with both data model entry
+         * and corresponding visual canvas element for comprehensive testing.
+         */
+        private void _addPoint(
+            double x,
+            double y,
+            double xRange,
+            double yRange,
+            string label,
+            string name
+        )
+        {
+            _mapModel.Add(
+                new MinimapPoint
+                {
+                    X = x,
+                    Y = y,
+                    XRange = xRange,
+                    YRange = yRange,
+                    PointData = new MinimapPointData
+                    {
+                        ElementName = name,
+                        PointName = label,
+                        Commands = []
+                    }
+                }
+            );
+            var canvas = new Canvas { Name = name };
+            _canvas.Children.Add(canvas);
+            Canvas.SetLeft(canvas, x);
+            Canvas.SetTop(canvas, y);
+        }
+
+        /**
+         * @test _testClickingOnValidPointRemovesFromCanvas
+         * 
+         * Validates precise hit detection within point boundaries when in Remove mode.
+         * Tests click coordinates in an 11x11 grid (±5 pixels) around a test point
+         * to ensure all clicks within the defined detection range (10x10) successfully
+         * trigger point removal from both canvas and model.
+         */
+        private void _testClickingOnValidPointRemovesFromCanvas()
+        {
+            for (int i = -5; i <= 5; i++)
+            for (int j = -5; j <= 5; j++)
+            {
+                var handler = _fixture();
+                handler.Inject(SystemInjectType.MapModel, _mapModel);
+                _menuState.SetState(WindowMapEditMenuStateTypes.Remove);
+                _addPoint(123, 234, 10, 10, "lol1", "lol2");
+                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_canvas.Children.Count == 1);
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
+                _canvas.RaiseEvent(_mouseButtonEvent);
+                Debug.Assert(_mapModel.Points().Count == 0);
+                Debug.Assert(_canvas.Children.Count == 0);
+                }
+        }
+
+        /**
+         * @test _testClickingOnEmptyLocationDoesNotRemoveCanvas
+         * 
+         * Tests that clicks outside point detection boundaries do not trigger removal.
+         * Executes clicks in a 21x21 grid but skips the central 11x11 valid area,
+         * verifying that only clicks within the precise detection range are processed.
+         */
+        private void _testClickingOnEmptyLocationDoesNotRemoveCanvas()
+        {
+            for (int i = -10; i <= 10; i++)
+            for (int j = -10; j <= 10; j++)
+            {
+                if (i >= -5 && i <= 5) continue;
+                if (j >= -5 && j <= 5) continue;
+                var handler = _fixture();
+                handler.Inject(SystemInjectType.MapModel, _mapModel);
+                _menuState.SetState(WindowMapEditMenuStateTypes.Remove);
+                _addPoint(123, 234, 10, 10, "lol1", "lol2");
+                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_canvas.Children.Count == 1);
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
+                _canvas.RaiseEvent(_mouseButtonEvent);
+                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_canvas.Children.Count == 1);
+                }
+        }
+
+        /**
+         * @test _testClickingOnValidPointDoesNotRemoveWhenNotInRemoveState
+         * 
+         * Ensures point removal only occurs when menu is explicitly in Remove mode.
+         * Tests that clicks on valid points while in Select mode (or other modes)
+         * do not trigger removal, protecting against accidental deletion during
+         * normal map navigation and selection operations.
+         */
+        private void _testClickingOnValidPointDoesNotRemoveWhenNotInRemoveState()
+        {
+            for (int i = -5; i <= 5; i++)
+            for (int j = -5; j <= 5; j++)
+            {
+                var handler = _fixture();
+                handler.Inject(SystemInjectType.MapModel, _mapModel);
+                _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+                _addPoint(123, 234, 10, 10, "lol1", "lol2");
+                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_canvas.Children.Count == 1);
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
+                _canvas.RaiseEvent(_mouseButtonEvent);
+                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_canvas.Children.Count == 1);
+            }
+        }
+
+        /**
+         * @test _testClickingOnValidPointDoesNotRemoveWhenNotModelNotInjected
+         * 
+         * Validates that the erasing handler requires proper dependency injection.
+         * Tests that point removal is blocked when the MapModel dependency hasn't
+         * been injected, preventing system errors and ensuring robust error handling
+         * for missing dependencies.
+         */
+        private void _testClickingOnValidPointDoesNotRemoveWhenNotModelNotInjected()
+        {
+            for (int i = -5; i <= 5; i++)
+            for (int j = -5; j <= 5; j++)
+            {
+                var handler = _fixture();
+                _menuState.SetState(WindowMapEditMenuStateTypes.Remove);
+                _addPoint(123, 234, 10, 10, "lol1", "lol2");
+                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_canvas.Children.Count == 1);
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
+                _canvas.RaiseEvent(_mouseButtonEvent);
+                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_canvas.Children.Count == 1);
+            }
+        }
+
+        /**
+         * @brief Executes the complete point erasing functionality test suite
+         * 
+         * Runs all validation tests to ensure the point removal feature works
+         * correctly with precise hit detection and proper state validation.
+         */
+        public void Run()
+        {
+            _testClickingOnValidPointRemovesFromCanvas();
+            _testClickingOnEmptyLocationDoesNotRemoveCanvas();
+            _testClickingOnValidPointDoesNotRemoveWhenNotInRemoveState();
+            _testClickingOnValidPointDoesNotRemoveWhenNotModelNotInjected();
+        }
+    }
+
+
     public class WindowMapEditorHandlersTestSuite
     {
         public void Run()
@@ -517,8 +867,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMapEditMenuActionHandlerTests().Run();
             new MapCanvasCirclePointDrawingActionHandlerTests().Run();
             new MapCanvasAddPointButtonActionHandlerTests().Run();
+            new MapCanvasRemovePointButtonActionHandlerTests().Run();
+            new WindowMapCanvasPointErasingActionHandlerTests().Run();
         }
-    
     }
-
 }

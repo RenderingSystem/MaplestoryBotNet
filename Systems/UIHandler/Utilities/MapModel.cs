@@ -67,7 +67,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public abstract void Add(MinimapPoint point);
 
-        public abstract void Remove();
+        public abstract void RemovePoint(MinimapPoint point);
 
         public abstract void SelectPoint(MinimapPoint point);
 
@@ -163,15 +163,18 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             }
         }
 
-        public override void Remove()
+        public override void RemovePoint(MinimapPoint point)
         {
             try
             {
                 _pointsLock.EnterWriteLock();
-                if (_selectedPoint != null && _points.Contains(_selectedPoint))
+                var pointToRemove = _points.Find(
+                    p => p.PointData.ElementName == point.PointData.ElementName
+                );
+                if (pointToRemove != null)
                 {
-                    _points.Remove(_selectedPoint);
-                    _selectedPoint = null;
+                    _points.Remove(pointToRemove);
+                    _selectedPoint = _selectedPoint == pointToRemove ? null : _selectedPoint;
                 }
             }
             finally

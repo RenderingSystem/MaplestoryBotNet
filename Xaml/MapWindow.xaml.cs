@@ -121,15 +121,29 @@ namespace MaplestoryBotNet.Xaml
 
         private AbstractWindowActionHandler _instantiateAddPointButtonActionHandler()
         {
-            return new MapCanvasAddPointButtonActionHandlerFacade(
+            return new WindowMapAddPointButtonActionHandlerFacade(
                 AddButton, [AddButton, RemoveButton], _editMenuState
             );
         }
 
         private AbstractWindowActionHandler _instantiatePointDrawingActionHandler()
         {
-            return new MapCanvasCirclePointDrawingActionHandler(
+            return new WindowMapCanvasPointDrawingActionHandlerFacade(
                 MapCanvas, _editMenuState, new MouseEventPositionExtractor()
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiatePointErasingActionHandler()
+        {
+            return new WindowMapCanvasPointErasingActionHandlerFacade(
+                MapCanvas, _editMenuState, new MouseEventPositionExtractor()
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateRemovePointButtonActionHandler()
+        {
+            return new WindowMapRemovePointButtonActionHandlerFacade(
+                RemoveButton, [AddButton, RemoveButton], _editMenuState
             );
         }
 
@@ -141,7 +155,9 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateWindowMenuItemHideActionHandler(),
                 _instantiateEditMenuActionHandler(editWindow),
                 _instantiateAddPointButtonActionHandler(),
-                _instantiatePointDrawingActionHandler()
+                _instantiatePointDrawingActionHandler(),
+                _instantiateRemovePointButtonActionHandler(),
+                _instantiatePointErasingActionHandler()
             ];
         }
 
