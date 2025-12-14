@@ -6,7 +6,7 @@ using System.Windows.Input;
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.Utilities.Mocks
 {
-    public class MouseEventPositionExtractorMock : AbstractMouseEventPositionExtractor
+    public class MockMouseEventPositionExtractor : AbstractMouseEventPositionExtractor
     {
         public List<string> CallOrder = [];
 

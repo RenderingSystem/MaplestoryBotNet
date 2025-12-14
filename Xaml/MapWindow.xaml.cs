@@ -24,15 +24,19 @@ namespace MaplestoryBotNet.Xaml
             NumericPropertyRight = 0;
             NumericPropertyTop = 0;
             NumericPropertyLeft = 0;
+            NumericPropertyX = 0;
+            NumericPropertyY = 0;
         }
 
         private int SetValidatedProperty(
             ref int field,
             int value,
+            int minValue,
+            int maxValue,
             [CallerMemberName] string propertyName = ""
         )
         {
-            if (value >= 0 && value <= 9999)
+            if (value >= minValue && value <= maxValue)
             {
                 field = value;
                 OnPropertyChanged(propertyName);
@@ -45,7 +49,7 @@ namespace MaplestoryBotNet.Xaml
         public int NumericPropertyBottom
         {
             get => _numericPropertyBottom;
-            set => SetValidatedProperty(ref _numericPropertyBottom, value);
+            set => SetValidatedProperty(ref _numericPropertyBottom, value, 0, 9999);
         }
 
         private int _numericPropertyRight;
@@ -53,7 +57,7 @@ namespace MaplestoryBotNet.Xaml
         public int NumericPropertyRight
         {
             get => _numericPropertyRight;
-            set => SetValidatedProperty(ref _numericPropertyRight, value);
+            set => SetValidatedProperty(ref _numericPropertyRight, value, 0, 9999);
         }
 
         private int _numericPropertyTop;
@@ -61,7 +65,7 @@ namespace MaplestoryBotNet.Xaml
         public int NumericPropertyTop
         {
             get => _numericPropertyTop;
-            set => SetValidatedProperty(ref _numericPropertyTop, value);
+            set => SetValidatedProperty(ref _numericPropertyTop, value, 0, 9999);
         }
 
         private int _numericPropertyLeft;
@@ -69,7 +73,23 @@ namespace MaplestoryBotNet.Xaml
         public int NumericPropertyLeft
         {
             get => _numericPropertyLeft;
-            set => SetValidatedProperty(ref _numericPropertyLeft, value);
+            set => SetValidatedProperty(ref _numericPropertyLeft, value, 0, 9999);
+        }
+
+        private int _numericPropertyX;
+
+        public int NumericPropertyX
+        {
+            get => _numericPropertyX;
+            set => SetValidatedProperty(ref _numericPropertyX, value, 0, 9999);
+        }
+
+        private int _numericPropertyY;
+
+        public int NumericPropertyY
+        {
+            get => _numericPropertyY;
+            set => SetValidatedProperty(ref _numericPropertyY, value, 0, 9999);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -147,6 +167,18 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
+        private AbstractWindowActionHandler _instantiateSelectPointActionHandler()
+        {
+            return new WindowMapCanvasSelectActionHandlerFacade(
+                MapCanvas,
+                LocationTextBoxX,
+                LocationTextBoxY,
+                LabelTextBox,
+                _editMenuState,
+                new MouseEventPositionExtractor()
+            );
+        }
+
         public List<AbstractWindowActionHandler> InstantiateActionHandlers(
             AbstractSystemWindow editWindow
         )
@@ -157,7 +189,8 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateAddPointButtonActionHandler(),
                 _instantiatePointDrawingActionHandler(),
                 _instantiateRemovePointButtonActionHandler(),
-                _instantiatePointErasingActionHandler()
+                _instantiatePointErasingActionHandler(),
+                _instantiateSelectPointActionHandler()
             ];
         }
 

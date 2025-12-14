@@ -11,6 +11,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using Vortice.Direct3D11;
 
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
@@ -108,7 +109,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private WindowMapEditMenuState _menuState;
 
-        private MouseEventPositionExtractorMock _mousePositionExtractor;
+        private MockMouseEventPositionExtractor _mousePositionExtractor;
 
         private MouseButtonEventArgs _mouseButtonEvent;
 
@@ -125,7 +126,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             _canvas = new Canvas();
             _menuState = new WindowMapEditMenuState();
-            _mousePositionExtractor = new MouseEventPositionExtractorMock();
+            _mousePositionExtractor = new MockMouseEventPositionExtractor();
             _mouseButtonEvent = new MouseButtonEventArgs(
                 Mouse.PrimaryDevice, 123, MouseButton.Left
             )
@@ -150,7 +151,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 Height = 200
             };
             _menuState = new WindowMapEditMenuState();
-            _mousePositionExtractor = new MouseEventPositionExtractorMock();
+            _mousePositionExtractor = new MockMouseEventPositionExtractor();
             _mouseButtonEvent = new MouseButtonEventArgs(
                 Mouse.PrimaryDevice, 123, MouseButton.Left
             )
@@ -650,7 +651,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private WindowMapEditMenuState _menuState;
 
-        private MouseEventPositionExtractorMock _mousePositionExtractor;
+        private MockMouseEventPositionExtractor _mousePositionExtractor;
 
         private MapModel _mapModel;
 
@@ -667,7 +668,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             _canvas = new Canvas();
             _menuState = new WindowMapEditMenuState();
-            _mousePositionExtractor = new MouseEventPositionExtractorMock();
+            _mousePositionExtractor = new MockMouseEventPositionExtractor();
             _mapModel = new MapModel();
             _mouseButtonEvent = new MouseButtonEventArgs(
                 Mouse.PrimaryDevice, 123, MouseButton.Left
@@ -690,7 +691,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             _canvas = new Canvas();
             _menuState = new WindowMapEditMenuState();
-            _mousePositionExtractor = new MouseEventPositionExtractorMock();
+            _mousePositionExtractor = new MockMouseEventPositionExtractor();
             _mapModel = new MapModel();
             return new WindowMapCanvasPointErasingActionHandlerFacade(
                 _canvas, _menuState, _mousePositionExtractor
@@ -741,8 +742,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @test _testClickingOnValidPointRemovesFromCanvas
-         * 
          * Validates precise hit detection within point boundaries when in Remove mode.
          * Tests click coordinates in an 11x11 grid (±5 pixels) around a test point
          * to ensure all clicks within the defined detection range (10x10) successfully
@@ -763,12 +762,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _canvas.RaiseEvent(_mouseButtonEvent);
                 Debug.Assert(_mapModel.Points().Count == 0);
                 Debug.Assert(_canvas.Children.Count == 0);
-                }
+            }
         }
 
         /**
-         * @test _testClickingOnEmptyLocationDoesNotRemoveCanvas
-         * 
          * Tests that clicks outside point detection boundaries do not trigger removal.
          * Executes clicks in a 21x21 grid but skips the central 11x11 valid area,
          * verifying that only clicks within the precise detection range are processed.
@@ -790,12 +787,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _canvas.RaiseEvent(_mouseButtonEvent);
                 Debug.Assert(_mapModel.Points().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
-                }
+            }
         }
 
         /**
-         * @test _testClickingOnValidPointDoesNotRemoveWhenNotInRemoveState
-         * 
          * Ensures point removal only occurs when menu is explicitly in Remove mode.
          * Tests that clicks on valid points while in Select mode (or other modes)
          * do not trigger removal, protecting against accidental deletion during
@@ -820,14 +815,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @test _testClickingOnValidPointDoesNotRemoveWhenNotModelNotInjected
-         * 
          * Validates that the erasing handler requires proper dependency injection.
          * Tests that point removal is blocked when the MapModel dependency hasn't
          * been injected, preventing system errors and ensuring robust error handling
          * for missing dependencies.
          */
-        private void _testClickingOnValidPointDoesNotRemoveWhenNotModelNotInjected()
+        private void _testClickingOnValidPointDoesNotRemoveWhenModelNotInjected()
         {
             for (int i = -5; i <= 5; i++)
             for (int j = -5; j <= 5; j++)
@@ -855,7 +848,262 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _testClickingOnValidPointRemovesFromCanvas();
             _testClickingOnEmptyLocationDoesNotRemoveCanvas();
             _testClickingOnValidPointDoesNotRemoveWhenNotInRemoveState();
-            _testClickingOnValidPointDoesNotRemoveWhenNotModelNotInjected();
+            _testClickingOnValidPointDoesNotRemoveWhenModelNotInjected();
+        }
+    }
+
+
+    public class WindowMapCanvasSelectActionHandlerTests
+    {
+        private Canvas _canvas;
+
+        private TextBox _textBoxX;
+
+        private TextBox _textBoxY;
+
+        private TextBox _textBoxName;
+
+        private AbstractWindowMapEditMenuState _menuState;
+
+        private MapModel _mapModel;
+
+        private MockMouseEventPositionExtractor _mousePositionExtractor;
+
+        private MouseButtonEventArgs _mouseButtonEvent;
+
+        /**
+         * @brief Constructs a complete test environment with all necessary components for point
+         * selection testing.
+         * 
+         * Prepares a clean canvas, empty text fields for point information display, a fresh map data model,
+         * and mock mouse interaction capabilities. This setup ensures each test starts with a consistent
+         * and isolated environment, eliminating interference between test cases and providing reliable results.
+         */
+        public WindowMapCanvasSelectActionHandlerTests()
+        {
+            _canvas = new Canvas();
+            _textBoxX = new TextBox();
+            _textBoxY = new TextBox();
+            _textBoxName = new TextBox();
+            _menuState = new WindowMapEditMenuState();
+            _mapModel = new MapModel();
+            _mousePositionExtractor = new MockMouseEventPositionExtractor();
+            _mouseButtonEvent = new MouseButtonEventArgs(
+                Mouse.PrimaryDevice, 123, MouseButton.Left
+            )
+            {
+                RoutedEvent = UIElement.MouseLeftButtonDownEvent,
+                Source = _canvas,
+            };
+        }
+
+        /**
+         * @brief Creates a configured instance of the selection handler with all test dependencies
+         * properly initialized.
+         * 
+         * Builds and returns a fully configured WindowMapCanvasSelectActionHandlerFacade instance with
+         * all necessary UI components, menu state, and mouse input handlers. This method ensures each
+         * test receives a fresh handler instance to prevent state contamination between test executions.
+         * 
+         * @return A ready-to-use selection handler instance configured for testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _canvas = new Canvas();
+            _textBoxX = new TextBox();
+            _textBoxY = new TextBox();
+            _textBoxName = new TextBox();
+            _menuState = new WindowMapEditMenuState();
+            _mapModel = new MapModel();
+            _mouseButtonEvent = new MouseButtonEventArgs(
+                Mouse.PrimaryDevice, 123, MouseButton.Left
+            )
+            {
+                RoutedEvent = UIElement.MouseLeftButtonDownEvent,
+                Source = _canvas,
+            };
+            return new WindowMapCanvasSelectActionHandlerFacade(
+                _canvas,
+                _textBoxX,
+                _textBoxY,
+                _textBoxName,
+                _menuState,
+                _mousePositionExtractor
+            );
+        }
+
+        /**
+         * @brief Helper method to add a test point to both model and canvas
+         * 
+         * @param x X-coordinate of the point
+         * @param y Y-coordinate of the point
+         * @param xRange Horizontal detection range around the point
+         * @param yRange Vertical detection range around the point
+         * @param label Display label for the point
+         * @param name Internal identifier for the point
+         * 
+         * Creates a complete point representation with both data model entry
+         * and corresponding visual canvas element for comprehensive testing.
+         */
+        private void _addPoint(
+            double x,
+            double y,
+            double xRange,
+            double yRange,
+            string label,
+            string name
+        )
+        {
+            _mapModel.Add(
+                new MinimapPoint
+                {
+                    X = x,
+                    Y = y,
+                    XRange = xRange,
+                    YRange = yRange,
+                    PointData = new MinimapPointData
+                    {
+                        ElementName = name,
+                        PointName = label,
+                        Commands = []
+                    }
+                }
+            );
+            var canvas = new Canvas { Name = name };
+            _canvas.Children.Add(canvas);
+            Canvas.SetLeft(canvas, x);
+            Canvas.SetTop(canvas, y);
+        }
+
+        /**
+         * @brief Validates that clicking directly on a point or within its defined detection area
+         * successfully selects it.
+         * 
+         * Tests the fundamental selection mechanism by simulating clicks at every position within a point's
+         * interactive boundary. This test ensures users don't need pixel-perfect accuracy to select points
+         * and that the entire declared interactive area responds consistently to selection attempts.
+         */
+        private void _testClickingOnValidPointSelects()
+        {
+            for (int i = -5; i <= 5; i++)
+            for (int j = -5; j <= 5; j++)
+            {
+                var handler = _fixture();
+                handler.Inject(SystemInjectType.MapModel, _mapModel);
+                _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+                _addPoint(123, 234, 10, 10, "lol1", "lol2");
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
+                _canvas.RaiseEvent(_mouseButtonEvent);
+                Debug.Assert(((FrameworkElement)_menuState.Selected()!).Name == "lol2");
+                Debug.Assert(_mapModel.SelectedPoint()!.PointData.ElementName == "lol2");
+            }
+        }
+
+        /**
+         * @brief Validates that clicking outside a point's detection area does not trigger selection.
+         * 
+         * Tests the precision of the selection system by simulating clicks just beyond the point's
+         * interactive boundaries. This ensures that users can click near points without unintentionally
+         * selecting them, maintaining clean and intentional interaction with the map canvas.
+         */
+        private void _testClickingOnEmptyPointDoesNotSelect()
+        {
+            for (int i = -10; i <= 10; i++)
+            for (int j = -10; j <= 10; j++)
+            {
+                if (i >= -5 && i <= 5) continue;
+                if (j >= -5 && j <= 5) continue;
+                var handler = _fixture();
+                handler.Inject(SystemInjectType.MapModel, _mapModel);
+                _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+                _addPoint(123, 234, 10, 10, "lol1", "lol2");
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
+                _canvas.RaiseEvent(_mouseButtonEvent);
+                Debug.Assert(_menuState.Selected() == null);
+                Debug.Assert(_mapModel.SelectedPoint() == null);
+            }
+        }
+
+
+        /**
+         * @brief Validates that selecting a point automatically displays its information in the associated
+         * edit fields.
+         * 
+         * Tests the data synchronization between point selection and the user interface by verifying that
+         * a point's name, X-coordinate, and Y-coordinate immediately appear in their respective text boxes
+         * upon selection. This ensures users can see and edit point details without additional steps.
+         */
+        private void _testClickingOnValidPointSetsTextBoxValues()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+            _addPoint(123, 234, 10, 10, "lol1", "lol2");
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
+            _canvas.RaiseEvent(_mouseButtonEvent);
+            Debug.Assert(_textBoxName.Text == "lol1");
+            Debug.Assert(_textBoxX.Text == "123");
+            Debug.Assert(_textBoxY.Text == "234");
+        }
+
+        /**
+         * @brief Validates that point selection is properly disabled when not in selection mode.
+         * 
+         * Tests the mode-awareness of the selection system by attempting point selection while in
+         * "Add" mode instead of "Select" mode. This ensures the interface prevents conflicting
+         * operations and maintains clear separation between different editing functions.
+         */
+        private void _testClickingOnValidPointDoesNotSelectWhenNotInSelectState()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _menuState.SetState(WindowMapEditMenuStateTypes.Add);
+            _addPoint(123, 234, 10, 10, "lol1", "lol2");
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
+            _canvas.RaiseEvent(_mouseButtonEvent);
+            Debug.Assert(_menuState.Selected() == null);
+            Debug.Assert(_mapModel.SelectedPoint() == null);
+            Debug.Assert(_textBoxName.Text == "");
+            Debug.Assert(_textBoxX.Text == "");
+            Debug.Assert(_textBoxY.Text == "");
+        }
+
+        /**
+         * @brief Validates that the selection system fails gracefully without proper data model
+         * initialization.
+         * 
+         * Tests the dependency requirements of the selection system by attempting point selection without
+         * injecting the necessary data model. This ensures the system doesn't crash or behave unpredictably
+         * when underlying data structures are missing, providing robust error handling.
+         */
+        private void _testClickingOnValidPointDoesNotSelectWhenModelNotInjected()
+        {
+            var handler = _fixture();
+            _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+            _addPoint(123, 234, 10, 10, "lol1", "lol2");
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
+            _canvas.RaiseEvent(_mouseButtonEvent);
+            Debug.Assert(_menuState.Selected() == null);
+            Debug.Assert(_mapModel.SelectedPoint() == null);
+            Debug.Assert(_textBoxName.Text == "");
+            Debug.Assert(_textBoxX.Text == "");
+            Debug.Assert(_textBoxY.Text == "");
+        }
+
+        /*
+         * @brief Executes the complete battery of point selection validation tests in sequence.
+         * 
+         * Orchestrates the execution of all individual test scenarios to validate the entire point
+         * selection system. This method serves as the main entry point for running the test suite
+         * and ensures comprehensive coverage of selection functionality.
+         */
+        public void Run()
+        {
+            _testClickingOnValidPointSelects();
+            _testClickingOnValidPointSetsTextBoxValues();
+            _testClickingOnEmptyPointDoesNotSelect();
+            _testClickingOnValidPointDoesNotSelectWhenNotInSelectState();
+            _testClickingOnValidPointDoesNotSelectWhenModelNotInjected();
         }
     }
 
@@ -869,6 +1117,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new MapCanvasAddPointButtonActionHandlerTests().Run();
             new MapCanvasRemovePointButtonActionHandlerTests().Run();
             new WindowMapCanvasPointErasingActionHandlerTests().Run();
+            new WindowMapCanvasSelectActionHandlerTests().Run();
         }
     }
 }

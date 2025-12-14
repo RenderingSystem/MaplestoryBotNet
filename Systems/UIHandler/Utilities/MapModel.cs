@@ -63,19 +63,17 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public abstract MinimapPoint? SelectedPoint();
 
-        public abstract void EditSelected(MinimapPoint point);
-
-        public abstract void Add(MinimapPoint point);
-
-        public abstract void RemovePoint(MinimapPoint point);
-
-        public abstract void SelectPoint(MinimapPoint point);
-
         public abstract void SelectName(string name);
 
         public abstract void SelectLabel(string label);
 
         public abstract void Deselect();
+
+        public abstract void EditSelected(MinimapPoint point);
+
+        public abstract void Add(MinimapPoint point);
+
+        public abstract void RemoveName(string name);
 
         public abstract void Clear();
 
@@ -109,6 +107,45 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 _pointsLock.ExitReadLock();
             }
             return pointsCopy;
+        }
+
+        public override void SelectName(string name)
+        {
+            try
+            {
+                _pointsLock.EnterWriteLock();
+                _selectedPoint = _points.FirstOrDefault(p => p.PointData.ElementName == name);
+            }
+            finally
+            {
+                _pointsLock.ExitWriteLock(); 
+            }
+        }
+
+        public override void SelectLabel(string label)
+        {
+            try
+            {
+                _pointsLock.EnterWriteLock();
+                _selectedPoint = _points.FirstOrDefault(p => p.PointData.PointName == label);
+            }
+            finally
+            {
+                _pointsLock.ExitWriteLock();
+            }
+        }
+
+        public override void Deselect()
+        {
+            try
+            {
+                _pointsLock.EnterWriteLock();
+                _selectedPoint = null;
+            }
+            finally
+            {
+                _pointsLock.ExitWriteLock();
+            }
         }
 
         public override MinimapPoint? SelectedPoint()
@@ -163,13 +200,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             }
         }
 
-        public override void RemovePoint(MinimapPoint point)
+        public override void RemoveName(string name)
         {
             try
             {
                 _pointsLock.EnterWriteLock();
                 var pointToRemove = _points.Find(
-                    p => p.PointData.ElementName == point.PointData.ElementName
+                    p => p.PointData.ElementName == name
                 );
                 if (pointToRemove != null)
                 {
@@ -180,52 +217,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             finally
             {
                 _pointsLock.ExitWriteLock(); 
-            }
-        }
-
-        public override void SelectPoint(MinimapPoint point)
-        {
-            try
-            {
-                _pointsLock.EnterWriteLock();
-                if (_points.Contains(point))
-                {
-                    _selectedPoint = point;
-                }
-            }
-            finally
-            {
-                _pointsLock.ExitWriteLock();
-            }
-        }
-
-        public override void SelectName(string name)
-        {
-            try
-            {
-                _pointsLock.EnterWriteLock();
-                _selectedPoint = _points.Find(
-                    point => point.PointData.ElementName == name
-                );
-            }
-            finally
-            {
-                _pointsLock.ExitWriteLock();
-            }
-        }
-
-        public override void SelectLabel(string label)
-        {
-            try
-            {
-                _pointsLock.EnterWriteLock();
-                _selectedPoint = _points.Find(
-                    point => point.PointData.PointName == label
-                );
-            }
-            finally
-            {
-                _pointsLock.ExitWriteLock();
             }
         }
 
@@ -274,19 +265,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             finally
             {
                 _pointsLock.ExitWriteLock();
-            }
-        }
-
-        public override void Deselect()
-        {
-            try
-            {
-                _pointsLock.EnterWriteLock();
-                _selectedPoint = null;
-            }
-            finally
-            {
-                _pointsLock.ExitWriteLock(); 
             }
         }
     }

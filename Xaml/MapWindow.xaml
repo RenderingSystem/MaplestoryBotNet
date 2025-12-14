@@ -123,45 +123,13 @@
                 FontSize="10"
             />
             <Label
-                Content="Name:"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="412,141,0,0"
-                VerticalAlignment="Top"
-                Width="41"
-                Foreground="White"
-                FontSize="10"
-            />
-            <Label
-                x:Name="SelectedMacroName"
-                Content="Lorem Ipsum"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="454,141,0,0"
-                VerticalAlignment="Top"
-                Width="96"
-                Foreground="Lime"
-                FontSize="10"
-            />
-            <Label
                 Content="Location:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="412,162,0,0"
+                Margin="405,163,0,0"
                 VerticalAlignment="Top"
                 Width="64"
                 Foreground="White"
-                FontSize="10"
-            />
-            <Label
-                x:Name="SelectedMacroLocation"
-                Content="xxxx, yyyy"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="481,162,0,0"
-                VerticalAlignment="Top"
-                Width="91"
-                Foreground="Lime"
                 FontSize="10"
             />
             <Label
@@ -220,6 +188,7 @@
                 Margin="464,96,10,265"
                 Background="Black"
                 Foreground="Lime"
+                FontFamily="Courier New"
                 Text="{Binding NumericPropertyBottom, UpdateSourceTrigger=LostFocus}" 
                 PreviewTextInput="NumberValidationTextBox"
                 DataObject.Pasting="NumberValidationPasting"
@@ -230,6 +199,7 @@
                 Margin="464,75,10,285"
                 Background="Black"
                 Foreground="Lime"
+                FontFamily="Courier New"
                 Text="{Binding NumericPropertyRight, UpdateSourceTrigger=LostFocus}"
                 PreviewTextInput="NumberValidationTextBox"
                 DataObject.Pasting="NumberValidationPasting"
@@ -240,6 +210,7 @@
                 Margin="464,53,10,307"
                 Background="Black"
                 Foreground="Lime"
+                FontFamily="Courier New"
                 Text="{Binding NumericPropertyTop, UpdateSourceTrigger=LostFocus}"
                 PreviewTextInput="NumberValidationTextBox"
                 DataObject.Pasting="NumberValidationPasting"
@@ -250,10 +221,73 @@
                 Margin="464,31,10,328"
                 Background="Black"
                 Foreground="Lime"
+                FontFamily="Courier New"
                 Text="{Binding NumericPropertyLeft, UpdateSourceTrigger=LostFocus}"
                 PreviewTextInput="NumberValidationTextBox"
                 DataObject.Pasting="NumberValidationPasting"
                 TabIndex="0"
+            />
+            <TextBox
+                x:Name="LocationTextBoxX"
+                Margin="464,188,10,173"
+                Background="Black"
+                Foreground="Lime"
+                FontFamily="Courier New"
+                Text="{Binding NumericPropertyX, UpdateSourceTrigger=LostFocus}" 
+                PreviewTextInput="NumberValidationTextBox"
+                DataObject.Pasting="NumberValidationPasting"
+                TabIndex="5"
+            />
+            <Label
+                Content="X:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="413,187,0,0"
+                VerticalAlignment="Top"
+                Width="24"
+                FontSize="10"
+                Foreground="White"
+            />
+            <TextBox
+                x:Name="LocationTextBoxY"
+                Margin="464,208,10,153"
+                Background="Black"
+                Foreground="Lime"
+                FontFamily="Courier New"
+                Text="{Binding NumericPropertyY, UpdateSourceTrigger=LostFocus}" 
+                PreviewTextInput="NumberValidationTextBox"
+                DataObject.Pasting="NumberValidationPasting"
+                TabIndex="6"
+            />
+            <Label
+                Content="Y:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="413,207,0,0"
+                VerticalAlignment="Top"
+                Width="24"
+                FontSize="10"
+                Foreground="White"
+            />
+            <TextBox
+                x:Name="LabelTextBox"
+                Margin="464,143,10,218"
+                Background="Black"
+                Foreground="LightYellow"
+                FontFamily="Courier New"
+                TabIndex="4"
+                IsReadOnly="True"
+            />
+            <Label
+                Content="Label:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="414,142,0,0"
+                VerticalAlignment="Top"
+                Width="45"
+                FontSize="10"
+                Foreground="White"
+                RenderTransformOrigin="0.509,1.614"
             />
         </Grid>
     </Viewbox>
