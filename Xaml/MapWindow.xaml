@@ -78,12 +78,47 @@
                 Margin="270,355,0,0"
                 Padding="2,2,2,2"
                 VerticalAlignment="Top"
-                Foreground="White"
-                Background="Black"
-                BorderBrush="White"
+                IsEnabled="False"
                 Width="130"
                 IsTabStop="False"
-            />
+            >
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="border"
+                            Background="Black"
+                            BorderBrush="White"
+                            BorderThickness="1"
+                        >
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Margin="{TemplateBinding Padding}"
+                                RecognizesAccessKey="True"
+                            />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="BorderBrush" Value="Gray"/>
+                                <Setter TargetName="border" Property="Background" Value="Black"/>
+                                <Setter Property="Foreground" Value="#A0A0A0"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="White"/>
+                                <Setter TargetName="border" Property="Background" Value="Black"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="LightSkyBlue"/>
+                                <Setter TargetName="border" Property="Background" Value="#BEE6FD"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="LightBlue"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
             <Button
                 x:Name="SaveButton"
                 FontFamily="Courier New"
@@ -242,7 +277,7 @@
                 Content="X:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="413,187,0,0"
+                Margin="412,187,0,0"
                 VerticalAlignment="Top"
                 Width="24"
                 FontSize="10"
@@ -263,7 +298,7 @@
                 Content="Y:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="413,207,0,0"
+                Margin="412,207,0,0"
                 VerticalAlignment="Top"
                 Width="24"
                 FontSize="10"
@@ -282,7 +317,7 @@
                 Content="Label:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="414,142,0,0"
+                Margin="412,141,0,0"
                 VerticalAlignment="Top"
                 Width="45"
                 FontSize="10"

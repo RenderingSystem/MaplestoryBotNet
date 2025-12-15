@@ -90,7 +90,6 @@
 
   <ItemGroup>
     <Folder Include="Images\Ailments\" />
-    <Folder Include="Xaml\Resources\" />
   </ItemGroup>
 
   <ItemGroup>

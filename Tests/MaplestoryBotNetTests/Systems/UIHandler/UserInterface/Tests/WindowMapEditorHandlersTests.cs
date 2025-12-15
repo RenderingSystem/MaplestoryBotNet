@@ -1378,6 +1378,123 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    /**
+     * @class WindowMapCanvasEditButtonAccessibilityActionHandlerTests
+     * 
+     * @brief Validates the dynamic enable/disable behavior of the edit button based on canvas
+     * interactions and selection state
+     * 
+     * This test suite verifies the accessibility rules governing the edit button, ensuring it becomes
+     * enabled only when a point is selected and disabled when no point is selected.
+     */
+    public class WindowMapCanvasEditButtonAccessibilityActionHandlerTests
+    {
+        private Canvas _canvas;
+
+        private Button _editButton;
+
+        private AbstractWindowMapEditMenuState _menuState;
+
+        private MouseButtonEventArgs _mouseButtonDownEvent;
+
+        /**
+         * @brief Constructs a test environment with canvas, edit button, menu state, and mouse event
+         * simulation
+         * 
+         * Initializes the core components required for testing edit button accessibility rules:
+         * a canvas for simulating user interactions, an edit button for testing enable/disable states,
+         * a menu state controller for managing selection status, and mock mouse events to simulate
+         * user clicks on the canvas surface.
+         */
+        public WindowMapCanvasEditButtonAccessibilityActionHandlerTests()
+        {
+            _canvas = new Canvas();
+            _editButton = new Button();
+            _menuState = new WindowMapEditMenuState();
+            _mouseButtonDownEvent = new MouseButtonEventArgs(
+                Mouse.PrimaryDevice, 123, MouseButton.Left
+            )
+            {
+                RoutedEvent = UIElement.MouseLeftButtonDownEvent,
+                Source = _canvas,
+            };
+        }
+
+
+        /**
+         * @brief Creates a configured instance of the accessibility action handler with test dependencies
+         * 
+         * Builds and returns a fully initialized instance with fresh canvas, edit button, and menu
+         * state components. This ensures each test receives a clean handler instance with consistent
+         * initial conditions for validating accessibility state transitions.
+         * 
+         * @return A ready-to-use accessibility handler instance configured for testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _canvas = new Canvas();
+            _editButton = new Button();
+            _menuState = new WindowMapEditMenuState();
+            _mouseButtonDownEvent = new MouseButtonEventArgs(
+                Mouse.PrimaryDevice, 123, MouseButton.Left
+            )
+            {
+                RoutedEvent = UIElement.MouseLeftButtonDownEvent,
+                Source = _canvas,
+            };
+            return new WindowMapCanvasEditButtonAccessibilityActionHandlerFacade(
+                _canvas, _editButton, _menuState
+            );
+        }
+
+        /**
+         * @brief Validates that clicking on the canvas with a selected point enables the edit button
+         * 
+         * Tests the positive accessibility case by simulating a canvas click while a point is
+         * currently selected in the menu state. This ensures the edit button becomes enabled
+         * when users have a valid point selected, allowing them to access editing functionality
+         * for the chosen point.
+         */
+        private void _testClickingOnCanvasEnablesEditButton()
+        {
+            var handler = _fixture();
+            _editButton.IsEnabled = false;
+            _menuState.Select(new FrameworkElement());
+            _canvas.RaiseEvent(_mouseButtonDownEvent);
+            Debug.Assert(_editButton.IsEnabled);
+        }
+
+        /**
+         * @brief Validates that clicking on the canvas without a selected point disables the edit button
+         * 
+         * Tests the negative accessibility case by simulating a canvas click while no point is
+         * currently selected. This ensures the edit button remains disabled when users don't have
+         * a valid point selected, preventing access to editing functionality until a point is chosen.
+         */
+        private void _testClickingOnCanvasDisablesEditButton()
+        {
+            var handler = _fixture();
+            _editButton.IsEnabled = true;
+            _menuState.Deselect();
+            _canvas.RaiseEvent(_mouseButtonDownEvent);
+            Debug.Assert(!_editButton.IsEnabled);
+        }
+
+        /**
+         * @brief Executes the complete battery of edit button accessibility validation tests in
+         * sequence
+         * 
+         * Orchestrates the execution of both accessibility test scenarios to validate the
+         * edit button state management system.
+         */
+        public void Run()
+        {
+            _testClickingOnCanvasEnablesEditButton();
+            _testClickingOnCanvasDisablesEditButton();
+        }
+    }
+
+
     public class WindowMapEditorHandlersTestSuite
     {
         public void Run()
@@ -1389,6 +1506,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMapCanvasPointErasingActionHandlerTests().Run();
             new WindowMapCanvasSelectActionHandlerTests().Run();
             new WindowMapCanvasDragActionHandlerTests().Run();
+            new WindowMapCanvasEditButtonAccessibilityActionHandlerTests().Run();
         }
     }
 }

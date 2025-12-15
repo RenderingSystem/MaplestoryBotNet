@@ -971,6 +971,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             }
         }
 
+        private void _clearUITexts()
+        {
+            _selectedTextBox.Text = "";
+            _selectedTextX.Text = "0";
+            _selectedTextY.Text = "0";
+        }
+
         public override void Modify(object? value)
         {
             if (value is WindowMapCanvasSelectModifierParameters parameters)
@@ -986,6 +993,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 else
                 {
                     _menuState.Deselect();
+                    _clearUITexts();
                 }
             }
         }
@@ -1239,9 +1247,18 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (_menuState.GetState() != WindowMapEditMenuStateTypes.Select) return;
-            if (_mapModel == null) return;
-            if (e is not RoutedEventArgs rea) return;
+            if (_menuState.GetState() != WindowMapEditMenuStateTypes.Select)
+            {
+                return;
+            }
+            if (_mapModel == null)
+            {
+                return;
+            }
+            if (e is not RoutedEventArgs rea)
+            {
+                return;
+            }
             if (rea.RoutedEvent == UIElement.MouseLeftButtonDownEvent)
             {
                 _handleMouseLeftButtonDown((MouseButtonEventArgs) e);
@@ -1292,6 +1309,89 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override void OnEvent(object? sender, EventArgs e)
         {
             _mapCanvasDragActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowMapCanvasEditButtonAccessibilityModifier : AbstractWindowStateModifier
+    {
+        AbstractWindowMapEditMenuState _menuState;
+
+        Button _editButton;
+
+        public WindowMapCanvasEditButtonAccessibilityModifier(
+            Button editButton,
+            AbstractWindowMapEditMenuState menuState
+        )
+        {
+            _menuState = menuState;
+            _editButton = editButton;
+        }
+
+        public override void Modify(object? value)
+        {
+            _editButton.IsEnabled = _menuState.Selected() != null;
+        }
+    }
+
+
+    public class WindowMapCanvasEditButtonAccessibilityActionHandler : AbstractWindowActionHandler
+    {
+        private Canvas _canvas;
+
+        private AbstractWindowStateModifier _mapCanvasEditButtonAccessibilityModifier;
+
+        public WindowMapCanvasEditButtonAccessibilityActionHandler(
+            Canvas canvas,
+            AbstractWindowStateModifier mapCanvasEditButtonAccessibilityModifier
+       
+        )
+        {
+            _canvas = canvas;
+            _mapCanvasEditButtonAccessibilityModifier = mapCanvasEditButtonAccessibilityModifier;
+            _canvas.MouseLeftButtonDown += OnEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapCanvasEditButtonAccessibilityModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapCanvasEditButtonAccessibilityModifier.Modify(null);
+        }
+    }
+
+
+    public class WindowMapCanvasEditButtonAccessibilityActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private WindowMapCanvasEditButtonAccessibilityActionHandler _mapCanvasEditButtonAccessibilityActionHandler;
+
+        public WindowMapCanvasEditButtonAccessibilityActionHandlerFacade(
+            Canvas canvas,
+            Button editButton,
+            AbstractWindowMapEditMenuState menuState
+        )
+        {
+            _mapCanvasEditButtonAccessibilityActionHandler = new WindowMapCanvasEditButtonAccessibilityActionHandler(
+                canvas, new WindowMapCanvasEditButtonAccessibilityModifier(editButton, menuState)
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapCanvasEditButtonAccessibilityActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapCanvasEditButtonAccessibilityActionHandler.OnEvent(sender, e);
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            _mapCanvasEditButtonAccessibilityActionHandler.Inject(dataType, data);
         }
     }
 }

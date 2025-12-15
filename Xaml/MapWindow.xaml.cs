@@ -190,6 +190,13 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
+        private AbstractWindowActionHandler _instantiateEditButtonAccessibilityActionHandler()
+        {
+            return new WindowMapCanvasEditButtonAccessibilityActionHandlerFacade(
+                MapCanvas, EditButton, _editMenuState
+
+            );
+        }
         public List<AbstractWindowActionHandler> InstantiateActionHandlers(
             AbstractSystemWindow editWindow
         )
@@ -202,7 +209,8 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateRemovePointButtonActionHandler(),
                 _instantiatePointErasingActionHandler(),
                 _instantiateSelectPointActionHandler(),
-                _instantiateDragPointActionHandler()
+                _instantiateDragPointActionHandler(),
+                _instantiateEditButtonAccessibilityActionHandler()
             ];
         }
 
