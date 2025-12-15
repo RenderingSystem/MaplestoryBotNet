@@ -16,6 +16,58 @@ using Vortice.Direct3D11;
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 {
+
+    public class MapCanvasPointAdder
+    {
+        /**
+         * @brief Helper method to add a test point to both model and canvas
+         * 
+         * @param canvas The parent Canvas where the visual element will be added
+         * @param mapModel The data model where the point definition will be stored
+         * @param x X-coordinate of the point in canvas units
+         * @param y Y-coordinate of the point in canvas units
+         * @param xRange Horizontal detection range around the point for hit testing
+         * @param yRange Vertical detection range around the point for hit testing
+         * @param label Display label shown to users (for tooltips/UI)
+         * @param name Unique identifier used to link the model entry with its visual element
+         * 
+         * Creates a complete point representation with both data model entry
+         * and corresponding visual canvas element for comprehensive testing.
+         */
+        public void AddPoint(
+            Canvas canvas,
+            MapModel mapModel,
+            double x,
+            double y,
+            double xRange,
+            double yRange,
+            string label,
+            string name
+        )
+        {
+            mapModel.Add(
+                new MinimapPoint
+                {
+                    X = x,
+                    Y = y,
+                    XRange = xRange,
+                    YRange = yRange,
+                    PointData = new MinimapPointData
+                    {
+                        ElementName = name,
+                        PointName = label,
+                        Commands = []
+                    }
+                }
+            );
+            var child = new Canvas { Name = name };
+            canvas.Children.Add(child);
+            Canvas.SetLeft(child, x);
+            Canvas.SetTop(child, y);
+        }
+    }
+
+
     /**
      * @class WindowMapEditMenuActionHandlerTests
      * 
@@ -352,15 +404,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _mousePositionExtractor.GetPositionReturn.Add(new Point(12, 23));
             _mousePositionExtractor.GetPositionReturn.Add(new Point(23, 34));
             _canvas.RaiseEvent(_mouseButtonEvent);
-            _mapModel.SelectLabel("P0");
-            var selectedPoint = _mapModel.SelectedPoint();
-            selectedPoint!.PointData.PointName = "P1";
-            _mapModel.EditSelected(selectedPoint);
-            _mapModel.Deselect();
+            Debug.Assert(_canvas.Children.Count == 1);
+            var selectedPoint = _mapModel.FindLabel("P0")!;
+            selectedPoint.PointData.PointName = "P1";
+            _mapModel.Edit(selectedPoint);
             _canvas.RaiseEvent(_mouseButtonEvent);
-            _mapModel.SelectLabel("P2");
-            Debug.Assert(_mapModel.SelectedPoint() != null);
-            Debug.Assert(_mapModel.SelectedPoint()!.PointData.PointName == "P2");
+            Debug.Assert(_canvas.Children.Count == 2);
+            Debug.Assert(_mapModel.FindLabel("P2") != null);
         }
 
         public void Run()
@@ -699,49 +749,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Helper method to add a test point to both model and canvas
-         * 
-         * @param x X-coordinate of the point
-         * @param y Y-coordinate of the point
-         * @param xRange Horizontal detection range around the point
-         * @param yRange Vertical detection range around the point
-         * @param label Display label for the point
-         * @param name Internal identifier for the point
-         * 
-         * Creates a complete point representation with both data model entry
-         * and corresponding visual canvas element for comprehensive testing.
-         */
-        private void _addPoint(
-            double x,
-            double y,
-            double xRange,
-            double yRange,
-            string label,
-            string name
-        )
-        {
-            _mapModel.Add(
-                new MinimapPoint
-                {
-                    X = x,
-                    Y = y,
-                    XRange = xRange,
-                    YRange = yRange,
-                    PointData = new MinimapPointData
-                    {
-                        ElementName = name,
-                        PointName = label,
-                        Commands = []
-                    }
-                }
-            );
-            var canvas = new Canvas { Name = name };
-            _canvas.Children.Add(canvas);
-            Canvas.SetLeft(canvas, x);
-            Canvas.SetTop(canvas, y);
-        }
-
-        /**
          * Validates precise hit detection within point boundaries when in Remove mode.
          * Tests click coordinates in an 11x11 grid (±5 pixels) around a test point
          * to ensure all clicks within the defined detection range (10x10) successfully
@@ -755,7 +762,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 var handler = _fixture();
                 handler.Inject(SystemInjectType.MapModel, _mapModel);
                 _menuState.SetState(WindowMapEditMenuStateTypes.Remove);
-                _addPoint(123, 234, 10, 10, "lol1", "lol2");
+                new MapCanvasPointAdder().AddPoint(
+                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                );
                 Debug.Assert(_mapModel.Points().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
@@ -780,7 +789,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 var handler = _fixture();
                 handler.Inject(SystemInjectType.MapModel, _mapModel);
                 _menuState.SetState(WindowMapEditMenuStateTypes.Remove);
-                _addPoint(123, 234, 10, 10, "lol1", "lol2");
+                new MapCanvasPointAdder().AddPoint(
+                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                );
                 Debug.Assert(_mapModel.Points().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
@@ -804,7 +815,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 var handler = _fixture();
                 handler.Inject(SystemInjectType.MapModel, _mapModel);
                 _menuState.SetState(WindowMapEditMenuStateTypes.Select);
-                _addPoint(123, 234, 10, 10, "lol1", "lol2");
+                new MapCanvasPointAdder().AddPoint(
+                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                );
                 Debug.Assert(_mapModel.Points().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
@@ -827,7 +840,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             {
                 var handler = _fixture();
                 _menuState.SetState(WindowMapEditMenuStateTypes.Remove);
-                _addPoint(123, 234, 10, 10, "lol1", "lol2");
+                new MapCanvasPointAdder().AddPoint(
+                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                );
                 Debug.Assert(_mapModel.Points().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
@@ -933,49 +948,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Helper method to add a test point to both model and canvas
-         * 
-         * @param x X-coordinate of the point
-         * @param y Y-coordinate of the point
-         * @param xRange Horizontal detection range around the point
-         * @param yRange Vertical detection range around the point
-         * @param label Display label for the point
-         * @param name Internal identifier for the point
-         * 
-         * Creates a complete point representation with both data model entry
-         * and corresponding visual canvas element for comprehensive testing.
-         */
-        private void _addPoint(
-            double x,
-            double y,
-            double xRange,
-            double yRange,
-            string label,
-            string name
-        )
-        {
-            _mapModel.Add(
-                new MinimapPoint
-                {
-                    X = x,
-                    Y = y,
-                    XRange = xRange,
-                    YRange = yRange,
-                    PointData = new MinimapPointData
-                    {
-                        ElementName = name,
-                        PointName = label,
-                        Commands = []
-                    }
-                }
-            );
-            var canvas = new Canvas { Name = name };
-            _canvas.Children.Add(canvas);
-            Canvas.SetLeft(canvas, x);
-            Canvas.SetTop(canvas, y);
-        }
-
-        /**
          * @brief Validates that clicking directly on a point or within its defined detection area
          * successfully selects it.
          * 
@@ -991,11 +963,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 var handler = _fixture();
                 handler.Inject(SystemInjectType.MapModel, _mapModel);
                 _menuState.SetState(WindowMapEditMenuStateTypes.Select);
-                _addPoint(123, 234, 10, 10, "lol1", "lol2");
+                new MapCanvasPointAdder().AddPoint(
+                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                );
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonEvent);
                 Debug.Assert(((FrameworkElement)_menuState.Selected()!).Name == "lol2");
-                Debug.Assert(_mapModel.SelectedPoint()!.PointData.ElementName == "lol2");
             }
         }
 
@@ -1016,11 +989,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 var handler = _fixture();
                 handler.Inject(SystemInjectType.MapModel, _mapModel);
                 _menuState.SetState(WindowMapEditMenuStateTypes.Select);
-                _addPoint(123, 234, 10, 10, "lol1", "lol2");
+                new MapCanvasPointAdder().AddPoint(
+                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                );
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonEvent);
                 Debug.Assert(_menuState.Selected() == null);
-                Debug.Assert(_mapModel.SelectedPoint() == null);
             }
         }
 
@@ -1038,7 +1012,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var handler = _fixture();
             handler.Inject(SystemInjectType.MapModel, _mapModel);
             _menuState.SetState(WindowMapEditMenuStateTypes.Select);
-            _addPoint(123, 234, 10, 10, "lol1", "lol2");
+            new MapCanvasPointAdder().AddPoint(
+                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+            );
             _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
             _canvas.RaiseEvent(_mouseButtonEvent);
             Debug.Assert(_textBoxName.Text == "lol1");
@@ -1058,11 +1034,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var handler = _fixture();
             handler.Inject(SystemInjectType.MapModel, _mapModel);
             _menuState.SetState(WindowMapEditMenuStateTypes.Add);
-            _addPoint(123, 234, 10, 10, "lol1", "lol2");
+            new MapCanvasPointAdder().AddPoint(
+                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+            );
             _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
             _canvas.RaiseEvent(_mouseButtonEvent);
             Debug.Assert(_menuState.Selected() == null);
-            Debug.Assert(_mapModel.SelectedPoint() == null);
             Debug.Assert(_textBoxName.Text == "");
             Debug.Assert(_textBoxX.Text == "");
             Debug.Assert(_textBoxY.Text == "");
@@ -1080,17 +1057,18 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var handler = _fixture();
             _menuState.SetState(WindowMapEditMenuStateTypes.Select);
-            _addPoint(123, 234, 10, 10, "lol1", "lol2");
+            new MapCanvasPointAdder().AddPoint(
+                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+            );
             _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
             _canvas.RaiseEvent(_mouseButtonEvent);
             Debug.Assert(_menuState.Selected() == null);
-            Debug.Assert(_mapModel.SelectedPoint() == null);
             Debug.Assert(_textBoxName.Text == "");
             Debug.Assert(_textBoxX.Text == "");
             Debug.Assert(_textBoxY.Text == "");
         }
 
-        /*
+        /**
          * @brief Executes the complete battery of point selection validation tests in sequence.
          * 
          * Orchestrates the execution of all individual test scenarios to validate the entire point
@@ -1107,6 +1085,298 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
     }
 
+    /**
+     * @class WindowMapCanvasDragActionHandlerTests
+     * 
+     * @brief Validates the point dragging functionality in the map canvas interface to ensure users can
+     * reliably drag and reposition points.
+     * 
+     * This comprehensive test suite verifies the complete point dragging workflow including mouse interaction,
+     * boundary constraints, visual synchronization, mode restrictions, and system dependencies. Each test
+     * simulates the full drag sequence from mouse down through movement to mouse up, validating that points
+     * respond correctly to user dragging gestures under various conditions and constraints.
+     */
+    public class WindowMapCanvasDragActionHandlerTests
+    {
+        private Canvas _canvas;
+
+        private TextBox _selectedX;
+
+        private TextBox _selectedY;
+
+        private AbstractWindowMapEditMenuState _menuState;
+
+        private MockMouseEventPositionExtractor _mousePositionExtractor;
+
+        private MapModel _mapModel;
+
+        private MouseButtonEventArgs _mouseButtonDownEvent;
+
+        private MouseButtonEventArgs _mouseButtonUpEvent;
+
+        private MouseEventArgs _mouseMoveEvent;
+
+        /**
+         * @brief Constructs a complete test environment for point dragging validation with proper
+         * canvas layout.
+         * 
+         * Initializes a properly sized and arranged canvas for accurate coordinate testing, along with
+         * position display fields, menu state controls, map data model, and mock mouse event handlers
+         * for all three phases of dragging (down, move, up). This setup ensures tests simulate realistic
+         * user interactions with correct spatial context.
+         */
+        public WindowMapCanvasDragActionHandlerTests()
+        {
+            _canvas = new Canvas { Width = 300, Height = 300 };
+            _canvas.Measure(new Size(300, 300));
+            _canvas.Arrange(new Rect(0, 0, 300, 300));
+            _selectedX = new TextBox();
+            _selectedY = new TextBox();
+            _menuState = new WindowMapEditMenuState();
+            _mapModel = new MapModel();
+            _mousePositionExtractor = new MockMouseEventPositionExtractor();
+            _mouseButtonDownEvent = new MouseButtonEventArgs(
+                Mouse.PrimaryDevice, 123, MouseButton.Left
+            )
+            {
+                RoutedEvent = UIElement.MouseLeftButtonDownEvent,
+                Source = _canvas,
+            };
+            _mouseButtonUpEvent = new MouseButtonEventArgs(
+                Mouse.PrimaryDevice, 123, MouseButton.Left
+            )
+            {
+                RoutedEvent = UIElement.MouseLeftButtonUpEvent,
+                Source = _canvas,
+            };
+            _mouseMoveEvent = new MouseEventArgs(
+                Mouse.PrimaryDevice, 123
+            )
+            {
+                RoutedEvent = UIElement.MouseMoveEvent,
+                Source = _canvas
+            };
+        }
+
+        /**
+         * @brief Creates a fresh instance of the drag action handler configured with all test dependencies.
+         * 
+         * Builds and returns a fully initialized WindowMapCanvasDragActionHandlerFacade instance with
+         * properly sized canvas, coordinate display fields, menu state controller, and mouse input simulation.
+         * This method ensures each test receives a clean handler instance with correctly measured and
+         * arranged canvas dimensions for accurate coordinate-based testing.
+         * 
+         * @return A ready-to-use drag action handler instance configured for comprehensive testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _canvas = new Canvas { Width = 300, Height = 300 };
+            _canvas.Measure(new Size(300, 300));
+            _canvas.Arrange(new Rect(0, 0, 300, 300));
+            _selectedX = new TextBox();
+            _selectedY = new TextBox();
+            _menuState = new WindowMapEditMenuState();
+            _mapModel = new MapModel();
+            _mousePositionExtractor = new MockMouseEventPositionExtractor();
+            return new WindowMapCanvasDragActionHandlerFacade(
+                _canvas,
+                _selectedX,
+                _selectedY,
+                _menuState,
+                _mousePositionExtractor
+            );
+        }
+
+
+        /**
+         * @brief Validates that dragging a point within its detection area correctly moves
+         * it to the new location.
+         * 
+         * Tests the fundamental drag-and-drop mechanism by simulating drag operations starting from
+         * every position within a point's interactive boundary. This ensures users can initiate dragging
+         * from any part of the point's detection area and that both the visual representation and
+         * underlying data model synchronize correctly to the new position.
+         */
+        private void _testDraggingPointMovesToDraggedLocation()
+        {
+            for (int i = -5; i <= 5; i++)
+            for (int j = -5; j <= 5; j++)
+            {
+                var handler = _fixture();
+                handler.Inject(SystemInjectType.MapModel, _mapModel);
+                _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+                new MapCanvasPointAdder().AddPoint(
+                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                );
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
+                _canvas.RaiseEvent(_mouseButtonDownEvent);
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(234, 123));
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(12, 23));
+                _canvas.RaiseEvent(_mouseMoveEvent);
+                _canvas.RaiseEvent(_mouseMoveEvent);
+                _canvas.RaiseEvent(_mouseButtonUpEvent);
+                Debug.Assert(_mapModel.FindName("lol2")!.X == 12);
+                Debug.Assert(_mapModel.FindName("lol2")!.Y == 23);
+                Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
+                Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 12);
+                Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 23);
+            }
+        }
+
+        /**
+         * @brief Validates that dragging operations starting outside point boundaries do not affect
+         * point positions.
+         * 
+         * Tests the precision of drag initiation by simulating drag attempts starting just beyond
+         * the point's detection boundaries. This ensures that users must start their drag gesture
+         * directly on or very near the point to affect it, preventing accidental movement of points
+         * when dragging elsewhere on the canvas.
+         */
+        private void _testDraggingNothingDoesNotDrag()
+        {
+            for (int i = -10; i <= 10; i++)
+            for (int j = -10; j <= 10; j++)
+            {
+                if (i >= -5 && i <= 5) continue;
+                if (j >= -5 && j <= 5) continue;
+                var handler = _fixture();
+                handler.Inject(SystemInjectType.MapModel, _mapModel);
+                _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+                new MapCanvasPointAdder().AddPoint(
+                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                );
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
+                _canvas.RaiseEvent(_mouseButtonDownEvent);
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(234, 123));
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(12, 23));
+                _canvas.RaiseEvent(_mouseMoveEvent);
+                _canvas.RaiseEvent(_mouseMoveEvent);
+                _canvas.RaiseEvent(_mouseButtonUpEvent);
+                Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
+                Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+                Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
+                Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 123);
+                Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 234);
+            }
+        }
+
+
+        /**
+         * @brief Validates that points cannot be dragged outside the visible canvas boundaries.
+         * 
+         * Tests the boundary constraint system by attempting to drag points to positions beyond
+         * the canvas edges. This ensures the interface prevents users from losing points outside
+         * the visible area and maintains all points within the usable workspace, providing clear
+         * visual feedback.
+         */
+        private void _testDraggingPointOutOfCanvasDoesNotDrag()
+        {
+            var pointList = new List<Point> {
+                new Point(999, 999),
+                new Point(999, -999),
+                new Point(-999, 999),
+                new Point(-999, -999)
+            };
+            foreach (var point in pointList)
+            {
+                var handler = _fixture();
+                handler.Inject(SystemInjectType.MapModel, _mapModel);
+                _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+                new MapCanvasPointAdder().AddPoint(
+                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                );
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
+                _canvas.RaiseEvent(_mouseButtonDownEvent);
+                _mousePositionExtractor.GetPositionReturn.Add(point);
+                _canvas.RaiseEvent(_mouseMoveEvent);
+                _canvas.RaiseEvent(_mouseButtonUpEvent);
+                Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
+                Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+                Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
+                Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 123);
+                Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 234);
+            }
+        }
+
+        /**
+         * @brief Validates that point dragging is properly disabled when not in selection mode.
+         * 
+         * Tests the mode-awareness of the dragging system by attempting point dragging while in
+         * "Add" mode instead of "Select" mode. This ensures the interface prevents conflicting
+         * operations and maintains clear separation between point creation and point manipulation
+         * functions, avoiding mode confusion.
+         */
+        private void _testDraggingPointDoesNotDragWhenNotInSelectState()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _menuState.SetState(WindowMapEditMenuStateTypes.Add);
+            new MapCanvasPointAdder().AddPoint(
+                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+            );
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
+            _canvas.RaiseEvent(_mouseButtonDownEvent);
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(234, 123));
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(12, 23));
+            _canvas.RaiseEvent(_mouseMoveEvent);
+            _canvas.RaiseEvent(_mouseMoveEvent);
+            _canvas.RaiseEvent(_mouseButtonUpEvent);
+            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
+            Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 123);
+            Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 234);
+        }
+
+
+        /**
+         * @brief Validates that the dragging system fails gracefully without proper data
+         * model initialization.
+         * 
+         * Tests the dependency requirements of the dragging system by attempting point dragging without
+         * injecting the necessary data model. This ensures the system doesn't crash or behave unpredictably
+         * when underlying data structures are missing, providing robust error handling and preventing
+         * data corruption.
+         */
+        private void _testDraggingPointDoesNotDragWhenModelNotInjected()
+        {
+            var handler = _fixture();
+            _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+            new MapCanvasPointAdder().AddPoint(
+                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+            );
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
+            _canvas.RaiseEvent(_mouseButtonDownEvent);
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(234, 123));
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(12, 23));
+            _canvas.RaiseEvent(_mouseMoveEvent);
+            _canvas.RaiseEvent(_mouseMoveEvent);
+            _canvas.RaiseEvent(_mouseButtonUpEvent);
+            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
+            Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 123);
+            Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 234);
+        }
+
+        /**
+         * @brief Executes the complete battery of point dragging validation tests in sequence.
+         * 
+         * Orchestrates the execution of all individual drag test scenarios to validate the entire
+         * point dragging system. This method serves as the main entry point for running the drag test
+         * suite and ensures comprehensive coverage of dragging functionality from basic operation
+         * to boundary cases and error conditions.
+         */
+        public void Run()
+        {
+            _testDraggingPointMovesToDraggedLocation();
+            _testDraggingNothingDoesNotDrag();
+            _testDraggingPointOutOfCanvasDoesNotDrag();
+            _testDraggingPointDoesNotDragWhenNotInSelectState();
+            _testDraggingPointDoesNotDragWhenModelNotInjected();
+        }
+    }
+
 
     public class WindowMapEditorHandlersTestSuite
     {
@@ -1118,6 +1388,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new MapCanvasRemovePointButtonActionHandlerTests().Run();
             new WindowMapCanvasPointErasingActionHandlerTests().Run();
             new WindowMapCanvasSelectActionHandlerTests().Run();
+            new WindowMapCanvasDragActionHandlerTests().Run();
         }
     }
 }

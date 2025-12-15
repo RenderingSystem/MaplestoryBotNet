@@ -636,7 +636,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 if (pointUI != null)
                 {
                     _canvas.Children.Remove(pointUI);
-                    parameters.ElementModel.RemoveName(pointUI.Name);
+                    parameters.ElementModel.Remove(pointUI.Name);
                 }
             }
         }
@@ -962,8 +962,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private void _assignUITexts(FrameworkElement element, MapModel mapModel)
         {
-            mapModel.SelectName(element.Name);
-            var selectedPoint = mapModel.SelectedPoint();
+            var selectedPoint = mapModel.FindName(element.Name);
             if (selectedPoint != null)
             {
                 _selectedTextBox.Text = selectedPoint.PointData.PointName;
@@ -976,7 +975,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         {
             if (value is WindowMapCanvasSelectModifierParameters parameters)
             {
-                var pointUI = _pointLocator.Locate(parameters.ElementModel, parameters.ElementPoint);
+                var pointUI = _pointLocator.Locate(
+                    parameters.ElementModel, parameters.ElementPoint
+                );
                 if (pointUI != null)
                 {
                     _menuState.Select(pointUI);
@@ -1087,6 +1088,210 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override AbstractWindowStateModifier Modifier()
         {
             return _mapCanvasSelectActionHandler.Modifier();
+        }
+    }
+
+
+    public class WindowMapCanvasDragModifierParameters
+    {
+        public Point ElementPoint = new Point();
+
+        public FrameworkElement ElementDragging = new FrameworkElement();
+
+        public MapModel ElementModel = new MapModel();
+    }
+
+
+    public class WindowMapCanvasDragModifier : AbstractWindowStateModifier
+    {
+        private TextBox _selectedTextX;
+
+        private TextBox _selectedTextY;
+
+        public WindowMapCanvasDragModifier(
+            AbstractWindowMapEditMenuState menuState,
+            TextBox selectedTextX,
+            TextBox selectedTextY
+        )
+        {
+            _selectedTextX = selectedTextX;
+            _selectedTextY = selectedTextY;
+        }
+
+        private void _updateSelectedText(FrameworkElement draggingElement, Point point)
+        {
+            Canvas.SetLeft(draggingElement, point.X);
+            Canvas.SetTop(draggingElement, point.Y);
+            _selectedTextX.Text = Convert.ToInt32(point.X).ToString();
+            _selectedTextY.Text = Convert.ToInt32(point.Y).ToString();
+        }
+
+        private void _updateMapModel(FrameworkElement draggingElement, Point point, MapModel mapModel)
+        {
+            var draggingPoint = mapModel.FindName(draggingElement.Name);
+            if (draggingPoint != null)
+            {
+                draggingPoint.X = point.X;
+                draggingPoint.Y = point.Y;
+                mapModel.Edit(draggingPoint);
+            }
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is WindowMapCanvasDragModifierParameters parameters)
+            {
+                _updateSelectedText(
+                    parameters.ElementDragging,
+                    parameters.ElementPoint
+                );
+                _updateMapModel(
+                    parameters.ElementDragging,
+                    parameters.ElementPoint,
+                    parameters.ElementModel
+                );
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasDragActionHandler : AbstractWindowActionHandler
+    {
+        private Canvas _canvas;
+
+        private AbstractWindowMapEditMenuState _menuState;
+
+        private AbstractWindowStateModifier _mapCanvasDragModifier;
+
+        private AbstractMapCanvasElementLocator _mapCanvasElementLocator;
+
+        private AbstractMouseEventPositionExtractor _mousePositionExtractor;
+
+        private MapModel? _mapModel;
+
+        private FrameworkElement? _draggingElement;
+
+        public WindowMapCanvasDragActionHandler(
+            Canvas canvas,
+            AbstractWindowMapEditMenuState menuState,
+            AbstractWindowStateModifier mapCanvasDragModifier,
+            AbstractMapCanvasElementLocator mapCanvasElementLocator,
+            AbstractMouseEventPositionExtractor mousePositionExtractor
+        )
+        {
+            _canvas = canvas;
+            _menuState = menuState;
+            _mapCanvasDragModifier = mapCanvasDragModifier;
+            _mapCanvasElementLocator = mapCanvasElementLocator;
+            _mousePositionExtractor = mousePositionExtractor;
+            _draggingElement = null;
+            _mapModel = null;
+            _canvas.MouseLeftButtonDown += OnEvent;
+            _canvas.MouseLeftButtonUp += OnEvent;
+            _canvas.MouseMove += OnEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapCanvasDragModifier;
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            {
+                _mapModel = mapModel;
+            }
+        }
+
+        private void _handleMouseLeftButtonDown(MouseButtonEventArgs eventArgs)
+        {
+            var mousePoint = _mousePositionExtractor.GetPosition(eventArgs, _canvas);
+            _draggingElement = _mapCanvasElementLocator.Locate(_mapModel!, mousePoint);
+        }
+
+        private void _handleMouseLeftButtonUp(MouseButtonEventArgs eventArgs)
+        {
+            _draggingElement = null;
+        }
+
+        private void _handleMouseMove(MouseEventArgs eventArgs)
+        {
+            if (_draggingElement == null) return;
+            var mousePoint = _mousePositionExtractor.GetPosition(eventArgs, _canvas);
+            if (
+                mousePoint.X >= 0
+                && mousePoint.X <= _canvas.ActualWidth
+                && mousePoint.Y >= 0
+                && mousePoint.Y <= _canvas.ActualHeight
+            )
+            {
+                _mapCanvasDragModifier.Modify(
+                    new WindowMapCanvasDragModifierParameters
+                    {
+                        ElementPoint = mousePoint,
+                        ElementDragging = _draggingElement,
+                        ElementModel = _mapModel!,
+                    }
+                );
+            }
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (_menuState.GetState() != WindowMapEditMenuStateTypes.Select) return;
+            if (_mapModel == null) return;
+            if (e is not RoutedEventArgs rea) return;
+            if (rea.RoutedEvent == UIElement.MouseLeftButtonDownEvent)
+            {
+                _handleMouseLeftButtonDown((MouseButtonEventArgs) e);
+            }
+            if (rea.RoutedEvent == UIElement.MouseLeftButtonUpEvent)
+            {
+                _handleMouseLeftButtonUp((MouseButtonEventArgs) e);
+            }
+            if (rea.RoutedEvent == UIElement.MouseMoveEvent)
+            {
+                _handleMouseMove((MouseEventArgs) e);
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasDragActionHandlerFacade : AbstractWindowActionHandler
+    {
+        AbstractWindowActionHandler _mapCanvasDragActionHandler;
+
+        public WindowMapCanvasDragActionHandlerFacade(
+            Canvas canvas,
+            TextBox selectedX,
+            TextBox selectedY,
+            AbstractWindowMapEditMenuState menuState,
+            AbstractMouseEventPositionExtractor mousePositionExtractor
+        )
+        {
+            _mapCanvasDragActionHandler = new WindowMapCanvasDragActionHandler(
+                canvas,
+                menuState,
+                new WindowMapCanvasDragModifier(menuState, selectedX, selectedY),
+                new WindowMapCanvasPointLocator(canvas),
+                mousePositionExtractor
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapCanvasDragActionHandler.Modifier();
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            _mapCanvasDragActionHandler.Inject(dataType, data);
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapCanvasDragActionHandler.OnEvent(sender, e);
         }
     }
 }

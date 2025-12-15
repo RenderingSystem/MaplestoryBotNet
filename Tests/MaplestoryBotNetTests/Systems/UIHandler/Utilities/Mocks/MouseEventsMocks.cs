@@ -12,11 +12,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.Utilities.Mocks
 
         public int GetPositionCalls = 0;
         public int GetPositionIndex = 0;
-        public List<MouseButtonEventArgs> GetPositionCallArg_mouseButtonEvent = [];
+        public List<MouseEventArgs> GetPositionCallArg_mouseButtonEvent = [];
         public List<IInputElement> GetPositionCallArg_relativeTo = [];
         public List<Point> GetPositionReturn = [];
         public override Point GetPosition(
-            MouseButtonEventArgs mouseButtonEvent,
+            MouseEventArgs mouseButtonEvent,
             IInputElement relativeTo
         )
         {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Xml.Linq;
 
 namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 {
@@ -61,25 +62,18 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
     {
         public abstract List<MinimapPoint> Points();
 
-        public abstract MinimapPoint? SelectedPoint();
-
-        public abstract void SelectName(string name);
-
-        public abstract void SelectLabel(string label);
-
-        public abstract void Deselect();
-
-        public abstract void EditSelected(MinimapPoint point);
-
         public abstract void Add(MinimapPoint point);
 
-        public abstract void RemoveName(string name);
+        public abstract void Edit(MinimapPoint point);
+
+        public abstract MinimapPoint? FindName(string name);
+
+        public abstract MinimapPoint? FindLabel(string label);
+
+        public abstract void Remove(string name);
 
         public abstract void Clear();
 
-        public abstract void Translate(double X, double Y);
-
-        public abstract void Move(double X, double Y);
     }
 
 
@@ -88,8 +82,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         private ReaderWriterLockSlim _pointsLock = new ReaderWriterLockSlim();
 
         private List<MinimapPoint> _points = [];
-
-        private MinimapPoint? _selectedPoint = null;
 
         public override List<MinimapPoint> Points()
         {
@@ -109,12 +101,38 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             return pointsCopy;
         }
 
-        public override void SelectName(string name)
+        public override void Edit(MinimapPoint point)
         {
             try
             {
                 _pointsLock.EnterWriteLock();
-                _selectedPoint = _points.FirstOrDefault(p => p.PointData.ElementName == name);
+                var foundPoint = _points.FirstOrDefault(
+                    p => p.PointData.ElementName == point.PointData.ElementName
+                );
+                if (foundPoint != null)
+                {
+                    foundPoint.Assign(point);
+                }
+            }
+            finally
+            {
+                _pointsLock.ExitWriteLock();
+            }
+        }
+
+        public override MinimapPoint? FindName(string name)
+        {
+            try
+            {
+                _pointsLock.EnterWriteLock();
+                var foundPoint = _points.FirstOrDefault(
+                    p => p.PointData.ElementName == name
+                );
+                if (foundPoint != null)
+                {
+                    return foundPoint.Copy();
+                }
+                return null;
             }
             finally
             {
@@ -122,60 +140,19 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             }
         }
 
-        public override void SelectLabel(string label)
+        public override MinimapPoint? FindLabel(string label)
         {
             try
             {
                 _pointsLock.EnterWriteLock();
-                _selectedPoint = _points.FirstOrDefault(p => p.PointData.PointName == label);
-            }
-            finally
-            {
-                _pointsLock.ExitWriteLock();
-            }
-        }
-
-        public override void Deselect()
-        {
-            try
-            {
-                _pointsLock.EnterWriteLock();
-                _selectedPoint = null;
-            }
-            finally
-            {
-                _pointsLock.ExitWriteLock();
-            }
-        }
-
-        public override MinimapPoint? SelectedPoint()
-        {
-            MinimapPoint? selectedPoint = null;
-            try
-            {
-                _pointsLock.EnterReadLock();
-                if (_selectedPoint != null)
+                var foundPoint = _points.FirstOrDefault(
+                    p => p.PointData.PointName == label
+                );
+                if (foundPoint != null)
                 {
-                    selectedPoint = _selectedPoint.Copy();
+                    return foundPoint.Copy();
                 }
-
-            }
-            finally
-            {
-                _pointsLock.ExitReadLock();
-            }
-            return selectedPoint;
-        }
-
-        public override void EditSelected(MinimapPoint point)
-        {
-            try
-            {
-                _pointsLock.EnterWriteLock();
-                if (_selectedPoint != null)
-                {
-                    _selectedPoint.Assign(point);
-                }
+                return null;
             }
             finally
             {
@@ -200,7 +177,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             }
         }
 
-        public override void RemoveName(string name)
+        public override void Remove(string name)
         {
             try
             {
@@ -211,7 +188,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 if (pointToRemove != null)
                 {
                     _points.Remove(pointToRemove);
-                    _selectedPoint = _selectedPoint == pointToRemove ? null : _selectedPoint;
                 }
             }
             finally
@@ -226,41 +202,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             {
                 _pointsLock.EnterWriteLock();
                 _points.Clear();
-                _selectedPoint = null;
-            }
-            finally
-            {
-                _pointsLock.ExitWriteLock();
-            }
-        }
-
-        public override void Translate(double X, double Y)
-        {
-            try
-            {
-                _pointsLock.EnterWriteLock();
-                if (_selectedPoint != null)
-                {
-                    _selectedPoint.X += X;
-                    _selectedPoint.Y += Y;
-                }
-            }
-            finally
-            {
-                _pointsLock.ExitWriteLock();
-            }
-        }
-
-        public override void Move(double X, double Y)
-        {
-            try
-            {
-                _pointsLock.EnterWriteLock();
-                if (_selectedPoint != null)
-                {
-                    _selectedPoint.X = X;
-                    _selectedPoint.Y = Y;
-                }
             }
             finally
             {

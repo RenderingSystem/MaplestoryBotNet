@@ -81,7 +81,7 @@ namespace MaplestoryBotNet.Xaml
         public int NumericPropertyX
         {
             get => _numericPropertyX;
-            set => SetValidatedProperty(ref _numericPropertyX, value, 0, 9999);
+            set => SetValidatedProperty(ref _numericPropertyX, value, 0, Convert.ToInt32(MapCanvas.ActualWidth));
         }
 
         private int _numericPropertyY;
@@ -89,7 +89,7 @@ namespace MaplestoryBotNet.Xaml
         public int NumericPropertyY
         {
             get => _numericPropertyY;
-            set => SetValidatedProperty(ref _numericPropertyY, value, 0, 9999);
+            set => SetValidatedProperty(ref _numericPropertyY, value, 0, Convert.ToInt32(MapCanvas.ActualHeight));
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -179,6 +179,17 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
+        private AbstractWindowActionHandler _instantiateDragPointActionHandler()
+        {
+            return new WindowMapCanvasDragActionHandlerFacade(
+                MapCanvas,
+                LocationTextBoxX,
+                LocationTextBoxY,
+                _editMenuState,
+                new MouseEventPositionExtractor()
+            );
+        }
+
         public List<AbstractWindowActionHandler> InstantiateActionHandlers(
             AbstractSystemWindow editWindow
         )
@@ -190,7 +201,8 @@ namespace MaplestoryBotNet.Xaml
                 _instantiatePointDrawingActionHandler(),
                 _instantiateRemovePointButtonActionHandler(),
                 _instantiatePointErasingActionHandler(),
-                _instantiateSelectPointActionHandler()
+                _instantiateSelectPointActionHandler(),
+                _instantiateDragPointActionHandler()
             ];
         }
 

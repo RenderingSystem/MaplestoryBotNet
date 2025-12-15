@@ -8,7 +8,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
     public abstract class AbstractMouseEventPositionExtractor
     {
         public abstract Point GetPosition(
-            MouseButtonEventArgs mouseButtonEvent,
+            MouseEventArgs mouseEventArgs,
             IInputElement relativeTo
         );
     }
@@ -17,11 +17,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
     public class MouseEventPositionExtractor : AbstractMouseEventPositionExtractor
     {
         public override Point GetPosition(
-            MouseButtonEventArgs mouseButtonEvent,
+            MouseEventArgs mouseEventArgs,
             IInputElement relativeTo
         )
         {
-            return mouseButtonEvent.GetPosition(relativeTo);
+            return mouseEventArgs.GetPosition(relativeTo);
         }
     }
 }
