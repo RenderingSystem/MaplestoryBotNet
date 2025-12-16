@@ -269,8 +269,8 @@
                 Foreground="Lime"
                 FontFamily="Courier New"
                 Text="{Binding NumericPropertyX, UpdateSourceTrigger=LostFocus}" 
-                PreviewTextInput="NumberValidationTextBox"
-                DataObject.Pasting="NumberValidationPasting"
+                PreviewTextInput="NumberCanvasWidthValidationTextBox"
+                DataObject.Pasting="NumberCanvasWidthValidationPasting"
                 TabIndex="5"
             />
             <Label
@@ -290,8 +290,8 @@
                 Foreground="Lime"
                 FontFamily="Courier New"
                 Text="{Binding NumericPropertyY, UpdateSourceTrigger=LostFocus}" 
-                PreviewTextInput="NumberValidationTextBox"
-                DataObject.Pasting="NumberValidationPasting"
+                PreviewTextInput="NumberCanvasHeightValidationTextBox"
+                DataObject.Pasting="NumberCanvasHeightValidationPasting"
                 TabIndex="6"
             />
             <Label

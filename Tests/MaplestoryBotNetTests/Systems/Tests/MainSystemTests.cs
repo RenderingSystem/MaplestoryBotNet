@@ -895,7 +895,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
             var mapModelIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.MapModel);
             var mapModelData = _mainSystem.InjectCallArg_data[mapModelIndex];
             Debug.Assert(mapModelIndex != -1);
-            Debug.Assert(mapModelData is MapModel);
+            Debug.Assert(mapModelData is AbstractMapModel);
         }
 
         /**

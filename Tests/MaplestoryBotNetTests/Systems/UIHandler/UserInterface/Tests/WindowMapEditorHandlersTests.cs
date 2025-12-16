@@ -11,7 +11,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Vortice.Direct3D11;
 
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
@@ -1442,7 +1441,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 RoutedEvent = UIElement.MouseLeftButtonDownEvent,
                 Source = _canvas,
             };
-            return new WindowMapCanvasEditButtonAccessibilityActionHandlerFacade(
+            return new WindowMapEditButtonAccessibilityActionHandlerFacade(
                 _canvas, _editButton, _menuState
             );
         }
@@ -1495,6 +1494,243 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    /**
+    * @class WindowMapCanvasPointLocationActionHandlerTests
+    * 
+    * @brief Validates the coordinate editing functionality that allows users to move points by typing new
+    * coordinates in text boxes
+    * 
+    * This test suite verifies the bidirectional synchronization between coordinate text fields and point positions,
+    * ensuring that users can precisely reposition points by editing X and Y values. Tests validate that coordinate
+    * changes only affect selected points, handle empty input gracefully, and require proper system initialization
+    * to function correctly, maintaining data integrity throughout the editing workflow.
+    */
+    public class WindowMapCanvasPointLocationActionHandlerTests
+    {
+        private Canvas _canvas;
+
+        private MapModel _mapModel;
+
+        private AbstractWindowMapEditMenuState _menuState;
+
+        private TextBox _selectedTextX;
+
+        private TextBox _selectedTextY;
+
+        /**
+         * @brief Constructs a test environment with coordinate input fields, map model, and selection state
+         * 
+         * Initializes the essential components for testing coordinate-based point movement: text boxes for
+         * X and Y coordinate input, a map data model for point storage, a canvas for visual representation,
+         * and a menu state controller for tracking selection status. This setup provides the foundation for
+         * validating text-to-position synchronization under various conditions.
+         */
+        public WindowMapCanvasPointLocationActionHandlerTests()
+        {
+            _canvas = new Canvas();
+            _mapModel = new MapModel();
+            _menuState = new WindowMapEditMenuState();
+            _selectedTextX = new TextBox();
+            _selectedTextY = new TextBox();
+        }
+
+        /**
+         * @brief Creates a configured instance of the coordinate editing handler with test dependencies
+         * 
+         * Builds and returns a fully initialized instance with fresh coordinate text fields pre-populated
+         * with test values, a clean map model, and empty selection state. This ensures each test receives
+         * a consistent starting environment for validating coordinate editing behavior without interference
+         * from previous test executions.
+         * 
+         * @return A ready-to-use coordinate editing handler instance configured for testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _canvas = new Canvas();
+            _mapModel = new MapModel();
+            _menuState = new WindowMapEditMenuState();
+            _selectedTextX = new TextBox();
+            _selectedTextY = new TextBox();
+            _selectedTextX.Text = "123";
+            _selectedTextY.Text = "234";
+            return new WindowMapCanvasPointLocationActionHandlerFacade(
+                _selectedTextX,
+                _selectedTextY,
+                _menuState
+            );
+        }
+
+        /**
+         * @brief Validates that editing coordinate text boxes moves the currently selected point to
+         * new positions
+         * 
+         * Tests the core coordinate editing functionality by simulating text input in both X and Y coordinate
+         * fields while a point is selected. Verifies that the visual canvas element and underlying data model
+         * synchronize correctly to reflect the new coordinate values, ensuring users can precisely reposition
+         * points through direct coordinate entry.
+         */
+        private void _testEditingTextMovesSelectedPointLocation()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            new MapCanvasPointAdder().AddPoint(
+                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+            );
+            Debug.Assert(_canvas.Children.Count == 1);
+            var selected = _canvas.Children[0];
+            _menuState.Select(selected);
+            _selectedTextX.Text = "12";
+            Debug.Assert(Canvas.GetLeft(selected) == 12);
+            Debug.Assert(Canvas.GetTop(selected) == 234);
+            Debug.Assert(_mapModel.FindName("lol2")!.X == 12);
+            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            _selectedTextY.Text = "23";
+            Debug.Assert(Canvas.GetLeft(selected) == 12);
+            Debug.Assert(Canvas.GetTop(selected) == 23);
+            Debug.Assert(_mapModel.FindName("lol2")!.X == 12);
+            Debug.Assert(_mapModel.FindName("lol2")!.Y == 23);
+        }
+
+        /**
+         * @brief Validates that coordinate editing does not affect points when no point is currently selected
+         * 
+         * Tests the selection dependency of the coordinate editing system by attempting to modify coordinate
+         * values without a point being selected. Ensures that coordinate input is ignored when there is no
+         * active selection, preventing accidental modification of points and maintaining clear user intent
+         * requirements for editing operations.
+         */
+        private void _testEditingTextDoesntMovePointWhenNotSelected()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            new MapCanvasPointAdder().AddPoint(
+                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+            );
+            Debug.Assert(_canvas.Children.Count == 1);
+            var selected = _canvas.Children[0];
+            _selectedTextX.Text = "12";
+            Debug.Assert(Canvas.GetLeft(selected) == 123);
+            Debug.Assert(Canvas.GetTop(selected) == 234);
+            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            _selectedTextY.Text = "23";
+            Debug.Assert(Canvas.GetLeft(selected) == 123);
+            Debug.Assert(Canvas.GetTop(selected) == 234);
+            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+        }
+
+        /**
+         * @brief Validates that empty coordinate input does not modify point positions
+         * 
+         * Tests the system's handling of invalid coordinate input by attempting to clear coordinate text
+         * fields while a point is selected. Ensures that empty or invalid coordinate values are ignored
+         * rather than corrupting point positions, providing robust input validation and preventing data
+         * loss from accidental text deletion.
+         */
+        private void _testEditingTextDoesntMovePointWhenEmpty()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            new MapCanvasPointAdder().AddPoint(
+                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+            );
+            Debug.Assert(_canvas.Children.Count == 1);
+            var selected = _canvas.Children[0];
+            _menuState.Select(selected);
+            _selectedTextX.Text = "";
+            Debug.Assert(Canvas.GetLeft(selected) == 123);
+            Debug.Assert(Canvas.GetTop(selected) == 234);
+            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            _selectedTextY.Text = "";
+            Debug.Assert(Canvas.GetLeft(selected) == 123);
+            Debug.Assert(Canvas.GetTop(selected) == 234);
+            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+        }
+
+        /**
+         * @brief Validates that coordinate editing requires proper data model initialization
+         * to function
+         * 
+         * Tests the dependency requirements of the coordinate editing system by attempting coordinate
+         * modifications without injecting the necessary data model. Ensures the system fails gracefully
+         * when underlying data structures are missing, preventing unpredictable behavior and maintaining
+         * data integrity despite incomplete system configuration.
+         */
+        private void _testEditingTextDoesntMovePointWhenModelNotInjected()
+        {
+            var handler = _fixture();
+            new MapCanvasPointAdder().AddPoint(
+                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+            );
+            Debug.Assert(_canvas.Children.Count == 1);
+            var selected = _canvas.Children[0];
+            _menuState.Select(selected);
+            _selectedTextX.Text = "12";
+            Debug.Assert(Canvas.GetLeft(selected) == 123);
+            Debug.Assert(Canvas.GetTop(selected) == 234);
+            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            _selectedTextY.Text = "23";
+            Debug.Assert(Canvas.GetLeft(selected) == 123);
+            Debug.Assert(Canvas.GetTop(selected) == 234);
+            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+        }
+
+        /**
+         * @brief Validates that programmatic text updates do not trigger point movement
+         * 
+         * Tests the distinction between user-initiated and programmatic text changes by simulating
+         * text box updates while the system is in programmatic editing mode. Verifies that coordinate
+         * fields updated by the system (rather than user typing) do not cause point repositioning,
+         * ensuring that automatic UI updates don't interfere with user intentions or create
+         * feedback loops.
+         */
+        public void _testEditingTextProgrammaticallyDoesntMovePoint()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            new MapCanvasPointAdder().AddPoint(
+                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+            );
+            Debug.Assert(_canvas.Children.Count == 1);
+            var selected = _canvas.Children[0];
+            _menuState.Select(selected);
+            _menuState.SetEditingText(true);
+            _selectedTextX.Text = "12";
+            Debug.Assert(Canvas.GetLeft(selected) == 123);
+            Debug.Assert(Canvas.GetTop(selected) == 234);
+            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            _selectedTextY.Text = "23";
+            Debug.Assert(Canvas.GetLeft(selected) == 123);
+            Debug.Assert(Canvas.GetTop(selected) == 234);
+            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+        }
+
+        /**
+         * @brief Executes the complete battery of coordinate editing validation tests in sequence
+         * 
+         * Orchestrates the execution of all coordinate editing test scenarios to validate the entire
+         * text-to-position synchronization system. This method serves as the main entry point for
+         * running the coordinate editing test suite and ensures comprehensive coverage of coordinate
+         * input behavior from basic functionality to edge cases and error conditions.
+         */
+        public void Run()
+        {
+            _testEditingTextMovesSelectedPointLocation();
+            _testEditingTextDoesntMovePointWhenNotSelected();
+            _testEditingTextDoesntMovePointWhenEmpty();
+            _testEditingTextDoesntMovePointWhenModelNotInjected();
+            _testEditingTextProgrammaticallyDoesntMovePoint();
+        }
+    }
+
+
     public class WindowMapEditorHandlersTestSuite
     {
         public void Run()
@@ -1507,6 +1743,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMapCanvasSelectActionHandlerTests().Run();
             new WindowMapCanvasDragActionHandlerTests().Run();
             new WindowMapCanvasEditButtonAccessibilityActionHandlerTests().Run();
+            new WindowMapCanvasPointLocationActionHandlerTests().Run();
         }
     }
 }

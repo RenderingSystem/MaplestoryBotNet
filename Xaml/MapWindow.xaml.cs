@@ -123,6 +123,62 @@ namespace MaplestoryBotNet.Xaml
             }
         }
 
+        private void NumberCanvasWidthValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            var textBox = (TextBox)sender;
+            var proposedText = textBox.Text.Insert(textBox.SelectionStart, e.Text);
+            e.Handled = (
+                proposedText.Length > 4
+                || !e.Text.All(char.IsDigit)
+                || Convert.ToInt32(proposedText) > MapCanvas.ActualWidth
+            );
+        }
+
+        private void NumberCanvasWidthValidationPasting(object sender, DataObjectPastingEventArgs e)
+        {
+            var pastedText = (string)e.DataObject.GetData(typeof(string));
+            var textBox = (TextBox)sender;
+            var proposedText = textBox.Text
+                .Remove(textBox.SelectionStart, textBox.SelectionLength)
+                .Insert(textBox.SelectionStart, pastedText);
+            if (
+                proposedText.Length > 4
+                || !pastedText.All(char.IsDigit)
+                || Convert.ToInt32(pastedText) > MapCanvas.ActualWidth
+            )
+            {
+                e.CancelCommand();
+            }
+        }
+
+        private void NumberCanvasHeightValidationTextBox(object sender, TextCompositionEventArgs e)
+        {
+            var textBox = (TextBox)sender;
+            var proposedText = textBox.Text.Insert(textBox.SelectionStart, e.Text);
+            e.Handled = (
+                proposedText.Length > 4
+                || !e.Text.All(char.IsDigit)
+                || Convert.ToInt32(proposedText) > MapCanvas.ActualHeight
+            );
+        }
+
+        private void NumberCanvasHeightValidationPasting(object sender, DataObjectPastingEventArgs e)
+        {
+            var pastedText = (string)e.DataObject.GetData(typeof(string));
+            var textBox = (TextBox)sender;
+            var proposedText = textBox.Text
+                .Remove(textBox.SelectionStart, textBox.SelectionLength)
+                .Insert(textBox.SelectionStart, pastedText);
+            if (
+                proposedText.Length > 4
+                || !pastedText.All(char.IsDigit)
+                || Convert.ToInt32(pastedText) > MapCanvas.ActualHeight
+            )
+            {
+                e.CancelCommand();
+            }
+        }
+
         private AbstractWindowActionHandler _instantiateWindowMenuItemHideActionHandler()
         {
             return new WindowMenuItemHideHandlerBuilder()
@@ -192,11 +248,18 @@ namespace MaplestoryBotNet.Xaml
 
         private AbstractWindowActionHandler _instantiateEditButtonAccessibilityActionHandler()
         {
-            return new WindowMapCanvasEditButtonAccessibilityActionHandlerFacade(
+            return new WindowMapEditButtonAccessibilityActionHandlerFacade(
                 MapCanvas, EditButton, _editMenuState
-
             );
         }
+
+        private AbstractWindowActionHandler _instantiatePointLocationActionHandler()
+        {
+            return new WindowMapCanvasPointLocationActionHandlerFacade(
+                LocationTextBoxX, LocationTextBoxY, _editMenuState
+            );
+        }
+
         public List<AbstractWindowActionHandler> InstantiateActionHandlers(
             AbstractSystemWindow editWindow
         )
@@ -210,7 +273,8 @@ namespace MaplestoryBotNet.Xaml
                 _instantiatePointErasingActionHandler(),
                 _instantiateSelectPointActionHandler(),
                 _instantiateDragPointActionHandler(),
-                _instantiateEditButtonAccessibilityActionHandler()
+                _instantiateEditButtonAccessibilityActionHandler(),
+                _instantiatePointLocationActionHandler()
             ];
         }
 
