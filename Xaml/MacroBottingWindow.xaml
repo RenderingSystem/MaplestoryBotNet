@@ -11,6 +11,10 @@
     ResizeMode="NoResize"
     Width="700"
     Height="355"
+    MaxHeight="355"
+    MaxWidth="700"
+    MinHeight="355"
+    MinWidth="700"
     Topmost="True"
     Background="Black"
 >
@@ -160,29 +164,35 @@
                     Width="186"
                 >
                     <TextBox
+                        x:Name="PointMacroTemplateMacro"
                         Text="Macro 0"
+                        Tag="MacroNameTag"
                         FontFamily="Courier New"
                         HorizontalAlignment="Left"
                         VerticalContentAlignment="Center"
+                        HorizontalContentAlignment="Left"
                         Width="139"
+                        Height="20"
                         FontSize="10"
                         Background="Black"
                         Foreground="Lime"
-                        Height="20"
                         IsTabStop="False"
                     />
                     <TextBox
-                        Text="100"
+                        x:Name="PointMacroTemplateProb"
+                        Text="0"
+                        Tag="ProbabilityTag"
                         FontFamily="Courier New"
                         HorizontalAlignment="Left"
                         VerticalContentAlignment="Center"
                         HorizontalContentAlignment="Center"
                         Width="25"
+                        Height="20"
                         FontSize="10"
                         Background="Black"
                         Foreground="Lime"
-                        Height="20"
-                        IsTabStop="False" Margin="144,0,0,0"
+                        IsTabStop="False"
+                        Margin="144,0,0,0"
                     />
                 </Grid>
             </ListBox>
@@ -208,15 +218,54 @@
                 Height="26"
                 Width="100"
                 FontFamily="Courier New"
-                Foreground="White"
-                Background="Black"
-                BorderBrush="#FF707070" Grid.Column="1"
-            />
+                IsEnabled="False"
+                IsTabStop="False"
+                Grid.Column="1"
+            >
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="border"
+                            Background="Black"
+                            BorderBrush="White"
+                            BorderThickness="1"
+                        >
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Margin="{TemplateBinding Padding}"
+                                RecognizesAccessKey="True"
+                            />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="BorderBrush" Value="Gray"/>
+                                <Setter TargetName="border" Property="Background" Value="Black"/>
+                                <Setter Property="Foreground" Value="#A0A0A0"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="White"/>
+                                <Setter TargetName="border" Property="Background" Value="Black"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="LightSkyBlue"/>
+                                <Setter TargetName="border" Property="Background" Value="#BEE6FD"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="LightBlue"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
             <TextBox
+                x:Name="MacroNameTextBox"
                 Text="-Macro Name-"
                 HorizontalAlignment="Left"
                 Margin="64,26,0,0"
                 VerticalAlignment="Top"
+                VerticalContentAlignment="Center"
                 Background="Black"
                 Foreground="Wheat"
                 Width="124"

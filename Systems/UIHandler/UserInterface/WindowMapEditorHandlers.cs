@@ -48,7 +48,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public abstract class AbstractMapCanvasFormatter
     {
-        public abstract void Format(FrameworkElement canvas, AbstractMapModel mapModel);
+        public abstract void Format(
+            FrameworkElement canvas,
+            List<FrameworkElement> textDepdendencies,
+            AbstractMapModel mapModel
+        );
     }
 
 
@@ -207,6 +211,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         public Point ElementPoint = new Point();
 
+        public List<FrameworkElement> ElementDependencies = [];
+
         public AbstractMapModel ElementModel = new MapModel();
     }
 
@@ -214,7 +220,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     public class WindowMapCanvasPointFormatter : AbstractMapCanvasFormatter
     {
         private void _setupLabelText(
-            FrameworkElement createdPoint, AbstractMapModel mapModel, string pointLabel
+            FrameworkElement createdPoint,
+            AbstractMapModel mapModel,
+            string pointLabel
         )
         {
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(createdPoint); i++)
@@ -228,7 +236,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             }
         }
 
-        private static Rect _getBoundingRect(Canvas canvasElement)
+        private Rect _getBoundingRect(Canvas canvasElement)
         {
             var boundingRect = Rect.Empty;
             foreach (FrameworkElement child in canvasElement.Children)
@@ -244,24 +252,52 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return boundingRect;
         }
 
+        private TextBlock? _getElementLabel(FrameworkElement frameworkElement)
+        {
+            if (frameworkElement is Canvas canvasElement)
+            {
+                foreach (FrameworkElement child in canvasElement.Children)
+                {
+                    if (child is TextBlock childTextBlock)
+                    {
+                        return childTextBlock;
+                    }
+                }
+            }
+            return null;
+        }
+
         private MinimapPointData _minimapPointData(
-            Canvas canvasElement,
+            FrameworkElement frameowrkElement,
+            List<FrameworkElement> textDependencies,
             AbstractMapModel mapModel,
             string pointName,
             string elementName
         )
         {
-            canvasElement.Name = elementName;
+            frameowrkElement.Name = elementName;
             return new MinimapPointData
             {
+                ElementTexts = new List<FrameworkElement>(textDependencies)
+                {
+                    _getElementLabel(frameowrkElement)!
+                },
                 PointName = pointName,
                 ElementName = elementName,
-                Commands = []
+                Commands = [
+                    new MinimapPointMacros
+                    {
+                        MacroName = "Default",
+                        MacroChance = 100,
+                        MacroCommands = []
+                    }
+                ]
             };
         }
 
         private void _setupMinimapPoint(
             FrameworkElement createdPoint,
+            List<FrameworkElement> textDependencies,
             AbstractMapModel mapModel,
             string pointLabel,
             string elementName
@@ -271,7 +307,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 var boundingRect = _getBoundingRect(canvasElement);
                 var pointData = _minimapPointData(
-                    canvasElement, mapModel, pointLabel, elementName
+                    canvasElement,
+                    textDependencies,
+                    mapModel,
+                    pointLabel,
+                    elementName
                 );
                 var minimapPoint = new MinimapPoint
                 {
@@ -313,12 +353,26 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return "P" + pointCount;
         }
 
-        public override void Format(FrameworkElement createdPoint, AbstractMapModel mapModel)
+        public override void Format(
+            FrameworkElement createdPoint,
+            List<FrameworkElement> textDependencies,
+            AbstractMapModel mapModel
+        )
         {
             var pointLabel = _generatePointLabel(mapModel);
             var elementName = _generateElementName(mapModel);
-            _setupMinimapPoint(createdPoint, mapModel, pointLabel, elementName);
-            _setupLabelText(createdPoint, mapModel, pointLabel);
+            _setupMinimapPoint(
+                createdPoint,
+                textDependencies,
+                mapModel,
+                pointLabel,
+                elementName
+            );
+            _setupLabelText(
+                createdPoint,
+                mapModel,
+                pointLabel
+            );
         }
     }
 
@@ -383,7 +437,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 _canvas.Children.Add(_createdPoint);
                 Canvas.SetLeft(_createdPoint, parameters.ElementPoint.X);
                 Canvas.SetTop(_createdPoint, parameters.ElementPoint.Y);
-                _formatter.Format(_createdPoint, parameters.ElementModel);
+                _formatter.Format(
+                    _createdPoint,
+                    parameters.ElementDependencies,
+                    parameters.ElementModel
+                );
             }
         }
 
@@ -512,7 +570,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private Canvas _canvas;
 
-        private WindowMapEditMenuState _menuState;
+        private AbstractWindowMapEditMenuState _menuState;
+
+        private TextBox _pointLabelTextBox;
 
         private AbstractWindowStateModifier _pointDrawer;
 
@@ -522,12 +582,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public WindowMapCanvasPointDrawingActionHandler(
             Canvas canvas,
-            WindowMapEditMenuState menuState,
+            TextBox pointLabelTextBox,
+            AbstractWindowMapEditMenuState menuState,
             AbstractMouseEventPositionExtractor mousePositionExtractor,
             AbstractWindowStateModifier pointDrawer
         )
         {
             _canvas = canvas;
+            _pointLabelTextBox = pointLabelTextBox;
             _menuState = menuState;
             _mousePositionExtractor = mousePositionExtractor;
             _pointDrawer = pointDrawer;
@@ -548,6 +610,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     new WindowMapCanvasDrawerParameters
                     {
                         ElementPoint = _mousePositionExtractor.GetPosition((MouseButtonEventArgs)e, _canvas),
+                        ElementDependencies = [_pointLabelTextBox],
                         ElementModel = _mapModel,
                     }
                 );
@@ -570,12 +633,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public WindowMapCanvasPointDrawingActionHandlerFacade(
             Canvas canvas,
-            WindowMapEditMenuState menuState,
+            TextBox pointLabelTextBox,
+            AbstractWindowMapEditMenuState menuState,
             AbstractMouseEventPositionExtractor mouseEventPositionExtractor
         )
         {
             _mapCanvasPointDrawingActionHandler = new WindowMapCanvasPointDrawingActionHandler(
                 canvas,
+                pointLabelTextBox,
                 menuState,
                 mouseEventPositionExtractor,
                 new WindowMapCanvasPointDrawer(
@@ -663,7 +728,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private Canvas _canvas;
 
-        private WindowMapEditMenuState _menuState;
+        private AbstractWindowMapEditMenuState _menuState;
 
         private AbstractWindowStateModifier _pointEraser;
 
@@ -673,7 +738,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public WindowMapCanvasPointErasingActionHandler(
             Canvas canvas,
-            WindowMapEditMenuState menuState,
+            AbstractWindowMapEditMenuState menuState,
             AbstractMouseEventPositionExtractor mouseEventPositionExtractor,
             AbstractWindowStateModifier pointEraser
         )
@@ -721,7 +786,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public WindowMapCanvasPointErasingActionHandlerFacade(
             Canvas canvas,
-            WindowMapEditMenuState menuState,
+            AbstractWindowMapEditMenuState menuState,
             AbstractMouseEventPositionExtractor mouseEventPositionExtractor
         )
         {
@@ -755,14 +820,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowMapCanvasAddPointButtonModifier : AbstractWindowStateModifier
     {
-        private WindowMapEditMenuState _menuState;
+        private AbstractWindowMapEditMenuState _menuState;
 
         private ToggleButton _addButton;
 
         private List<ToggleButton> _radioButtons;
 
         public WindowMapCanvasAddPointButtonModifier(
-            WindowMapEditMenuState menuState,
+            AbstractWindowMapEditMenuState menuState,
             ToggleButton addButton,
             List<ToggleButton> radioButtons
 
@@ -826,7 +891,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public WindowMapAddPointButtonActionHandlerFacade(
             ToggleButton addPointButton,
             List<ToggleButton> radioButtons,
-            WindowMapEditMenuState menuState
+            AbstractWindowMapEditMenuState menuState
         )
         {
             _mapCanvasAddPointButtonActionHandler = new WindowMapAddPointButtonActionHandler(
@@ -849,14 +914,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowMapRemovePointButtonModifier : AbstractWindowStateModifier
     {
-        private WindowMapEditMenuState _menuState;
+        private AbstractWindowMapEditMenuState _menuState;
 
         private ToggleButton _removeButton;
 
         private List<ToggleButton> _radioButtons;
 
         public WindowMapRemovePointButtonModifier(
-            WindowMapEditMenuState menuState,
+            AbstractWindowMapEditMenuState menuState,
             ToggleButton addButton,
             List<ToggleButton> radioButtons
 
@@ -920,7 +985,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public WindowMapRemovePointButtonActionHandlerFacade(
             ToggleButton removePointButton,
             List<ToggleButton> radioButtons,
-            WindowMapEditMenuState menuState
+            AbstractWindowMapEditMenuState menuState
         )
         {
             _mapCanvasRemovePointButtonActionHandler = new WindowMapRemovePointButtonActionHandler(

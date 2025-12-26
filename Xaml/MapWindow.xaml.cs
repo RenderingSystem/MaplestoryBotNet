@@ -1,4 +1,5 @@
 ﻿using MaplestoryBotNet.Systems;
+using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using System.ComponentModel;
@@ -14,9 +15,11 @@ namespace MaplestoryBotNet.Xaml
     {
         private AbstractSystemWindow? _systemWindow = null;
 
-        private WindowMapEditMenuState _editMenuState = new WindowMapEditMenuState();
+        private AbstractWindowMapEditMenuState _editMenuState;
 
-        public MapWindow()
+        public MapWindow(
+            AbstractWindowMapEditMenuState editMenuState
+        )
         {
             InitializeComponent();
             this.DataContext = this;
@@ -26,6 +29,7 @@ namespace MaplestoryBotNet.Xaml
             NumericPropertyLeft = 0;
             NumericPropertyX = 0;
             NumericPropertyY = 0;
+            _editMenuState = editMenuState;
         }
 
         private int SetValidatedProperty(
@@ -191,21 +195,28 @@ namespace MaplestoryBotNet.Xaml
         )
         {
             return new WindowMapEditMenuActionHandlerFacade(
-                EditButton, GetSystemWindow(), editWindow
+                EditButton,
+                GetSystemWindow(),
+                editWindow
             );
         }
 
         private AbstractWindowActionHandler _instantiateAddPointButtonActionHandler()
         {
             return new WindowMapAddPointButtonActionHandlerFacade(
-                AddButton, [AddButton, RemoveButton], _editMenuState
+                AddButton,
+                [AddButton, RemoveButton],
+                _editMenuState
             );
         }
 
         private AbstractWindowActionHandler _instantiatePointDrawingActionHandler()
         {
             return new WindowMapCanvasPointDrawingActionHandlerFacade(
-                MapCanvas, _editMenuState, new MouseEventPositionExtractor()
+                MapCanvas,
+                LabelTextBox,
+                _editMenuState,
+                new MouseEventPositionExtractor()
             );
         }
 
@@ -219,7 +230,9 @@ namespace MaplestoryBotNet.Xaml
         private AbstractWindowActionHandler _instantiateRemovePointButtonActionHandler()
         {
             return new WindowMapRemovePointButtonActionHandlerFacade(
-                RemoveButton, [AddButton, RemoveButton], _editMenuState
+                RemoveButton,
+                [AddButton, RemoveButton],
+                _editMenuState
             );
         }
 
@@ -249,7 +262,9 @@ namespace MaplestoryBotNet.Xaml
         private AbstractWindowActionHandler _instantiateEditButtonAccessibilityActionHandler()
         {
             return new WindowMapEditButtonAccessibilityActionHandlerFacade(
-                MapCanvas, EditButton, _editMenuState
+                MapCanvas,
+                EditButton,
+                _editMenuState
             );
         }
 

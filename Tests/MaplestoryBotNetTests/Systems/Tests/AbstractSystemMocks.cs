@@ -252,5 +252,20 @@ namespace MaplestoryBotNetTests.Systems.Tests
                 return GetWindowReturn[GetWindowIndex++];
             throw new IndexOutOfRangeException();
         }
+
+        public int VisibleCalls = 0;
+        public int VisibleIndex = 0;
+        public List<bool> VisibleReturn = [];
+        public override bool Visible()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Visible";
+            CallOrder.Add(callReference);
+            VisibleCalls++;
+            if (VisibleIndex < VisibleReturn.Count)
+            {
+                return VisibleReturn[VisibleIndex++];
+            }
+            throw new IndexOutOfRangeException();
+        }
     }
 }

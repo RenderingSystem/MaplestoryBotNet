@@ -12,6 +12,10 @@
     Title="Map"
     Width="600"
     Height="400"
+    MaxHeight="400"
+    MaxWidth="600"
+    MinHeight="400"
+    MinWidth="600"
     Background="Black"
 >
     <Viewbox Stretch="Fill">
@@ -148,7 +152,7 @@
                 IsTabStop="False"
             />
             <Label
-                Content="Selected point:"
+                Content="Point selected:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
                 Margin="404,120,0,0"
@@ -158,12 +162,12 @@
                 FontSize="10"
             />
             <Label
-                Content="Location:"
+                Content="Point location:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
                 Margin="405,163,0,0"
                 VerticalAlignment="Top"
-                Width="64"
+                Width="120"
                 Foreground="White"
                 FontSize="10"
             />
@@ -323,6 +327,54 @@
                 FontSize="10"
                 Foreground="White"
                 RenderTransformOrigin="0.509,1.614"
+            />
+            <Label
+                Content="Character:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="405,228,0,0"
+                VerticalAlignment="Top"
+                Width="69"
+                Foreground="White"
+                FontSize="10"
+            />
+            <TextBox
+                x:Name="CharacterTextBoxX"
+                Margin="464,248,10,113"
+                Background="Black"
+                Foreground="LightYellow"
+                FontFamily="Courier New"
+                TabIndex="4"
+                IsReadOnly="True"
+            />
+            <Label
+                Content="X:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="412,247,0,0"
+                VerticalAlignment="Top"
+                Width="24"
+                FontSize="10"
+                Foreground="White"
+            />
+            <TextBox
+                x:Name="CharacterTextBoxY"
+                Margin="464,268,10,93"
+                Background="Black"
+                Foreground="LightYellow"
+                FontFamily="Courier New"
+                TabIndex="4"
+                IsReadOnly="True"
+            />
+            <Label
+                Content="Y:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="412,267,0,0"
+                VerticalAlignment="Top"
+                Width="24"
+                FontSize="10"
+                Foreground="White"
             />
         </Grid>
     </Viewbox>

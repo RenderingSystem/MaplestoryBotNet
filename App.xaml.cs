@@ -1,8 +1,7 @@
-﻿using MaplestoryBotNet.Systems;
+﻿using MaplestoryBotNet.LibraryWrappers;
+using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Xaml;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Windows;
 
 namespace MaplestoryBotNet
@@ -23,13 +22,16 @@ namespace MaplestoryBotNet
 
         List<AbstractWindowActionHandler> _uiHandlers = [];
 
+        AbstractWindowMapEditMenuState _editMenuState = new WindowMapEditMenuState();
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            _editMenuState = new WindowMapEditMenuState();
             _mainWindow = new MainWindow();
-            _windowMacroPopup = new MacroBottingWindow();
+            _windowMacroPopup = new MacroBottingWindow(_editMenuState);
             _mainApplication = new MainApplicationFacade();
-            _mapWindow = new MapWindow();
+            _mapWindow = new MapWindow(_editMenuState);
             _splashScreen = new SplashScreen(_mainApplication.System());
             Initialize();
         }

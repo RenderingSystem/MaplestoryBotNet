@@ -1,5 +1,6 @@
 ﻿
 using MaplestoryBotNet.Systems;
+using System.Windows;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
@@ -29,9 +30,28 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
+    public class NullWindowStateModifier : AbstractWindowStateModifier
+    {
+        public NullWindowStateModifier()
+        {
+        }
+
+        public override void Modify(object? value)
+        {
+        }
+    }
+
+
     public abstract class AbstractWindowActionHandler : ISystemInjectable
     {
         public virtual void OnEvent(object? sender, EventArgs e)
+        {
+
+        }
+
+        public virtual void OnDependencyEvent(
+            object sender, DependencyPropertyChangedEventArgs e
+        )
         {
 
         }

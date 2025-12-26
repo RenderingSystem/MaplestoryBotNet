@@ -2,7 +2,6 @@
 using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using System.Windows;
-using System.Windows.Controls;
 
 
 namespace MaplestoryBotNet.Xaml
@@ -13,11 +12,17 @@ namespace MaplestoryBotNet.Xaml
 
         private WindowComboBoxScaleActionHandlerRegistry _comboBoxScaleRegistry;
 
-        public MacroBottingWindow()
+        private AbstractWindowMapEditMenuState _editMenuState;
+
+        public MacroBottingWindow(
+            AbstractWindowMapEditMenuState editMenuState
+        )
         {
             InitializeComponent();
             MacroListBox.Items.Clear();
+            PointMacroListBox.Items.Clear();
             _comboBoxScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
+            _editMenuState = editMenuState;
         }
 
         private AbstractWindowActionHandler _instantiateWindowMenuItemHideActionHandler()
@@ -73,6 +78,71 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
+        private AbstractWindowActionHandler _instantiateMacroDisplayLoadingActionHandler()
+        {
+            return new WindowMacroDisplayLoadingActionHandlerFacade(
+                GetSystemWindow(),
+                PointMacroListBox,
+                MacroNameTextBox,
+                PointMacroTemplate,
+                _editMenuState
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMacroDisplaySavingActionHandler()
+        {
+            return new WindowMacroCommandLabelSavingActionHandlerFacade(
+                GetSystemWindow(),
+                MacroNameTextBox,
+                PointMacroListBox
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMacroCommandsSaveStateActionHandler()
+        {
+            return new WindowMacroCommandsSaveStateActionHandlerFacade(
+                PointMacroListBox,
+                MacroListBox
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMacroCommandsDisplayActionHandler()
+        {
+            return new WindowMacroCommandsDisplayActionHandlerFacade(
+                PointMacroListBox,
+                MacroListBox,
+                ComboBoxTemplate,
+                _comboBoxScaleRegistry
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMacroCommandsAddingActionHandler()
+        {
+            return new WindowMacroCommandsAddingActionHandlerFacade(
+                AddMacroButton,
+                PointMacroListBox,
+                PointMacroTemplate
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMacroCommandsRemovingActionHandler()
+        {
+            return new WindowMacroCommandsRemovingActionHandlerFacade(
+                RemoveMacroButton,
+                PointMacroListBox
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMacroCommandsRemoveButtonAccessActionHandler()
+        {
+            return new WindowMacroCommandsRemoveButtonAccessActionHandlerFacade(
+                GetSystemWindow(),
+                PointMacroListBox,
+                AddMacroButton,
+                RemoveMacroButton
+            );
+        }
+
         public List<AbstractWindowActionHandler> InstantiateActionHandlers()
         {
             return [
@@ -81,9 +151,15 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateWindowAddMacroCommandActionHandler(),
                 _instantiateWindowRemoveMacroCommandActionHandler(),
                 _instantiateWindowClearMacroCommandActionHandler(),
-                _instantiateSaveMenuActionHandler()
+                _instantiateSaveMenuActionHandler(),
+                _instantiateMacroDisplayLoadingActionHandler(),
+                _instantiateMacroDisplaySavingActionHandler(),
+                _instantiateMacroCommandsSaveStateActionHandler(),
+                _instantiateMacroCommandsDisplayActionHandler(),
+                _instantiateMacroCommandsAddingActionHandler(),
+                _instantiateMacroCommandsRemovingActionHandler(),
+                _instantiateMacroCommandsRemoveButtonAccessActionHandler(),
             ];
-
         }
 
         public AbstractSystemWindow GetSystemWindow()

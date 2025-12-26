@@ -3,11 +3,14 @@ using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
@@ -713,6 +716,1524 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    /**
+     * @class ListBoxElementAdder
+     * 
+     * @brief Helper utility for synchronizing macro command data between UI ListBox and
+     * MinimapPoint data model.
+     * 
+     * This utility class provides a unified method for adding test macro commands that ensures
+     * both the visual representation in a ListBox and the underlying data model (MinimapPoint)
+     * are updated simultaneously. It's designed specifically for test scenarios to maintain
+     * consistency between UI state and data state during test execution.
+     */
+    public class ListBoxElementAdder
+    {
+        private ListBox _macroLabelsListBox;
+
+        private MinimapPoint _minimapPoint;
+
+        /**
+         * @brief Constructs a ListBoxElementAdder with specified UI and data targets.
+         * 
+         * Initializes the adder with the UI component and data model that will receive
+         * synchronized macro command entries. Both parameters are required to ensure
+         * proper test data consistency.
+         * 
+         * @param macroLabelsListBox The ListBox control where visual macro items will be added.
+         * @param minimapPoint The MinimapPoint data structure where macro data will be stored.
+         */
+        public ListBoxElementAdder(
+            ListBox macroLabelsListBox,
+            MinimapPoint minimapPoint
+        )
+        {
+            _macroLabelsListBox = macroLabelsListBox;
+            _minimapPoint = minimapPoint;
+        }
+
+        /**
+         * @brief Helper method to add a test macro command to the UI and data model.
+         * 
+         * Creates a visual representation of a macro command in the ListBox and
+         * simultaneously adds the corresponding data structure to the minimap point.
+         * This ensures both UI and data model are synchronized for testing purposes.
+         * 
+         * @param name Display name of the macro command
+         * @param probability Probability value as a string (will be converted to integer)
+         * @param commands List of command strings associated with this macro
+         */
+        public void Add(
+            string name,
+            string probability,
+            List<string> commands
+        )
+        {
+            var listBoxElement = new Grid();
+            listBoxElement.Children.Add(new TextBox { Tag = "MacroNameTag", Text = name });
+            listBoxElement.Children.Add(new TextBox { Tag = "ProbabilityTag", Text = probability });
+            _macroLabelsListBox.Items.Add(listBoxElement);
+            _minimapPoint.PointData.ElementName = "meow";
+            _minimapPoint.PointData.Commands.Add(
+                new MinimapPointMacros
+                {
+                    MacroChance = Convert.ToInt32(probability),
+                    MacroName = name,
+                    MacroCommands = commands
+                }
+            );
+        }
+    }
+
+
+    /**
+     * @class WindowMacroDisplayLoadingActionHandlerTests
+     * 
+     * @brief Unit tests for the macro display loading functionality.
+     * 
+     * This test suite validates the behavior of the macro display loading action handler,
+     * which manages the display and population of macros associated with selected minimap
+     * points. Tests cover various scenarios including window visibility changes, selection
+     * states, and model injection requirements to ensure robust macro management.
+     */
+    public class WindowMacroDisplayLoadingActionHandlerTests
+    {
+        private Window _window;
+
+        private MockSystemWindow _macroWindow;
+
+        private ListBox _macroLabelsListBox;
+
+        private TextBox _macroLabelTextBox;
+
+        private AbstractWindowMapEditMenuState _menuState;
+
+        private Grid _pointMacroTemplate;
+
+        private TextBox _pointMacroTemplateMacro;
+
+        private TextBox _pointMacroTemplateProb;
+
+        private MapModel _mapModel;
+
+        private FrameworkElement _selectedElement;
+
+        private MinimapPointData _minimapPointData;
+
+        private MinimapPoint _minimapPoint;
+
+        /**
+         * @brief Constructor initializing all test dependencies.
+         * 
+         * Creates fresh instances of all required test objects:
+         * - UI elements (Window, ListBox, TextBox, Grid)
+         * - State controllers (WindowMapEditMenuState)
+         * - Data models (MapModel, MinimapPointData, MinimapPoint)
+         * - Mock objects (MockSystemWindow)
+         * 
+         * Each test method starts from this clean state to ensure isolation.
+         */
+        public WindowMacroDisplayLoadingActionHandlerTests()
+        {
+            _window = new Window();
+            _macroWindow = new MockSystemWindow();
+            _macroLabelsListBox = new ListBox();
+            _macroLabelTextBox = new TextBox();
+            _menuState = new WindowMapEditMenuState();
+            _pointMacroTemplate = new Grid();
+            _pointMacroTemplateMacro = new TextBox();
+            _pointMacroTemplateProb = new TextBox();
+            _mapModel = new MapModel();
+            _selectedElement = new FrameworkElement();
+            _minimapPointData = new MinimapPointData();
+            _minimapPoint = new MinimapPoint();
+        }
+
+        /**
+         * @brief Creates and configures a test handler instance with dependencies.
+         * 
+         * Sets up a complete test environment:
+         * - Configures mock window to return the test window
+         * - Tags template elements for identification
+         * - Creates and adds a test minimap point to the model
+         * - Adds template children to the pointMacroTemplate grid
+         * 
+         * @return Fully configured test handler instance
+         */
+        public AbstractWindowActionHandler _fixture()
+        {
+            _window = new Window();
+            _macroWindow = new MockSystemWindow();
+            _macroWindow.GetWindowReturn.Add(_window);
+            _macroLabelsListBox = new ListBox();
+            _macroLabelTextBox = new TextBox();
+            _menuState = new WindowMapEditMenuState();
+            _pointMacroTemplate = new Grid();
+            _pointMacroTemplateMacro = new TextBox{ Tag = "MacroNameTag" };
+            _pointMacroTemplateProb = new TextBox{ Tag = "ProbabilityTag" };
+            _mapModel = new MapModel();
+            _selectedElement = new FrameworkElement{ Name = "meow" };
+            _minimapPointData = new MinimapPointData{ ElementName = "meow", PointName = "meow point" };
+            _minimapPoint = new MinimapPoint { PointData = _minimapPointData };
+            _mapModel.Add(_minimapPoint);
+            _pointMacroTemplate.Children.Add(_pointMacroTemplateMacro);
+            _pointMacroTemplate.Children.Add(_pointMacroTemplateProb);
+            return new WindowMacroDisplayLoadingActionHandlerFacade(
+                _macroWindow,
+                _macroLabelsListBox,
+                _macroLabelTextBox,
+                _pointMacroTemplate,
+                _menuState
+            );
+        }
+
+        /**
+         * @brief Standard test setup with common configuration.
+         * 
+         * Prepares a handler for testing with:
+         * - Injected MapModel dependency
+         * - Mock window set to visible
+         * - Menu state with a selected element
+         * 
+         * This setup represents the typical operational state for macro loading.
+         * 
+         * @return Handler ready for visibility event testing
+         */
+        private AbstractWindowActionHandler _testSetup()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _macroWindow.VisibleReturn.Add(true);
+            _menuState.Select(_selectedElement);
+            return handler;
+        }
+
+
+        /**
+         * @brief Helper method to extract text from tagged child elements.
+         * 
+         * Searches through the visual tree of a ListBoxItem to find a TextBox
+         * with a specific tag value. Used to verify proper data binding in
+         * dynamically created macro display items.
+         * 
+         * @param macroLabelsListBoxElement Parent ListBoxItem element
+         * @param elementIndex Index in the Commands array for data validation
+         * @param tag String tag to identify the target TextBox
+         * 
+         * @return string Text content of the found TextBox, or empty string if not found
+         */
+        private string _getTaggedText(
+            FrameworkElement macroLabelsListBoxElement,
+            int elementIndex,
+            string tag
+        )
+        {
+            var minimapPointMacros = _minimapPoint.PointData.Commands[elementIndex];
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(macroLabelsListBoxElement); i++)
+            {
+                var child = VisualTreeHelper.GetChild(macroLabelsListBoxElement, i);
+                if (child is not TextBox childTextBox)
+                {
+                    continue;
+                }
+                if (childTextBox.Tag is not string stringTag)
+                {
+                    continue;
+                }
+                if (stringTag == tag)
+                {
+                    return childTextBox.Text;
+                }
+            }
+            return "";
+        }
+
+        /**
+         * @brief Verifies that the selected minimap point is stored in the ListBox Tag property.
+         * 
+         * @test Validates that the selected minimap point is attached to the ListBox Tag.
+         * 
+         * When the macro window becomes visible and a point is selected,
+         * the handler should attach the corresponding MinimapPoint to the
+         * macro labels ListBox Tag property for future reference.
+         */
+        private void _testWindowBecomingVisibleSetsSelectedMinimapPointAsLabelTag()
+        {
+            var handler = _testSetup();
+            handler.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+            Debug.Assert(_macroLabelsListBox.Tag is MinimapPoint);
+            var taggedMinimapPoint = (MinimapPoint)_macroLabelsListBox.Tag;
+            Debug.Assert(taggedMinimapPoint.PointData.ElementName == "meow");
+        }
+
+        /**
+         * @brief Verifies that the point name is displayed in the label TextBox.
+         * 
+         * @test Validates that the selected point name is displayed in the macro label TextBox.
+         * 
+         * When the window becomes visible, the macro label TextBox should display
+         * the name of the selected minimap point for user identification.
+         */
+        private void _testWindowBecomingVisibleSetsTextBoxWithPointName()
+        {
+            var handler = _testSetup();
+            handler.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+            Debug.Assert(_macroLabelTextBox.Text == "meow point");
+        }
+
+        /**
+         * @brief Verifies that the macro list is cleared before repopulation.
+         * 
+         * @test Validates that existing macro list items are cleared before loading new data.
+         * 
+         * When the window becomes visible, the handler should clear any existing
+         * items from the macro labels ListBox before loading new macros to prevent
+         * stale data from persisting.
+         */
+        private void _testWindowBecomingVisibleClearsLabelsListBox()
+        {
+            var handler = _testSetup();
+            _macroLabelsListBox.Items.Add(new ListBoxItem());
+            handler.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+            Debug.Assert(_macroLabelsListBox.Items.Count == 0);
+        }
+
+        /**
+         * @brief Verifies that macros are properly loaded into the ListBox.
+         * 
+         * @test Validates that all macros from the selected point are loaded.
+         * 
+         * When the window becomes visible and macros exist for the selected point,
+         * the handler should create ListBox items for each macro with properly
+         * bound macro names and probabilities.
+         */
+        private void _testWindowBecomingVisiblePopulatesLabelsListBoxWithCommands()
+        {
+            var handler = _testSetup();
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 12, MacroName = "meow 1" });
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 23, MacroName = "meow 2" });
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 34, MacroName = "meow 3" });
+            handler.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+            Debug.Assert(_macroLabelsListBox.Items.Count == 3);
+            Debug.Assert(_getTaggedText((FrameworkElement)_macroLabelsListBox.Items[0], 0, "MacroNameTag") == "meow 1");
+            Debug.Assert(_getTaggedText((FrameworkElement)_macroLabelsListBox.Items[0], 0, "ProbabilityTag") == "12");
+            Debug.Assert(_getTaggedText((FrameworkElement)_macroLabelsListBox.Items[1], 1, "MacroNameTag") == "meow 2");
+            Debug.Assert(_getTaggedText((FrameworkElement)_macroLabelsListBox.Items[1], 1, "ProbabilityTag") == "23");
+            Debug.Assert(_getTaggedText((FrameworkElement)_macroLabelsListBox.Items[2], 2, "MacroNameTag") == "meow 3");
+            Debug.Assert(_getTaggedText((FrameworkElement)_macroLabelsListBox.Items[2], 2, "ProbabilityTag") == "34");
+        }
+
+        /**
+         * @brief Verifies that the first macro is automatically selected.
+         * 
+         * @test Validates that the first macro in the list is automatically selected and focused.
+         * 
+         * When macros are loaded into the ListBox, the handler should automatically
+         * select the first item and give focus to the ListBox for loading in the
+         * commands of the first item.
+         */
+        private void _testWindowBecomingVisibleSelectsFirstPopulatedLabel()
+        {
+            var handler = _testSetup();
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 12, MacroName = "meow 1" });
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 23, MacroName = "meow 2" });
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 34, MacroName = "meow 3" });
+            handler.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+            Debug.Assert(_macroLabelsListBox.SelectedIndex == 0);
+            Debug.Assert(_macroLabelsListBox.IsFocused);
+        }
+
+        /**
+         * @brief Verifies that macros are not loaded without model injection.
+         * 
+         * @test Validates that macro loading requires MapModel injection to function.
+         * 
+         * The handler requires access to the MapModel to load macros. Without
+         * proper model injection, the ListBox should remain empty even when
+         * other conditions (visibility, selection) are met.
+         */
+        private void _testWindowBecomingVisibleDoesNotPopulateLabelsWhenMapModelIsNotInjected()
+        {
+            var handler = _fixture();
+            _macroWindow.VisibleReturn.Add(true);
+            _menuState.Select(_selectedElement);
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 12, MacroName = "meow 1" });
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 23, MacroName = "meow 2" });
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 34, MacroName = "meow 3" });
+            handler.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+            Debug.Assert(_macroLabelsListBox.Items.Count == 0);
+        }
+
+        /**
+         * @brief Verifies that macro loading only occurs on window visibility.
+         * 
+         * @test Validates that macro population only triggers when the window becomes visible.
+         * 
+         * The handler should only populate macros when the window becomes visible.
+         * When the window is or becomes invisible, no action should be taken
+         * to prevent unnecessary UI updates.
+         */
+        private void _testWindowBecomingInvisibleDoesNotPopulateLabels()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _macroWindow.VisibleReturn.Add(false);
+            _menuState.Select(_selectedElement);
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 12, MacroName = "meow 1" });
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 23, MacroName = "meow 2" });
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 34, MacroName = "meow 3" });
+            handler.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+            Debug.Assert(_macroLabelsListBox.Items.Count == 0);
+        }
+
+        /**
+         * @brief Verifies that macro loading requires a selected element.
+         * 
+         * @test Validates that macro population requires a selected minimap point.
+         * 
+         * Without a selected minimap point, there are no macros to display.
+         * The handler should leave the ListBox empty when no element is
+         * currently selected, even if the window becomes visible.
+         */
+        private void _testWindowBecomingVisibleDoesNotPopulateLabelsWhenNoSelection()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _macroWindow.VisibleReturn.Add(true);
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 12, MacroName = "meow 1" });
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 23, MacroName = "meow 2" });
+            _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 34, MacroName = "meow 3" });
+            handler.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+            Debug.Assert(_macroLabelsListBox.Items.Count == 0);
+        }
+
+
+        /**
+         * @brief Executes all test cases in the suite.
+         * 
+         * Runs each test method sequentially to validate the complete behavior
+         * of the handler.
+         */
+        public void Run()
+        {
+            _testWindowBecomingVisibleSetsSelectedMinimapPointAsLabelTag();
+            _testWindowBecomingVisibleSetsTextBoxWithPointName();
+            _testWindowBecomingVisibleClearsLabelsListBox();
+            _testWindowBecomingVisiblePopulatesLabelsListBoxWithCommands();
+            _testWindowBecomingVisibleSelectsFirstPopulatedLabel();
+            _testWindowBecomingVisibleDoesNotPopulateLabelsWhenMapModelIsNotInjected();
+            _testWindowBecomingVisibleDoesNotPopulateLabelsWhenNoSelection();
+            _testWindowBecomingInvisibleDoesNotPopulateLabels();
+        }
+    }
+
+
+    /**
+     * @class WindowMacroCommandLabelSavingActionHandlerTests
+     * 
+     * @brief Unit tests for the macro command label saving functionality.
+     * 
+     * This test suite validates the behavior of the macro command label saving action handler,
+     * which manages the persistence of macro command data when the macro window closes.
+     * Tests focus on ensuring that macro commands are properly saved to the data model
+     * when the window becomes invisible, while also verifying edge cases and UI state management.
+     */
+    public class WindowMacroCommandLabelSavingActionHandlerTests
+    {
+        private Window _window;
+
+        private MockSystemWindow _macroWindow;
+
+        private TextBox _macroLabelTextBox;
+
+        private ListBox _macroLabelsListBox;
+
+        private MinimapPointData _minimapPointData;
+
+        private MinimapPoint _minimapPoint;
+
+        private MapModel _mapModel;
+
+        /**
+         * @brief Constructor initializing test dependencies with clean state.
+         * 
+         * Creates fresh instances of all UI components and data structures required for testing:
+         * - Window and mock system window for visibility control
+         * - UI controls for macro label display and command listing
+         * - Data model and minimap point structures
+         */
+        public WindowMacroCommandLabelSavingActionHandlerTests()
+        {
+            _window = new Window();
+            _macroWindow = new MockSystemWindow();
+            _macroLabelTextBox = new TextBox();
+            _macroLabelsListBox = new ListBox();
+            _minimapPointData = new MinimapPointData();
+            _minimapPoint = new MinimapPoint();
+            _mapModel = new MapModel();
+        }
+
+
+        /**
+         * @brief Helper method to add a test macro command to the UI and data model.
+         * 
+         * Creates a visual representation of a macro command in the ListBox and
+         * simultaneously adds the corresponding data structure to the minimap point.
+         * This ensures both UI and data model are synchronized for testing purposes.
+         * 
+         * @param name Display name of the macro command
+         * @param probability Probability value as a string (will be converted to integer)
+         * @param commands List of command strings associated with this macro
+         */
+        private void _addLabelsListBoxElement(
+            string name, string probability, List<string> commands
+        )
+        {
+            var listBoxElement = new Grid();
+            listBoxElement.Children.Add(new TextBox { Tag = "MacroNameTag", Text = name });
+            listBoxElement.Children.Add(new TextBox { Tag = "ProbabilityTag", Text = probability });
+            _macroLabelsListBox.Items.Add(listBoxElement);
+            _minimapPoint.PointData.ElementName = "meow";
+            _minimapPoint.PointData.Commands.Add(
+                new MinimapPointMacros
+                {
+                    MacroChance = Convert.ToInt32(probability),
+                    MacroName = name,
+                    MacroCommands = commands
+                }
+            );
+        }
+
+
+        /**
+         * @brief Creates and configures a test handler instance with all dependencies.
+         * 
+         * Sets up a complete test environment with:
+         * - Mock window returning the test window instance
+         * - UI controls initialized with test data
+         * - Minimap point attached to the ListBox Tag property
+         * - Fresh data model instance
+         * 
+         * @return Fully configured test handler ready for testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _window = new Window();
+            _macroWindow = new MockSystemWindow();
+            _macroWindow.GetWindowReturn.Add(_window);
+            _macroLabelTextBox = new TextBox();
+            _macroLabelsListBox = new ListBox();
+            _minimapPointData = new MinimapPointData();
+            _minimapPoint = new MinimapPoint { PointData = _minimapPointData };
+            _mapModel = new MapModel();
+            _macroLabelsListBox.Tag = _minimapPoint;
+            return new WindowMacroCommandLabelSavingActionHandlerFacade(
+                _macroWindow,
+                _macroLabelTextBox,
+                _macroLabelsListBox
+            );
+        }
+
+        /**
+         * @brief Verifies that macro commands are saved to the data model when the window becomes invisible.
+         * 
+         * @test Validates that all macro commands in the UI are persisted to the MapModel on window close.
+         * 
+         * This test ensures that when users close the macro window, their macro command edits
+         * (including names, probabilities, and command sequences) are properly saved to the
+         * underlying data model for later retrieval and use.
+         */
+        private void _testWindowBecomingInvisibleSavesMacroCommandsToMapModel()
+        {
+            var handle = _fixture();
+            _minimapPoint.PointData.ElementName = "meow";
+            _mapModel.Add(_minimapPoint.Copy());
+            handle.Inject(SystemInjectType.MapModel, _mapModel);
+            _macroWindow.VisibleReturn.Add(false);
+            var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+            adder.Add("meow 1", "12", ["1c1", "1c2", "1c3"]);
+            adder.Add("meow 2", "23", ["2c1", "2c2", "2c3"]);
+            adder.Add("meow 3", "34", ["3c1", "3c2", "3c3"]);
+            handle.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+            var savedMinimapPoint = _mapModel.FindName("meow")!;
+            Debug.Assert(savedMinimapPoint.PointData.Commands[0].MacroName == "meow 1");
+            Debug.Assert(savedMinimapPoint.PointData.Commands[0].MacroChance == 12);
+            Debug.Assert(savedMinimapPoint.PointData.Commands[0].MacroCommands[0] == "1c1");
+            Debug.Assert(savedMinimapPoint.PointData.Commands[0].MacroCommands[1] == "1c2");
+            Debug.Assert(savedMinimapPoint.PointData.Commands[0].MacroCommands[2] == "1c3");
+            Debug.Assert(savedMinimapPoint.PointData.Commands[1].MacroName == "meow 2");
+            Debug.Assert(savedMinimapPoint.PointData.Commands[1].MacroChance == 23);
+            Debug.Assert(savedMinimapPoint.PointData.Commands[1].MacroCommands[0] == "2c1");
+            Debug.Assert(savedMinimapPoint.PointData.Commands[1].MacroCommands[1] == "2c2");
+            Debug.Assert(savedMinimapPoint.PointData.Commands[1].MacroCommands[2] == "2c3");
+            Debug.Assert(savedMinimapPoint.PointData.Commands[2].MacroName == "meow 3");
+            Debug.Assert(savedMinimapPoint.PointData.Commands[2].MacroChance == 34);
+            Debug.Assert(savedMinimapPoint.PointData.Commands[2].MacroCommands[0] == "3c1");
+            Debug.Assert(savedMinimapPoint.PointData.Commands[2].MacroCommands[1] == "3c2");
+            Debug.Assert(savedMinimapPoint.PointData.Commands[2].MacroCommands[2] == "3c3");
+        }
+
+        /**
+         * @brief Verifies that selected macro commands are deselected after save operations.
+         * 
+         * @test Validates that the ListBox selection is cleared after saving macro commands.
+         * 
+         * This test ensures that when the window closes and saves data, any selected
+         * macro command in the ListBox is deselected to provide a clean state for
+         * the next time the window is opened, preventing confusion about which item is active.
+         */
+        private void _testWindowBecomingInvisibleDeselectsSelectedMacroCommand()
+        {
+            var handle = _fixture();
+            _minimapPoint.PointData.ElementName = "meow";
+            _mapModel.Add(_minimapPoint.Copy());
+            handle.Inject(SystemInjectType.MapModel, _mapModel);
+            _macroWindow.VisibleReturn.Add(false);
+            var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+            adder.Add("meow 1", "12", ["1c1", "1c2", "1c3"]);
+            adder.Add("meow 2", "23", ["2c1", "2c2", "2c3"]);
+            adder.Add("meow 3", "34", ["3c1", "3c2", "3c3"]);
+            _macroLabelsListBox.SelectedIndex = 0;
+            handle.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+            Debug.Assert(_macroLabelsListBox.SelectedIndex == -1);
+            Debug.Assert(_macroLabelsListBox.IsFocused);
+        }
+
+        /**
+         * @brief Verifies that text dependencies are updated with the current macro label.
+         * 
+         * @test Validates that all registered text elements are updated with the macro label text.
+         * 
+         * This test ensures that when the window closes, any UI elements that depend on
+         * the macro label text (such as TextBox and TextBlock controls) are updated
+         * with the current label value, maintaining consistency across the application.
+         */
+        private void _testWindowBecomingInvisibleUpdatesAnyTextDependencies()
+        {
+            var elementTextsParameters = new List<List<FrameworkElement>>
+            {
+                ([new TextBox(), new TextBox(), new TextBox()]),
+                ([new TextBlock(), new TextBlock(), new TextBlock()]),
+                ([new TextBox(), new TextBlock(), new TextBox()])
+            };
+            for (int i = 0; i < elementTextsParameters.Count; i++)
+            {
+                var elementTexts = elementTextsParameters[i];
+                var handle = _fixture();
+                _minimapPoint.PointData.ElementName = "meow";
+                _mapModel.Add(_minimapPoint.Copy());
+                handle.Inject(SystemInjectType.MapModel, _mapModel);
+                _macroWindow.VisibleReturn.Add(false);
+                _macroLabelTextBox.Text = "meowth thats right!";
+                _minimapPoint.PointData.ElementTexts = elementTexts;
+                handle.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+                for (int j = 0; j < elementTexts.Count; j++)
+                {
+                    if (elementTexts[j] is TextBox textBox)
+                    {
+                        Debug.Assert(textBox.Text == "meowth thats right!");
+                    }
+                    else if (elementTexts[j] is TextBlock textBlock)
+                    {
+                        Debug.Assert(textBlock.Text == "meowth thats right!");
+                    }
+                    else
+                    {
+                        Debug.Assert(false);
+                    }
+                }
+            }
+        }
+
+        /**
+         * @brief Verifies that macro commands are not saved when the window becomes visible.
+         * 
+         * @test Validates that data persistence does not occur on window visibility.
+         * 
+         * This test ensures that when the macro window opens (becomes visible), no
+         * data save operations are triggered, preventing unintended overwrites of
+         * existing macro command data during window display operations.
+         */
+        private void _testWindowBecomingVisibleDoesNotSaveMacroCommands()
+        {
+            var handle = _fixture();
+            _minimapPoint.PointData.ElementName = "meow";
+            _mapModel.Add(_minimapPoint.Copy());
+            handle.Inject(SystemInjectType.MapModel, _mapModel);
+            _macroWindow.VisibleReturn.Add(true);
+            var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+            adder.Add("meow 1", "12", ["1c1", "1c2", "1c3"]);
+            adder.Add("meow 2", "23", ["2c1", "2c2", "2c3"]);
+            adder.Add("meow 3", "34", ["3c1", "3c2", "3c3"]);
+            handle.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+            var savedMinimapPoint = _mapModel.FindName("meow")!;
+            Debug.Assert(savedMinimapPoint.PointData.Commands.Count == 0);
+        }
+
+        /**
+         * @brief Verifies that macro commands are not saved when the data model is not injected.
+         * 
+         * @test Validates that data persistence requires proper model injection.
+         * 
+         * This test ensures that the handler cannot save macro commands without access
+         * to the MapModel, preventing data corruption or exceptions when the required
+         * dependencies are not properly configured.
+         */
+        private void _testWindowBecomingInvisibleDoesNotSaveMacroCommandsWhenModelIsNotInjected()
+        {
+            var handle = _fixture();
+            _minimapPoint.PointData.ElementName = "meow";
+            _mapModel.Add(_minimapPoint.Copy());
+            _macroWindow.VisibleReturn.Add(false);
+            var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+            adder.Add("meow 1", "12", ["1c1", "1c2", "1c3"]);
+            adder.Add("meow 2", "23", ["2c1", "2c2", "2c3"]);
+            adder.Add("meow 3", "34", ["3c1", "3c2", "3c3"]);
+            handle.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+            var savedMinimapPoint = _mapModel.FindName("meow")!;
+            Debug.Assert(savedMinimapPoint.PointData.Commands.Count == 0);
+        }
+
+        /**
+         * @brief Executes the complete test suite for macro command label saving functionality.
+         * 
+         * Runs all test methods to validate the complete behavior of the
+         * WindowMacroCommandLabelSavingActionHandler, ensuring reliable data persistence
+         * and proper UI state management during window visibility changes.
+         */
+        public void Run()
+        {
+            _testWindowBecomingInvisibleSavesMacroCommandsToMapModel();
+            _testWindowBecomingInvisibleDeselectsSelectedMacroCommand();
+            _testWindowBecomingInvisibleUpdatesAnyTextDependencies();
+            _testWindowBecomingInvisibleDoesNotSaveMacroCommandsWhenModelIsNotInjected();
+            _testWindowBecomingVisibleDoesNotSaveMacroCommands();
+        }
+    }
+
+
+    /**
+     * @class WindowMacroCommandsSaveStateActionHandlerTests
+     * 
+     * @brief Unit tests for the macro commands save state functionality.
+     * 
+     * This test suite validates the behavior of the macro commands save action handler,
+     * which manages the automatic saving of macro command changes when the user switches
+     * between different macro labels in the interface. Tests ensure that command state
+     * is preserved during navigation to prevent data loss.
+     */
+    public class WindowMacroCommandsSaveStateActionHandlerTests
+    {
+        private ListBox _macroLabelsListBox;
+
+        private ListBox _macroCommandsListBox;
+
+        private MinimapPoint _minimapPoint;
+
+        /**
+         * @brief Constructor initializing test components with clean state.
+         * 
+         * 
+         * Creates fresh instances of UI components and data structures:
+         * - ListBoxes for macro labels and commands display
+         * - MinimapPoint for storing macro data relationships
+         */
+        public WindowMacroCommandsSaveStateActionHandlerTests()
+        {
+            _macroLabelsListBox = new ListBox();
+            _macroCommandsListBox = new ListBox();
+            _minimapPoint = new MinimapPoint();
+        }
+
+
+        /**
+         * @brief Creates and configures a test handler instance with all dependencies.
+         * 
+         * Sets up a complete test environment with:
+         * - Fresh ListBox instances for macro labels and commands
+         * - MinimapPoint data structure attached to the labels ListBox Tag
+         * - Handler facade connecting the UI components to the save state logic
+         * 
+         * @return AbstractWindowActionHandler Fully configured test handler for save state testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _macroLabelsListBox = new ListBox();
+            _macroCommandsListBox = new ListBox();
+            _minimapPoint = new MinimapPoint();
+            _macroLabelsListBox.Tag = _minimapPoint;
+            return new WindowMacroCommandsSaveStateActionHandlerFacade(
+                _macroLabelsListBox, _macroCommandsListBox
+            );
+        }
+
+        /**
+         * @brief Verifies that macro commands are automatically saved when switching between macro labels.
+         * 
+         * @test Validates that command list state is preserved when navigating between different macro labels.
+         * 
+         * This test ensures that when users switch between different macro labels in the interface,
+         * any commands currently displayed in the macro commands list box are automatically saved
+         * to the previously selected macro label before loading the new label's commands.
+         * This prevents data loss when users edit commands and then navigate to view other macros.
+         */
+        private void _testChangingSelectionSavesCurrentCommands()
+        {
+            var handler = _fixture();
+            _macroCommandsListBox.Items.Add(new ComboBox { Text = "meow 1" });
+            _macroCommandsListBox.Items.Add(new ComboBox { Text = "meow 2" });
+            _macroCommandsListBox.Items.Add(new ComboBox { Text = "meow 3" });
+            var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+            adder.Add("meow 1", "12", ["1c1", "1c2", "1c3"]);
+            adder.Add("meow 2", "23", ["2c1", "2c2", "2c3"]);
+            adder.Add("meow 3", "34", ["3c1", "3c2", "3c3"]);
+            _macroLabelsListBox.SelectedIndex = 1;
+            _macroLabelsListBox.SelectedIndex = 2;
+            Debug.Assert(_minimapPoint.PointData.Commands[1].MacroCommands[0] == "meow 1");
+            Debug.Assert(_minimapPoint.PointData.Commands[1].MacroCommands[1] == "meow 2");
+            Debug.Assert(_minimapPoint.PointData.Commands[1].MacroCommands[2] == "meow 3");
+        }
+
+        /**
+         * @brief Executes the complete test suite for macro commands save state functionality.
+         * 
+         * Runs all test methods to validate the automatic save behavior of the
+         * macro commands save action handler, ensuring that user command edits
+         * are preserved during navigation between different macro labels.
+         */
+        public void Run()
+        {
+            _testChangingSelectionSavesCurrentCommands();
+        }
+    }
+
+
+    /**
+     * @class WindowMacroCommandsDisplayActionHandlerTests
+     * 
+     * @brief Unit tests for the macro commands display and management functionality.
+     * 
+     * This test suite validates the behavior of the macro commands display action handler,
+     * which manages the display and synchronization of macro commands when users select
+     * different macro labels. Tests ensure that command lists are properly loaded,
+     * cleared, and associated with scaling registries as users navigate the interface.
+     */
+    public class WindowMacroCommandsDisplayActionHandlerTests
+    {
+        private ListBox _macroLabelsListBox;
+
+        private ListBox _macroCommandsListBox;
+
+        private ComboBox _comboBoxTemplate;
+
+        private AbstractWindowActionHandlerRegistry _comboBoxPopupScaleRegistry;
+
+        private MinimapPoint _minimapPoint;
+
+        /**
+         * @brief Constructor initializing test components with clean state.
+         * 
+         * Creates fresh instances of all UI components and data structures:
+         * - ListBoxes for macro labels and commands
+         * - ComboBox template for command item rendering
+         * - Scaling registry for command display management
+         * - MinimapPoint for storing macro data relationships
+         */
+        public WindowMacroCommandsDisplayActionHandlerTests()
+        {
+            _macroLabelsListBox = new ListBox();
+            _macroCommandsListBox = new ListBox();
+            _comboBoxTemplate = new ComboBox();
+            _comboBoxPopupScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
+            _minimapPoint = new MinimapPoint();
+        }
+
+        /**
+         * @brief Creates and configures a test handler instance with all dependencies.
+         * 
+         * Sets up a complete test environment with:
+         * - Fresh UI components (ListBoxes, ComboBox template)
+         * - Scaling registry for command display management
+         * - MinimapPoint attached to the labels ListBox Tag property
+         * - Handler facade connecting all components for testing
+         * 
+         * @return AbstractWindowActionHandler Fully configured test handler ready for command display testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _macroLabelsListBox = new ListBox();
+            _macroCommandsListBox = new ListBox();
+            _comboBoxTemplate = new ComboBox();
+            _comboBoxPopupScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
+            _minimapPoint = new MinimapPoint();
+            _macroLabelsListBox.Tag = _minimapPoint;
+            return new WindowMacroCommandsDisplayActionHandlerFacade(
+                _macroLabelsListBox,
+                _macroCommandsListBox,
+                _comboBoxTemplate,
+                _comboBoxPopupScaleRegistry
+            );
+        }
+
+        /**
+         * @brief Verifies that the current macro command list is cleared when selecting a new macro label.
+         * 
+         * @test Validates that the macro commands ListBox is emptied when switching to a new macro label.
+         * 
+         * This test ensures that when users select a different macro label, any previously
+         * displayed commands in the macro commands ListBox are cleared to prevent displaying
+         * stale data from the previously selected macro.
+         */
+        private void _testChangingSelectedMacroClearsCurrentMacroCommands()
+        {
+            var handler = _fixture();
+            var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+            adder.Add("meow 1", "12", []);
+            _macroCommandsListBox.Items.Add(new FrameworkElement());
+            _macroLabelsListBox.SelectedIndex = 0;
+            Debug.Assert(_macroCommandsListBox.Items.Count == 0);
+
+        }
+
+        /**
+         * @brief Verifies that the correct command list is loaded when selecting different macro labels.
+         * 
+         * @test Validates that each macro label's associated commands are properly loaded into the ListBox.
+         * 
+         * This test ensures that when users switch between different macro labels, the
+         * corresponding command list for each macro is accurately loaded and displayed
+         * in the macro commands ListBox.
+         */
+        private void _testChangingSelectedMacroPopulatesCommands()
+        {
+            var handler = _fixture();
+            var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+            adder.Add("meow 1", "12", ["1c1", "1c2", "1c3"]);
+            adder.Add("meow 2", "23", ["2c1", "2c2", "2c3"]);
+            adder.Add("meow 3", "34", ["3c1", "3c2", "3c3"]);
+            _macroLabelsListBox.SelectedIndex = 0;
+            Debug.Assert(_macroCommandsListBox.Items.Count == 3);
+            Debug.Assert(((ComboBox)_macroCommandsListBox.Items[0]).Text == "1c1");
+            Debug.Assert(((ComboBox)_macroCommandsListBox.Items[1]).Text == "1c2");
+            Debug.Assert(((ComboBox)_macroCommandsListBox.Items[2]).Text == "1c3");
+            _macroLabelsListBox.SelectedIndex = 1;
+            Debug.Assert(_macroCommandsListBox.Items.Count == 3);
+            Debug.Assert(((ComboBox)_macroCommandsListBox.Items[0]).Text == "2c1");
+            Debug.Assert(((ComboBox)_macroCommandsListBox.Items[1]).Text == "2c2");
+            Debug.Assert(((ComboBox)_macroCommandsListBox.Items[2]).Text == "2c3");
+        }
+
+        /**
+         * @brief Verifies that scaling registry handlers are cleared when selecting a new macro label.
+         * 
+         * @test Validates that the scaling registry is cleared of old handlers when switching macros.
+         * 
+         * This test ensures that when users switch to a different macro label, any scaling
+         * handlers registered for the previous macro's commands are properly cleaned up
+         * to prevent resource leaks and ensure accurate scaling for the new command set.
+         */
+        private void _testChangingSelectedMacroClearsScaleRegistry()
+        {
+            var handler = _fixture();
+            var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+            adder.Add("meow 1", "12", []);
+            _comboBoxPopupScaleRegistry.RegisterHandler(
+                new WindowComboBoxScaleActionHandlerParameters(new ComboBox())
+            );
+            Debug.Assert(_comboBoxPopupScaleRegistry.GetHandlers().Count == 1);
+            _macroLabelsListBox.SelectedIndex = 0;
+            Debug.Assert(_comboBoxPopupScaleRegistry.GetHandlers().Count == 0);
+        }
+
+        /**
+         * @brief Verifies that scaling registry handlers are assigned for each command in the selected macro.
+         * 
+         * @test Validates that the scaling registry receives the correct number of handlers for each command.
+         * 
+         * This test ensures that when a macro label is selected, scaling handlers are
+         * properly registered for each command in that macro's command list. The test
+         * verifies the registration count matches the command count across multiple
+         * test cases with varying command list sizes.
+         */
+        private void _testChangingSelectedMacroAssignsScaleRegistry()
+        {
+            for (int commandCount = 1; commandCount < 10; commandCount++)
+            {
+                var handler = _fixture();
+                var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+                var commands = Enumerable.Range(0, commandCount).Select(i => i.ToString()).ToList();
+                adder.Add($"meow {commandCount}", commandCount.ToString(), commands);
+                _macroLabelsListBox.SelectedIndex = 0;
+                Debug.Assert(_comboBoxPopupScaleRegistry.GetHandlers().Count == commandCount);
+            }
+        }
+
+        /**
+         * @brief Executes the complete test suite for macro commands display functionality.
+         * 
+         * Runs all test methods to validate the comprehensive behavior of the
+         * WindowMacroCommandsDisplayActionHandler, ensuring that macro command display,
+         * loading, and resource management work correctly during user navigation between
+         * different macro labels.
+         */
+        public void Run()
+        {
+            _testChangingSelectedMacroClearsCurrentMacroCommands();
+            _testChangingSelectedMacroPopulatesCommands();
+            _testChangingSelectedMacroClearsScaleRegistry();
+            _testChangingSelectedMacroAssignsScaleRegistry();
+        }
+    }
+
+
+    /**
+     * @class WindowMacroCommandsAddingActionHandlerTests
+     * 
+     * @brief Unit tests for the macro command adding functionality.
+     * 
+     * This test suite validates the behavior of the macro commands adding action handler,
+     * which manages the addition of new macro commands to the user interface. Tests ensure
+     * that users can reliably add new macro commands with proper naming, default values,
+     * and UI focus management while maintaining data integrity and unique naming conventions.
+     */
+    public class WindowMacroCommandsAddingActionHandlerTests
+    {
+        private Button _macroAddButton;
+
+        private ListBox _macroLabelsListBox;
+
+        private Grid _pointMacroTemplate;
+
+        private TextBox _macroNameTextBox;
+
+        private TextBox _macroProbabilityTextBox;
+
+        private MinimapPointData _minimapPointData;
+
+        private MinimapPoint _minimapPoint;
+
+        /**
+         * @brief Constructor initializing test components with clean state.
+         * 
+         * Creates fresh instances of all UI components and data structures required for testing:
+         * - Button for adding macros
+         * - ListBox for macro display
+         * - Grid template for new macro structure
+         * - TextBoxes for macro name and probability
+         * - Data structures for storing macro information
+         */
+        public WindowMacroCommandsAddingActionHandlerTests()
+        {
+            _macroAddButton = new Button();
+            _macroLabelsListBox = new ListBox();
+            _pointMacroTemplate = new Grid();
+            _macroNameTextBox = new TextBox();
+            _macroProbabilityTextBox = new TextBox();
+            _minimapPointData = new MinimapPointData();
+            _minimapPoint = new MinimapPoint();
+        }
+
+        /**
+         * @brief Creates and configures a test handler instance with all dependencies.
+         * 
+         * Sets up a complete test environment with:
+         * - Fresh UI components (Button, ListBox, Grid template, TextBoxes)
+         * - MinimapPoint data structure with associated point data
+         * - Template children added to the grid for proper item rendering
+         * - MinimapPoint attached to the ListBox Tag for data binding
+         * - Handler facade connecting all components for testing
+         * 
+         * @return AbstractWindowActionHandler Fully configured test handler for macro adding
+         * functionality testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _macroAddButton = new Button();
+            _macroLabelsListBox = new ListBox();
+            _pointMacroTemplate = new Grid();
+            _macroNameTextBox = new TextBox();
+            _macroProbabilityTextBox = new TextBox();
+            _minimapPointData = new MinimapPointData();
+            _minimapPoint = new MinimapPoint { PointData = _minimapPointData };
+            _pointMacroTemplate.Children.Add(_macroNameTextBox);
+            _pointMacroTemplate.Children.Add(_macroProbabilityTextBox);
+            _macroLabelsListBox.Tag = _minimapPoint;
+            return new WindowMacroCommandsAddingActionHandlerFacade(
+                _macroAddButton,
+                _macroLabelsListBox,
+                _pointMacroTemplate
+            );
+        }
+
+        /**
+         * @brief Verifies that clicking the add button creates new macro command entries.
+         * 
+         * @test Validates that multiple new macro entries are created with correct
+         * default values.
+         * 
+         * This test ensures that users can add multiple new macro commands by clicking
+         * the add button, with each new entry receiving proper default values including
+         * sequentially numbered names and zero probability initialization.
+         */
+        private void _testClickingAddButtonAddsNewMacro()
+        {
+            for (int i = 1; i < 10; i++)
+            {
+                var handler = _fixture();
+                for (int j = 0; j < i; j++)
+                {
+                    _macroAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                }
+                Debug.Assert(_macroLabelsListBox.Items.Count == i);
+                for (int j = 0; j < i; j++)
+                {
+                    var macroName = ((TextBox)((Grid)_macroLabelsListBox.Items[j]).Children[0]).Text;
+                    var macroProb = ((TextBox)((Grid)_macroLabelsListBox.Items[j]).Children[1]).Text;
+                    Debug.Assert(macroName == "Macro " + j);
+                    Debug.Assert(macroProb == "0");
+                }
+            }
+        }
+
+        /**
+         * @brief Verifies that newly added macro commands automatically receive focus.
+         * 
+         * @test Validates that the ListBox focuses on and selects each newly added macro item.
+         * 
+         * This test ensures that when users add new macro commands, the interface
+         * automatically focuses on and selects the newest item, allowing for immediate
+         * editing without additional clicks and improving workflow efficiency.
+         */
+        private void _testClickingAddButtonFocusesOnNewItem()
+        {
+            for (int i = 1; i < 10; i++)
+            {
+                var handler = _fixture();
+                for (int j = 0; j < i; j++)
+                {
+                    _macroAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    Debug.Assert(_macroLabelsListBox.SelectedIndex == j);
+                    Debug.Assert(_macroLabelsListBox.IsFocused);
+                }
+            }
+        }
+
+        /**
+         * @brief Verifies that newly added macros receive unique names to prevent conflicts.
+         * 
+         * @test Validates that macro name generation avoids conflicts with existing names.
+         * 
+         * This test ensures that when existing macros have been renamed, new macros
+         * continue to receive unique, sequentially numbered names to prevent naming
+         * conflicts and maintain clear identification of all macro commands.
+         */
+        private void _testClickingAddButtonAddsUniqueMacroName()
+        {
+            for (int i = 1; i < 10; i++)
+            {
+                var handler = _fixture();
+                for (int j = 0; j < i; j++)
+                {
+                    _macroAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                }
+                _minimapPointData.Commands[i - 1].MacroName = "Macro " + i;
+                _macroAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                var macroNameLabel = (TextBox)((Grid)_macroLabelsListBox.Items[i]).Children[0];
+                Debug.Assert(macroNameLabel.Text == "Macro " + (i + 1));
+            }
+        }
+
+        /**
+         * @brief Executes the complete test suite for macro command adding functionality.
+         * 
+         * Runs all test methods to validate the comprehensive behavior of the
+         * WindowMacroCommandsAddingActionHandler, ensuring that users can reliably
+         * add, focus, and uniquely name macro commands in their automation workflows.
+         */
+        public void Run()
+        {
+            _testClickingAddButtonAddsNewMacro();
+            _testClickingAddButtonFocusesOnNewItem();
+            _testClickingAddButtonAddsUniqueMacroName();
+        }
+    }
+
+
+    /**
+     * @class WindowMacroCommandsRemovingActionHandlerTests
+     * 
+     * @brief Unit tests for the macro command removal functionality.
+     * 
+     * This test suite validates the behavior of the macro commands removing action handler,
+     * which manages the removal of macro commands from both the UI and data model. Tests
+     * cover various scenarios including random selection removal, selection index updates,
+     * edge cases for last item removal, and handling of no selection states.
+     */
+    public class WindowMacroCommandsRemovingActionHandlerTests
+    {
+        private Button _macroRemoveButton;
+
+        private ListBox _macroLabelsListBox;
+
+        private MinimapPointData _minimapPointData;
+
+        private MinimapPoint _minimapPoint;
+
+        /**
+         * @brief Constructor initializing test components with clean state.
+         * 
+         * Creates fresh instances of all UI components and data structures:
+         * - Button for removing macros
+         * - ListBox for macro display
+         * - Data structures for storing macro information
+         * 
+         * Each test method starts from this clean state to ensure consistent
+         * behavior and isolation between test executions.
+         */
+        public WindowMacroCommandsRemovingActionHandlerTests()
+        {
+            _macroRemoveButton = new Button();
+            _macroLabelsListBox = new ListBox();
+            _minimapPointData = new MinimapPointData();
+            _minimapPoint = new MinimapPoint { PointData = _minimapPointData };
+        }
+
+        /**
+         * @brief Creates and configures a test handler instance with all dependencies.
+         * 
+         * Sets up a complete test environment with:
+         * - Fresh UI components (Button, ListBox)
+         * - MinimapPoint data structure with associated point data
+         * - MinimapPoint attached to the ListBox Tag for data binding
+         * - Handler facade connecting the components for testing
+         * 
+         * @return AbstractWindowActionHandler Fully configured test handler for macro
+         * removal functionality testing
+         */
+        public AbstractWindowActionHandler _fixture()
+        {
+            _macroRemoveButton = new Button();
+            _macroLabelsListBox = new ListBox();
+            _minimapPointData = new MinimapPointData();
+            _minimapPoint = new MinimapPoint { PointData = _minimapPointData };
+            _macroLabelsListBox.Tag = _minimapPoint;
+            return new WindowMacroCommandsRemovingActionHandlerFacade(
+                _macroRemoveButton, _macroLabelsListBox
+            );
+        }
+
+        /**
+         * @brief Verifies that clicking remove button deletes the selected macro from both UI
+         * and data model.
+         * 
+         * @test Validates that removal works correctly for random selections across various list sizes.
+         * 
+         * This test ensures that when users remove a selected macro command, it is properly
+         * deleted from both the visual ListBox display and the underlying data model.
+         * This ensures complete synchronization between UI and data during removal.
+         */
+        private void _testClickingRemoveButtonRemovesSelectedMacro()
+        {
+            for (int i = 3; i < 20; i++)
+            {
+                var handler = _fixture();
+                var randomIndex = new Random(0).Next(i);
+                var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+                for (int j = 0; j < i; j++)
+                {
+                    adder.Add($"meow {j}", j.ToString(), [$"{j}c1", $"{j}c2", $"{j}c3"]);
+                }
+                _macroLabelsListBox.SelectedIndex = randomIndex;
+                var selectedItem = _macroLabelsListBox.SelectedItem;
+                var selectedData = _minimapPointData.Commands[randomIndex];
+                Debug.Assert(_macroLabelsListBox.Items.Count == i);
+                Debug.Assert(_minimapPointData.Commands.Count == i);
+                _macroRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Debug.Assert(_macroLabelsListBox.Items.Count == i - 1);
+                Debug.Assert(_macroLabelsListBox.Items.IndexOf(selectedItem) == -1);
+                Debug.Assert(_minimapPointData.Commands.Count == i - 1);
+                Debug.Assert(_minimapPointData.Commands.IndexOf(selectedData) == -1);
+            }
+        }
+
+        /**
+         * @brief Verifies that selection index remains on the same position after removal.
+         * 
+         * @test Validates that when removing a non-last item, selection stays at the same index.
+         * 
+         * This test ensures that when users remove a macro command from the middle of the list,
+         * the selection index remains at the same position (now pointing to the item that
+         * shifted into that position), and focus is maintained for continuous operation.
+         */
+        private void _testClickingRemoveButtonUpdatesSelectedIndex()
+        {
+            for (int i = 3; i < 20; i++)
+            {
+                var handler = _fixture();
+                var removeIndex = i / 2;
+                var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+                for (int j = 0; j < i; j++)
+                {
+                    adder.Add($"meow {j}", j.ToString(), [$"{j}c1", $"{j}c2", $"{j}c3"]);
+                }
+                _macroLabelsListBox.SelectedIndex = removeIndex;
+                _macroRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Debug.Assert(_macroLabelsListBox.SelectedIndex == removeIndex);
+                Debug.Assert(_macroLabelsListBox.IsFocused);
+            }
+        }
+
+        /**
+         * @brief Verifies that selection index moves up when removing the last item.
+         * 
+         * @test Validates that when removing the last item, selection moves to the new last item.
+         * 
+         * This test ensures that when users remove the last macro command in the list,
+         * the selection index correctly moves to the new last item (index - 1) and
+         * focus is maintained for continuous editing or further removal.
+         */
+        private void _testClickingRemoveButtonUpdatesLastIndex()
+        {
+            for (int i = 3; i < 20; i++)
+            {
+                var handler = _fixture();
+                var removeIndex = i - 1;
+                var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+                for (int j = 0; j < i; j++)
+                {
+                    adder.Add($"meow {j}", j.ToString(), [$"{j}c1", $"{j}c2", $"{j}c3"]);
+                }
+                _macroLabelsListBox.SelectedIndex = removeIndex;
+                var selectedItem = _macroLabelsListBox.SelectedItem;
+                _macroRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Debug.Assert(_macroLabelsListBox.SelectedIndex == removeIndex - 1);
+                Debug.Assert(_macroLabelsListBox.IsFocused);
+            }
+        }
+
+        /**
+         * @brief Verifies that no removal occurs when no macro is selected.
+         * 
+         * @test Validates that the remove button has no effect when no item is selected.
+         * 
+         * This test ensures that when no macro command is selected in the ListBox,
+         * clicking the remove button has no effect on the list contents, selection state,
+         * or focus. This prevents accidental data loss when users click remove without
+         * first selecting an item.
+         */
+        private void _testClickingRemoveButtonDoesntRemoveWhenNoneSelected()
+        {
+            for (int i = 3; i < 20; i++)
+            {
+                var handler = _fixture();
+                var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+                for (int j = 0; j < i; j++)
+                {
+                    adder.Add($"meow {j}", j.ToString(), [$"{j}c1", $"{j}c2", $"{j}c3"]);
+                }
+                _macroLabelsListBox.SelectedIndex = -1;
+                var selectedItem = _macroLabelsListBox.SelectedItem;
+                _macroRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Debug.Assert(_macroLabelsListBox.Items.Count == i);
+                Debug.Assert(_macroLabelsListBox.SelectedIndex == -1);
+                Debug.Assert(!_macroLabelsListBox.IsFocused);
+            }
+        }
+
+        /**
+         * @brief Executes the complete test suite for macro command removal functionality.
+         * 
+         * Runs all test methods to validate the comprehensive behavior of the
+         * macro commands removing action handler, ensuring that macro command removal
+         * works correctly across various scenarios while maintaining proper UI state
+         * and data model synchronization.
+         */
+        public void Run()
+        {
+            _testClickingRemoveButtonRemovesSelectedMacro();
+            _testClickingRemoveButtonUpdatesSelectedIndex();
+            _testClickingRemoveButtonUpdatesLastIndex();
+            _testClickingRemoveButtonDoesntRemoveWhenNoneSelected();
+        }
+    }
+
+
+    /**
+     * @class WindowMacroCommandsRemoveButtonAccessActionHandlerTests
+     * 
+     * @brief Unit tests for the remove button accessibility management functionality.
+     * 
+     * This test suite validates the behavior of the macro commands remove button access
+     * action handler, which dynamically manages the enabled/disabled state of the remove
+     * button based on macro command list conditions and user interactions.
+     */
+    public class WindowMacroCommandsRemoveButtonAccessActionHandlerTests
+    {
+        private Window _window;
+
+        private MockSystemWindow _macroWindow;
+
+        private ListBox _macroLabelsListBox;
+
+        private Button _addButton;
+
+        private Button _removeButton;
+
+        private MinimapPointData _minimapPointData;
+
+        private MinimapPoint _minimapPoint;
+
+        /**
+         * @brief Constructor initializing test components with clean state.
+         * 
+         * Creates fresh instances of all UI components and data structures required for testing:
+         * - Window and mock system window for visibility control
+         * - ListBox for macro display
+         * - Add and remove buttons for macro management
+         * - Data structures for storing macro information
+         * 
+         * Each test method starts from this clean state to ensure consistent
+         * behavior and isolation between test executions.
+         */
+        public WindowMacroCommandsRemoveButtonAccessActionHandlerTests()
+        {
+            _window = new Window();
+            _macroWindow = new MockSystemWindow();
+            _macroLabelsListBox = new ListBox();
+            _addButton = new Button();
+            _removeButton = new Button();
+            _minimapPointData = new MinimapPointData();
+            _minimapPoint = new MinimapPoint();
+        }
+
+        /**
+         * @brief Creates and configures a test handler instance with all dependencies.
+         * 
+         * Sets up a complete test environment with:
+         * - Fresh UI components (Window, ListBox, Buttons)
+         * - Mock window returning the test window instance
+         * - MinimapPoint data structure with associated point data
+         * - MinimapPoint attached to the ListBox Tag for data binding
+         * - Handler facade connecting all components for testing
+         * 
+         * @return AbstractWindowActionHandler Fully configured test handler for remove
+         * button accessibility testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _window = new Window();
+            _macroWindow = new MockSystemWindow();
+            _macroWindow.GetWindowReturn.Add(_window);
+            _macroLabelsListBox = new ListBox();
+            _addButton = new Button();
+            _removeButton = new Button();
+            _minimapPointData = new MinimapPointData();
+            _minimapPoint = new MinimapPoint { PointData = _minimapPointData };
+            _macroLabelsListBox.Tag = _minimapPoint;
+            return new WindowMacroCommandsRemoveButtonAccessActionHandlerFacade(
+                _macroWindow,
+                _macroLabelsListBox,
+                _addButton,
+                _removeButton
+            );
+        }
+
+        /**
+         * @brief Verifies that window visibility changes update the remove button accessibility.
+         * 
+         * @test Validates that the remove button state is recalculated when the window becomes visible.
+         * 
+         * This test ensures that when the macro window becomes visible, the remove button's
+         * enabled state is automatically updated based on the current number of macro commands.
+         * The button follows the rule: disabled for 0-1 items, enabled for 2+ items.
+         * This ensures the UI provides correct feedback when the window is first displayed.
+         */
+        private void _testWindowVisibilityUpdatesRemoveButtonAccessibility()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                var handler = _fixture();
+                var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+                for (int j = 0; j < i; j++)
+                {
+                    adder.Add("meow " + j, j.ToString(), []);
+                }
+                _removeButton.IsEnabled = i <= 1;
+                handler.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
+                Debug.Assert(_removeButton.IsEnabled == i > 1);
+            }
+        }
+
+        /**
+         * @brief Verifies that adding macros via the add button updates remove button accessibility.
+         * 
+         * @test Validates that the remove button state updates correctly when new macros are added.
+         * 
+         * This test ensures that when users add new macro commands using the add button,
+         * the remove button's enabled state is automatically recalculated. The button
+         * should become enabled once the second macro is added.
+         */
+        private void _testAddButtonClickUpdatesRemoveButtonAccessibility()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                var handler = _fixture();
+                var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+                for (int j = 0; j < i; j++)
+                {
+                    adder.Add("meow " + j, j.ToString(), []);
+                }
+                _removeButton.IsEnabled = i <= 1;
+                _addButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Debug.Assert(_removeButton.IsEnabled == i > 1);
+            }
+        }
+
+
+        /**
+         * @brief Verifies that removing macros via the remove button updates its own accessibility.
+         * 
+         * @test Validates that the remove button state updates correctly when macros are removed.
+         * 
+         * This test ensures that when users remove macro commands using the remove button,
+         * the button's enabled state is automatically recalculated. The button should
+         * become disabled if the removal would leave 0 or 1 macros in the list.
+         */
+        private void _testRemoveButtonCLickUpdatesRemoveButtonAccessibility()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                var handler = _fixture();
+                var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
+                for (int j = 0; j < i; j++)
+                {
+                    adder.Add("meow " + j, j.ToString(), []);
+                }
+                _removeButton.IsEnabled = i <= 1;
+                _removeButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Debug.Assert(_removeButton.IsEnabled == i > 1);
+            }
+        }
+
+
+        /**
+         * @brief Executes the complete test suite for remove button accessibility functionality.
+         * 
+         * Runs all test methods to validate the comprehensive behavior of the
+         * macro commands remove button access action handler, ensuring that the remove
+         * button's enabled state responds correctly to window visibility changes,
+         * add operations, and remove operations while maintaining the threshold-based
+         * accessibility rule.
+         */
+        public void Run()
+        {
+            _testWindowVisibilityUpdatesRemoveButtonAccessibility();
+            _testAddButtonClickUpdatesRemoveButtonAccessibility();
+            _testRemoveButtonCLickUpdatesRemoveButtonAccessibility();
+        }
+    }
+
+
     public class WindowSaveLoadMenuHandlersTestSuite
     {
         public void Run()
@@ -722,6 +2243,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowAddMacroCommandActionHandlerTests().Run();
             new WindowRemoveMacroCommandActionHandlerTests().Run();
             new WindowClearMacroCommandActionHandlerTests().Run();
+            new WindowMacroDisplayLoadingActionHandlerTests().Run();
+            new WindowMacroCommandLabelSavingActionHandlerTests().Run();
+            new WindowMacroCommandsSaveStateActionHandlerTests().Run();
+            new WindowMacroCommandsDisplayActionHandlerTests().Run();
+            new WindowMacroCommandsAddingActionHandlerTests().Run();
+            new WindowMacroCommandsRemovingActionHandlerTests().Run();
+            new WindowMacroCommandsRemoveButtonAccessActionHandlerTests().Run();
         }
     }
 }

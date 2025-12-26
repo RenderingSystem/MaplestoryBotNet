@@ -166,6 +166,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private MapModel _mapModel;
 
+        private TextBox _textBox;
 
         /**
          * @brief Initializes common test dependencies.
@@ -186,6 +187,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 Source = _canvas,
             };
             _mapModel = new MapModel();
+            _textBox = new TextBox();
         }
 
         /**
@@ -211,8 +213,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 Source = _canvas,
             };
             _mapModel = new MapModel();
+            _textBox = new TextBox();
             return new WindowMapCanvasPointDrawingActionHandlerFacade(
-                _canvas, _menuState, _mousePositionExtractor
+                _canvas, _textBox, _menuState, _mousePositionExtractor
             );
         }
 
@@ -382,7 +385,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     Debug.Assert(minimapPoints[j].YRange == 10);
                     Debug.Assert(minimapPoints[j].PointData.PointName == "P" + j.ToString());
                     Debug.Assert(minimapPoints[j].PointData.ElementName == "T" + j.ToString());
-                    Debug.Assert(minimapPoints[j].PointData.Commands.Count == 0);
+                    Debug.Assert(minimapPoints[j].PointData.Commands.Count == 1);
                 }
             }
         }

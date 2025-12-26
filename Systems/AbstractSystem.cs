@@ -73,8 +73,6 @@ namespace MaplestoryBotNet.Systems
 
     public abstract class AbstractSystemWindow
     {
-        protected Window? _window;
-
         protected bool _shutDownFlag = false;
 
         public bool ShutdownFlag
@@ -89,27 +87,57 @@ namespace MaplestoryBotNet.Systems
             }
         }
 
-        public virtual void Show()
+        public abstract void Show();
+
+        public abstract void Hide();
+
+        public abstract void ShowDialog();
+
+        public abstract void AttachOwner(AbstractSystemWindow owner);
+
+        public abstract bool Visible();
+
+        public abstract void Close();
+
+        public abstract object? GetWindow();
+    }
+
+
+    public class SystemWindow : AbstractSystemWindow
+    {
+        private Window _window;
+
+        public SystemWindow(Window window)
+        {
+            _window = window;
+        }
+
+        public override void Show()
         {
             _window!.Show();
         }
 
-        public virtual void Hide()
+        public override void Hide()
         {
             _window!.Hide();
         }
 
-        public virtual void ShowDialog()
+        public override void ShowDialog()
         {
             _window!.ShowDialog();
         }
 
-        public virtual void AttachOwner(AbstractSystemWindow owner)
+        public override void AttachOwner(AbstractSystemWindow owner)
         {
             _window!.Owner = (Window)owner.GetWindow()!;
         }
 
-        public virtual void Close()
+        public override bool Visible()
+        {
+            return _window!.IsVisible;
+        }
+
+        public override void Close()
         {
             if (ShutdownFlag)
             {
@@ -121,18 +149,9 @@ namespace MaplestoryBotNet.Systems
             }
         }
 
-        public virtual object? GetWindow()
+        public override object? GetWindow()
         {
             return _window;
-        }
-    }
-
-
-    public class SystemWindow : AbstractSystemWindow
-    {
-        public SystemWindow(Window window)
-        {
-            _window = window;
         }
     }
     

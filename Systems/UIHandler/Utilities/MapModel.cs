@@ -1,15 +1,50 @@
 ﻿using System;
+using System.Windows;
+using System.Windows.Controls;
 using System.Xml.Linq;
 
 namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 {
+    public class MinimapPointMacros
+    {
+        public string MacroName = "";
+
+        public int MacroChance = 0;
+
+        public List<string> MacroCommands = [];
+
+        public MinimapPointMacros Copy()
+        {
+            return new MinimapPointMacros
+            {
+                MacroName = MacroName,
+                MacroChance = MacroChance,
+                MacroCommands = [.. MacroCommands]
+            };
+        }
+    }
+
+
     public class MinimapPointData
     {
+        public List<FrameworkElement> ElementTexts = [];
+
         public string ElementName = "";
 
         public string PointName = "";
 
-        public List<string> Commands = [];
+        public List<MinimapPointMacros> Commands = [];
+
+        public MinimapPointData Copy()
+        {
+            return new MinimapPointData
+            {
+                ElementTexts = ElementTexts,
+                ElementName = ElementName,
+                PointName = PointName,
+                Commands = Commands.Select(cmd => cmd.Copy()).ToList()
+            };
+        }
     }
 
 
@@ -33,12 +68,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 Y = Y,
                 XRange = XRange,
                 YRange = YRange,
-                PointData = new MinimapPointData
-                {
-                    ElementName = PointData.ElementName,
-                    PointName = PointData.PointName,
-                    Commands = [.. PointData.Commands],
-                }
+                PointData = PointData.Copy()
             };
         }
 
@@ -48,12 +78,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             Y = point.Y;
             XRange = point.XRange;
             YRange = point.YRange;
-            PointData = new MinimapPointData
-            {
-                ElementName = point.PointData.ElementName,
-                PointName = point.PointData.PointName,
-                Commands = [.. point.PointData.Commands],
-            };
+            PointData = point.PointData.Copy();
         }
     }
 
