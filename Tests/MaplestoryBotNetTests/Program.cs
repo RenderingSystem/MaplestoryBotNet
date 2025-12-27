@@ -37,6 +37,7 @@ void UnitTestSuite()
     new WindowSaveLoadMenuHandlersTestSuite().Run();
     new WindowComboBoxScaleHandlersTestSuite().Run();
     new WindowMapEditorHandlersTestSuite().Run();
+    new NumericTextBoxHandlersTestSuite().Run();
 }
 
 

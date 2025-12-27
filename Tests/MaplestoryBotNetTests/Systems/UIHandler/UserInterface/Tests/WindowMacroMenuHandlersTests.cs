@@ -2148,7 +2148,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * The button follows the rule: disabled for 0-1 items, enabled for 2+ items.
          * This ensures the UI provides correct feedback when the window is first displayed.
          */
-        private void _testWindowVisibilityUpdatesRemoveButtonAccessibility()
+        private void _testWindowVisibilityUpdatesButtonAccessibility()
         {
             for (int i = 0; i < 3; i++)
             {
@@ -2173,7 +2173,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * the remove button's enabled state is automatically recalculated. The button
          * should become enabled once the second macro is added.
          */
-        private void _testAddButtonClickUpdatesRemoveButtonAccessibility()
+        private void _testAddButtonClickUpdatesButtonAccessibility()
         {
             for (int i = 0; i < 3; i++)
             {
@@ -2199,7 +2199,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * the button's enabled state is automatically recalculated. The button should
          * become disabled if the removal would leave 0 or 1 macros in the list.
          */
-        private void _testRemoveButtonCLickUpdatesRemoveButtonAccessibility()
+        private void _testRemoveButtonCLickUpdatesButtonAccessibility()
         {
             for (int i = 0; i < 3; i++)
             {
@@ -2227,9 +2227,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          */
         public void Run()
         {
-            _testWindowVisibilityUpdatesRemoveButtonAccessibility();
-            _testAddButtonClickUpdatesRemoveButtonAccessibility();
-            _testRemoveButtonCLickUpdatesRemoveButtonAccessibility();
+            _testWindowVisibilityUpdatesButtonAccessibility();
+            _testAddButtonClickUpdatesButtonAccessibility();
+            _testRemoveButtonCLickUpdatesButtonAccessibility();
         }
     }
 

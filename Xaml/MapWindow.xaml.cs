@@ -11,7 +11,7 @@ using System.Windows.Input;
 
 namespace MaplestoryBotNet.Xaml
 {
-    public partial class MapWindow : Window, INotifyPropertyChanged
+    public partial class MapWindow : Window
     {
         private AbstractSystemWindow? _systemWindow = null;
 
@@ -22,165 +22,32 @@ namespace MaplestoryBotNet.Xaml
         )
         {
             InitializeComponent();
-            this.DataContext = this;
-            NumericPropertyBottom = 0;
-            NumericPropertyRight = 0;
-            NumericPropertyTop = 0;
-            NumericPropertyLeft = 0;
-            NumericPropertyX = 0;
-            NumericPropertyY = 0;
+            DataContext = this;
             _editMenuState = editMenuState;
         }
 
-        private int SetValidatedProperty(
-            ref int field,
-            int value,
-            int minValue,
-            int maxValue,
-            [CallerMemberName] string propertyName = ""
+        private AbstractWindowActionHandler _instantiateNumericTextBoxPropertyActionHandler(
+            TextBox numericTextBox, int maxValue
         )
         {
-            if (value >= minValue && value <= maxValue)
-            {
-                field = value;
-                OnPropertyChanged(propertyName);
-            }
-            return field;
+            return (
+                new NumericTextBoxValidationActionHandlerBuilder()
+                    .WithArgs(maxValue)
+                    .WithArgs(numericTextBox)
+                    .Build()
+            );
         }
 
-        private int _numericPropertyBottom;
-
-        public int NumericPropertyBottom
-        {
-            get => _numericPropertyBottom;
-            set => SetValidatedProperty(ref _numericPropertyBottom, value, 0, 9999);
-        }
-
-        private int _numericPropertyRight;
-
-        public int NumericPropertyRight
-        {
-            get => _numericPropertyRight;
-            set => SetValidatedProperty(ref _numericPropertyRight, value, 0, 9999);
-        }
-
-        private int _numericPropertyTop;
-
-        public int NumericPropertyTop
-        {
-            get => _numericPropertyTop;
-            set => SetValidatedProperty(ref _numericPropertyTop, value, 0, 9999);
-        }
-
-        private int _numericPropertyLeft;
-
-        public int NumericPropertyLeft
-        {
-            get => _numericPropertyLeft;
-            set => SetValidatedProperty(ref _numericPropertyLeft, value, 0, 9999);
-        }
-
-        private int _numericPropertyX;
-
-        public int NumericPropertyX
-        {
-            get => _numericPropertyX;
-            set => SetValidatedProperty(ref _numericPropertyX, value, 0, Convert.ToInt32(MapCanvas.ActualWidth));
-        }
-
-        private int _numericPropertyY;
-
-        public int NumericPropertyY
-        {
-            get => _numericPropertyY;
-            set => SetValidatedProperty(ref _numericPropertyY, value, 0, Convert.ToInt32(MapCanvas.ActualHeight));
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        protected virtual void OnPropertyChanged(
-            [CallerMemberName] string? propertyName = null
+        private AbstractWindowActionHandler _instantiateNumericTextBoxPropertyPasteActionHandler(
+            TextBox numericTextBox, int maxValue
         )
         {
-            PropertyChanged?.Invoke(
-                this, new PropertyChangedEventArgs(propertyName)
+            return (
+                new NumericTextBoxPasteValidationActionHandlerBuilder()
+                    .WithArgs(maxValue)
+                    .WithArgs(numericTextBox)
+                    .Build()
             );
-        }
-
-        private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
-        {
-            var textBox = (TextBox)sender;
-            var proposedText = textBox.Text.Insert(textBox.SelectionStart, e.Text);
-            e.Handled = proposedText.Length > 4 || !e.Text.All(char.IsDigit);
-        }
-
-        private void NumberValidationPasting(object sender, DataObjectPastingEventArgs e)
-        {
-            var pastedText = (string)e.DataObject.GetData(typeof(string));
-            var textBox = (TextBox)sender;
-            var proposedText = textBox.Text
-                .Remove(textBox.SelectionStart, textBox.SelectionLength)
-                .Insert(textBox.SelectionStart, pastedText);
-            if (proposedText.Length > 4 || !pastedText.All(char.IsDigit))
-            {
-                e.CancelCommand();
-            }
-        }
-
-        private void NumberCanvasWidthValidationTextBox(object sender, TextCompositionEventArgs e)
-        {
-            var textBox = (TextBox)sender;
-            var proposedText = textBox.Text.Insert(textBox.SelectionStart, e.Text);
-            e.Handled = (
-                proposedText.Length > 4
-                || !e.Text.All(char.IsDigit)
-                || Convert.ToInt32(proposedText) > MapCanvas.ActualWidth
-            );
-        }
-
-        private void NumberCanvasWidthValidationPasting(object sender, DataObjectPastingEventArgs e)
-        {
-            var pastedText = (string)e.DataObject.GetData(typeof(string));
-            var textBox = (TextBox)sender;
-            var proposedText = textBox.Text
-                .Remove(textBox.SelectionStart, textBox.SelectionLength)
-                .Insert(textBox.SelectionStart, pastedText);
-            if (
-                proposedText.Length > 4
-                || !pastedText.All(char.IsDigit)
-                || Convert.ToInt32(pastedText) > MapCanvas.ActualWidth
-            )
-            {
-                e.CancelCommand();
-            }
-        }
-
-        private void NumberCanvasHeightValidationTextBox(object sender, TextCompositionEventArgs e)
-        {
-            var textBox = (TextBox)sender;
-            var proposedText = textBox.Text.Insert(textBox.SelectionStart, e.Text);
-            e.Handled = (
-                proposedText.Length > 4
-                || !e.Text.All(char.IsDigit)
-                || Convert.ToInt32(proposedText) > MapCanvas.ActualHeight
-            );
-        }
-
-        private void NumberCanvasHeightValidationPasting(object sender, DataObjectPastingEventArgs e)
-        {
-            var pastedText = (string)e.DataObject.GetData(typeof(string));
-            var textBox = (TextBox)sender;
-            var proposedText = textBox.Text
-                .Remove(textBox.SelectionStart, textBox.SelectionLength)
-                .Insert(textBox.SelectionStart, pastedText);
-            if (
-                proposedText.Length > 4
-                || !pastedText.All(char.IsDigit)
-                || Convert.ToInt32(pastedText) > MapCanvas.ActualHeight
-            )
-            {
-                e.CancelCommand();
-            }
         }
 
         private AbstractWindowActionHandler _instantiateWindowMenuItemHideActionHandler()
@@ -280,6 +147,18 @@ namespace MaplestoryBotNet.Xaml
         )
         {
             return [
+                _instantiateNumericTextBoxPropertyActionHandler(MapAreaLeftTextBox, 9999),
+                _instantiateNumericTextBoxPropertyActionHandler(MapAreaTopTextBox, 9999),
+                _instantiateNumericTextBoxPropertyActionHandler(MapAreaRightTextBox, 9999),
+                _instantiateNumericTextBoxPropertyActionHandler(MapAreaBottomTextBox, 9999),
+                _instantiateNumericTextBoxPropertyActionHandler(LocationTextBoxX, Convert.ToInt32(MapCanvas.Width)),
+                _instantiateNumericTextBoxPropertyActionHandler(LocationTextBoxY, Convert.ToInt32(MapCanvas.Height)),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(MapAreaLeftTextBox, 9999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(MapAreaTopTextBox, 9999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(MapAreaRightTextBox, 9999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(MapAreaBottomTextBox, 9999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(LocationTextBoxX, Convert.ToInt32(MapCanvas.Width)),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(LocationTextBoxY, Convert.ToInt32(MapCanvas.Height)),
                 _instantiateWindowMenuItemHideActionHandler(),
                 _instantiateEditMenuActionHandler(editWindow),
                 _instantiateAddPointButtonActionHandler(),

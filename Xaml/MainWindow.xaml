@@ -38,8 +38,11 @@
                 <MenuItem x:Name="RuneMenuItem" Header="Rune"/>
             </MenuItem>
         </Menu>
-        <Grid Height="600" Width="800">
-            <Image x:Name="ImageView"  HorizontalAlignment="Center"  VerticalAlignment="Center"  Stretch="Uniform"/>
-        </Grid>
+        <Image
+            x:Name="ImageView"
+            HorizontalAlignment="Center" 
+            VerticalAlignment="Center" 
+            Stretch="Uniform"
+        />
     </DockPanel>
 </Window>

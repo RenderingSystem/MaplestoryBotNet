@@ -389,12 +389,7 @@ namespace MaplestoryBotNet.Systems
 
         public override AbstractApplicationInitializer Build()
         {
-            Debug.Assert(_mainApplication != null);
-            Debug.Assert(_handlers != null);
-            return new MainApplicationInitializer(
-                _mainApplication,
-                _handlers
-            );
+            return new MainApplicationInitializer(_mainApplication!, _handlers!);
         }
 
         public override AbstractApplicationInitializerBuilder WithArgs(object args)

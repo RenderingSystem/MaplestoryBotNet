@@ -38,6 +38,7 @@
     <Compile Include="..\..\Systems\ScreenCapture\SubSystems\ScreenCapture.cs" Link="Systems\ScreenCapture\SubSystems\ScreenCapture.cs" />
     <Compile Include="..\..\Systems\UIHandler\UIHandlerSystem.cs" Link="Systems\UIHandler\UIHandlerSystem.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\AbstractWindowStateHandlers.cs" Link="Systems\UIHandler\UserInterface\AbstractWindowStateHandlers.cs" />
+    <Compile Include="..\..\Systems\UIHandler\UserInterface\NumericTextBoxHandlers.cs" Link="Systems\UIHandler\UserInterface\NumericTextBoxHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowComboBoxScaleHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowComboBoxScaleHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMacroMenuHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMacroMenuHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMapEditorHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMapEditorHandlers.cs" />
