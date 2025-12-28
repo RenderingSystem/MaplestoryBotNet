@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 
 
@@ -14,6 +15,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
     public abstract class AbstractMacroListBoxItemFormatter
     {
         public abstract void Format(object parameters);
+    }
+
+
+    public abstract class AbstractMacroListBoxItemIndexer
+    {
+        public abstract int GetIndex(GeneratorPosition position);
     }
 
 
@@ -103,6 +110,25 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                     childTextBox.Text = formatParameters.ElementStrings[i];
                 }
             }
+        }
+    }
+
+
+    public class MacroListBoxItemIndexer : AbstractMacroListBoxItemIndexer
+    {
+        private ListBox _listBox;
+
+        public MacroListBoxItemIndexer(ListBox listBox)
+        {
+            _listBox = listBox;
+        }
+
+        public override int GetIndex(GeneratorPosition position)
+        {
+            var iContainerGenerator = (
+                (IItemContainerGenerator)_listBox.ItemContainerGenerator
+            );
+            return iContainerGenerator.IndexFromGeneratorPosition(position);
         }
     }
 }

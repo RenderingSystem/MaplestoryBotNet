@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 
@@ -2199,7 +2200,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * the button's enabled state is automatically recalculated. The button should
          * become disabled if the removal would leave 0 or 1 macros in the list.
          */
-        private void _testRemoveButtonCLickUpdatesButtonAccessibility()
+        private void _testRemoveButtonClickUpdatesButtonAccessibility()
         {
             for (int i = 0; i < 3; i++)
             {
@@ -2221,7 +2222,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * 
          * Runs all test methods to validate the comprehensive behavior of the
          * macro commands remove button access action handler, ensuring that the remove
-         * button's enabled state responds correctly to window visibility changes,
+         * button's enabled state responds correctly to window visibility changes
          * add operations, and remove operations while maintaining the threshold-based
          * accessibility rule.
          */
@@ -2229,7 +2230,276 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             _testWindowVisibilityUpdatesButtonAccessibility();
             _testAddButtonClickUpdatesButtonAccessibility();
-            _testRemoveButtonCLickUpdatesButtonAccessibility();
+            _testRemoveButtonClickUpdatesButtonAccessibility();
+        }
+    }
+
+
+    /**
+     * @class WindowMacroCommandsProbabilityTextBoxBindingActionHandlerTests
+     * 
+     * @brief Unit tests for macro command probability textbox binding and validation
+     * 
+     * Validates that probability textboxes embedded in macro command ListBox items
+     * correctly enforce numeric constraints and validation rules. Tests ensure that
+     * both typed input and clipboard paste operations respect the 0-100 probability
+     * range and numeric-only requirements. Verifies proper integration of validation
+     * handlers with dynamically generated ListBox items.
+     */
+    public class WindowMacroCommandsProbabilityTextBoxBindingActionHandlerTests
+    {
+        private ListBox _macroLabelsListBox;
+
+        private Grid _listBoxItem;
+
+        private TextBox _probabilityTextBox;
+
+        /**
+         * @brief Initializes test components with empty state
+         * 
+         * Creates fresh instances of ListBox, Grid (for ListBoxItem simulation),
+         * and TextBox for each test run. Ensures isolated test environment without
+         * residual state from previous tests, maintaining test reliability and
+         * preventing cross-test contamination.
+         */
+        public WindowMacroCommandsProbabilityTextBoxBindingActionHandlerTests()
+        {
+            _macroLabelsListBox = new ListBox();
+            _listBoxItem = new Grid();
+            _probabilityTextBox = new TextBox();
+        }
+
+        /**
+         * @brief Generates WPF text input events for simulation
+         * 
+         * @tests Event generation for testing user input simulation
+         * 
+         * Creates a TextCompositionEventArgs object that simulates a user
+         * typing a specific character into the textbox. This method allows
+         * unit tests to programmatically trigger the same PreviewTextInput
+         * events that would occur during actual user interaction.
+         * 
+         * @param text The character or string to simulate typing
+         * 
+         * @returns Configured event arguments for raising PreviewTextInput
+         */
+        private RoutedEventArgs _generateTextCompositionEvent(
+            string text
+        )
+        {
+            return new TextCompositionEventArgs(
+                System.Windows.Input.Keyboard.PrimaryDevice,
+                new TextComposition(InputManager.Current, _probabilityTextBox, text)
+            )
+            {
+                RoutedEvent = UIElement.PreviewTextInputEvent
+            };
+        }
+
+        /**
+         * @brief Generates WPF paste event arguments for simulation
+         * 
+         * @tests Event generation for testing paste operation simulation
+         * 
+         * Creates a DataObjectPastingEventArgs object that simulates a user
+         * pasting text from the clipboard into the textbox. This method allows
+         * unit tests to programmatically trigger the same paste validation
+         * events that would occur during actual user interaction.
+         * 
+         * @param text The text content to simulate pasting from clipboard
+         * @param format The data format (defaults to plain text)
+         * 
+         * @returns Configured event arguments for raising paste validation
+         */
+        private DataObjectPastingEventArgs _generateDataObjectPastingEvent(string text)
+        {
+            var dataObject = new DataObject();
+            dataObject.SetData(DataFormats.Text, text);
+            return new DataObjectPastingEventArgs(
+                dataObject, false, DataFormats.Text
+            )
+            {
+                RoutedEvent = DataObject.PastingEvent
+            };
+        }
+
+        /**
+         * @brief Creates a test fixture with simulated ListBox item containing probability textbox
+         * 
+         * @tests Test environment setup for ListBox-item-textbox integration scenarios
+         * 
+         * Constructs a complete test environment that simulates the actual UI structure where
+         * probability textboxes are embedded within ListBox items. Creates a fresh ListBox,
+         * Grid container (simulating ListBoxItem), and a TextBox configured with the expected
+         * "ProbabilityTag" identifier. The fixture ensures each test runs with isolated,
+         * properly structured UI components that mirror production visual tree relationships.
+
+         * @returns Configured AbstractWindowActionHandler facade that manages probability
+         *          textbox validation binding for ListBox items
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _macroLabelsListBox = new ListBox();
+            _listBoxItem = new Grid();
+            _probabilityTextBox = new TextBox() { Tag = "ProbabilityTag" };
+            _listBoxItem.Children.Add(_probabilityTextBox);
+            return new WindowMacroCommandsProbabilityTextBoxBindingActionHandlerFacade(
+                _macroLabelsListBox
+            );
+        }
+
+        /**
+         * @brief Tests acceptance of valid integer input within probability range
+         * 
+         * @tests Numeric character validation for probability textboxes
+         * 
+         * Validates that probability textboxes correctly accept numeric digits (0-9)
+         * when the resulting value remains within the 0-100 probability range.
+         * Tests multiple caret positions to ensure validation works correctly
+         * regardless of insertion point within existing text.
+         */
+        private void _testProbabilityTextBoxAcceptsIntegers()
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                var handler = _fixture();
+                _macroLabelsListBox.Items.Add(_listBoxItem);
+                _probabilityTextBox.Text = "1";
+                _probabilityTextBox.CaretIndex = i;
+                var textCompositionEvent = _generateTextCompositionEvent("2");
+                _probabilityTextBox.RaiseEvent(textCompositionEvent);
+                Debug.Assert(!textCompositionEvent.Handled);
+            }
+        }
+
+        /**
+         * @brief Tests rejection of non-numeric character input
+         * 
+         * @tests Input filtering for alphabetic/special characters
+         * 
+         * Verifies that probability textboxes correctly block alphabetic and special
+         * characters, maintaining numeric-only content. Tests multiple insertion
+         * points to ensure consistent rejection regardless of caret position.
+         * 
+         */
+        private void _testProbabilityTextBoxRejectsNonIntegers()
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                var handler = _fixture();
+                _macroLabelsListBox.Items.Add(_listBoxItem);
+                _probabilityTextBox.Text = "1";
+                _probabilityTextBox.CaretIndex = i;
+                var textCompositionEvent = _generateTextCompositionEvent("a");
+                _probabilityTextBox.RaiseEvent(textCompositionEvent);
+                Debug.Assert(textCompositionEvent.Handled);
+            }
+        }
+
+
+        /**
+         * @brief Tests rejection of input that would exceed maximum probability (100)
+         * 
+         * @tests Upper boundary enforcement during character-by-character input
+         * 
+         * Validates that probability textboxes prevent users from entering values
+         * that would exceed the 100% maximum probability limit. Tests all possible
+         * insertion points in a near-limit value to ensure comprehensive boundary
+         * protection.
+         */
+        private void _testProbabilityTextBoxRejectsGreaterThan100()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                var handler = _fixture();
+                _macroLabelsListBox.Items.Add(_listBoxItem);
+                _probabilityTextBox.Text = "10";
+                _probabilityTextBox.CaretIndex = i;
+                var textCompositionEvent = _generateTextCompositionEvent("1");
+                _probabilityTextBox.RaiseEvent(textCompositionEvent);
+                Debug.Assert(textCompositionEvent.Handled);
+            }
+        }
+
+        /**
+         * @brief Tests acceptance of valid integer values via clipboard paste
+         * 
+         * @tests Clipboard paste validation for legitimate probability values
+         * 
+         * Verifies that probability textboxes accept pasted numeric values that
+         * fall within the valid 0-100 range. Tests multiple valid values to ensure
+         * the paste validation system correctly allows legitimate data insertion
+         * from external sources.
+         */
+        private void _testProbabilityTextBoxAcceptsIntegerPaste()
+        {
+            List<int> pasteValues = [10, 20, 30];
+            for (int i = 0; i < pasteValues.Count; i++)
+            {
+                var pasteValue = pasteValues[i];
+                var handler = _fixture();
+                _macroLabelsListBox.Items.Add(_listBoxItem);
+                var dataObjectEvent = _generateDataObjectPastingEvent(pasteValue.ToString());
+                _probabilityTextBox.RaiseEvent(dataObjectEvent);
+                Debug.Assert(!dataObjectEvent.CommandCancelled);
+            }
+        }
+
+        /**
+         * @brief Tests rejection of non-numeric content via clipboard paste
+         * 
+         * @tests Clipboard paste filtering for invalid character data
+         * 
+         * Validates that probability textboxes block paste operations containing
+         * alphabetic or special characters. Ensures that invalid data cannot bypass
+         * input validation through clipboard operations.
+         */
+        private void _testProbabilityTextBoxRejectsNonIntegerPaste()
+        {
+            var handler = _fixture();
+            _macroLabelsListBox.Items.Add(_listBoxItem);
+            var dataObjectEvent = _generateDataObjectPastingEvent("ab");
+            _probabilityTextBox.RaiseEvent(dataObjectEvent);
+            Debug.Assert(dataObjectEvent.CommandCancelled);
+        }
+
+
+        /**
+         * @brief Tests rejection of paste operations exceeding maximum probability
+         * 
+         * @tests Upper boundary enforcement for clipboard paste operations
+         * 
+         * Verifies that probability textboxes block paste operations that would
+         * result in values exceeding the 100% maximum probability. Ensures paste
+         * operations undergo the same boundary validation as typed input.
+         */
+        private void _testProbabilityTextBoxRejectsIntegerPasteGreaterThan100()
+        {
+            var handler = _fixture();
+            _macroLabelsListBox.Items.Add(_listBoxItem);
+            var dataObjectEvent = _generateDataObjectPastingEvent("101");
+            _probabilityTextBox.RaiseEvent(dataObjectEvent);
+            Debug.Assert(dataObjectEvent.CommandCancelled);
+        }
+
+        /**
+         * @brief Executes comprehensive probability textbox validation test suite
+         * 
+         * @tests Complete validation system for probability textbox interactions
+         * 
+         * Runs the full battery of probability textbox validation tests covering
+         * character input, boundary enforcement, and clipboard operations. Provides
+         * end-to-end validation of the probability input system integrated with
+         * ListBox item containers.
+         */
+        public void Run()
+        {
+            _testProbabilityTextBoxAcceptsIntegers();
+            _testProbabilityTextBoxRejectsNonIntegers();
+            _testProbabilityTextBoxRejectsGreaterThan100();
+            _testProbabilityTextBoxAcceptsIntegerPaste();
+            _testProbabilityTextBoxRejectsNonIntegerPaste();
+            _testProbabilityTextBoxRejectsIntegerPasteGreaterThan100();
         }
     }
 
@@ -2250,6 +2520,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMacroCommandsAddingActionHandlerTests().Run();
             new WindowMacroCommandsRemovingActionHandlerTests().Run();
             new WindowMacroCommandsRemoveButtonAccessActionHandlerTests().Run();
+            new WindowMacroCommandsProbabilityTextBoxBindingActionHandlerTests().Run();
         }
     }
 }

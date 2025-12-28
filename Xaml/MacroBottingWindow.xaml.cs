@@ -143,6 +143,13 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
+        private AbstractWindowActionHandler _instantiateMacroCommandsProbabilityTextBoxBindingActionHandler()
+        {
+            return new WindowMacroCommandsProbabilityTextBoxBindingActionHandlerFacade(
+                PointMacroListBox
+            );
+        }
+
         public List<AbstractWindowActionHandler> InstantiateActionHandlers()
         {
             return [
@@ -159,6 +166,7 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateMacroCommandsAddingActionHandler(),
                 _instantiateMacroCommandsRemovingActionHandler(),
                 _instantiateMacroCommandsRemoveButtonAccessActionHandler(),
+                _instantiateMacroCommandsProbabilityTextBoxBindingActionHandler()
             ];
         }
 

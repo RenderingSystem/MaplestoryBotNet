@@ -44,6 +44,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _handled = (
                 !parameters.Text.All(char.IsDigit)
                 || Convert.ToInt32(proposedText) > _maxValue
+                || proposedText.Length > _maxValue.ToString().Length
             );
         }
 
@@ -164,6 +165,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 string.IsNullOrEmpty(parameters.PastedText)
                 || !parameters.PastedText.All(char.IsDigit)
                 || Convert.ToInt32(proposedText) > _maxValue
+                || proposedText.Length > _maxValue.ToString().Length
             );
         }
 

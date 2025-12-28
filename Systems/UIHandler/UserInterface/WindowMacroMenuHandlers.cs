@@ -1,8 +1,10 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 
 
@@ -1469,6 +1471,165 @@ namespace MaplestoryBotNet.Systems.UIHandler
         public override void OnEvent(object? sender, EventArgs e)
         {
             _macroCommandsRemoveButtonAccessActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowMacroCommandsProbabilityTextBoxBindingModifierParameters
+    {
+        public NotifyCollectionChangedAction ListBoxItemAction;
+
+        public int NewIndex;
+    }
+
+
+    public class WindowMacroCommandsProbabilityTextBoxBindingModifier : AbstractWindowStateModifier
+    {
+        private ListBox _macroLabelsListBox;
+
+        private AbstractWindowActionHandlerBuilder _numericTextBoxPasteValidationActionHandlerBuilder;
+
+        private AbstractWindowActionHandlerBuilder _numericTextBoxValidationActionHandlerBuilder;
+
+        private List<List<AbstractWindowActionHandler>> _macroCommandsProbabilityTextBindingsList;
+
+        public WindowMacroCommandsProbabilityTextBoxBindingModifier(
+            ListBox macroLabelsListBox,
+            AbstractWindowActionHandlerBuilder numericTextBoxValidationActionHandlerBuilder,
+            AbstractWindowActionHandlerBuilder numericTextBoxPasteValidationActionHandlerBuilder
+        )
+        {
+            _macroLabelsListBox = macroLabelsListBox;
+            _numericTextBoxValidationActionHandlerBuilder = numericTextBoxValidationActionHandlerBuilder;
+            _numericTextBoxPasteValidationActionHandlerBuilder = numericTextBoxPasteValidationActionHandlerBuilder;
+            _macroCommandsProbabilityTextBindingsList = [];
+        }
+
+        private void _bindListBoxMacroCommandsProbabilityTextBox(object? item)
+        {
+            var macroLabelsListBoxElement = (FrameworkElement?) item!;
+            var macroCommandsProbabilityTextBindingsList = new List<AbstractWindowActionHandler>();
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(macroLabelsListBoxElement); i++)
+            {
+                var child = VisualTreeHelper.GetChild(macroLabelsListBoxElement, i);
+                if (child is not TextBox childTextBox)
+                {
+                    continue;
+                }
+                if (childTextBox.Tag is not string stringTag)
+                {
+                    continue;
+                }
+                if (stringTag == "ProbabilityTag")
+                {
+                    macroCommandsProbabilityTextBindingsList.Add(
+                        _numericTextBoxValidationActionHandlerBuilder
+                            .WithArgs(100)
+                            .WithArgs(childTextBox)
+                            .Build()
+                    );
+                    macroCommandsProbabilityTextBindingsList.Add(
+                        _numericTextBoxPasteValidationActionHandlerBuilder
+                            .WithArgs(100)
+                            .WithArgs(childTextBox)
+                            .Build()
+                    );
+                }
+            }
+            _macroCommandsProbabilityTextBindingsList.Add(macroCommandsProbabilityTextBindingsList);
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is not WindowMacroCommandsProbabilityTextBoxBindingModifierParameters parameters)
+            {
+                return;
+            }
+            if (parameters.ListBoxItemAction is NotifyCollectionChangedAction.Add)
+            {
+                var listBoxItem = _macroLabelsListBox.Items[parameters.NewIndex];
+                _bindListBoxMacroCommandsProbabilityTextBox(listBoxItem);
+            }
+            if (parameters.ListBoxItemAction is NotifyCollectionChangedAction.Remove)
+            {
+                var newIndex = parameters.NewIndex >= 0 ? parameters.NewIndex : _macroLabelsListBox.Items.Count;
+                _macroCommandsProbabilityTextBindingsList.RemoveAt(newIndex);
+            }
+            if (parameters.ListBoxItemAction is NotifyCollectionChangedAction.Reset)
+            {
+                _macroCommandsProbabilityTextBindingsList.Clear();
+            }
+        }
+    }
+
+
+    public class WindowMacroCommandsProbabilityTextBoxBindingActionHandler : AbstractWindowActionHandler
+    {
+        private ListBox _macroLabelsListBox;
+
+        private AbstractWindowStateModifier _macroCommandsProbabilityTextBoxBindingModifier;
+
+        private AbstractMacroListBoxItemIndexer _macroLabelsListBoxItemIndexer;
+
+        public WindowMacroCommandsProbabilityTextBoxBindingActionHandler(
+            ListBox macroLabelsListBox,
+            AbstractWindowStateModifier macroCommandsProbabilityTextBoxBindingModifier,
+            AbstractMacroListBoxItemIndexer macroLabelsListBoxItemIndexer
+
+        )
+        {
+            _macroLabelsListBox = macroLabelsListBox;
+            _macroLabelsListBox.ItemContainerGenerator.ItemsChanged += OnEvent;
+            _macroCommandsProbabilityTextBoxBindingModifier = macroCommandsProbabilityTextBoxBindingModifier;
+            _macroLabelsListBoxItemIndexer = macroLabelsListBoxItemIndexer;
+        }
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _macroCommandsProbabilityTextBoxBindingModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (e is not ItemsChangedEventArgs ice)
+            {
+                return;
+            }
+            _macroCommandsProbabilityTextBoxBindingModifier.Modify(
+                new WindowMacroCommandsProbabilityTextBoxBindingModifierParameters
+                {
+                    ListBoxItemAction = ice.Action,
+                    NewIndex = _macroLabelsListBoxItemIndexer.GetIndex(ice.Position)
+                }
+            );
+        }
+    }
+
+
+    public class WindowMacroCommandsProbabilityTextBoxBindingActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _macroCommandsProbabilityTextBoxBindingActionHandler;
+
+        public WindowMacroCommandsProbabilityTextBoxBindingActionHandlerFacade(ListBox macroLabelsListBox)
+        {
+            _macroCommandsProbabilityTextBoxBindingActionHandler = new WindowMacroCommandsProbabilityTextBoxBindingActionHandler(
+                macroLabelsListBox,
+                new WindowMacroCommandsProbabilityTextBoxBindingModifier(
+                    macroLabelsListBox,
+                    new NumericTextBoxValidationActionHandlerBuilder(),
+                    new NumericTextBoxPasteValidationActionHandlerBuilder()
+                ),
+                new MacroListBoxItemIndexer(macroLabelsListBox)
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _macroCommandsProbabilityTextBoxBindingActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _macroCommandsProbabilityTextBoxBindingActionHandler.OnEvent(sender, e);
         }
     }
 }
