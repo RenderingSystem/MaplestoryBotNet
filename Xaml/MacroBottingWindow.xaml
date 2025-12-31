@@ -90,7 +90,8 @@
                 FontFamily="Courier New"
                 Foreground="White"
                 Background="Black"
-                BorderBrush="#FF707070" Grid.ColumnSpan="2"
+                BorderBrush="#FF707070"
+                Grid.ColumnSpan="2"
             />
             <Button x:Name="AddButton"
                 Content="Add command"
@@ -139,7 +140,7 @@
                 Width="90"
                 FontSize="10"
                 Foreground="White"
-                RenderTransformOrigin="0.509,1.614" Grid.Column="1" Height="21"
+                Grid.Column="1" Height="21"
             />
             <Label
                 Content="%Prob.:"
@@ -150,13 +151,16 @@
                 Width="57"
                 FontSize="10"
                 Foreground="White"
-                RenderTransformOrigin="0.509,1.614" Grid.Column="1" Height="21"
+                Grid.Column="1"
+                Height="21"
             />
             <ListBox
                 x:Name="PointMacroListBox"
                 Margin="0,107,6,41"
                 Background="Black"
-                Foreground="White" Grid.Column="1"
+                Foreground="White"
+                Grid.Column="1"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
             >
                 <Grid
                     x:Name="PointMacroTemplate"
@@ -207,7 +211,8 @@
                 FontFamily="Courier New"
                 Foreground="White"
                 Background="Black"
-                BorderBrush="#FF707070" Grid.Column="1"
+                BorderBrush="#FF707070"
+                Grid.Column="1"
             />
             <Button
                 x:Name="RemoveMacroButton"

@@ -1734,6 +1734,233 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    /**
+     * @class WindowMapCanvasDimensionActionHandlerTests
+     * 
+     * @brief Unit tests for map canvas dimension boundary textbox validation and synchronization
+     *
+     * Validates that four boundary textboxes (left, top, right, bottom) correctly update
+     * a map model's coordinate area while enforcing logical dimension constraints.
+     * Tests ensure that the coordinate system maintains proper relationships where
+     * left < right, and top < bottom, preventing invalid geometric configurations.
+     */
+    public class WindowMapCanvasDimensionActionHandlerTests
+    {
+        private TextBox _textBoxLeft;
+
+        private TextBox _textBoxTop;
+
+        private TextBox _textBoxRight;
+
+        private TextBox _textBoxBottom;
+
+        private MapModel _mapModel;
+
+        /**
+         * @brief Initializes test environment with clean boundary textboxes and map model
+         * 
+         * Creates fresh instances of four boundary TextBox controls (left, top, right, bottom)
+         * and a clean MapModel for each test execution. This ensures isolated testing
+         * without residual state, maintaining test independence and reliability.
+         */
+        public WindowMapCanvasDimensionActionHandlerTests()
+        {
+            _textBoxLeft = new TextBox();
+            _textBoxTop = new TextBox();
+            _textBoxRight = new TextBox();
+            _textBoxBottom = new TextBox();
+            _mapModel = new MapModel();
+        }
+
+        /**
+         * @brief Creates test fixture with pre-configured dimension textboxes
+         * 
+         * @tests Test environment setup for map boundary validation scenarios
+         * 
+         * Constructs a complete test environment with four boundary textboxes configured
+         * with initial default values (right=1000, bottom=1000) to establish a valid
+         * coordinate system baseline. Creates a specialized facade handler that manages
+         * the synchronization between textbox values and map model boundaries.
+         * 
+         * @returns Configured AbstractWindowActionHandler facade for map dimension synchronization
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _textBoxLeft = new TextBox();
+            _textBoxTop = new TextBox();
+            _textBoxRight = new TextBox();
+            _textBoxBottom = new TextBox();
+            _textBoxRight.Text = "1000";
+            _textBoxBottom.Text = "1000";
+            _mapModel = new MapModel();
+            return new WindowMapCanvasDimensionActionHandlerFacade(
+                _textBoxLeft,
+                _textBoxTop,
+                _textBoxRight,
+                _textBoxBottom
+            );
+        }
+
+        /**
+         * @brief Tests assignment of left boundary value to map model
+         * 
+         * @tests Left boundary synchronization and model update
+         * 
+         * Verifies that setting the left boundary textbox value correctly updates
+         * the map model's left coordinate.
+         */
+        private void _testSettingLeftTextBoxAssignsMapArea()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _textBoxLeft.Text = "123";
+            Debug.Assert(_mapModel.GetMapArea().Left == 123);
+        }
+
+
+        /**
+         * @brief Tests assignment of top boundary value to map model
+         * 
+         * @tests Top boundary synchronization and model update
+         * 
+         * Validates that setting the top boundary textbox value correctly updates
+         * the map model's top coordinate.
+         */
+        private void _testSettingTopTextBoxAssignsMapArea()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _textBoxTop.Text = "234";
+            Debug.Assert(_mapModel.GetMapArea().Top == 234);
+        }
+
+        /**
+         * @brief Tests assignment of right boundary value to map model
+         * 
+         * @tests Right boundary synchronization and model update
+         * 
+         * Verifies that setting the right boundary textbox value correctly updates
+         * the map model's right coordinate.
+         */
+        private void _testSettingRightTextBoxAssignsMapArea()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _textBoxRight.Text = "345";
+            Debug.Assert(_mapModel.GetMapArea().Right == 345);
+        }
+
+        /**
+         * @brief Tests assignment of bottom boundary value to map model
+         * 
+         * @tests Bottom boundary synchronization and model update
+         * 
+         * Validates that setting the bottom boundary textbox value correctly updates
+         * the map model's bottom coordinate.
+         */
+        private void _testSettingBottomTextBoxAssignsMapArea()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _textBoxBottom.Text = "456";
+            Debug.Assert(_mapModel.GetMapArea().Bottom == 456);
+        }
+
+        /**
+         * @brief Tests rejection of invalid left boundary value (left >= right)
+         * 
+         * @tests Left-right boundary relationship validation
+         * 
+         * Verifies that setting a left boundary value that is greater than or equal to
+         * the right boundary value is correctly rejected, maintaining logical coordinate
+         * system constraints.
+         */
+        private void _testSettingInvalidLeftTextBoxIsRejected()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _textBoxRight.Text = "100";
+            _textBoxLeft.Text = "200";
+            Debug.Assert(_mapModel.GetMapArea().Left == 0);
+        }
+
+        /**
+         * @brief Tests rejection of invalid right boundary value (right <= left)
+         * 
+         * @tests Right-left boundary relationship validation
+         * 
+         * Validates that setting a right boundary value that is less than or equal to
+         * the left boundary value is correctly rejected, maintaining logical coordinate
+         * system constraints.
+         */
+        private void _testSettingInvalidRightTextBoxIsRejected()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _textBoxLeft.Text = "200";
+            _textBoxRight.Text = "100";
+            Debug.Assert(_mapModel.GetMapArea().Right == 1000);
+        }
+
+        /**
+         * @brief Tests rejection of invalid top boundary value (top >= bottom)
+         * 
+         * @tests Top-bottom boundary relationship validation
+         * 
+         * Verifies that setting a top boundary value that is greater than or equal to
+         * the bottom boundary value is correctly rejected, maintaining logical coordinate
+         * system constraints.
+         */
+        private void _testSettingInvalidTopTextBoxIsRejected()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _textBoxBottom.Text = "100";
+            _textBoxTop.Text = "200";
+            Debug.Assert(_mapModel.GetMapArea().Top == 0);
+        }
+
+        /**
+         * @brief Tests rejection of invalid bottom boundary value (bottom <= top)
+         * 
+         * @tests Bottom-top boundary relationship validation
+         * 
+         * Validates that setting a bottom boundary value that is less than or equal to
+         * the top boundary value is correctly rejected, maintaining logical coordinate
+         * system constraints.
+         */
+        private void _testSettingInvalidBottomextBoxIsRejected()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _textBoxTop.Text = "200";
+            _textBoxBottom.Text = "100";
+            Debug.Assert(_mapModel.GetMapArea().Bottom == 1000);
+        }
+
+        /**
+         * @brief Executes comprehensive map canvas dimension validation test suite
+         * 
+         * @tests Complete boundary validation system for map coordinate textboxes
+         * 
+         * Runs the full battery of map dimension tests covering valid assignment
+         * scenarios and invalid relationship rejections for all four boundary
+         * coordinates (left, top, right, bottom).
+         */
+        public void Run()
+        {
+            _testSettingLeftTextBoxAssignsMapArea();
+            _testSettingTopTextBoxAssignsMapArea();
+            _testSettingRightTextBoxAssignsMapArea();
+            _testSettingBottomTextBoxAssignsMapArea();
+            _testSettingInvalidLeftTextBoxIsRejected();
+            _testSettingInvalidRightTextBoxIsRejected();
+            _testSettingInvalidTopTextBoxIsRejected();
+            _testSettingInvalidBottomextBoxIsRejected();
+        }
+    }
+
+
     public class WindowMapEditorHandlersTestSuite
     {
         public void Run()
@@ -1747,6 +1974,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMapCanvasDragActionHandlerTests().Run();
             new WindowMapCanvasEditButtonAccessibilityActionHandlerTests().Run();
             new WindowMapCanvasPointLocationActionHandlerTests().Run();
+            new WindowMapCanvasDimensionActionHandlerTests().Run();
         }
     }
 }

@@ -29,13 +29,21 @@
                 BorderBrush="White"
                 BorderThickness="1,1,1,1"
             />
-            <Image
-                x:Name="MapImage"
+            <Grid
                 Width="400"
                 Height="350"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-            />
+            >
+                <Image
+                    x:Name="MapImage"
+                    Width="400"
+                    Height="350"
+                    HorizontalAlignment="Center" 
+                    VerticalAlignment="Center" 
+                />
+                <Frame Background="#8C000000"/>
+            </Grid>
             <Canvas
                 x:Name="MapCanvas"
                 Width="400"

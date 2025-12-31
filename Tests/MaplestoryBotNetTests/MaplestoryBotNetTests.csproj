@@ -42,11 +42,13 @@
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMacroMenuHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMacroMenuHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMapEditorHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMapEditorHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMenuItemPopupHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMenuItemPopupHandlers.cs" />
+    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMinimapViewStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMinimapViewStateHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowNumericTextBoxHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowNumericTextBoxHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\ComboBoxes.cs" Link="Systems\UIHandler\Utilities\ComboBoxes.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\Dpi.cs" Link="Systems\UIHandler\Utilities\Dpi.cs" />
+    <Compile Include="..\..\Systems\UIHandler\Utilities\ImageUtilities.cs" Link="Systems\UIHandler\Utilities\ImageUtilities.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\MacroListBoxItems.cs" Link="Systems\UIHandler\Utilities\MacroListBoxItems.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\MapModel.cs" Link="Systems\UIHandler\Utilities\MapModel.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\MouseEvents.cs" Link="Systems\UIHandler\Utilities\MouseEvents.cs" />

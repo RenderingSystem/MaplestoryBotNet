@@ -176,13 +176,14 @@ namespace MaplestoryBotNet.Systems
 
         private SystemInformation _screenCaptureInfo()
         {
-            var semaphore = new SemaphoreSlim(0, 2);
+            var semaphore = new SemaphoreSlim(0, 3);
             return new SystemInformation(
                 new GameScreenCaptureSystemBuilder(),
                 [],
                 [
                     new NullScreenCaptureSubscriber(semaphore),
-                    new GameScreenCaptureSubscriber(semaphore)
+                    new GameScreenCaptureSubscriber(semaphore),
+                    new GameScreenCaptureMinimapSubscriber(semaphore)
                 ],
                 1,
                 1,

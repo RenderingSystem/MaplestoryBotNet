@@ -99,6 +99,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public abstract void Clear();
 
+        public abstract Rect GetMapArea();
+
+        public abstract void SetMapArea(Rect mapArea);
+
+        public abstract void SetMapArea(int left, int top, int right, int bottom);
     }
 
 
@@ -107,6 +112,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         private ReaderWriterLockSlim _pointsLock = new ReaderWriterLockSlim();
 
         private List<MinimapPoint> _points = [];
+
+        private ReaderWriterLockSlim _mapAreaLock = new ReaderWriterLockSlim();
+
+        private Rect _mapArea = new Rect();
 
         public override List<MinimapPoint> Points()
         {
@@ -231,6 +240,45 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             finally
             {
                 _pointsLock.ExitWriteLock();
+            }
+        }
+
+        public override Rect GetMapArea()
+        {
+            try
+            {
+                _mapAreaLock.EnterReadLock();
+                return new Rect(_mapArea.X, _mapArea.Y, _mapArea.Width, _mapArea.Height);
+            }
+            finally
+            { 
+                _mapAreaLock.ExitReadLock();
+            }
+        }
+
+        public override void SetMapArea(Rect mapArea)
+        {
+            try
+            {
+                _mapAreaLock.EnterWriteLock();
+                _mapArea = new Rect(mapArea.X, mapArea.Y, mapArea.Width, mapArea.Height);
+            }
+            finally
+            {
+                _mapAreaLock.ExitWriteLock();
+            }
+        }
+
+        public override void SetMapArea(int left, int top, int right, int bottom)
+        {
+            try
+            {
+                _mapAreaLock.EnterWriteLock();
+                _mapArea = new Rect(left, top, right - left, bottom - top);
+            }
+            finally
+            {
+                _mapAreaLock.ExitWriteLock();
             }
         }
     }

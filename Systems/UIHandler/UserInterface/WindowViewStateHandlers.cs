@@ -1,13 +1,9 @@
-﻿using MaplestoryBotNet.Systems;
+﻿using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
@@ -81,7 +77,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowViewUpdater : AbstractWindowStateModifier
     {
-
         private AbstractDispatcher _dispatcher;
 
         private System.Windows.Controls.Image _image;
@@ -89,6 +84,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         private bool _settingImage;
 
         private ReaderWriterLockSlim _settingImageLock;
+
+        private AbstractImageSharpConverter _converter;
 
         private bool SettingImage
         {
@@ -121,43 +118,22 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public WindowViewUpdater(
             AbstractDispatcher dispatcher,
+            AbstractImageSharpConverter converter,
             System.Windows.Controls.Image image
         )
         {
             _dispatcher = dispatcher;
+            _converter = converter;
             _image = image;
             _settingImage = false;
             _settingImageLock = new ReaderWriterLockSlim();
-        }
-
-        private BitmapSource _ConvertToBitmap(Image<Bgra32> imageSharpImage)
-        {
-            var sourceMemoryGroup = imageSharpImage.GetPixelMemoryGroup();
-            var sourceSpan = sourceMemoryGroup[0].Span;
-            var sourceBytes = MemoryMarshal.AsBytes(sourceSpan);
-            int width = imageSharpImage.Width;
-            int height = imageSharpImage.Height;
-            int stride = width * 4;
-            int requiredSize = stride * height;
-            var pixelBuffer = new byte[requiredSize];
-            sourceBytes.CopyTo(pixelBuffer);
-            return BitmapSource.Create(
-                width,
-                height,
-                96,
-                96,
-                PixelFormats.Bgra32,
-                null,
-                pixelBuffer,
-                stride
-            );
         }
 
         public override void Modify(object? value)
         {
             if (value is Image<Bgra32> imagesharpImage)
             {
-                var bitmapSource = _ConvertToBitmap(imagesharpImage);
+                var bitmapSource = _converter.ConvertToBitmap(imagesharpImage);
                 bitmapSource.Freeze();
                 if (SettingImage == false)
                 {
@@ -394,7 +370,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             Debug.Assert(_dispatcher != null);
             Debug.Assert(_image != null);
             return new WindowViewUpdaterActionHandler(
-                _menuItems, new WindowViewUpdater(_dispatcher, _image)
+                _menuItems,
+                new WindowViewUpdater(
+                    _dispatcher,
+                    new ImageSharpConverter(),
+                    _image
+                )
             );
         }
 

@@ -2,6 +2,7 @@
 
 using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using SixLabors.ImageSharp;
@@ -154,7 +155,7 @@ namespace MaplestoryBotNetTests.UserInterface.Tests
             _imagesharpImage[0, 1] = new Bgra32(23, 34, 45, 56);
             _imagesharpImage[1, 0] = new Bgra32(34, 45, 56, 67);
             _imagesharpImage[1, 1] = new Bgra32(45, 56, 67, 78);
-            return new WindowViewUpdater(_dispatcher, _image);
+            return new WindowViewUpdater(_dispatcher, new ImageSharpConverter(), _image);
         }
 
         /**

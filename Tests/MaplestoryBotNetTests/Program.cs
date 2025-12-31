@@ -38,6 +38,7 @@ void UnitTestSuite()
     new WindowComboBoxScaleHandlersTestSuite().Run();
     new WindowMapEditorHandlersTestSuite().Run();
     new NumericTextBoxHandlersTestSuite().Run();
+    new WindowMinimapViewStateHandlerTestSuite().Run();
 }
 
 

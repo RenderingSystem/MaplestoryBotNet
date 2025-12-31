@@ -587,8 +587,8 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         {
             var publisherThread = _fixture();
             _setupThreadStates(3);
-            var oldImage = new Image<Bgra32>(1, 1);
-            var newImage = new Image<Bgra32>(1, 1);
+            var oldImage = new Image<Bgra32>(2, 2);
+            var newImage = new Image<Bgra32>(2, 2);
             _store.GetLatestReturn.Add(oldImage);
             _store.GetLatestReturn.Add(newImage);
             _store.GetLatestReturn.Add(null);
@@ -643,7 +643,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
         {
             var publisherThread = _fixture();
             _setupThreadStates(2);
-            var newImage = new Image<Bgra32>(1, 1);
+            var newImage = new Image<Bgra32>(2, 2);
             _store.GetLatestReturn.Add(null);
             _store.GetLatestReturn.Add(newImage);
             _modifier.StateReturn.Add(ViewTypes.Snapshots);
@@ -653,6 +653,29 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             Debug.Assert(_publisher.PublishCalls == 1);
             Debug.Assert(_publisher.PublishCallArg_image[0] == newImage);
             Debug.Assert(_publisher.PublishCallArg_updated[0] == true);
+        }
+
+        /**
+         * @brief Tests image publishing prevention for invalid image dimensions
+         * 
+         * Validates that the publisher thread correctly identifies and rejects screen captures
+         * with insufficient dimensions, preventing the distribution of invalid or corrupted
+         * game state information to subscribers. This ensures that the automation system only
+         * processes and shares images that meet the minimum resolution requirements for
+         * meaningful game state analysis.
+         */
+        private void _testPublisherDoesntPublishInvalidImage()
+        {
+            var publisherThread = _fixture();
+            _setupThreadStates(2);
+            var newImage = new Image<Bgra32>(1, 1);
+            _store.GetLatestReturn.Add(null);
+            _store.GetLatestReturn.Add(newImage);
+            _modifier.StateReturn.Add(ViewTypes.Snapshots);
+            publisherThread.Inject(SystemInjectType.ActionHandler, _viewCheckbox);
+            publisherThread.Start();
+            publisherThread.Join(10000);
+            Debug.Assert(_publisher.PublishCalls == 0);
         }
 
         /**
@@ -668,12 +691,14 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             _testPublisherPublishesLatestImage();
             _testPublisherDoesNotpublishWithoutViewCheckboxModifier();
             _testPublisherStartsPublishingAfterFirstLatestImage();
+            _testPublisherDoesntPublishInvalidImage();
         }
     }
 
 
     /**
      * @class GameScreenCaptureSubscriberThreadTest
+     * 
      * @brief Unit tests for verifying subscriber thread processing functionality
      * 
      * This test class validates that subscriber threads correctly process screen captures

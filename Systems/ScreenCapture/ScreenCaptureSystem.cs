@@ -319,7 +319,12 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         {
             var latest = _store.GetLatest();
             _imageChanged = false;
-            if (latest != null && latest != _latestImage)
+            if (
+                latest != null
+                && latest != _latestImage
+                && latest.Width > 1
+                && latest.Height > 1
+            )
             {
                 _latestImage = latest;
                 _imageChanged = true;

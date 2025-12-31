@@ -1640,4 +1640,157 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _canvasPointLocationActionHandler.Inject(dataType, data);
         }
     }
+
+
+    public class WindowMapCanvasDimensionModifierParameters
+    {
+        public MapModel ElementModel = new MapModel();
+    }
+
+
+    public class WindowMapCanvasDimensionModifier : AbstractWindowStateModifier
+    {
+        private TextBox _textBoxLeft;
+
+        private TextBox _textBoxTop;
+
+        private TextBox _textBoxRight;
+
+        private TextBox _textBoxBottom;
+
+        public WindowMapCanvasDimensionModifier(
+            TextBox textBoxLeft,
+            TextBox textBoxTop,
+            TextBox textBoxRight,
+            TextBox textBoxBottom
+        )
+        {
+            _textBoxLeft = textBoxLeft;
+            _textBoxTop = textBoxTop;
+            _textBoxRight = textBoxRight;
+            _textBoxBottom = textBoxBottom;
+
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is WindowMapCanvasDimensionModifierParameters parameters)
+            {
+                var leftInt = _textBoxLeft.Text == "" ? 0 : Convert.ToInt32(_textBoxLeft.Text);
+                var topInt = _textBoxTop.Text == "" ? 0 : Convert.ToInt32(_textBoxTop.Text);
+                var rightInt = _textBoxRight.Text == "" ? 0 : Convert.ToInt32(_textBoxRight.Text);
+                var bottomInt = _textBoxBottom.Text == "" ? 0 : Convert.ToInt32(_textBoxBottom.Text);
+                if (rightInt > leftInt && bottomInt > topInt)
+                {
+                    parameters.ElementModel.SetMapArea(leftInt, topInt, rightInt, bottomInt);
+                }
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasDimensionActionHandler : AbstractWindowActionHandler
+    {
+        private TextBox _textBoxLeft;
+
+        private TextBox _textBoxTop;
+
+        private TextBox _textBoxRight;
+
+        private TextBox _textBoxBottom;
+
+        private AbstractWindowStateModifier _mapCanvasDimensionModifier;
+
+        private MapModel? _mapModel;
+
+        public WindowMapCanvasDimensionActionHandler(
+            TextBox textBoxLeft,
+            TextBox textBoxTop,
+            TextBox textBoxRight,
+            TextBox textBoxBottom,
+            AbstractWindowStateModifier mapCanvasDimensionModifier
+        )
+        {
+            _textBoxLeft = textBoxLeft;
+            _textBoxTop = textBoxTop;
+            _textBoxRight = textBoxRight;
+            _textBoxBottom = textBoxBottom;
+            _mapCanvasDimensionModifier = mapCanvasDimensionModifier;
+            _textBoxLeft.TextChanged += OnEvent;
+            _textBoxTop.TextChanged += OnEvent;
+            _textBoxRight.TextChanged += OnEvent;
+            _textBoxBottom.TextChanged += OnEvent;
+            _mapModel = null;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapCanvasDimensionModifier;
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (
+                dataType == SystemInjectType.MapModel
+                && data is MapModel mapModel
+            )
+            {
+                _mapModel = mapModel;
+            }
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapCanvasDimensionModifier.Modify(
+                new WindowMapCanvasDimensionModifierParameters
+                {
+                    ElementModel = _mapModel!
+                }
+            );
+        }
+    }
+
+
+    public class WindowMapCanvasDimensionActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _mapCanvasDimensionActionHandler;
+
+        public WindowMapCanvasDimensionActionHandlerFacade(
+            TextBox textBoxLeft,
+            TextBox textBoxTop,
+            TextBox textBoxRight,
+            TextBox textBoxBottom
+        )
+        {
+            _mapCanvasDimensionActionHandler = new WindowMapCanvasDimensionActionHandler(
+                textBoxLeft,
+                textBoxTop,
+                textBoxRight,
+                textBoxBottom,
+                new WindowMapCanvasDimensionModifier(
+                    textBoxLeft,
+                    textBoxTop,
+                    textBoxRight,
+                    textBoxBottom
+                )
+            );
+
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapCanvasDimensionActionHandler.Modifier();
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            _mapCanvasDimensionActionHandler.Inject(dataType, data);
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapCanvasDimensionActionHandler.OnEvent(sender, e);
+        }
+    }
+
 }

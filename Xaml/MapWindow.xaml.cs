@@ -1,12 +1,9 @@
 ﻿using MaplestoryBotNet.Systems;
-using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
+using System.Windows.Threading;
 
 
 namespace MaplestoryBotNet.Xaml
@@ -142,6 +139,25 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
+        private AbstractWindowActionHandler _instantiateViewMinimapUpdaterActionHandler()
+        {
+            return new WindowViewMinimapUpdaterActionHandlerFacade(
+                MapImage,
+                new SystemAsyncDispatcher(Dispatcher, DispatcherPriority.Background),
+                GetSystemWindow()
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMapCanvasDimensionActionHandler()
+        {
+            return new WindowMapCanvasDimensionActionHandlerFacade(
+                MapAreaLeftTextBox,
+                MapAreaTopTextBox,
+                MapAreaRightTextBox,
+                MapAreaBottomTextBox
+            );
+        }
+
         public List<AbstractWindowActionHandler> InstantiateActionHandlers(
             AbstractSystemWindow editWindow
         )
@@ -159,6 +175,7 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateNumericTextBoxPropertyPasteActionHandler(MapAreaBottomTextBox, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(LocationTextBoxX, Convert.ToInt32(MapCanvas.Width)),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(LocationTextBoxY, Convert.ToInt32(MapCanvas.Height)),
+                _instantiateMapCanvasDimensionActionHandler(),
                 _instantiateWindowMenuItemHideActionHandler(),
                 _instantiateEditMenuActionHandler(editWindow),
                 _instantiateAddPointButtonActionHandler(),
@@ -168,7 +185,8 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateSelectPointActionHandler(),
                 _instantiateDragPointActionHandler(),
                 _instantiateEditButtonAccessibilityActionHandler(),
-                _instantiatePointLocationActionHandler()
+                _instantiatePointLocationActionHandler(),
+                _instantiateViewMinimapUpdaterActionHandler()
             ];
         }
 
