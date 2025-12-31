@@ -115,7 +115,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         private ReaderWriterLockSlim _mapAreaLock = new ReaderWriterLockSlim();
 
-        private Rect _mapArea = new Rect();
+        private Rect _mapArea = new Rect(0, 0, 1, 1);
 
         public override List<MinimapPoint> Points()
         {
