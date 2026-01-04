@@ -4,8 +4,31 @@ using System.Diagnostics;
 
 namespace MaplestoryBotNetTests.Systems.Configuration.Tests
 {
+
+    /**
+     * @brief Configuration Map Model Deserializer Test Suite
+     * 
+     * Validates the complete configuration loading system for game automation setups.
+     * 
+     * @details
+     * This test suite thoroughly validates the deserialization of complex JSON configuration
+     * files that define game automation parameters. These configurations include map boundaries,
+     * interaction points, automation macros with probabilistic execution, and nested command
+     * sequences.
+     */
     public class ConfigurationMapModelDeserializerTests
     {
+        /**
+         * @brief Provides a sample configuration JSON for testing
+         * 
+         * Creates a comprehensive JSON configuration structure that simulates
+         * a real game map configuration setup.
+         * 
+         * This fixture represents a complete map configuration with a defined
+         * map area  and two map points. Each point includes coordinates,
+         * interaction ranges, and nested command structures with
+         * multiple levels of automation macros.
+         */
         private string _fixture()
         {
             return """
@@ -72,6 +95,21 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             """;
         }
 
+
+        /**
+         * @brief Tests boundary coordinate deserialization
+         * 
+         * @test
+         * Validates that the deserializer correctly extracts the rectangular
+         * map boundaries from configuration data.
+         * 
+         * @details
+         * This test ensures that when users define their game map area with
+         * specific pixel coordinates (left, top, right, bottom), the system
+         * accurately loads these boundaries. Correct boundary parsing is
+         * essential for the automation system to know exactly which screen
+         * region represents the minimap area.
+         */
         private void _testDeserializerDeserializesMapArea()
         {
             var deserializer = new ConfigurationMapModelDeserializer();
@@ -82,6 +120,18 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(deserialized.MapAreaBottom == 456);
         }
 
+        /**
+         * @brief Tests coordinate point deserialization
+         * 
+         * @test
+         * Verifies that individual interaction points with their coordinate
+         * ranges are correctly loaded from configuration.
+         * 
+         * This test validates that specific points of interest within the
+         * minim map are accurately parsed with their X/Y coordinates
+         * and interaction tolerance ranges. Proper loading ensures the
+         * automation system can reliably target these points during gameplay,
+         */
         private void _testDeserializerDeserializesMapPoints()
         {
             var deserializer = new ConfigurationMapModelDeserializer();
@@ -97,6 +147,19 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(deserialized.MapPoints[1].YRange == 56);
         }
 
+        /**
+         * @brief Tests element identification deserialization
+         * 
+         * @test
+         * Validates that point names and element identifiers are correctly
+         * extracted from configuration data.
+         * 
+         * This test ensures that descriptive names assigned to map points
+         * are properly loaded, enabling clear identification during automation.
+         * These human-readable identifiers appear in user interfaces
+         * helping users understand which game elements the system is
+         * interacting with at any given moment during automated sessions.
+         */
         private void _testDeserializerDeserializesPointData()
         {
             var deserializer = new ConfigurationMapModelDeserializer();
@@ -107,6 +170,20 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(deserialized.MapPoints[1].PointData.PointName == "P2");
         }
 
+        /**
+         * @brief Tests macro configuration deserialization
+         * 
+         * @test
+         * Verifies that macro definitions with their execution probabilities
+         * are correctly loaded from configuration.
+         * 
+         * @details
+         * This test validates the loading of named automation macros and their
+         * associated execution chance percentages. These settings allow users
+         * to create complex, probabilistic behavior patterns - for example,
+         * making an automation sequence that only executes 12% of the time
+         * to simulate human-like randomness.
+         */
         private void _testDeserializerDeserializesCommandData()
         {
             var deserializer = new ConfigurationMapModelDeserializer();
@@ -122,6 +199,23 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(deserialized.MapPoints[1].PointData.Commands[1].MacroChance == 34);
         }
 
+
+        /**
+         * @brief Tests command sequence deserialization
+         * 
+         * @test
+         * Validates that nested command sequences within macros are correctly
+         * loaded from configuration.
+         * 
+         * @details
+         * This test ensures that the actual automation commands (like
+         * keyboard presses, mouse clicks, or delays) are properly extracted
+         * in their correct execution order. Each macro can contain multiple
+         * sequential commands that execute in a specific order when triggered.
+         * Accurate deserialization guarantees that complex automation routines
+         * - such as "press A, wait 100ms, press B, move mouse to X,Y" - are
+         * loaded exactly as configured.
+         */
         private void _testDeserializerDeserializesCommands()
         {
             var deserializer = new ConfigurationMapModelDeserializer();
@@ -144,6 +238,18 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(deserialized.MapPoints[1].PointData.Commands[1].MacroCommands[2] == "C42");
         }
 
+        /**
+         * @brief Executes the complete configuration deserialization test suite
+         * 
+         * @test
+         * Runs all deserialization tests to validate the entire configuration
+         * loading pipeline.
+         * 
+         * @details
+         * This comprehensive test sequence validates that game automation
+         * configurations load correctly from JSON format, ensuring users'
+         * carefully crafted automation setups work exactly as designed.
+         */
         public void Run()
         {
             _testDeserializerDeserializesMapArea();
@@ -155,8 +261,33 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
     }
 
 
+    /**
+     * @brief Configuration Map Model Serializer Test Suite
+     * 
+     * @class ConfigurationMapModelSerializerTests
+     * @test
+     * Validates the complete configuration saving system for game automation setups.
+     * 
+     * @details
+     * Successful serialization ensures that users' automation investments are preserved
+     * across sessions, allowing for continuous improvement and refinement of automation
+     * strategies without losing previously configured work.
+     */
     public class ConfigurationMapModelSerializerTests
     {
+
+        /**
+         * @brief Creates a comprehensive configuration model for testing
+         * 
+         * @test
+         * Builds a complete ConfigurationMapModel instance representing a typical
+         * game automation setup with all configuration layers populated.
+         * 
+         * @details
+         * The test data represents realistic automation scenarios where users have
+         * configured the system to interact with specific game elements ("E1", "E2")
+         * using probabilistic command sequences that create natural, varied gameplay.
+         */
         private ConfigurationMapModel _fixture()
         {
             return new ConfigurationMapModel
@@ -218,6 +349,18 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             };
         }
 
+        /**
+         * @brief Provides the expected JSON output for serialization validation
+         * 
+         * @test
+         * Defines the exact JSON structure that should result from serializing
+         * the test configuration model.
+         * 
+         * @details
+         * This expected output ensures that serialization produces user-friendly
+         * JSON files that are both machine-readable and human-editable, allowing
+         * users to manually modify configurations in text editors if desired.
+         */
         private string _expected()
         {
             return """
@@ -284,6 +427,18 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             """;
         }
 
+        /**
+         * @brief Tests complete configuration model serialization
+         * 
+         * @test
+         * Validates that the serializer correctly converts a ConfigurationMapModel
+         * instance to its JSON representation.
+         * 
+         * @details
+         * Successful serialization guarantees that users can save their
+         * automation configurations with confidence, knowing they can be
+         * reloaded exactly as saved for future gameplay sessions.
+         */
         private void _testSerializeMapModel()
         {
             var serializer = new ConfigurationMapModelSerializer();
@@ -292,6 +447,19 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(normalizer.Normalize(serialized) == normalizer.Normalize(_expected()));
         }
 
+        /**
+         * @brief Executes the complete configuration serialization test suite
+         * 
+         * @test
+         * Runs the serialization test to validate the configuration saving pipeline.
+         * 
+         * @details
+         * This test execution ensures that the entire serialization process functions
+         * correctly, providing users with reliable configuration persistence. When this
+         * test passes, users can trust that their automation setups will be saved
+         * accurately, preserving all their custom settings, optimizations, and
+         * gameplay strategies for consistent performance across multiple gaming sessions.
+         */
         public void Run()
         {
             _testSerializeMapModel();
