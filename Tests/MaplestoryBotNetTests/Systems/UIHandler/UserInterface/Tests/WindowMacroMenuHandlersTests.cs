@@ -3,6 +3,7 @@ using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNetTests.Systems.Configuration.Tests;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
@@ -81,30 +82,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Normalizes JSON strings for consistent comparison
-         * 
-         * @param json JSON string to normalize
-         * 
-         * @return Normalized JSON string with consistent formatting
-         * 
-         * This helper ensures that JSON comparisons focus on content rather than
-         * formatting differences, providing reliable test results regardless of
-         * whitespace or indentation variations.
-         */
-        private string _normalize(string json)
-        {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                IndentCharacter = ' ',
-                IndentSize = 0
-            };
-            var document = JsonDocument.Parse(json);
-            return JsonSerializer.Serialize(document, options);
-        }
-
-        /**
          * @brief Tests complete save menu workflow from button click to file dialog
          * 
          * @test Validates the entire macro saving process
@@ -123,10 +100,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             );
             _saveButton.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
             Debug.Assert(_saveFileDialog.PromptCalls == 1);
-            var saveContent = _normalize(_saveFileDialog.PromptCallArg_saveContent[0]);
+            var normalizer = new JsonNormalizer();
+            var saveContent = normalizer.Normalize(_saveFileDialog.PromptCallArg_saveContent[0]);
             var initialDirectory = _saveFileDialog.PromptCallArg_initialDirectory[0];
             Debug.Assert(initialDirectory == "MEOW");
-            Debug.Assert(saveContent == _normalize("{\"macro\":[\"A\",\"B\",\"C\"]}"));
+            Debug.Assert(saveContent == normalizer.Normalize("{\"macro\":[\"A\",\"B\",\"C\"]}"));
         }
 
         /**

@@ -7,6 +7,34 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace MaplestoryBotNetTests.Systems.Configuration.Tests
 {
+    public class JsonNormalizer
+    {
+        /**
+         * @brief Normalizes JSON strings for consistent comparison
+         * 
+         * @param json JSON string to normalize
+         * 
+         * @return Normalized JSON string with consistent formatting
+         * 
+         * This helper ensures that JSON comparisons focus on content rather than
+         * formatting differences, providing reliable test results regardless of
+         * whitespace or indentation variations.
+         */
+        public string Normalize(string json)
+        {
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                IndentCharacter = ' ',
+                IndentSize = 0
+            };
+            var document = JsonDocument.Parse(json);
+            return JsonSerializer.Serialize(document, options);
+        }
+    }
+
+
     /**
     * @class MaplestoryBotConfigurationDeserializerTest
     * 
@@ -381,31 +409,6 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             """;
         }
 
-
-        /**
-         * @brief Normalizes JSON strings for consistent comparison
-         * 
-         * @param json JSON string to normalize
-         * 
-         * @return Normalized JSON string with consistent formatting
-         * 
-         * This helper ensures that JSON comparisons focus on content rather than
-         * formatting differences, providing reliable test results regardless of
-         * whitespace or indentation variations.
-         */
-        private string _normalize(string json)
-        {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                IndentCharacter = ' ',
-                IndentSize = 0
-            };
-            var document = JsonDocument.Parse(json);
-            return JsonSerializer.Serialize(document, options);
-        }
-
         /**
          * @brief Tests correct serialization of bot configuration to JSON format
          * 
@@ -416,8 +419,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         private void _testSerialize()
         {
             var output = new MaplestoryBotConfigurationSerializer().Serialize(_fixture());
-            var normalized_1 = _normalize(output);
-            var normalized_2 = _normalize(_expected());
+            var normalized_1 = new JsonNormalizer().Normalize(output);
+            var normalized_2 = new JsonNormalizer().Normalize(_expected());
             Debug.Assert(normalized_1 == normalized_2);
         }
 

@@ -39,7 +39,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         private void _testDeserializeMacroData()
         {
             var deserializer = new MacroDataDeserializer();
-            var deserialized = deserializer.Deserialize(_fixture()) as MacroData;
+            var deserialized = deserializer.Deserialize(_fixture()) as ConfigurationMacroData;
             Debug.Assert(deserialized != null);
             Debug.Assert(deserialized.Macro.Count() == 5);
             Debug.Assert(deserialized.Macro[0] == "a");
@@ -78,9 +78,9 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
          * This fixture creates a macro command object with a sequential
          * command pattern that the bot should serialize to JSON format.
          */
-        private MacroData _fixture()
+        private ConfigurationMacroData _fixture()
         {
-            return new MacroData { Macro = ["a", "b", "c", "d", "e"] };
+            return new ConfigurationMacroData { Macro = ["a", "b", "c", "d", "e"] };
         }
 
         /**
@@ -95,31 +95,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             var serializer = new MacroDataSerializer();
             var serialized = serializer.Serialize(_fixture());
             var expected = """{ "macro": [ "a", "b", "c", "d", "e" ] }""";
-            Debug.Assert(_normalize(serialized) == _normalize(expected));
-        }
-
-        /**
-         * @brief Normalizes JSON strings for consistent comparison
-         * 
-         * @param json JSON string to normalize
-         * 
-         * @return Normalized JSON string with consistent formatting
-         * 
-         * This helper ensures that JSON comparisons focus on content rather than
-         * formatting differences, providing reliable test results regardless of
-         * whitespace or indentation variations.
-         */
-        private string _normalize(string json)
-        {
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                IndentCharacter = ' ',
-                IndentSize = 0
-            };
-            var document = JsonDocument.Parse(json);
-            return JsonSerializer.Serialize(document, options);
+            var normalizer = new JsonNormalizer();
+            Debug.Assert(normalizer.Normalize(serialized) == normalizer.Normalize(expected));
         }
 
         /**

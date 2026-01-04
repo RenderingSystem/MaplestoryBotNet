@@ -5,21 +5,21 @@ using System.Text.Json.Serialization;
 
 namespace MaplestoryBotNet.Systems.Configuration.SubSystems
 {
-    public class MacroData : AbstractConfiguration
+    public class ConfigurationMacroData : AbstractConfiguration
     {
         [JsonPropertyName("macro")]
         public string[] Macro { set; get; } = [];
 
         public override AbstractConfiguration Copy()
         {
-            return new MacroData { Macro = (string[])Macro.Clone() };
+            return new ConfigurationMacroData { Macro = (string[])Macro.Clone() };
         }
     }
 
 
     public abstract class AbstractMacroDataDeserializer : AbstractDeserializer
     {
-        public abstract MacroData DeserializeMacroData(string jsonString);
+        public abstract ConfigurationMacroData DeserializeMacroData(string jsonString);
     }
 
 
@@ -30,7 +30,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
             return DeserializeMacroData(data);
         }
 
-        public override MacroData DeserializeMacroData(string jsonString)
+        public override ConfigurationMacroData DeserializeMacroData(string jsonString)
         {
             try
             {
@@ -40,13 +40,13 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
                     AllowTrailingCommas = true,
                     ReadCommentHandling = JsonCommentHandling.Skip,
                 };
-                var result = JsonSerializer.Deserialize<MacroData>(jsonString, options);
+                var result = JsonSerializer.Deserialize<ConfigurationMacroData>(jsonString, options);
                 Debug.Assert(result != null);
                 return result;
             }
             catch
             {
-                return new MacroData();
+                return new ConfigurationMacroData();
             }
         }
     }
@@ -54,7 +54,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
 
     public abstract class AbstractMacroDataSerializer : AbstractSerializer
     {
-        public abstract string SerializeMacroData(MacroData macroData);
+        public abstract string SerializeMacroData(ConfigurationMacroData macroData);
     }
 
 
@@ -62,10 +62,10 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
     {
         public override string Serialize(object obj)
         {
-            return SerializeMacroData((MacroData)obj);
+            return SerializeMacroData((ConfigurationMacroData)obj);
         }
 
-        public override string SerializeMacroData(MacroData macroData)
+        public override string SerializeMacroData(ConfigurationMacroData macroData)
         {
             try
             {

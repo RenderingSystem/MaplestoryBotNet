@@ -32,8 +32,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public override BitmapSource ConvertToBitmap(Image<Bgra32> imageSharpImage)
         {
-            var sourceMemoryGroup = imageSharpImage.GetPixelMemoryGroup();
-            var sourceSpan = sourceMemoryGroup[0].Span;
+            var sourceSpan = imageSharpImage.GetPixelMemoryGroup()[0].Span;
             var sourceBytes = MemoryMarshal.AsBytes(sourceSpan);
             int width = imageSharpImage.Width;
             int height = imageSharpImage.Height;

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Controls;
-using System.Xml.Linq;
+﻿using System.Windows;
+
 
 namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 {
@@ -100,8 +98,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         public abstract void Clear();
 
         public abstract Rect GetMapArea();
-
-        public abstract void SetMapArea(Rect mapArea);
 
         public abstract void SetMapArea(int left, int top, int right, int bottom);
     }
@@ -253,19 +249,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             finally
             { 
                 _mapAreaLock.ExitReadLock();
-            }
-        }
-
-        public override void SetMapArea(Rect mapArea)
-        {
-            try
-            {
-                _mapAreaLock.EnterWriteLock();
-                _mapArea = new Rect(mapArea.X, mapArea.Y, mapArea.Width, mapArea.Height);
-            }
-            finally
-            {
-                _mapAreaLock.ExitWriteLock();
             }
         }
 

@@ -25,8 +25,9 @@
     <Compile Include="..\..\Systems\Configuration\SubSystems\Configuration.cs" Link="Systems\Configuration\SubSystems\Configuration.cs" />
     <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationImages.cs" Link="Systems\Configuration\SubSystems\ConfigurationImages.cs" />
     <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationKeyboard.cs" Link="Systems\Configuration\SubSystems\ConfigurationKeyboard.cs" />
+    <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationMacroData.cs" Link="Systems\Configuration\SubSystems\ConfigurationMacroData.cs" />
+    <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationMapModel.cs" Link="Systems\Configuration\SubSystems\ConfigurationMapModel.cs" />
     <Compile Include="..\..\Systems\Configuration\SubSystems\FileReader.cs" Link="Systems\Configuration\SubSystems\FileReader.cs" />
-    <Compile Include="..\..\Systems\Configuration\SubSystems\MacroData.cs" Link="Systems\Configuration\SubSystems\MacroData.cs" />
     <Compile Include="..\..\Systems\Keyboard\KeyboardSystem.cs" Link="Systems\Keyboard\KeyboardSystem.cs" />
     <Compile Include="..\..\Systems\Keyboard\SubSystems\KeyboardDeviceDetector.cs" Link="Systems\Keyboard\SubSystems\KeyboardDeviceDetector.cs" />
     <Compile Include="..\..\Systems\Keyboard\SubSystems\KeystrokeTransmitter.cs" Link="Systems\Keyboard\SubSystems\KeystrokeTransmitter.cs" />

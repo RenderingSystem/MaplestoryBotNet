@@ -67,9 +67,9 @@ namespace MaplestoryBotNet.Systems.UIHandler
             _saveButton.Click += OnEvent;
         }
 
-        private MacroData _getListBoxMacroData()
+        private ConfigurationMacroData _getListBoxMacroData()
         {
-            var macroData = new MacroData();
+            var macroData = new ConfigurationMacroData();
             var commands = new string[_macroCommandsListBox.Items.Count];
             for (int i = 0; i < _macroCommandsListBox.Items.Count; i++)
             {

@@ -15,6 +15,7 @@ void UnitTestSuite()
     new ConfigurationKeyboardTestSuite().Run();
     new ConfigurationImagesTestSuite().Run();
     new ConfigurationSystemTestSuite().Run();
+    new ConfigurationMapModelTestSutie().Run();
     // Test the screen capture system
     new CaptureModuleTestSuite().Run();
     new ScreenCaptureSystemTestSuite().Run();
