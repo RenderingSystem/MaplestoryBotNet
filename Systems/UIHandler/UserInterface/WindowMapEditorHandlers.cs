@@ -1,4 +1,5 @@
-﻿using MaplestoryBotNet.Systems.UIHandler.Utilities;
+﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -1774,7 +1775,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     textBoxBottom
                 )
             );
-
         }
 
         public override AbstractWindowStateModifier Modifier()
@@ -1793,4 +1793,119 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         }
     }
 
+
+    public class WindowMapEditorSaveConfigurationActionHandler : AbstractWindowActionHandler
+    {
+        private Button _saveButton;
+
+        private AbstractMapModelSerializer _mapModelSerializer;
+
+        private AbstractJsonDataModelConverter _mapModelConverter;
+
+        private AbstractWindowStateModifier _windowSaveDialogModifier;
+
+        private MapModel? _mapModel;
+
+        private string _initialDirectory = "";
+
+        public WindowMapEditorSaveConfigurationActionHandler(
+            Button saveButton,
+            AbstractMapModelSerializer mapModelSerializer,
+            AbstractJsonDataModelConverter mapModelConverter,
+            AbstractWindowStateModifier windowSaveDialogModifier
+        )
+        {
+            _saveButton = saveButton;
+            _mapModelSerializer = mapModelSerializer;
+            _mapModelConverter = mapModelConverter;
+            _windowSaveDialogModifier = windowSaveDialogModifier;
+            _saveButton.Click += OnEvent;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (_mapModel == null)
+            {
+                return;
+            }
+            if (_initialDirectory == "")
+            {
+                return;
+            }
+            var configuration = (
+                (ConfigurationMapModel)
+                _mapModelConverter.ToConfiguration(_mapModel)!
+            );
+            var serialized = (
+                _mapModelSerializer.Serialize(configuration)
+            );
+            _windowSaveDialogModifier.Modify(
+                new WindowSaveMenuModifierParameters
+                {
+                    InitialDirectory = _initialDirectory,
+                    SaveContent = serialized
+                }
+            );
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (
+                dataType == SystemInjectType.ConfigurationUpdate &&
+                data is MaplestoryBotConfiguration configuration
+            )
+            {
+                _initialDirectory = configuration.MapDirectory;
+            }
+            if (
+                dataType == SystemInjectType.MapModel
+                && data is MapModel mapModel
+            )
+            {
+                _mapModel = mapModel;
+            }
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _windowSaveDialogModifier;
+        }
+    }
+
+
+    public class WindowMapEditorSaveConfigurationActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _windowMapEditorSaveConfigurationActionHandler;
+
+        public WindowMapEditorSaveConfigurationActionHandlerFacade(Button saveButton)
+        {
+            _windowMapEditorSaveConfigurationActionHandler = new WindowMapEditorSaveConfigurationActionHandler(
+                saveButton,
+                new ConfigurationMapModelSerializer(),
+                new MapModelConverterFacade(),
+                new WindowSaveMenuModifier(
+                    new WindowSaveFileDialog(
+                        "Save Map",
+                        "JSON files (*.json)|*.json",
+                        ".json"
+                    )
+                )
+            );
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _windowMapEditorSaveConfigurationActionHandler.OnEvent(sender, e);
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            _windowMapEditorSaveConfigurationActionHandler.Inject(dataType, data);
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _windowMapEditorSaveConfigurationActionHandler.Modifier();
+        }
+    }
 }

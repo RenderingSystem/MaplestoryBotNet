@@ -135,5 +135,6 @@
             "image": "images/mapicons/rune.gif"
         }
     },
-    "macro_directory": "./Macros"
+  "macro_directory": "./Macros",
+  "map_directory":  "./Maps"
 }

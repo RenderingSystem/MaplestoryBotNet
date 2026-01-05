@@ -158,6 +158,11 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
+        private AbstractWindowActionHandler _instantiateSaveMapConfigurationActionHandler()
+        {
+            return new WindowMapEditorSaveConfigurationActionHandlerFacade(SaveButton);
+        }
+
         public List<AbstractWindowActionHandler> InstantiateActionHandlers(
             AbstractSystemWindow editWindow
         )
@@ -186,7 +191,8 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateDragPointActionHandler(),
                 _instantiateEditButtonAccessibilityActionHandler(),
                 _instantiatePointLocationActionHandler(),
-                _instantiateViewMinimapUpdaterActionHandler()
+                _instantiateViewMinimapUpdaterActionHandler(),
+                _instantiateSaveMapConfigurationActionHandler()
             ];
         }
 

@@ -1,7 +1,10 @@
 ﻿using MaplestoryBotNet.Systems;
+using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNetTests.Systems.Configuration.Tests;
 using MaplestoryBotNetTests.Systems.Tests;
+using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.UIHandler.Utilities.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
 using System.Diagnostics;
@@ -1961,6 +1964,217 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    public class WindowMapEditorSaveConfigurationActionHandlerTests
+    {
+        private Button _saveButton;
+
+        private MapModel _mapModel;
+
+        private MockWindowStateModifier _windowSaveMenumodifier;
+
+        private MaplestoryBotConfiguration _maplestoryBotConfiguration;
+
+        public WindowMapEditorSaveConfigurationActionHandlerTests()
+        {
+            _saveButton = new Button();
+            _mapModel = new MapModel();
+            _windowSaveMenumodifier = new MockWindowStateModifier();
+            _maplestoryBotConfiguration = new MaplestoryBotConfiguration();
+        }
+
+        private MapModel _generateMapModel()
+        {
+            var mapModel = new MapModel();
+            mapModel.SetMapArea(12, 23, 34, 45);
+            mapModel.Add(
+                new MinimapPoint
+                {
+                    X = 12,
+                    Y = 23,
+                    XRange = 34,
+                    YRange = 45,
+                    PointData = new MinimapPointData
+                    {
+                        Commands = [
+                            new MinimapPointMacros
+                            {
+                                MacroChance = 56,
+                                MacroCommands = ["C12", "C23", "C34"],
+                                MacroName = "M1"
+                            },
+                            new MinimapPointMacros
+                            {
+                                MacroChance = 67,
+                                MacroCommands = ["C23", "C34", "C45"],
+                                MacroName = "M2"
+                            }
+                        ],
+                    }
+                }
+            );
+            mapModel.Add(
+                new MinimapPoint
+                {
+                    X = 23,
+                    Y = 34,
+                    XRange = 45,
+                    YRange = 56,
+                    PointData = new MinimapPointData
+                    {
+                        Commands = [
+                            new MinimapPointMacros
+                            {
+                                MacroChance = 78,
+                                MacroCommands = ["C34", "C45", "C56"],
+                                MacroName = "M3"
+                            },
+                            new MinimapPointMacros
+                            {
+                                MacroChance = 89,
+                                MacroCommands = ["C45", "C56", "C67"],
+                                MacroName = "M4"
+                            }
+                        ],
+                    }
+                }
+            );
+            return mapModel;
+        }
+
+        private string _expected()
+        {
+            return """
+            {
+                "map_area_left": 12,
+                "map_area_top": 23,
+                "map_area_right": 34,
+                "map_area_bottom": 45,
+                "map_points": [
+                    {
+                        "x": 12,
+                        "y": 23,
+                        "x_range": 34,
+                        "y_range": 45,
+                        "point_data": {
+                            "element_name": "",
+                            "point_name": "",
+                            "commands": [
+                                {
+                                    "macro_name": "M1",
+                                    "macro_chance": 56,
+                                    "macro_commands": [
+                                        "C12",
+                                        "C23",
+                                        "C34"
+                                    ]
+                                },
+                                {
+                                    "macro_name": "M2",
+                                    "macro_chance": 67,
+                                    "macro_commands": [
+                                        "C23",
+                                        "C34",
+                                        "C45"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "x": 23,
+                        "y": 34,
+                        "x_range": 45,
+                        "y_range": 56,
+                        "point_data": {
+                            "element_name": "",
+                            "point_name": "",
+                            "commands": [
+                                {
+                                    "macro_name": "M3",
+                                    "macro_chance": 78,
+                                    "macro_commands": [
+                                        "C34",
+                                        "C45",
+                                        "C56"
+                                    ]
+                                },
+                                {
+                                    "macro_name": "M4",
+                                    "macro_chance": 89,
+                                    "macro_commands": [
+                                        "C45",
+                                        "C56",
+                                        "C67"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+            """;
+        }
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _saveButton = new Button();
+            _mapModel = _generateMapModel();
+            _windowSaveMenumodifier = new MockWindowStateModifier();
+            _maplestoryBotConfiguration = new MaplestoryBotConfiguration
+            {
+                MapDirectory = "cool_maps"
+            };
+            return new WindowMapEditorSaveConfigurationActionHandler(
+                _saveButton,
+                new ConfigurationMapModelSerializer(),
+                new MapModelConverterFacade(),
+                _windowSaveMenumodifier
+            );
+        }
+
+        private void _testClickingSaveButtonSavesMapModelToFile()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);
+            _saveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_windowSaveMenumodifier.ModifyCalls == 1);
+            var modifierParameters = (WindowSaveMenuModifierParameters) (
+                _windowSaveMenumodifier.ModifyCallArg_value[0]!
+            );
+            var normalizer = new JsonNormalizer();
+            Debug.Assert(modifierParameters.InitialDirectory == "cool_maps");
+            Debug.Assert(
+                normalizer.Normalize(modifierParameters.SaveContent)
+                == normalizer.Normalize(_expected())
+            );
+        }
+
+        private void _testClickingSaveButtonDoesntSaveWhenMapModelNotInjected()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);
+            _saveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_windowSaveMenumodifier.ModifyCalls == 0);
+        }
+
+        private void _testClickingSaveButtonDoesntSaveWhenInitialDirectoryNotInjected()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _saveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_windowSaveMenumodifier.ModifyCalls == 0);
+        }
+
+        public void Run()
+        {
+            _testClickingSaveButtonSavesMapModelToFile();
+            _testClickingSaveButtonDoesntSaveWhenMapModelNotInjected();
+            _testClickingSaveButtonDoesntSaveWhenInitialDirectoryNotInjected();
+        }
+    }
+
+
     public class WindowMapEditorHandlersTestSuite
     {
         public void Run()
@@ -1975,6 +2189,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMapCanvasEditButtonAccessibilityActionHandlerTests().Run();
             new WindowMapCanvasPointLocationActionHandlerTests().Run();
             new WindowMapCanvasDimensionActionHandlerTests().Run();
+            new WindowMapEditorSaveConfigurationActionHandlerTests().Run();
         }
     }
 }

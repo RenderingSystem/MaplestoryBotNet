@@ -128,7 +128,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
          * ranges are correctly loaded from configuration.
          * 
          * This test validates that specific points of interest within the
-         * minim map are accurately parsed with their X/Y coordinates
+         * minimap are accurately parsed with their X/Y coordinates
          * and interaction tolerance ranges. Proper loading ensures the
          * automation system can reliably target these points during gameplay,
          */

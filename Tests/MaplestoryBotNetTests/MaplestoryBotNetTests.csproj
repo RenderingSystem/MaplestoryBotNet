@@ -52,6 +52,7 @@
     <Compile Include="..\..\Systems\UIHandler\Utilities\ImageUtilities.cs" Link="Systems\UIHandler\Utilities\ImageUtilities.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\MacroListBoxItems.cs" Link="Systems\UIHandler\Utilities\MacroListBoxItems.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\MapModel.cs" Link="Systems\UIHandler\Utilities\MapModel.cs" />
+    <Compile Include="..\..\Systems\UIHandler\Utilities\MapModelConverter.cs" Link="Systems\UIHandler\Utilities\MapModelConverter.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\MouseEvents.cs" Link="Systems\UIHandler\Utilities\MouseEvents.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\SaveLoadDialogs.cs" Link="Systems\UIHandler\Utilities\SaveLoadDialogs.cs" />
     <Compile Include="..\..\ThreadingUtils\ThreadingUtils.cs" Link="ThreadingUtils\ThreadingUtils.cs" />

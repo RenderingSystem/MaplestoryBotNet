@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using System.Windows;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.Utilities
@@ -100,6 +101,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         public abstract Rect GetMapArea();
 
         public abstract void SetMapArea(int left, int top, int right, int bottom);
+
+        public abstract void SetMapModel(MapModel model);
     }
 
 
@@ -262,6 +265,24 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             finally
             {
                 _mapAreaLock.ExitWriteLock();
+            }
+        }
+
+        public override void SetMapModel(MapModel model)
+        {
+            try
+            {
+                var mapArea = model.GetMapArea();
+                var modelPoints = model.Points();
+                _mapAreaLock.EnterWriteLock();
+                _pointsLock.EnterWriteLock();
+                _mapArea = mapArea;
+                _points = modelPoints;
+            }
+            finally
+            {
+                _mapAreaLock.ExitWriteLock();
+                _pointsLock.ExitWriteLock();
             }
         }
     }

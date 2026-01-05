@@ -10,36 +10,6 @@ using System.Windows.Media;
 
 namespace MaplestoryBotNet.Systems.UIHandler
 {
-    public class WindowSaveMenuModifierParameters
-    {
-        public string InitialDirectory = "";
-
-        public string SaveContent = "";
-    }
-
-
-    public class WindowSaveMenuModifier : AbstractWindowStateModifier
-    {
-        private AbstractSaveFileDialog _saveFileDialog;
-
-        public WindowSaveMenuModifier(AbstractSaveFileDialog saveFileDialog)
-        {
-            _saveFileDialog = saveFileDialog;
-        }
-
-        public override void Modify(object? value)
-        {
-            if (value is WindowSaveMenuModifierParameters parameters)
-            {
-                _saveFileDialog.Prompt(
-                    parameters.InitialDirectory,
-                    parameters.SaveContent
-                );
-            }
-        }
-    }
-
-
     public class WindowSaveMenuActionHandler : AbstractWindowActionHandler
     {
         private Button _saveButton;
@@ -141,41 +111,6 @@ namespace MaplestoryBotNet.Systems.UIHandler
         public override void Inject(SystemInjectType dataType, object? data)
         {
             _saveMenuActionHandler.Inject(dataType, data);
-        }
-    }
-
-
-    public class WindowLoadMenuModifierParameters
-    {
-        public string InitialDirectory = "";
-    }
-
-
-    public class WindowLoadMenuModifier : AbstractWindowStateModifier
-    {
-        private AbstractLoadFileDialog _loadFileDialog;
-
-        private string _loadedText;
-
-        public WindowLoadMenuModifier(
-            AbstractLoadFileDialog loadFileDialog
-        )
-        {
-            _loadFileDialog = loadFileDialog;
-            _loadedText = "";
-        }
-
-        public override void Modify(object? value)
-        {
-            if (value is WindowLoadMenuModifierParameters parameters)
-            {
-                _loadedText = _loadFileDialog.Prompt(parameters.InitialDirectory);
-            }
-        }
-
-        public override object? State(int stateType)
-        {
-            return _loadedText;
         }
     }
 

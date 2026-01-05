@@ -101,7 +101,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                         "image": "some_image_4"
                     }
                 },
-                "macro_directory": "cool_macros"
+                "macro_directory": "cool_macros",
+                "map_directory": "cool_maps"
             }
             """;
         }
@@ -212,6 +213,21 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         }
 
         /**
+         * @brief Tests correct parsing of the map directory location
+         * 
+         * This test validates that the bot will look for map configuration files
+         * in the correct folder, ensuring that all map definitions, waypoints, and
+         * navigation data can be properly loaded for automated movement and positioning
+         * during gameplay.
+         */
+        private void _testDeserializeMapDirectory()
+        {
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
+            Debug.Assert(output.MapDirectory == "cool_maps");
+        }
+
+        /**
          * @brief Executes all configuration parsing tests
          * 
          * Runs the complete test suite to ensure the bot will correctly
@@ -226,6 +242,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             _testDeserializeAilments();
             _testDeserializeMapIcons();
             _testDeserializeMacroDirectory();
+            _testDeserializeMapDirectory();
         }
     }
 
@@ -301,7 +318,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                         Image="some_image_4"
                     }
                 },
-                MacroDirectory="cool_macros"
+                MacroDirectory="cool_macros",
+                MapDirectory="cool_maps"
 
             };
             return configuration;
@@ -404,7 +422,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                         "image": "some_image_4"
                     }
                 },
-                "macro_directory": "cool_macros"
+                "macro_directory": "cool_macros",
+                "map_directory": "cool_maps"
             }
             """;
         }
