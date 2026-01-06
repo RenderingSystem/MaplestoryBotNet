@@ -1806,7 +1806,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private MapModel? _mapModel;
 
-        private string _initialDirectory = "";
+        private string _initialDirectory;
 
         public WindowMapEditorSaveConfigurationActionHandler(
             Button saveButton,
@@ -1820,6 +1820,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mapModelConverter = mapModelConverter;
             _windowSaveDialogModifier = windowSaveDialogModifier;
             _saveButton.Click += OnEvent;
+            _initialDirectory = "";
         }
 
         public override void OnEvent(object? sender, EventArgs e)
@@ -1906,6 +1907,86 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override AbstractWindowStateModifier Modifier()
         {
             return _windowMapEditorSaveConfigurationActionHandler.Modifier();
+        }
+    }
+
+
+    public class WindowMapEditorLoadConfigurationActionHandler : AbstractWindowActionHandler
+    {
+        private Button _loadButton;
+
+        private AbstractMapModelDeserializer _mapModelDeserializer;
+
+        private AbstractJsonDataModelConverter _mapModelConverter;
+
+        private AbstractWindowStateModifier _windowLoadDialogModifier;
+
+        private MapModel? _mapModel;
+
+        private string _initialDirectory;
+
+        public WindowMapEditorLoadConfigurationActionHandler(
+            Button loadButton,
+            AbstractMapModelDeserializer mapModelDeserializer,
+            AbstractJsonDataModelConverter mapModelConverter,
+            AbstractWindowStateModifier windowLoadDialogModifier
+        )
+        {
+            _loadButton = loadButton;
+            _mapModelDeserializer = mapModelDeserializer;
+            _mapModelConverter = mapModelConverter;
+            _windowLoadDialogModifier = windowLoadDialogModifier;
+            _mapModel = null;
+            _loadButton.Click += OnEvent;
+            _initialDirectory = "";
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (_mapModel == null)
+            {
+                return;
+            }
+            if (_initialDirectory == "")
+            {
+                return;
+            }
+            _windowLoadDialogModifier.Modify(null);
+            var modifierState = _windowLoadDialogModifier.State(0);
+            if (modifierState is not string loadedConfiguration)
+            {
+                return;
+            }
+            if (loadedConfiguration == "")
+            {
+                return;
+            }
+            var deserialized = _mapModelDeserializer.Deserialize(loadedConfiguration);
+            var mapModel = (MapModel)_mapModelConverter.ToDataModel(deserialized)!;
+            _mapModel.SetMapModel(mapModel);
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (
+                dataType == SystemInjectType.ConfigurationUpdate &&
+                data is MaplestoryBotConfiguration configuration
+            )
+            {
+                _initialDirectory = configuration.MapDirectory;
+            }
+            if (
+                dataType == SystemInjectType.MapModel
+                && data is MapModel mapModel
+            )
+            {
+                _mapModel = mapModel;
+            }
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _windowLoadDialogModifier;
         }
     }
 }

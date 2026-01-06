@@ -119,69 +119,32 @@ namespace MaplestoryBotNet.Systems.UIHandler
     {
         private Button _saveButton;
 
-        private ListBox _macroCommandsListBox;
-
-        private AbstractComboBoxFactory _comboBoxFactory;
-
-        private AbstractWindowActionHandlerRegistry _comboBoxPopupScaleRegistry;
-
-        private AbstractMacroDataDeserializer _macroDataDeserializer;
-
         private AbstractWindowStateModifier _windowLoadMenuModifier;
 
         private string? _initialDirectory;
 
         public WindowLoadMenuActionHandler(
             Button saveButton,
-            ListBox macroCommandsListBox,
-            AbstractWindowActionHandlerRegistry comboBoxPopupScaleRegistry,
-            AbstractComboBoxFactory comboBoxFactory,
-            AbstractMacroDataDeserializer macroDataDeserializer,
             AbstractWindowStateModifier windowLoadMenuModifier
         )
         {
             _saveButton = saveButton;
-            _macroCommandsListBox = macroCommandsListBox;
-            _comboBoxFactory = comboBoxFactory;
-            _comboBoxPopupScaleRegistry = comboBoxPopupScaleRegistry;
-            _macroDataDeserializer = macroDataDeserializer;
             _windowLoadMenuModifier = windowLoadMenuModifier;
             _saveButton.Click += OnEvent;
             _initialDirectory = null;
         }
 
-        private void _loadMacroDataToListBox(string loadedText)
-        {
-            if (loadedText != "")
-            {
-                var macroData = _macroDataDeserializer.DeserializeMacroData(loadedText);
-                _macroCommandsListBox.Items.Clear();
-                _comboBoxPopupScaleRegistry.ClearHandlers();
-                foreach (var command in macroData.Macro)
-                {
-                    _loadComboBoxItem(command);
-                }
-            }
-        }
-
-        private void _loadComboBoxItem(string command)
-        {
-            var comboBox = _comboBoxFactory.Create();
-            comboBox.Text = command;
-            var parameters = new WindowComboBoxScaleActionHandlerParameters(comboBox);
-            _comboBoxPopupScaleRegistry.RegisterHandler(parameters);
-            _macroCommandsListBox.Items.Add(comboBox);
-        }
-
         public override void OnEvent(object? sender, EventArgs e)
         {
-            var initialDirectory = _initialDirectory ?? "";
+            if (_initialDirectory == null)
+            {
+                return;
+            }
             var parameters = new WindowLoadMenuModifierParameters
             {
-                InitialDirectory = initialDirectory
+                InitialDirectory = _initialDirectory
             };
             _windowLoadMenuModifier.Modify(parameters);
-            _loadMacroDataToListBox((string)_windowLoadMenuModifier.State(0)!);
         }
 
         public override AbstractWindowStateModifier Modifier()
@@ -208,20 +171,11 @@ namespace MaplestoryBotNet.Systems.UIHandler
 
         public WindowLoadMenuActionHandlerFacade(
             Button loadButton,
-            ListBox macroCommandsListBox,
-            ComboBox comboBoxTemplate,
-            AbstractWindowActionHandlerRegistry comboBoxPopupScaleRegistry
+            AbstractLoadFileDialog loadFileDialog
         )
         {
             _loadMenuActionHandler = new WindowLoadMenuActionHandler(
-                loadButton,
-                macroCommandsListBox,
-                comboBoxPopupScaleRegistry,
-                new ComboBoxTemplateFactory(comboBoxTemplate),
-                new MacroDataDeserializer(),
-                new WindowLoadMenuModifier(
-                    new WindowLoadFileDialog("Load Macro", "JSON files (*.json)|*.json")
-                )
+                loadButton, new WindowLoadMenuModifier(loadFileDialog)
             );
         }
 
@@ -238,6 +192,130 @@ namespace MaplestoryBotNet.Systems.UIHandler
         public override void Inject(SystemInjectType dataType, object? data)
         {
             _loadMenuActionHandler.Inject(dataType, data);
+        }
+    }
+
+
+    public class WindowLoadMenuElementModifier : AbstractWindowStateModifier
+    {
+        private ListBox _macroCommandsListBox;
+
+        private AbstractComboBoxFactory _comboBoxFactory;
+
+        private AbstractWindowActionHandlerRegistry _comboBoxPopupScaleRegistry;
+
+        private AbstractMacroDataDeserializer _macroDataDeserializer;
+
+        public WindowLoadMenuElementModifier(
+            ListBox macroCommandsListBox,
+            AbstractComboBoxFactory comboBoxFactory,
+            AbstractWindowActionHandlerRegistry comboBoxPopupScaleRegistry,
+            AbstractMacroDataDeserializer macroDataDeserializer
+        )
+        {
+            _macroCommandsListBox = macroCommandsListBox;
+            _comboBoxFactory = comboBoxFactory;
+            _comboBoxPopupScaleRegistry = comboBoxPopupScaleRegistry;
+            _macroDataDeserializer = macroDataDeserializer;
+        }
+
+        private void _loadMacroDataToListBox(string loadedText)
+        {
+            if (loadedText != "")
+            {
+                var macroData = _macroDataDeserializer.DeserializeMacroData(loadedText);
+                _macroCommandsListBox.Items.Clear();
+                _comboBoxPopupScaleRegistry.ClearHandlers();
+                foreach (var command in macroData.Macro)
+                {
+                    _loadComboBoxItem(command);
+                }
+            }
+        }
+
+        private void _loadComboBoxItem(string command)
+        {
+            var comboBox = _comboBoxFactory.Create();
+            comboBox.Text = command;
+            var parameters = new WindowComboBoxScaleActionHandlerParameters(comboBox);
+            _comboBoxPopupScaleRegistry.RegisterHandler(parameters);
+            _macroCommandsListBox.Items.Add(comboBox);
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is string loadedText && loadedText != "")
+            {
+                _loadMacroDataToListBox(loadedText);
+            }
+        }
+    }
+
+
+    public class WindowLoadMenuElementActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractLoadFileDialog _loadFileDialog;
+
+        private AbstractWindowStateModifier _loadMenuElementModifier;
+
+        public WindowLoadMenuElementActionHandler(
+            AbstractLoadFileDialog loadFileDialog,
+            AbstractWindowStateModifier loadMenuElementModifier
+        )
+        {
+            _loadFileDialog = loadFileDialog;
+            _loadMenuElementModifier = loadMenuElementModifier;
+            _loadFileDialog.FileLoaded += OnEvent;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (
+                e is FileLoadedEventArgs fileLoadedEventArgs
+                && fileLoadedEventArgs.Success
+            )
+            {
+                _loadMenuElementModifier.Modify(fileLoadedEventArgs.Content);
+            }
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _loadMenuElementModifier;
+        }
+    }
+
+
+    public class WindowLoadMenuElementActionHandlerFacade : AbstractWindowActionHandler
+    {
+        public WindowLoadMenuElementActionHandler _loadMenuElementActionHandler;
+
+        public WindowLoadMenuElementActionHandlerFacade(
+            AbstractLoadFileDialog loadFileDialog,
+            ListBox macroCommandsListBox,
+            ComboBox comboBoxTemplate,
+            AbstractWindowActionHandlerRegistry comboBoxPopupScaleRegistry
+        )
+        {
+            _loadMenuElementActionHandler = new WindowLoadMenuElementActionHandler(
+                loadFileDialog,
+                new WindowLoadMenuElementModifier(
+                    macroCommandsListBox,
+                    new ComboBoxTemplateFactory(comboBoxTemplate),
+                    comboBoxPopupScaleRegistry,
+                    new MacroDataDeserializer()
+                )
+            );
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _loadMenuElementActionHandler.OnEvent(sender, e);
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _loadMenuElementActionHandler.Modifier();
         }
     }
 

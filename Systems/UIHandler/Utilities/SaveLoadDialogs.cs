@@ -2,6 +2,8 @@
 using Microsoft.Win32;
 using System.IO;
 using System.Net.NetworkInformation;
+using System.Windows;
+using System.Windows.Documents;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.Utilities
@@ -9,6 +11,33 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
     public abstract class AbstractSaveFileDialog
     {
         public abstract void Prompt(string initialDirectory, string saveContent);
+
+        public event EventHandler<FileSavedEventArgs>? FileSaved;
+
+        public void InvokeFileSaved(string filePath, string saveContent)
+        {
+            FileSaved?.Invoke(this, new FileSavedEventArgs(filePath, saveContent));
+        }
+    }
+
+
+    public class FileSavedEventArgs : EventArgs
+    {
+        public string FilePath { get; }
+
+        public string Content { get; }
+
+        public DateTime SaveTime { get; }
+
+        public bool Success { get; }
+
+        public FileSavedEventArgs(string filePath, string content)
+        {
+            FilePath = filePath;
+            Content = content;
+            SaveTime = DateTime.Now;
+            Success = true;
+        }
     }
 
 
@@ -20,11 +49,15 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         private string _defaultExt;
 
-        public WindowSaveFileDialog(string title, string filter, string defaultExt)
+        public WindowSaveFileDialog(
+            string title,
+            string filter,
+            string defaultExt
+        )
         {
             _title = title;
             _filter = filter;
-            _defaultExt = defaultExt;
+            _defaultExt = defaultExt;;
         }
 
         public override void Prompt(string initialDirectory, string saveContent)
@@ -43,7 +76,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             };
             if (saveFileDialog.ShowDialog() == true)
             {
+                var filePath = saveFileDialog.FileName;
                 File.WriteAllText(saveFileDialog.FileName, saveContent);
+                InvokeFileSaved(filePath, saveContent);
             }
         }
     }
@@ -51,7 +86,34 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
     public abstract class AbstractLoadFileDialog
     {
-        public abstract string Prompt(string initialDirectory);
+        public abstract void Prompt(string initialDirectory);
+
+        public event EventHandler<FileLoadedEventArgs>? FileLoaded;
+
+        public virtual void InvokeFileLoaded(string filePath, string loadContent)
+        {
+            FileLoaded?.Invoke(this, new FileLoadedEventArgs(filePath, loadContent));
+        }
+    }
+
+
+    public class FileLoadedEventArgs : EventArgs
+    {
+        public string FilePath { get; }
+
+        public string Content { get; }
+
+        public DateTime LoadTime { get; }
+
+        public bool Success { get; }
+
+        public FileLoadedEventArgs(string filePath, string content)
+        {
+            FilePath = filePath;
+            Content = content;
+            LoadTime = DateTime.Now;
+            Success = true;
+        }
     }
 
 
@@ -67,7 +129,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             _filter = filter;
         }
 
-        public override string Prompt(string initialDirectory)
+        public override void Prompt(string initialDirectory)
         {
             string resolvedDirectory = Path.GetFullPath(initialDirectory);
             if (!Directory.Exists(resolvedDirectory))
@@ -84,9 +146,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             };
             if (openFileDialog.ShowDialog() == true)
             {
-                return File.ReadAllText(openFileDialog.FileName);
+                var filePath = openFileDialog.FileName;
+                var loadContent = File.ReadAllText(openFileDialog.FileName);
+                InvokeFileLoaded(filePath, loadContent);
             }
-            return "";
         }
     }
 
@@ -144,13 +207,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         {
             if (value is WindowLoadMenuModifierParameters parameters)
             {
-                _loadedText = _loadFileDialog.Prompt(parameters.InitialDirectory);
+                _loadFileDialog.Prompt(parameters.InitialDirectory);
             }
-        }
-
-        public override object? State(int stateType)
-        {
-            return _loadedText;
         }
     }
 }

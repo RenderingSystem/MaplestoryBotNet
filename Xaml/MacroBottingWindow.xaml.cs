@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using System.Windows;
 
 
@@ -14,6 +15,8 @@ namespace MaplestoryBotNet.Xaml
 
         private AbstractWindowMapEditMenuState _editMenuState;
 
+        private WindowLoadFileDialog _loadFileDialog;
+
         public MacroBottingWindow(
             AbstractWindowMapEditMenuState editMenuState
         )
@@ -22,6 +25,7 @@ namespace MaplestoryBotNet.Xaml
             MacroListBox.Items.Clear();
             PointMacroListBox.Items.Clear();
             _comboBoxScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
+            _loadFileDialog = new WindowLoadFileDialog("Load Macro", "JSON files (*.json)|*.json");
             _editMenuState = editMenuState;
         }
 
@@ -36,6 +40,14 @@ namespace MaplestoryBotNet.Xaml
         {
             return new WindowLoadMenuActionHandlerFacade(
                 LoadButton,
+                _loadFileDialog
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateLoadMenuElementActionHandler()
+        {
+            return new WindowLoadMenuElementActionHandlerFacade(
+                _loadFileDialog,
                 MacroListBox,
                 ComboBoxTemplate,
                 _comboBoxScaleRegistry
@@ -155,6 +167,7 @@ namespace MaplestoryBotNet.Xaml
             return [
                 _instantiateWindowMenuItemHideActionHandler(),
                 _instantiateLoadMenuActionHandler(),
+                _instantiateLoadMenuElementActionHandler(),
                 _instantiateWindowAddMacroCommandActionHandler(),
                 _instantiateWindowRemoveMacroCommandActionHandler(),
                 _instantiateWindowClearMacroCommandActionHandler(),

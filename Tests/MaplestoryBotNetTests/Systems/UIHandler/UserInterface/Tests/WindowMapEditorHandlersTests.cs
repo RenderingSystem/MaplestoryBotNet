@@ -1964,6 +1964,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    /**
+     * @class WindowMapEditorSaveConfigurationActionHandlerTests
+     * 
+     * @brief Unit tests for verifying proper map configuration saving in the map editor
+     * 
+     * @test
+     * Validates that the map editor correctly saves user-configured map data to files,
+     * ensuring that all map boundaries, waypoints, and automation commands are preserved
+     * for future gameplay sessions.
+     */
     public class WindowMapEditorSaveConfigurationActionHandlerTests
     {
         private Button _saveButton;
@@ -1974,6 +1984,18 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private MaplestoryBotConfiguration _maplestoryBotConfiguration;
 
+        /**
+         * @brief Initializes test environment for map editor save functionality testing
+         * 
+         * @test
+         * Sets up the required UI and data components to simulate the map editor's
+         * save configuration workflow.
+         * 
+         * @details
+         * This setup ensures each test starts with a clean, isolated state, allowing
+         * precise validation of the save functionality without interference from
+         * previous test executions or external system state.
+         */
         public WindowMapEditorSaveConfigurationActionHandlerTests()
         {
             _saveButton = new Button();
@@ -1982,6 +2004,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration();
         }
 
+        /**
+         * @brief Creates a comprehensive map model for testing
+         * 
+         * @test
+         * Builds a realistic map configuration with boundaries, waypoints, and automation commands.
+         * 
+         * @details
+         * The generated map model represents a typical user configuration where multiple
+         * points of interest are defined with specific automation behaviors, allowing for
+         * thorough testing of the serialization and saving processes.
+         */
         private MapModel _generateMapModel()
         {
             var mapModel = new MapModel();
@@ -1995,6 +2028,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     YRange = 45,
                     PointData = new MinimapPointData
                     {
+                        ElementName = "E1",
+                        PointName = "P1",
                         Commands = [
                             new MinimapPointMacros
                             {
@@ -2021,6 +2056,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     YRange = 56,
                     PointData = new MinimapPointData
                     {
+                        ElementName = "E2",
+                        PointName = "P2",
                         Commands = [
                             new MinimapPointMacros
                             {
@@ -2041,6 +2078,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             return mapModel;
         }
 
+        /**
+         * @brief Defines the expected JSON output for saved map configurations
+         * 
+         * @test
+         * Provides the canonical JSON structure that should result from saving the test map.
+         * 
+         * @details
+         * This method contains the exact JSON format that the save handler should produce,
+         * including proper snake_case naming conventions, correct nesting of map points,
+         * and exact formatting of all automation commands and probabilities.
+         */
         private string _expected()
         {
             return """
@@ -2056,8 +2104,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                         "x_range": 34,
                         "y_range": 45,
                         "point_data": {
-                            "element_name": "",
-                            "point_name": "",
+                            "element_name": "E1",
+                            "point_name": "P1",
                             "commands": [
                                 {
                                     "macro_name": "M1",
@@ -2086,8 +2134,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                         "x_range": 45,
                         "y_range": 56,
                         "point_data": {
-                            "element_name": "",
-                            "point_name": "",
+                            "element_name": "E2",
+                            "point_name": "P2",
                             "commands": [
                                 {
                                     "macro_name": "M3",
@@ -2115,6 +2163,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             """;
         }
 
+        /**
+         * @brief Creates a fresh test fixture for isolated testing
+         * 
+         * @test
+         * Reinitializes all test dependencies to ensure clean state for each test.
+         * 
+         * @details
+         * The handler is configured with all necessary converters and serializers,
+         * ready to process save requests while capturing all output for validation.
+         */
         private AbstractWindowActionHandler _fixture()
         {
             _saveButton = new Button();
@@ -2132,6 +2190,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             );
         }
 
+        /**
+         * @brief Tests that clicking the save button properly saves the map configuration
+         * 
+         * @test
+         * Validates the complete save workflow from button click to file dialog presentation.
+         * 
+         * @details
+         * Successful execution ensures users can reliably save their map configurations
+         * and reuse them across multiple gameplay sessions.
+         */
         private void _testClickingSaveButtonSavesMapModelToFile()
         {
             var handler = _fixture();
@@ -2150,6 +2218,20 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             );
         }
 
+
+        /**
+         * @brief Tests that save operations fail gracefully without map data
+         * 
+         * @test
+         * Validates that the save button does nothing when no map is configured.
+         * 
+         * @details
+         * This test ensures that if a user tries to save without first creating or
+         * loading a map configuration, the system gracefully ignores the request
+         * rather than crashing or creating empty files. This prevents user confusion
+         * and ensures that save operations only occur when there's meaningful data
+         * to preserve.
+         */
         private void _testClickingSaveButtonDoesntSaveWhenMapModelNotInjected()
         {
             var handler = _fixture();
@@ -2158,6 +2240,18 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             Debug.Assert(_windowSaveMenumodifier.ModifyCalls == 0);
         }
 
+        /**
+         * @brief Tests that save operations fail gracefully without a save location
+         * 
+         * @test
+         * Validates that the save button does nothing when no save directory is configured.
+         * 
+         * @details
+         * This test ensures that if the bot configuration doesn't specify where to save
+         * map files, the system gracefully prevents the save operation rather than
+         * prompting the user with an undefined location. This maintains a predictable
+         * user experience and prevents accidental saves to unexpected locations.
+         */
         private void _testClickingSaveButtonDoesntSaveWhenInitialDirectoryNotInjected()
         {
             var handler = _fixture();
@@ -2166,6 +2260,19 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             Debug.Assert(_windowSaveMenumodifier.ModifyCalls == 0);
         }
 
+        /**
+         * @brief Executes the complete map save functionality test suite
+         * 
+         * @test
+         * Runs all tests to validate the entire map configuration saving pipeline.
+         * 
+         * @details
+         * This test sequence validates that users can reliably save their map
+         * configurations, with proper error handling for incomplete setups. When all
+         * tests pass, users can trust that their carefully crafted map boundaries,
+         * waypoints, and automation commands will be preserved exactly as configured,
+         * enabling consistent automation performance across gaming sessions.
+         */
         public void Run()
         {
             _testClickingSaveButtonSavesMapModelToFile();

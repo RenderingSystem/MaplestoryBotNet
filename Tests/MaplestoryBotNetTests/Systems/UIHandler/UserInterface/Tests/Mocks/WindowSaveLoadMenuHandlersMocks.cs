@@ -25,20 +25,26 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks
     public class MockLoadFileDialog : AbstractLoadFileDialog
     {
         public List<string> CallOrder = [];
+
         public int PromptCalls = 0;
         public int PromptIndex = 0;
         public List<string> PromptCallArg_initialDirectory = [];
-        public List<string> PromptReturn = [];
-        public override string Prompt(string initialDirectory)
+        public override void Prompt(string initialDirectory)
         {
             CallOrder.Add(new TestUtilities().Reference(this) + "Prompt");
             PromptCalls++;
             PromptCallArg_initialDirectory.Add(initialDirectory);
-            if (PromptIndex < PromptReturn.Count)
-            {
-                return PromptReturn[PromptIndex++];
-            }
-            throw new IndexOutOfRangeException();
+        }
+
+        public int InvokeFileLoadedCalls = 0;
+        public List<string> InvokeFileLoadedCallArg_filePath = [];
+        public List<string> InvokeFileLoadedCallArg_loadContent = [];
+        public override void InvokeFileLoaded(string filePath, string loadContent)
+        {
+            CallOrder.Add(new TestUtilities().Reference(this) + "InvokeFileLoaded");
+            InvokeFileLoadedCalls++;
+            InvokeFileLoadedCallArg_filePath.Add(filePath);
+            InvokeFileLoadedCallArg_loadContent.Add(loadContent);
         }
     }
 }

@@ -124,16 +124,138 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     /**
      * @class WindowLoadMenuActionHandlerTests
      * 
-     * @brief Unit tests for macro load menu functionality
+     * @brief Unit tests for verifying proper file loading functionality in the application's load menu
      * 
-     * This test class validates that the load menu properly handles macro data deserialization
-     * and file dialog interactions, ensuring users can reliably load previously saved macro
-     * configurations from disk and have them properly integrated into the UI.
+     * @test
+     * Validates that the load menu correctly opens file dialogs and respects configuration settings,
+     * ensuring users can reliably access and load their saved automation configurations.
+     * 
+     * @details
+     * These tests validate critical user workflow functionality where users need to load previously
+     * saved automation macro files. The test suite ensures that the load menu provides a reliable
+     * and predictable experience, preventing data loss and configuration errors during the automation
+     * setup process.
      */
     public class WindowLoadMenuActionHandlerTests
     {
-        private Button _saveButton;
+        private Button _loadButton;
 
+        private MockLoadFileDialog _loadFileDialog;
+
+        /**
+         * @brief Initializes test environment for load menu functionality testing
+         * 
+         * @test
+         * Sets up the required UI and mock components to simulate the load menu
+         * functionality in the application's user interface.
+         * 
+         * @details
+         * This isolated setup ensures each test runs with clean state, allowing
+         * precise validation of the load functionality without interference from
+         * previous tests or external system dependencies.
+         */
+        public WindowLoadMenuActionHandlerTests()
+        {
+            _loadButton = new Button();
+            _loadFileDialog = new MockLoadFileDialog();
+        }
+
+        /**
+         * @brief Creates a fresh test fixture for isolated testing
+         * 
+         * @test
+         * Reinitializes all test dependencies to ensure clean state for each test.
+         * 
+         * @details
+         * By recreating all components for each test, this method ensures complete
+         * isolation between test executions, preventing any state leakage that could
+         * affect test reliability or produce false results.
+         * 
+         * @return A freshly configured load menu handler ready for dependency injection
+         * and testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _loadButton = new Button();
+            _loadFileDialog = new MockLoadFileDialog();
+            return new WindowLoadMenuActionHandlerFacade(_loadButton, _loadFileDialog);
+        }
+
+        /**
+         * @brief Tests that clicking the load button properly opens the file dialog
+         * 
+         * @test
+         * Validates the complete load workflow from button click to dialog presentation.
+         * 
+         * @details
+         * Successful execution ensures users can reliably access their saved
+         * configurations and automation scripts from the correct directory location,
+         * enabling efficient workflow and configuration management.
+         */
+        private void _testLoadButtonOpensDialog()
+        {
+            var handler = _fixture();
+            handler.Inject(
+                SystemInjectType.ConfigurationUpdate,
+                new MaplestoryBotConfiguration { MacroDirectory = "cool_macros" }
+            );
+            _loadButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_loadFileDialog.PromptCalls == 1);
+            Debug.Assert(_loadFileDialog.PromptCallArg_initialDirectory[0] == "cool_macros");
+        }
+
+        /**
+         * @brief Tests that load operations fail gracefully without configuration
+         * 
+         * @test
+         * Validates that the load button does nothing when configuration is missing.
+         * 
+         * @details
+         * This test ensures that if a user tries to load files without proper
+         * configuration (specifically the directory path), the system gracefully
+         * ignores the request rather than crashing or opening dialogs at undefined
+         * locations. This prevents user confusion and ensures load operations only
+         * occur when the system knows where to look for files.
+         */
+        private void _testLoadButtonDoesntOpenDialogWhenConfigurationNotInjected()
+        {
+            var handler = _fixture();
+            _loadButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_loadFileDialog.PromptCalls == 0);
+        }
+
+
+        /**
+         * @brief Executes the complete load menu functionality test suite
+         * 
+         * @test
+         * Runs all tests to validate the entire file loading pipeline.
+         * 
+         * @details
+         * This ensures users can efficiently manage and load their automation
+         * configurations across multiple gaming sessions.
+         */
+        public void Run()
+        {
+            _testLoadButtonOpensDialog();
+            _testLoadButtonDoesntOpenDialogWhenConfigurationNotInjected();
+        }
+    }
+
+
+    /**
+     * @class WindowLoadMenuElementActionHandlerTests
+     * 
+     * @brief Unit tests for verifying proper macro loading and UI integration in the
+     * application's load menu
+     * 
+     * @test
+     * The tests verify the interaction between file loading, UI updates, and scaling
+     * systems, ensuring all components work together seamlessly during the macro
+     * loading process.
+     */
+    public class WindowLoadMenuElementActionHandlerTests
+    {
         private ListBox _listBox;
 
         private ComboBox _comboBox;
@@ -144,43 +266,55 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private AbstractMacroDataDeserializer _macroDataDeserializer;
 
-        private AbstractWindowStateModifier _windowLoadMenuModifier;
+        private AbstractWindowStateModifier _windowLoadMenuElementModifier;
 
         private MockLoadFileDialog _loadFileDialog;
 
         /**
-         * @brief Initializes test environment with UI components and dependencies
+         * @brief Initializes test environment for macro loading functionality testing
          * 
-         * Sets up the basic test environment with button, list box, predefined combo options,
-         * deserializer, and file dialog components needed for testing load menu functionality.
+         * @test
+         * Sets up the required UI components, mock dialogs, and data structures to
+         * simulate the complete macro loading and UI integration workflow.
+         * 
+         * @details
+         * This setup ensures each test starts with clean, isolated components,
+         * allowing precise validation of the macro loading process without
+         * interference from previous test executions or external dependencies.
          */
-        public WindowLoadMenuActionHandlerTests()
+        public WindowLoadMenuElementActionHandlerTests()
         {
-            _saveButton = new Button();
             _listBox = new ListBox();
             _comboBox = new ComboBox();
             _comboBoxPopupScaleRegistry = new MockWindowActionHandlerRegistry();
+            _expectedContents = [];
             _macroDataDeserializer = new MacroDataDeserializer();
             _loadFileDialog = new MockLoadFileDialog();
-            _loadFileDialog.PromptReturn = [];
-            _expectedContents = ["D", "E", "F"];
-            _windowLoadMenuModifier = new WindowLoadMenuModifier(_loadFileDialog);
+            _windowLoadMenuElementModifier = new MockWindowStateModifier();
         }
 
         /**
-         * @brief Creates complete test environment with sample macro data and file dialog response
+         * @brief Creates a fresh test fixture with customized registry
          * 
-         * @return Configured WindowLoadMenuActionHandler instance ready for testing
+         * @test
+         * Builds a complete test environment with specified handler registry
+         * for testing different scaling registration scenarios.
          * 
-         * Prepares a realistic test scenario with a load button, list box, predefined command options,
-         * and a mock file dialog that returns sample macro data (D, E, F) to verify complete
-         * load menu functionality including deserialization and UI integration.
+         * @details
+         * The ComboBox is populated with sample items ("A", "B", "C") to simulate
+         * real UI state. The handler registry parameter allows testing both
+         * functional and mock registries for different test scenarios.
+         * 
+         * @param comboBoxPopupScaleRegistry The handler registry to use for
+         *        tracking scaling registrations during tests
+         *        
+         * @return AbstractWindowActionHandler A fully configured action handler
+         *         ready for file loading simulation and validation
          */
-        private WindowLoadMenuActionHandler _fixture(
+        private AbstractWindowActionHandler _fixture(
             AbstractWindowActionHandlerRegistry comboBoxPopupScaleRegistry
         )
         {
-            _saveButton = new Button();
             _listBox = new ListBox();
             _comboBox = new ComboBox();
             _comboBoxPopupScaleRegistry = comboBoxPopupScaleRegistry;
@@ -188,22 +322,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _comboBox.Items.Add(new ComboBoxItem { Content = "B" });
             _comboBox.Items.Add(new ComboBoxItem { Content = "C" });
             _macroDataDeserializer = new MacroDataDeserializer();
-            _loadFileDialog = new MockLoadFileDialog();
-            _loadFileDialog.PromptReturn.Add("{\"macro\":[\"D\",\"E\",\"F\"]}");
-            _expectedContents = ["D", "E", "F"];
-            _windowLoadMenuModifier = new WindowLoadMenuModifier(_loadFileDialog);
-            var handler = new WindowLoadMenuActionHandler(
-                _saveButton,
+            _expectedContents = ["a", "b", "c", "d", "e"];
+            _windowLoadMenuElementModifier = new WindowLoadMenuElementModifier(
                 _listBox,
-                _comboBoxPopupScaleRegistry,
                 new ComboBoxTemplateFactory(_comboBox),
-                _macroDataDeserializer,
-                _windowLoadMenuModifier
+                _comboBoxPopupScaleRegistry,
+                _macroDataDeserializer
             );
-            handler.Inject(
-                SystemInjectType.ConfigurationUpdate, new MaplestoryBotConfiguration { MacroDirectory = "MEOW" }
+            return new WindowLoadMenuElementActionHandler(
+                _loadFileDialog,
+                _windowLoadMenuElementModifier
             );
-            return handler;
         }
 
         /**
@@ -215,11 +344,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          */
         private void _testLoadButtonClickOpensLoadFileDialog()
         {
-            var handler = _fixture(new WindowComboBoxScaleActionHandlerRegistry());
-            _saveButton.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
-            Debug.Assert(_loadFileDialog.PromptCalls == 1);
-            Debug.Assert(_loadFileDialog.PromptCallArg_initialDirectory[0] == "MEOW");
-            Debug.Assert(_listBox.Items.Count == 3);
+            var registry = new WindowComboBoxScaleActionHandlerRegistry();
+            var handler = _fixture(registry);
+            _loadFileDialog.InvokeFileLoaded(
+                "some_path",
+                "{\"macro\": [\"a\", \"b\", \"c\", \"d\", \"e\"]}"
+            );
+            Debug.Assert(_listBox.Items.Count == 5);
             for (int i = 0; i < _expectedContents.Count; i++)
             {
                 Debug.Assert(((ComboBox)_listBox.Items[i]).Text == _expectedContents[i]);
@@ -244,13 +375,19 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var mockRegistry = new MockWindowActionHandlerRegistry();
             var handler = _fixture(mockRegistry);
-            _saveButton.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
-            Debug.Assert(mockRegistry.RegisterHandlerCalls == 3);
+            _loadFileDialog.InvokeFileLoaded(
+                "some_path",
+                "{\"macro\": [\"a\", \"b\", \"c\", \"d\", \"e\"]}"
+            );
+            Debug.Assert(mockRegistry.RegisterHandlerCalls == 5);
             for (int i = 0; i < _expectedContents.Count; i++)
             {
-                var parameters = (WindowComboBoxScaleActionHandlerParameters)mockRegistry.RegisterHandlerCallArg_args[i]!;
+                var parameters = (
+                    (WindowComboBoxScaleActionHandlerParameters)
+                    mockRegistry.RegisterHandlerCallArg_args[i]!
+                );
                 Debug.Assert(parameters.ScaleComboBox == (ComboBox)_listBox.Items[i]);
-            }    
+            }
         }
 
 
@@ -265,29 +402,42 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var mockRegistry = new MockWindowActionHandlerRegistry();
             var handler = _fixture(mockRegistry);
-            _saveButton.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
+            _loadFileDialog.InvokeFileLoaded(
+                "some_path",
+                "{\"macro\": [\"a\", \"b\", \"c\", \"d\", \"e\"]}"
+            );
             var reference = new TestUtilities().Reference(mockRegistry);
             var clearCallRef = reference + "ClearHandlers";
             var registerCallRef = reference + "RegisterHandler";
-            Debug.Assert(mockRegistry.CallOrder.Count == 4);
+            Debug.Assert(mockRegistry.CallOrder.Count == 6);
             Debug.Assert(mockRegistry.CallOrder[0] == clearCallRef);
             Debug.Assert(mockRegistry.CallOrder[1] == registerCallRef);
             Debug.Assert(mockRegistry.CallOrder[2] == registerCallRef);
             Debug.Assert(mockRegistry.CallOrder[3] == registerCallRef);
+            Debug.Assert(mockRegistry.CallOrder[4] == registerCallRef);
+            Debug.Assert(mockRegistry.CallOrder[5] == registerCallRef);
         }
 
+
         /**
-         * @brief Executes all load menu functionality tests
+         * @brief Executes the complete macro loading test suite
          * 
-         * Runs the complete test suite to ensure the load menu works correctly,
-         * providing confidence that users can reliably load their saved macro
-         * configurations and have them properly integrated into the application UI.
+         * @test
+         * Runs all macro loading tests to validate the entire file-to-UI pipeline.
+         * 
+         * @details
+         * This test sequence validates the complete macro loading process:
+         * 1. Basic macro loading and UI display functionality
+         * 2. Proper scaling registration for DPI consistency
+         * 3. Clean resource management during macro reloading
+         * 
+         * This ensures reliable macro management for complex automation setups.
          */
         public void Run()
         {
             _testLoadButtonClickOpensLoadFileDialog();
-            _testLoadButtonClickClearsComboBoxPopupScalersBefroreRegisteringNew();
             _testLoadButtonClickRegistersComboBoxPopupScalers();
+            _testLoadButtonClickClearsComboBoxPopupScalersBefroreRegisteringNew();
         }
     }
 
@@ -2488,6 +2638,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             new WindowSaveMenuActionHandlerTests().Run();
             new WindowLoadMenuActionHandlerTests().Run();
+            new WindowLoadMenuElementActionHandlerTests().Run();
             new WindowAddMacroCommandActionHandlerTests().Run();
             new WindowRemoveMacroCommandActionHandlerTests().Run();
             new WindowClearMacroCommandActionHandlerTests().Run();
