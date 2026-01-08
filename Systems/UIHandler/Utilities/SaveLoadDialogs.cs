@@ -193,14 +193,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
     {
         private AbstractLoadFileDialog _loadFileDialog;
 
-        private string _loadedText;
-
         public WindowLoadMenuModifier(
             AbstractLoadFileDialog loadFileDialog
         )
         {
             _loadFileDialog = loadFileDialog;
-            _loadedText = "";
         }
 
         public override void Modify(object? value)

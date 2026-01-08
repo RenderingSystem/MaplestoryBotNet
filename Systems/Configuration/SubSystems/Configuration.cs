@@ -159,8 +159,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
                 ReadCommentHandling = JsonCommentHandling.Skip,
             };
             var result = JsonSerializer.Deserialize<MaplestoryBotConfiguration>(jsonString, options);
-            Debug.Assert(result != null);
-            return result;
+            return result!;
         }
 
         public override object Deserialize(string data)

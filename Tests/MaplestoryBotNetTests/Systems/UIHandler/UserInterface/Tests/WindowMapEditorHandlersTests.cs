@@ -14,6 +14,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using Vortice.Direct3D11;
 
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
@@ -2282,6 +2283,876 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    /**
+     * @class WindowMapEditorLoadConfigurationActionHandlerTests
+     * 
+     * @brief Unit tests for map editor configuration loading via file dialog
+     * 
+     * @tests 
+     * Validates that the map editor's load configuration functionality correctly
+     * integrates button clicks with file dialog operations.
+     */
+    public class WindowMapEditorLoadConfigurationActionHandlerTests
+    {
+        private Button _loadButton;
+
+        private MockLoadFileDialog _loadFileDialog;
+
+        private MaplestoryBotConfiguration _configuration;
+
+
+        /**
+         * @brief Initializes test components with clean state
+         * 
+         * @details
+         * Creates fresh instances of Button (load button), MockLoadFileDialog
+         * (simulated file dialog), and MaplestoryBotConfiguration for each test
+         * execution. Ensures isolated testing environment without residual state
+         * from previous tests, maintaining test reliability and independence.
+         */
+        public WindowMapEditorLoadConfigurationActionHandlerTests()
+        {
+            _loadButton = new Button();
+            _loadFileDialog = new MockLoadFileDialog();
+            _configuration = new MaplestoryBotConfiguration();
+        }
+
+        /**
+         * @brief Creates test fixture with pre-configured load components
+         * 
+         * @tests Test environment setup for file dialog integration scenarios
+         * 
+         * @details
+         * Constructs a complete test environment with a load button, mock file dialog,
+         * and a configuration object containing a predefined map directory path,
+         * enabling verification of dialog interactions without actual UI.
+         * 
+         * @returns Configured AbstractWindowActionHandler for load configuration testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _loadButton = new Button();
+            _loadFileDialog = new MockLoadFileDialog();
+            _configuration = new MaplestoryBotConfiguration
+            {
+                MapDirectory = "cool_maps"
+            };
+            return new WindowMapEditorLoadConfigurationActionHandler(
+                _loadButton,
+                new WindowLoadMenuModifier(_loadFileDialog)
+            );
+        }
+
+        /**
+         * @brief Tests that load button click opens file dialog with correct initial
+         * directory
+         * 
+         * @tests Button-dialog integration and configuration parameter passing
+         * 
+         * @details
+         * Validates that clicking the load button with an injected configuration
+         * triggers the file dialog with the correct initial directory extracted
+         * from the configuration. Ensures proper parameter flow from configuration
+         * to dialog display.
+         */
+        private void _testLoadButtonClickOpensLoadMenu()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.ConfigurationUpdate, _configuration);
+            _loadButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_loadFileDialog.PromptCalls == 1);
+            Debug.Assert(_loadFileDialog.PromptCallArg_initialDirectory[0] == "cool_maps");
+        }
+
+        /**
+         * @brief Tests that load button click is ignored when configuration not
+         * injected
+         * 
+         * @tests Graceful handling of missing dependencies and null safety
+         * 
+         * @details
+         * Validates that clicking the load button without an injected configuration
+         * does not trigger the file dialog, preventing null reference exceptions
+         * and ensuring robust error handling for missing dependencies.
+         * 
+         */
+        private void _testLoadButtonClickDoesntLoadWhenInitialDirectoryNotInjected()
+        {
+            var handler = _fixture();
+            _loadButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_loadFileDialog.PromptCalls == 0);
+        }
+
+        /**
+         * @brief Executes comprehensive load configuration integration test suite
+         * 
+         * @tests 
+         * File dialog opening with proper directory context,
+         * Graceful handling of missing configuration dependencies
+         * 
+         * @details
+         * Validates that users can successfully open file dialogs from the map editor
+         * and that the system behaves appropriately when configuration data is unavailable.
+         */
+        public void Run()
+        {
+            _testLoadButtonClickOpensLoadMenu();
+            _testLoadButtonClickDoesntLoadWhenInitialDirectoryNotInjected();
+        }
+    }
+
+
+    public class WindowMapEditorFileLoadData
+    {
+        /**
+         * @brief Provides sample JSON configuration data for testing map model loading
+         * 
+         * @tests Data structure for file loading and deserialization tests
+         * 
+         * @details
+         * Returns a predefined JSON string representing a complete map configuration
+         * This sample data serves as the input for testing the complete deserialization
+         * and model reconstruction pipeline.
+         * 
+         * @returns JSON string representing a complete map configuration for testing
+         */
+        public string FileLoadData()
+        {
+            return """
+            {
+                "map_area_left": 123,
+                "map_area_top": 234,
+                "map_area_right": 345,
+                "map_area_bottom": 456,
+                "map_points": [
+                    {
+                        "x": 12,
+                        "y": 23,
+                        "x_range": 34,
+                        "y_range": 45,
+                        "point_data": {
+                            "element_name": "E1",
+                            "point_name": "P1",
+                            "commands": [
+                                {
+                                    "macro_name": "M1",
+                                    "macro_chance": 12,
+                                    "macro_commands": [
+                                        "C10",
+                                        "C11",
+                                        "C12"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+            """;
+        }
+    }
+
+
+    /**
+     * @class WindowMapEditorLoadModelActionHandlerTests
+     * 
+     * @brief Unit tests for map model file loading functionality
+     * 
+     * @tests 
+     * File loading and deserialization into map model structure
+     * 
+     * @details
+     * Validates that map configuration files can be successfully loaded, deserialized,
+     * and reconstructed into a fully populated map model. Tests ensure that all
+     * hierarchical data layers are correctly restored from file storage to runtime
+     * model representation.
+     */
+    public class WindowMapEditorLoadModelActionHandlerTests
+    {
+        private AbstractLoadFileDialog _loadFileDialog;
+
+        private MapModel _mapModel;
+
+        /**
+         * @brief Initializes test components with clean state
+         * 
+         * Creates fresh instances of MockLoadFileDialog and MapModel for each test run.
+         * Ensures isolated testing environment without residual state from previous tests,
+         * maintaining test reliability and independence.
+         */
+        public WindowMapEditorLoadModelActionHandlerTests()
+        {
+            _loadFileDialog = new WindowLoadFileDialog("", "");
+            _mapModel = new MapModel();
+        }
+
+
+        /**
+         * @brief Creates test fixture with load handler and deserialization components
+         * 
+         * @tests Test environment setup for file loading and model deserialization
+         * 
+         * Constructs a complete test environment with file dialog integration,
+         * configuration deserializer, and model conversion components. Creates the
+         * action handler with necessary modifiers to simulate the complete file
+         * loading and model reconstruction pipeline.
+         * 
+         * @returns Configured AbstractWindowActionHandler for map model loading testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _loadFileDialog = new WindowLoadFileDialog("", "");
+            _mapModel = new MapModel();
+            return new WindowMapEditorLoadModelActionHandlerFacade(_loadFileDialog);
+        }
+
+        /**
+         * @brief Tests that loading a file correctly sets map boundary coordinates
+         * 
+         * @tests Map area boundary reconstruction from file data
+         * 
+         * @details
+         * Validates that map boundary coordinates (left, top, right, bottom) are
+         * correctly extracted from the file and applied to the map model.
+         */
+        private void _testLoadingFileSetsMapArea()
+        {
+            var handler = _fixture();
+            var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
+            var mapArea = _mapModel.GetMapArea();
+            Debug.Assert(mapArea.Left == 123);
+            Debug.Assert(mapArea.Top == 234);
+            Debug.Assert(mapArea.Right == 345);
+            Debug.Assert(mapArea.Bottom == 456);
+        }
+
+        /**
+         * @brief Tests that loading a file correctly sets map point coordinates
+         * 
+         * @tests Map point coordinate reconstruction from file data
+         * 
+         * @details
+         * Validates that map point coordinates (X, Y, XRange, YRange) are correctly
+         * extracted from the file and applied to the map model.
+         */
+        private void _testLoadingFileSetsMapPoints()
+        {
+            var handler = _fixture();
+            var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
+            var mapPoints = _mapModel.Points();
+            Debug.Assert(mapPoints.Count == 1);
+            Debug.Assert(mapPoints[0].X == 12);
+            Debug.Assert(mapPoints[0].Y == 23);
+            Debug.Assert(mapPoints[0].XRange == 34);
+            Debug.Assert(mapPoints[0].YRange == 45);
+        }
+
+
+        /**
+         * @brief Tests that loading a file correctly sets point metadata
+         * 
+         * @tests Point metadata reconstruction from file data
+         * 
+         * @details
+         * Validates that point metadata (element name, point name) are correctly
+         * extracted from the file and applied to the map model.
+         */
+        private void _testLoadingFileSetsPointData()
+        {
+            var handler = _fixture();
+            var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
+            var mapPoints = _mapModel.Points();
+            Debug.Assert(mapPoints[0].PointData.ElementName == "E1");
+            Debug.Assert(mapPoints[0].PointData.PointName == "P1");
+        }
+
+        /**
+         * @brief Tests that loading a file correctly sets point command data
+         * 
+         * @tests Point command data reconstruction from file data
+         * 
+         * @details
+         * Validates that point command data (macro names, chances) are correctly
+         * extracted from the file and applied to the map model.
+         */
+        private void _testLoadingFileSetsPointDataCommands()
+        {
+            var handler = _fixture();
+            var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
+            var mapPoints = _mapModel.Points();
+            Debug.Assert(mapPoints[0].PointData.Commands.Count == 1);
+            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroName == "M1");
+            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroChance == 12);
+        }
+
+        /**
+         * @brief Tests that loading a file correctly sets command macro sequences
+         * 
+         * @tests Command macro sequence reconstruction from file data
+         * 
+         * @details
+         * Validates that command macro sequences are correctly extracted from
+         * the file and applied to the map model in the proper order.
+         */
+        private void _testLoadingFileSetsPointDataCommandMacros()
+        {
+            var handler = _fixture();
+            var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
+            var mapPoints = _mapModel.Points();
+            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands.Count == 3);
+            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands[0] == "C10");
+            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands[1] == "C11");
+            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands[2] == "C12");
+        }
+
+        /**
+         * @brief Tests that file loading is ignored when map model dependency is missing
+         * 
+         * @tests Graceful handling of missing model dependency during file loading
+         * 
+         * @details
+         * Validates that attempting to load a map configuration file without injecting
+         * the required map model dependency does not affect the existing model state.
+         * Ensures the system maintains data integrity when dependencies are unavailable.
+         */
+        private void _testLoadingFileWithoutInjectingMapModelDoesntLoad()
+        {
+            var handler = _fixture();
+            var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
+            _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
+            var mapPoints = _mapModel.Points();
+            Debug.Assert(mapPoints.Count == 0);
+        }
+
+        /**
+         * @brief Executes comprehensive map model loading test suite
+         * 
+         * @tests 
+         * Complete model reconstruction from file data
+         *   
+         * @details
+         * Validates that users can successfully load map configuration files
+         * and have all model components correctly restored for editing and use.
+         */
+        public void Run()
+        {
+            _testLoadingFileSetsMapArea();
+            _testLoadingFileSetsMapPoints();
+            _testLoadingFileSetsPointData();
+            _testLoadingFileSetsPointDataCommands();
+            _testLoadingFileSetsPointDataCommandMacros();
+            _testLoadingFileWithoutInjectingMapModelDoesntLoad();
+        }
+    }
+
+
+    /**
+     * @class WindowMapEditorLoadMinimapActionHandlerTests
+     * 
+     * @brief Unit tests for minimap file loading and boundary textbox synchronization
+     * 
+     * @details
+     * Validates that loading a minimap file correctly extracts boundary coordinates
+     * and updates the corresponding UI textboxes (left, top, right, bottom). Tests
+     * ensure that the minimap loading system properly integrates file I/O with
+     * UI state management for boundary coordinate display and editing.
+     */
+    public class WindowMapEditorLoadMinimapActionHandlerTests
+    {
+        private TextBox _textBoxLeft;
+
+        private TextBox _textBoxTop;
+
+        private TextBox _textBoxRight;
+
+        private TextBox _textBoxBottom;
+
+        private AbstractLoadFileDialog _loadFileDialog;
+
+        private MapModel _mapModel;
+
+        /**
+         * @brief Initializes test components with clean state
+         * 
+         * @details
+         * Creates fresh instances of four boundary textboxes, a file dialog,
+         * and a map model for each test execution. Ensures isolated testing
+         * environment without residual state, maintaining test reliability.
+         */
+        public WindowMapEditorLoadMinimapActionHandlerTests()
+        {
+            _textBoxLeft = new TextBox();
+            _textBoxTop = new TextBox();
+            _textBoxRight = new TextBox();
+            _textBoxBottom = new TextBox();
+            _loadFileDialog = new WindowLoadFileDialog("", "");
+            _mapModel = new MapModel();
+        }
+
+        /**
+         * @brief Creates test fixture with minimap loading components
+         * 
+         * @tests Test environment setup for minimap file loading and UI synchronization
+         * 
+         * Constructs a complete test environment with boundary textboxes, file dialog,
+         * and map model. Creates a facade handler that integrates file loading with
+         * UI textbox updates to simulate the production minimap loading workflow.
+         * 
+         * @returns Configured AbstractWindowActionHandler facade for minimap loading tests
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _textBoxLeft = new TextBox();
+            _textBoxTop = new TextBox();
+            _textBoxRight = new TextBox();
+            _textBoxBottom = new TextBox();
+            _loadFileDialog = new WindowLoadFileDialog("", "");
+            _mapModel = new MapModel();
+            return new WindowMapEditorLoadMinimapActionHandlerFacade(
+                _loadFileDialog,
+                _textBoxLeft,
+                _textBoxTop,
+                _textBoxRight,
+                _textBoxBottom
+            );
+        }
+
+        /**
+         * @brief Tests that loading a file updates minimap boundary textboxes
+         * 
+         * @tests File-to-UI boundary coordinate synchronization
+         * 
+         * @details
+         * Validates that when a minimap file is loaded, the extracted boundary
+         * coordinates are correctly displayed in the corresponding UI textboxes.
+         */
+        private void _testLoadingFileAssignsMinimapArea()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _mapModel.SetMapArea(12, 23, 34, 45);
+            _loadFileDialog.InvokeFileLoaded("lol", "");
+            Debug.Assert(_textBoxLeft.Text == "12");
+            Debug.Assert(_textBoxTop.Text == "23");
+            Debug.Assert(_textBoxRight.Text == "34");
+            Debug.Assert(_textBoxBottom.Text == "45");
+        }
+
+        /**
+         * @brief Tests that file loading without map model injection leaves textboxes unchanged
+         * 
+         * @tests Graceful handling of missing map model dependency during minimap loading
+         * 
+         * @details
+         * Validates that attempting to load a minimap file without injecting the required
+         * map model dependency does not update any boundary textboxes. Ensures the system
+         * maintains UI stability when required dependencies are unavailable.
+         */
+        private void _testLoadingFilesWithoutMapModelDoesntAssignMinimapArea()
+        {
+            var handler = _fixture();
+            _mapModel.SetMapArea(12, 23, 34, 45);
+            _loadFileDialog.InvokeFileLoaded("lol", "");
+            Debug.Assert(_textBoxLeft.Text == "");
+            Debug.Assert(_textBoxTop.Text == "");
+            Debug.Assert(_textBoxRight.Text == "");
+            Debug.Assert(_textBoxBottom.Text == "");
+        }
+
+        /**
+         * @brief Executes minimap loading integration test suite
+         * 
+         * @tests Complete minimap file loading and UI synchronization workflow
+         * 
+         * @details
+         * Validates that users can successfully load minimap files and have
+         * boundary coordinates automatically populated in the editor's textboxes.
+         */
+        public void Run()
+        {
+            _testLoadingFileAssignsMinimapArea();
+            _testLoadingFilesWithoutMapModelDoesntAssignMinimapArea();
+        }
+    }
+
+
+    /**
+     * @class WindowMapEditorLoadedMinimapPointsActionHandlerTests
+     * 
+     * @brief Unit tests for visual point creation from loaded minimap data
+     * 
+     * @details
+     * Validates that loading a minimap file correctly creates visual point representations
+     * on the map canvas with proper element names, point labels, and coordinate positioning.
+     * Tests ensure that map model point data is accurately translated into interactive
+     * visual elements with correct hierarchical structure and canvas positioning.
+     */
+    public class WindowMapEditorLoadMinimapPointsActionHandlerTests
+    {
+        private Canvas _mapCanvas;
+
+        private TextBox _pointLabelTextBox;
+
+        private AbstractLoadFileDialog _loadFileDialog;
+
+        private MapModel _mapModel;
+
+        /**
+         * @brief Initializes test components with clean state
+         * 
+         * @details
+         * Creates fresh instances of map canvas, point label textbox, file dialog,
+         * and map model for each test execution. Ensures isolated testing environment
+         * without residual visual elements or model data from previous tests.
+         */
+        public WindowMapEditorLoadMinimapPointsActionHandlerTests()
+        {
+            _mapCanvas = new Canvas();
+            _pointLabelTextBox = new TextBox();
+            _loadFileDialog = new WindowLoadFileDialog("", "");
+            _mapModel = new MapModel();
+        }
+
+        /**
+         * @brief Creates test fixture with minimap point visualization components
+         * 
+         * @tests Test environment setup for visual point generation from model data
+         * 
+         * Constructs a complete test environment with canvas, label textbox, file dialog,
+         * and map model. Creates a facade handler that integrates file loading with
+         * visual point creation to simulate the production minimap point visualization workflow.
+         * 
+         * @returns Configured AbstractWindowActionHandler facade for point visualization testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _mapCanvas = new Canvas();
+            _pointLabelTextBox = new TextBox();
+            _loadFileDialog = new WindowLoadFileDialog("", "");
+            _mapModel = new MapModel();
+            return new WindowMapEditorLoadedMinimapPointsActionHandlerFacade(
+                _mapCanvas,
+                _pointLabelTextBox,
+                _loadFileDialog
+            );
+        }
+
+        /**
+         * @brief Populates map model with test minimap point data
+         * 
+         * @tests Test data preparation for visual point generation scenarios
+         * 
+         * @details
+         * Adds two sample minimap points to the map model with distinct coordinates,
+         * element names, and point names. Provides structured test data for validating
+         * visual point creation and canvas integration.
+         */
+        private void _populateMapModel()
+        {
+            _mapModel.Add(
+                new MinimapPoint
+                {
+                    X = 123,
+                    Y = 234,
+                    PointData = new MinimapPointData
+                    {
+                        ElementName = "EN1",
+                        PointName = "PN1"
+                    }
+                }
+            );
+            _mapModel.Add(
+                new MinimapPoint
+                {
+                    X = 234,
+                    Y = 345,
+                    PointData = new MinimapPointData
+                    {
+                        ElementName = "EN2",
+                        PointName = "PN2"
+                    }
+                }
+            );
+        }
+
+        /**
+         * @brief Tests that loaded minimap points are created with correct names and structure
+         * 
+         * @tests Visual point element naming and hierarchical structure
+         * 
+         * @details
+         * Validates that minimap points are converted to canvas elements with proper
+         * element names, point labels, and nested visual structure. Ensures the visual
+         * hierarchy matches the expected organizational pattern.
+         */
+        private void _testLoadingFileCreatesNewPointsWithCorrectNames()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _populateMapModel();
+            _loadFileDialog.InvokeFileLoaded("lol", "");
+            Debug.Assert(_mapCanvas.Children.Count == 2);
+            Debug.Assert(_mapCanvas.Children[0] is Canvas);
+            Debug.Assert(((Canvas)_mapCanvas.Children[0]).Name == "EN1");
+            Debug.Assert(((Canvas)_mapCanvas.Children[0]).Children.Count == 2);
+            Debug.Assert(((Canvas)_mapCanvas.Children[0]).Children[1] is TextBlock);
+            Debug.Assert(((TextBlock)((Canvas)_mapCanvas.Children[0]).Children[1]).Text == "PN1");
+            Debug.Assert(_mapCanvas.Children[1] is Canvas);
+            Debug.Assert(((Canvas)_mapCanvas.Children[1]).Name == "EN2");
+            Debug.Assert(((Canvas)_mapCanvas.Children[1]).Children.Count == 2);
+            Debug.Assert(((Canvas)_mapCanvas.Children[1]).Children[1] is TextBlock);
+            Debug.Assert(((TextBlock)((Canvas)_mapCanvas.Children[1]).Children[1]).Text == "PN2");
+        }
+
+        /**
+         * @brief Tests that loaded minimap points are placed at correct canvas coordinates
+         * 
+         * @tests Visual point coordinate accuracy and canvas positioning
+         * 
+         * @details
+         * Validates that minimap point coordinates from the model are correctly translated
+         * to canvas positioning using Canvas.Left and Canvas.Top attached properties.
+         * Ensures visual points appear at the exact specified locations on the map canvas.
+         */
+        private void _testLoadingFileCreatesNewPointsWithCorrectLocation()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _populateMapModel();
+            _loadFileDialog.InvokeFileLoaded("lol", "");
+            Debug.Assert(_mapCanvas.Children.Count == 2);
+            Debug.Assert(Canvas.GetLeft((Canvas)_mapCanvas.Children[0]) == 123);
+            Debug.Assert(Canvas.GetTop((Canvas)_mapCanvas.Children[0]) == 234);
+            Debug.Assert(Canvas.GetLeft((Canvas)_mapCanvas.Children[1]) == 234);
+            Debug.Assert(Canvas.GetTop((Canvas)_mapCanvas.Children[1]) == 345);
+        }
+
+        /**
+         * @brief Tests that loaded minimap points register label dependencies in map model
+         * 
+         * @tests Label dependency tracking and model-visual element association
+         * 
+         * @details
+         * Validates that when minimap points are created on the canvas, their label
+         * text elements are properly registered as dependencies in the map model.
+         * Ensures the model maintains references to visual text elements for
+         * coordinated updates and state management.
+         */
+        private void _testLoadingFileAddsLabelDependenciesToMapModel()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _populateMapModel();
+            _loadFileDialog.InvokeFileLoaded("lol", "");
+            var minimapPoints = _mapModel.Points();
+            Debug.Assert(minimapPoints.Count == 2);
+            Debug.Assert(minimapPoints[0].PointData.ElementTexts.Count == 2);
+            Debug.Assert(minimapPoints[0].PointData.ElementTexts.IndexOf(_pointLabelTextBox) != 0);
+            Debug.Assert(
+                (TextBlock)minimapPoints[0].PointData.ElementTexts[0] ==
+                (TextBlock)((Canvas)_mapCanvas.Children[0]).Children[1]
+            );
+            Debug.Assert(minimapPoints[1].PointData.ElementTexts.IndexOf(_pointLabelTextBox) != 0);
+            Debug.Assert(
+                (TextBlock)minimapPoints[1].PointData.ElementTexts[0] ==
+                (TextBlock)((Canvas)_mapCanvas.Children[1]).Children[1]
+            );
+        }
+
+        /**
+         * @brief Tests that file loading without map model injection creates no visual points
+         * 
+         * @tests Graceful handling of missing model dependency for point visualization
+         * 
+         * @details
+         * Validates that attempting to load a minimap file without injecting the map model
+         * does not create any visual points on the canvas. Ensures the system maintains
+         * visual integrity when required dependencies are unavailable.
+         */
+        private void _testLoadingFileWithoutMapModelDoesntCreateNewPoints()
+        {
+            var handler = _fixture();
+            _populateMapModel();
+            _loadFileDialog.InvokeFileLoaded("lol", "");
+            Debug.Assert(_mapCanvas.Children.Count == 0);
+        }
+
+        /**
+         * @brief Executes minimap point visualization test suite
+         * 
+         * @tests Complete visual point generation from loaded minimap data
+         * 
+         * @details
+         * Validates that users can successfully load minimap files and have all
+         * points accurately represented as interactive visual elements with proper
+         * naming, labeling, and positioning on the map canvas.
+         */
+        public void Run()
+        {
+            _testLoadingFileCreatesNewPointsWithCorrectNames();
+            _testLoadingFileCreatesNewPointsWithCorrectLocation();
+            _testLoadingFileAddsLabelDependenciesToMapModel();
+            _testLoadingFileWithoutMapModelDoesntCreateNewPoints();
+        }
+    }
+
+
+    /**
+     * @class WindowMapEditorLoadedMinimapPointsActionHandlerTests
+     * 
+     * @brief Unit tests for UI state management during minimap file loading
+
+     * @details
+     * Validates that loading a minimap file correctly manages UI state by disabling
+     * editing controls, clearing input fields, and resetting selection states.
+     * Tests ensure a clean editing environment is established when new minimap
+     * files are loaded, preventing user confusion and data conflicts.
+     */
+    public class WindowMapEditorLoadedMinimapPointsActionHandlerTests
+    {
+        private Button _editButton;
+
+        private TextBox _labelTextBox;
+
+        private TextBox _locationX;
+
+        private TextBox _locationY;
+
+        private AbstractLoadFileDialog _loadFileDialog;
+
+        private AbstractWindowMapEditMenuState _menuState;
+
+        /**
+         * @brief Initializes test components with clean state
+         * 
+         * @details
+         * Creates fresh instances of edit button, label textbox, coordinate textboxes,
+         * file dialog, and menu state for each test execution. Ensures isolated testing
+         * environment without residual UI state from previous tests.
+         */
+        public WindowMapEditorLoadedMinimapPointsActionHandlerTests()
+        {
+            _editButton = new Button();
+            _labelTextBox = new TextBox();
+            _locationX = new TextBox();
+            _locationY = new TextBox();
+            _loadFileDialog = new WindowLoadFileDialog("", "");
+            _menuState = new WindowMapEditMenuState();
+        }
+
+        /**
+         * @brief Creates test fixture with UI state management components
+         * 
+         * @tests Test environment setup for UI state management during file loading
+         * 
+         * @details
+         * Constructs a complete test environment with editing controls, file dialog,
+         * and menu state. Creates a facade handler that integrates file loading with
+         * UI state management to simulate the production workflow.
+         * 
+         * @returns Configured AbstractWindowActionHandler facade for UI state testing
+         */
+        private AbstractWindowActionHandler _fixture()
+        {
+            _editButton = new Button();
+            _labelTextBox = new TextBox();
+            _locationX = new TextBox();
+            _locationY = new TextBox();
+            _loadFileDialog = new WindowLoadFileDialog("", "");
+            _menuState = new WindowMapEditMenuState();
+            return new WindowMapEditorLoadedMenuStateActionHandlerFacade(
+                _editButton,
+                _labelTextBox,
+                _locationX,
+                _locationY,
+                _loadFileDialog,
+                _menuState
+            );
+        }
+
+        /**
+         * @brief Tests that loading a file disables the edit button
+         * 
+         * @tests Edit control state management during file operations
+         * 
+         * Validates that the edit button is disabled when a new minimap file is loaded,
+         * preventing user interaction during file processing and ensuring proper
+         * operation sequencing.
+         */
+        private void _testLoadingFileDisablesEditButton()
+        {
+            var handler = _fixture();
+            _editButton.IsEnabled = true;
+            _loadFileDialog.InvokeFileLoaded("", "");
+            Debug.Assert(!_editButton.IsEnabled);
+        }
+
+        /**
+         * @brief Tests that loading a file clears all input textboxes
+         * 
+         * @tests Form field clearing during file operations
+         * 
+         * Validates that label and coordinate textboxes are cleared when a new minimap
+         * file is loaded, ensuring users start with a clean editing slate.
+         */
+        private void _testLoadingFileClearsTextboxes()
+        {
+            var handler = _fixture();
+            _labelTextBox.Text = "a";
+            _locationX.Text = "1";
+            _locationY.Text = "2";
+            _loadFileDialog.InvokeFileLoaded("", "");
+            Debug.Assert(_labelTextBox.Text == "");
+            Debug.Assert(_locationX.Text == "");
+            Debug.Assert(_locationY.Text == "");
+        }
+
+        /**
+         * @brief Tests that loading a file deselects current menu selection
+         * 
+         * @tests Menu selection state reset during file operations
+         * 
+         * Validates that any active menu selection is cleared when a new minimap file
+         * is loaded, ensuring proper state management between file operations.
+         */
+        private void _testLoadingFileDeselectsCurrentMenuState()
+        {
+            var handler = _fixture();
+            var selected = new object();
+            _menuState.Select(selected);
+            _loadFileDialog.InvokeFileLoaded("", "");
+            Debug.Assert(_menuState.Selected() == null);
+        }
+
+
+        /**
+         * @brief Executes UI state management test suite
+         * 
+         * @tests Complete UI state management during minimap file loading
+         * 
+         * @details
+         * Validates that loading a minimap file properly manages all UI states
+         * to provide a clean, predictable editing environment.
+         */
+        public void Run()
+        {
+            _testLoadingFileDisablesEditButton();
+            _testLoadingFileClearsTextboxes();
+            _testLoadingFileDeselectsCurrentMenuState();
+        }
+    }
+    
+
     public class WindowMapEditorHandlersTestSuite
     {
         public void Run()
@@ -2297,6 +3168,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMapCanvasPointLocationActionHandlerTests().Run();
             new WindowMapCanvasDimensionActionHandlerTests().Run();
             new WindowMapEditorSaveConfigurationActionHandlerTests().Run();
+            new WindowMapEditorLoadConfigurationActionHandlerTests().Run();
+            new WindowMapEditorLoadModelActionHandlerTests().Run();
+            new WindowMapEditorLoadMinimapActionHandlerTests().Run();
+            new WindowMapEditorLoadMinimapPointsActionHandlerTests().Run();
+            new WindowMapEditorLoadedMinimapPointsActionHandlerTests().Run();
         }
     }
 }

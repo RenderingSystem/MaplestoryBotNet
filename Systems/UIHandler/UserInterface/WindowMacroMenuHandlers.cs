@@ -53,10 +53,11 @@ namespace MaplestoryBotNet.Systems.UIHandler
         {
             var initialDirectory = _initialDirectory ?? "";
             var macroData = _getListBoxMacroData();
+            var serialized = _macroDataSerializer.SerializeMacroData(macroData);
             var parameters = new WindowSaveMenuModifierParameters
             {
                 InitialDirectory = initialDirectory,
-                SaveContent = _macroDataSerializer.SerializeMacroData(macroData)
+                SaveContent = serialized
             };
             _windowSaveMenuModifier.Modify(parameters);
         }

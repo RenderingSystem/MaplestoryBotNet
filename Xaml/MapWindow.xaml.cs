@@ -14,6 +14,8 @@ namespace MaplestoryBotNet.Xaml
 
         private AbstractWindowMapEditMenuState _editMenuState;
 
+        private AbstractLoadFileDialog _loadFileDialog;
+
         public MapWindow(
             AbstractWindowMapEditMenuState editMenuState
         )
@@ -21,6 +23,10 @@ namespace MaplestoryBotNet.Xaml
             InitializeComponent();
             DataContext = this;
             _editMenuState = editMenuState;
+            _loadFileDialog = new WindowLoadFileDialog(
+                "Load Map",
+                "JSON files (*.json)|*.json"
+            );
         }
 
         private AbstractWindowActionHandler _instantiateNumericTextBoxPropertyActionHandler(
@@ -87,7 +93,9 @@ namespace MaplestoryBotNet.Xaml
         private AbstractWindowActionHandler _instantiatePointErasingActionHandler()
         {
             return new WindowMapCanvasPointErasingActionHandlerFacade(
-                MapCanvas, _editMenuState, new MouseEventPositionExtractor()
+                MapCanvas,
+                _editMenuState,
+                new MouseEventPositionExtractor()
             );
         }
 
@@ -135,7 +143,9 @@ namespace MaplestoryBotNet.Xaml
         private AbstractWindowActionHandler _instantiatePointLocationActionHandler()
         {
             return new WindowMapCanvasPointLocationActionHandlerFacade(
-                LocationTextBoxX, LocationTextBoxY, _editMenuState
+                LocationTextBoxX,
+                LocationTextBoxY,
+                _editMenuState
             );
         }
 
@@ -158,9 +168,58 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
-        private AbstractWindowActionHandler _instantiateSaveMapConfigurationActionHandler()
+        private AbstractWindowActionHandler _instantiateSaveConfigurationActionHandler()
         {
-            return new WindowMapEditorSaveConfigurationActionHandlerFacade(SaveButton);
+            return new WindowMapEditorSaveConfigurationActionHandlerFacade(
+                SaveButton
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateLoadConfigurationActionHandler()
+        {
+            return new WindowMapEditorLoadConfigurationActionHandlerFacade(
+                LoadButton,
+                _loadFileDialog
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateLoadModelActionHandler()
+        {
+            return new WindowMapEditorLoadModelActionHandlerFacade(
+                _loadFileDialog
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateLoadMinimapActionHandler()
+        {
+            return new WindowMapEditorLoadMinimapActionHandlerFacade(
+                _loadFileDialog,
+                MapAreaLeftTextBox,
+                MapAreaTopTextBox,
+                MapAreaRightTextBox,
+                MapAreaBottomTextBox
+            );
+        }
+
+        public AbstractWindowActionHandler _instantiateLoadMinimapPointsActionHandler()
+        {
+            return new WindowMapEditorLoadedMinimapPointsActionHandlerFacade(
+                MapCanvas,
+                LabelTextBox,
+                _loadFileDialog
+            );
+        }
+
+        public AbstractWindowActionHandler _instantiateLoadMenuStateActionHandler()
+        {
+            return new WindowMapEditorLoadedMenuStateActionHandlerFacade(
+                EditButton,
+                LabelTextBox,
+                LocationTextBoxX,
+                LocationTextBoxY,
+                _loadFileDialog,
+                _editMenuState
+            );
         }
 
         public List<AbstractWindowActionHandler> InstantiateActionHandlers(
@@ -192,7 +251,12 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateEditButtonAccessibilityActionHandler(),
                 _instantiatePointLocationActionHandler(),
                 _instantiateViewMinimapUpdaterActionHandler(),
-                _instantiateSaveMapConfigurationActionHandler()
+                _instantiateSaveConfigurationActionHandler(),
+                _instantiateLoadConfigurationActionHandler(),
+                _instantiateLoadModelActionHandler(),
+                _instantiateLoadMinimapActionHandler(),
+                _instantiateLoadMinimapPointsActionHandler(),
+                _instantiateLoadMenuStateActionHandler()
             ];
         }
 

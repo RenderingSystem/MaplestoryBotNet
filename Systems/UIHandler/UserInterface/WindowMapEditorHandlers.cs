@@ -52,7 +52,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public abstract void Format(
             FrameworkElement canvas,
             List<FrameworkElement> textDepdendencies,
-            AbstractMapModel mapModel
+            object formatData
         );
     }
 
@@ -60,6 +60,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     public abstract class AbstractMapCanvasElementLocator
     {
         public abstract FrameworkElement? Locate(AbstractMapModel mapModel, Point point);
+    }
+
+
+    public abstract class AbstractPointElementInformation
+    {
+        public abstract Rect BoundingRect(FrameworkElement frameworkElement);
+
+        public abstract TextBlock? Label(FrameworkElement frameworkElement);
     }
 
 
@@ -218,27 +226,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowMapCanvasPointFormatter : AbstractMapCanvasFormatter
+    public class PointElementInformation : AbstractPointElementInformation
     {
-        private void _setupLabelText(
-            FrameworkElement createdPoint,
-            AbstractMapModel mapModel,
-            string pointLabel
-        )
+        public override Rect BoundingRect(FrameworkElement frameworkElement)
         {
-            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(createdPoint); i++)
+            if (frameworkElement is not Canvas canvasElement)
             {
-                var child = VisualTreeHelper.GetChild(createdPoint, i);
-                if (child is TextBlock textBlock)
-                {
-                    textBlock.Text = pointLabel;
-                    return;
-                }
+                return new Rect(0, 0, 1, 1);
             }
-        }
-
-        private Rect _getBoundingRect(Canvas canvasElement)
-        {
             var boundingRect = Rect.Empty;
             foreach (FrameworkElement child in canvasElement.Children)
             {
@@ -253,35 +248,60 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return boundingRect;
         }
 
-        private TextBlock? _getElementLabel(FrameworkElement frameworkElement)
+        public override TextBlock? Label(FrameworkElement frameworkElement)
         {
-            if (frameworkElement is Canvas canvasElement)
+            if (frameworkElement is not Canvas canvasElement)
             {
-                foreach (FrameworkElement child in canvasElement.Children)
+                return null;
+            }
+            foreach (FrameworkElement child in canvasElement.Children)
+            {
+                if (child is TextBlock childTextBlock)
                 {
-                    if (child is TextBlock childTextBlock)
-                    {
-                        return childTextBlock;
-                    }
+                    return childTextBlock;
                 }
             }
             return null;
         }
+    }
+
+
+    public class WindowMapCanvasPointFormatter : AbstractMapCanvasFormatter
+    {
+        private AbstractPointElementInformation _pointElementInfo;
+
+        public WindowMapCanvasPointFormatter(
+            AbstractPointElementInformation pointElementInfo
+        )
+        {
+            _pointElementInfo = pointElementInfo;
+        }
+
+        private void _setupLabelText(
+            FrameworkElement createdPoint,
+            string pointLabel
+        )
+        {
+            var label = _pointElementInfo.Label(createdPoint);
+            if (label != null)
+            {
+                label.Text = pointLabel;
+            }
+        }
 
         private MinimapPointData _minimapPointData(
-            FrameworkElement frameowrkElement,
+            FrameworkElement frameworkElement,
             List<FrameworkElement> textDependencies,
-            AbstractMapModel mapModel,
             string pointName,
             string elementName
         )
         {
-            frameowrkElement.Name = elementName;
+            frameworkElement.Name = elementName;
             return new MinimapPointData
             {
                 ElementTexts = new List<FrameworkElement>(textDependencies)
                 {
-                    _getElementLabel(frameowrkElement)!
+                    _pointElementInfo.Label(frameworkElement)!
                 },
                 PointName = pointName,
                 ElementName = elementName,
@@ -306,11 +326,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         {
             if (createdPoint is Canvas canvasElement)
             {
-                var boundingRect = _getBoundingRect(canvasElement);
+                var boundingRect = _pointElementInfo.BoundingRect(canvasElement);
                 var pointData = _minimapPointData(
                     canvasElement,
                     textDependencies,
-                    mapModel,
                     pointLabel,
                     elementName
                 );
@@ -357,9 +376,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override void Format(
             FrameworkElement createdPoint,
             List<FrameworkElement> textDependencies,
-            AbstractMapModel mapModel
+            object formatData
         )
         {
+            if (formatData is not MapModel mapModel)
+            {
+                return;
+            }
             var pointLabel = _generatePointLabel(mapModel);
             var elementName = _generateElementName(mapModel);
             _setupMinimapPoint(
@@ -371,7 +394,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             );
             _setupLabelText(
                 createdPoint,
-                mapModel,
                 pointLabel
             );
         }
@@ -567,6 +589,38 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
+    public class WindowMapCanvasPointFactoryFacade : AbstractMapCanvasElementFactory
+    {
+        private AbstractMapCanvasElementFactory _mapCanvasPointFactory;
+
+        public WindowMapCanvasPointFactoryFacade()
+        {
+            _mapCanvasPointFactory = new WindowMapCanvasPointFactory(
+                new WindowMapCanvasCircleFactory(
+                    Brushes.Aqua,
+                    Brushes.LightBlue,
+                    1,
+                    5
+                ),
+                new WindowMapCanvasLabelFactory(
+                    "Lorem Ipsum",
+                    "Courier New",
+                    10.0,
+                    0.0,
+                    -16.0,
+                    Brushes.White,
+                    Brushes.Transparent
+                )
+            );
+        }
+
+        public override FrameworkElement Create()
+        {
+            return _mapCanvasPointFactory.Create();
+        }
+    }
+
+
     public class WindowMapCanvasPointDrawingActionHandler : AbstractWindowActionHandler
     {
         private Canvas _canvas;
@@ -646,24 +700,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 mouseEventPositionExtractor,
                 new WindowMapCanvasPointDrawer(
                     canvas,
-                    new WindowMapCanvasPointFactory(
-                        new WindowMapCanvasCircleFactory(
-                            Brushes.Aqua,
-                            Brushes.LightBlue,
-                            1,
-                            5
-                        ),
-                        new WindowMapCanvasLabelFactory(
-                            "Lorem Ipsum",
-                            "Courier New",
-                            10.0,
-                            0.0,
-                            -16.0,
-                            Brushes.White,
-                            Brushes.Transparent
-                        )
-                    ),
-                    new WindowMapCanvasPointFormatter()
+                    new WindowMapCanvasPointFactoryFacade(),
+                    new WindowMapCanvasPointFormatter(new PointElementInformation())
                 )
             );
         }
@@ -1915,55 +1953,33 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private Button _loadButton;
 
-        private AbstractMapModelDeserializer _mapModelDeserializer;
-
-        private AbstractJsonDataModelConverter _mapModelConverter;
-
         private AbstractWindowStateModifier _windowLoadDialogModifier;
 
-        private MapModel? _mapModel;
-
-        private string _initialDirectory;
+        private string? _initialDirectory;
 
         public WindowMapEditorLoadConfigurationActionHandler(
             Button loadButton,
-            AbstractMapModelDeserializer mapModelDeserializer,
-            AbstractJsonDataModelConverter mapModelConverter,
             AbstractWindowStateModifier windowLoadDialogModifier
         )
         {
             _loadButton = loadButton;
-            _mapModelDeserializer = mapModelDeserializer;
-            _mapModelConverter = mapModelConverter;
             _windowLoadDialogModifier = windowLoadDialogModifier;
-            _mapModel = null;
             _loadButton.Click += OnEvent;
-            _initialDirectory = "";
+            _initialDirectory = null;
         }
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (_mapModel == null)
+            if (_initialDirectory == null)
             {
                 return;
             }
-            if (_initialDirectory == "")
-            {
-                return;
-            }
-            _windowLoadDialogModifier.Modify(null);
-            var modifierState = _windowLoadDialogModifier.State(0);
-            if (modifierState is not string loadedConfiguration)
-            {
-                return;
-            }
-            if (loadedConfiguration == "")
-            {
-                return;
-            }
-            var deserialized = _mapModelDeserializer.Deserialize(loadedConfiguration);
-            var mapModel = (MapModel)_mapModelConverter.ToDataModel(deserialized)!;
-            _mapModel.SetMapModel(mapModel);
+            _windowLoadDialogModifier.Modify(
+                new WindowLoadMenuModifierParameters
+                {
+                    InitialDirectory = _initialDirectory
+                }
+            );
         }
 
         public override void Inject(SystemInjectType dataType, object? data)
@@ -1975,6 +1991,109 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 _initialDirectory = configuration.MapDirectory;
             }
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _windowLoadDialogModifier;
+        }
+    }
+
+
+    public class WindowMapEditorLoadConfigurationActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _mapEditorLoadConfigurationActionHandler;
+
+        public WindowMapEditorLoadConfigurationActionHandlerFacade(
+            Button loadButton, AbstractLoadFileDialog loadFileDialog
+        )
+        {
+            _mapEditorLoadConfigurationActionHandler = new WindowMapEditorLoadConfigurationActionHandler(
+                loadButton, new WindowLoadMenuModifier(loadFileDialog)
+            );
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapEditorLoadConfigurationActionHandler.OnEvent(sender, e);
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            _mapEditorLoadConfigurationActionHandler.Inject(dataType, data);
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapEditorLoadConfigurationActionHandler.Modifier();
+        }
+    }
+
+
+    public class WindowMapEditorLoadModelModifierParameters
+    {
+        public string LoadedConfiguration = "";
+
+        public MapModel ElementModel = new MapModel();
+    }
+
+
+    public class WindowMapEditorLoadModelModifier : AbstractWindowStateModifier
+    {
+        private AbstractMapModelDeserializer _mapModelDeserializer;
+
+        private AbstractJsonDataModelConverter _mapModelConverter;
+
+        public WindowMapEditorLoadModelModifier(
+            AbstractMapModelDeserializer mapModelDeserializer,
+            AbstractJsonDataModelConverter mapModelConverter
+        )
+        {
+            _mapModelDeserializer = mapModelDeserializer;
+            _mapModelConverter = mapModelConverter;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is not WindowMapEditorLoadModelModifierParameters parameters)
+            {
+                return;
+            }
+            var deserialized = _mapModelDeserializer.Deserialize(
+                parameters.LoadedConfiguration
+            );
+            var mapModel = (MapModel)_mapModelConverter.ToDataModel(deserialized)!;
+            parameters.ElementModel.SetMapModel(mapModel);
+        }
+    }
+
+
+    public class WindowMapEditorLoadModelActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractLoadFileDialog _loadFileDialog;
+
+        private AbstractWindowStateModifier _mapEditorLoadModelModifier;
+
+        private MapModel? _mapModel;
+
+        public WindowMapEditorLoadModelActionHandler(
+            AbstractLoadFileDialog loadFileDialog,
+            AbstractWindowStateModifier mapEditorLoadModelModifier
+        )
+        {
+            _loadFileDialog = loadFileDialog;
+            _mapEditorLoadModelModifier = mapEditorLoadModelModifier;
+            _mapModel = null;
+            _loadFileDialog.FileLoaded += OnEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapEditorLoadModelModifier;
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
             if (
                 dataType == SystemInjectType.MapModel
                 && data is MapModel mapModel
@@ -1984,9 +2103,514 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             }
         }
 
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (e is not FileLoadedEventArgs fileLoadEventArgs)
+            {
+                return;
+            }
+            if (_mapModel == null)
+            {
+                return;
+            }
+            _mapEditorLoadModelModifier.Modify(
+                new WindowMapEditorLoadModelModifierParameters
+                {
+                    LoadedConfiguration = fileLoadEventArgs.Content,
+                    ElementModel = _mapModel
+                }
+            );
+        }
+    }
+
+
+    public class WindowMapEditorLoadModelActionHandlerFacade : AbstractWindowActionHandler
+    {
+        AbstractWindowActionHandler _mapEditorLoadModelActionHandler;
+
+        public WindowMapEditorLoadModelActionHandlerFacade(
+            AbstractLoadFileDialog loadFileDialog
+        )
+        {
+            _mapEditorLoadModelActionHandler = new WindowMapEditorLoadModelActionHandler(
+                loadFileDialog,
+                new WindowMapEditorLoadModelModifier(
+                    new ConfigurationMapModelDeserializer(),
+                    new MapModelConverterFacade()
+                )
+            );
+        }
+
         public override AbstractWindowStateModifier Modifier()
         {
-            return _windowLoadDialogModifier;
+            return _mapEditorLoadModelActionHandler.Modifier();
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            _mapEditorLoadModelActionHandler.Inject(dataType, data);
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapEditorLoadModelActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowMapEditorLoadMinimapModifierParameters
+    {
+        public MapModel ElementModel = new MapModel();
+    }
+
+
+    public class WindowMapEditorLoadMinimapModifier : AbstractWindowStateModifier
+    {
+        private TextBox _textBoxLeft;
+
+        private TextBox _textBoxTop;
+
+        private TextBox _textBoxRight;
+
+        private TextBox _textBoxBottom;
+
+        public WindowMapEditorLoadMinimapModifier(
+            TextBox textBoxLeft,
+            TextBox textBoxTop,
+            TextBox textBoxRight,
+            TextBox textBoxBottom
+        )
+        {
+            _textBoxLeft = textBoxLeft;
+            _textBoxTop = textBoxTop;
+            _textBoxRight = textBoxRight;
+            _textBoxBottom = textBoxBottom;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is not WindowMapEditorLoadMinimapModifierParameters parameters)
+            {
+                return;
+            }
+            var mapArea = parameters.ElementModel.GetMapArea();
+            var left = Convert.ToInt32(Math.Min(mapArea.Left, mapArea.Right));
+            var top = Convert.ToInt32(Math.Min(mapArea.Top, mapArea.Bottom));
+            var right = Convert.ToInt32(Math.Max(mapArea.Left, mapArea.Right));
+            var bottom = Convert.ToInt32(Math.Max(mapArea.Top, mapArea.Bottom));
+            if (right == left) right++;
+            if (bottom == top) bottom++;
+            _textBoxLeft.Text = left.ToString();
+            _textBoxTop.Text = top.ToString();
+            _textBoxRight.Text = right.ToString();
+            _textBoxBottom.Text = bottom.ToString();
+        }
+    }
+
+
+    public class WindowMapEditorLoadMinimapActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractLoadFileDialog _loadFileDialog;
+
+        private AbstractWindowStateModifier _mapEditorLoadMinimapModifier;
+
+        private MapModel? _mapModel;
+
+        public WindowMapEditorLoadMinimapActionHandler(
+            AbstractLoadFileDialog loadFileDialog,
+            AbstractWindowStateModifier mapEditorLoadMinimapModifier
+        )
+        {
+            _loadFileDialog = loadFileDialog;
+            _mapEditorLoadMinimapModifier = mapEditorLoadMinimapModifier;
+            _loadFileDialog.FileLoaded += OnEvent;
+            _mapModel = null;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapEditorLoadMinimapModifier;
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (
+                dataType == SystemInjectType.MapModel
+                && data is MapModel mapModel
+            )
+            {
+                _mapModel = mapModel;
+            }
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (e is not FileLoadedEventArgs fileLoadedEventArgs)
+            {
+                return;
+            }
+            if (_mapModel == null)
+            {
+                return;
+            }
+            _mapEditorLoadMinimapModifier.Modify(
+                new WindowMapEditorLoadMinimapModifierParameters
+                {
+                    ElementModel = _mapModel
+                }
+            );
+        }
+    }
+
+
+    public class WindowMapEditorLoadMinimapActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _mapEditorLoadMinimapActionHandler;
+
+        public WindowMapEditorLoadMinimapActionHandlerFacade(
+            AbstractLoadFileDialog loadFileDialog,
+            TextBox textBoxLeft,
+            TextBox textBoxTop,
+            TextBox textBoxRight,
+            TextBox textBoxBottom
+        )
+        {
+            _mapEditorLoadMinimapActionHandler = new WindowMapEditorLoadMinimapActionHandler(
+                loadFileDialog,
+                new WindowMapEditorLoadMinimapModifier(
+                    textBoxLeft,
+                    textBoxTop,
+                    textBoxRight,
+                    textBoxBottom
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapEditorLoadMinimapActionHandler.Modifier();
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            _mapEditorLoadMinimapActionHandler.Inject(dataType, data);
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapEditorLoadMinimapActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowMapCanvasLoadedPointFormatter : AbstractMapCanvasFormatter
+    {
+        private AbstractPointElementInformation _pointElementInformation;
+
+        public WindowMapCanvasLoadedPointFormatter(
+            AbstractPointElementInformation pointElementInformation
+        )
+        {
+            _pointElementInformation = pointElementInformation;
+        }
+
+        private void _setupLabelText(
+            FrameworkElement createdPoint,
+            string pointLabel
+        )
+        {
+            var label = _pointElementInformation.Label(createdPoint);
+            if (label != null)
+            {
+                label.Text = pointLabel;
+            }
+        }
+
+        private void _addLabelTextElement(
+            FrameworkElement createdPoint,
+            List<FrameworkElement> textDependencies,
+            MinimapPoint minimapPoint
+        )
+        {
+            var label = _pointElementInformation.Label(createdPoint);
+            minimapPoint.PointData.ElementTexts.Clear();
+            if (label != null)
+            {
+                minimapPoint.PointData.ElementTexts.Add(label);
+            }
+            foreach (var element in textDependencies)
+            {
+                minimapPoint.PointData.ElementTexts.Add(element);
+            }
+        }
+
+        public override void Format(
+            FrameworkElement frameworkElement,
+            List<FrameworkElement> textDepdendencies,
+            object formatData
+        )
+        {
+            if (formatData is not MinimapPoint minimapPoint)
+            {
+                return;
+            }
+            frameworkElement.Name = minimapPoint.PointData.ElementName;
+            _addLabelTextElement(frameworkElement, textDepdendencies, minimapPoint);
+            _setupLabelText(frameworkElement, minimapPoint.PointData.PointName);
+        }
+    }
+
+
+    public class WindowMapCanvasLoadedPointDrawerParameters
+    {
+        public MinimapPoint LoadedPoint = new MinimapPoint();
+
+        public List<FrameworkElement> ElementDependencies = [];
+    }
+
+
+    public class WindowMapCanvasLoadedPointDrawer : AbstractWindowStateModifier
+    {
+        private Canvas _canvas;
+
+        private AbstractMapCanvasFormatter _mapCanvasLoadedPointFormatter;
+
+        private AbstractMapCanvasElementFactory _mapCanvasElementFactory;
+
+        private FrameworkElement? _createdPoint;
+
+        public WindowMapCanvasLoadedPointDrawer(
+            Canvas canvas,
+            AbstractMapCanvasFormatter mapCanvasLoadedPointFormatter,
+            AbstractMapCanvasElementFactory mapCanvasElementFactory
+        )
+        {
+            _canvas = canvas;
+            _mapCanvasLoadedPointFormatter = mapCanvasLoadedPointFormatter;
+            _mapCanvasElementFactory = mapCanvasElementFactory;
+            _createdPoint = null;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is not WindowMapCanvasLoadedPointDrawerParameters parameters)
+            {
+                return;
+            }
+            _createdPoint = _mapCanvasElementFactory.Create();
+            _canvas.Children.Add(_createdPoint);
+            Canvas.SetLeft(_createdPoint, parameters.LoadedPoint.X);
+            Canvas.SetTop(_createdPoint, parameters.LoadedPoint.Y);
+            _mapCanvasLoadedPointFormatter.Format(
+                _createdPoint,
+                parameters.ElementDependencies,
+                parameters.LoadedPoint
+            );
+        }
+    }
+
+
+    public class WindowMapEditorLoadedMinimapPointsActionHandler : AbstractWindowActionHandler
+    {
+        private Canvas _mapCanvas;
+
+        private AbstractLoadFileDialog _fileLoadDialog;
+
+        private TextBox _pointLabelTextBox;
+
+        private AbstractWindowStateModifier _mapCanvasLoadedPointDrawer;
+
+        private MapModel? _mapModel;
+
+        public WindowMapEditorLoadedMinimapPointsActionHandler(
+            Canvas mapCanvas,
+            TextBox pointLabelTextBox,
+            AbstractLoadFileDialog fileLoadDialog,
+            AbstractWindowStateModifier mapCanvasLoadedPointDrawer
+        )
+        {
+            _mapCanvas = mapCanvas;
+            _fileLoadDialog = fileLoadDialog;
+            _pointLabelTextBox = pointLabelTextBox;
+            _mapCanvasLoadedPointDrawer = mapCanvasLoadedPointDrawer;
+            _mapModel = null;
+            _fileLoadDialog.FileLoaded += OnEvent;
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            {
+                _mapModel = mapModel;
+            }
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapCanvasLoadedPointDrawer;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (_mapModel == null)
+            {
+                return;
+            }
+            var minimapPoints = _mapModel.Points();
+            _mapCanvas.Children.Clear();
+            foreach (var minimapPoint in minimapPoints)
+            {
+                _mapCanvasLoadedPointDrawer.Modify(
+                    new WindowMapCanvasLoadedPointDrawerParameters
+                    {
+                        LoadedPoint = minimapPoint,
+                        ElementDependencies = [_pointLabelTextBox]
+                    }
+                );
+                _mapModel.Edit(minimapPoint);
+            }
+        }
+    }
+
+
+    public class WindowMapEditorLoadedMinimapPointsActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _mapEditorLoadedMinimapPointsActionHandler;
+
+        public WindowMapEditorLoadedMinimapPointsActionHandlerFacade(
+            Canvas mapCanvas,
+            TextBox pointLabelTextBox,
+            AbstractLoadFileDialog fileLoadDialog
+        )
+        {
+            _mapEditorLoadedMinimapPointsActionHandler = new WindowMapEditorLoadedMinimapPointsActionHandler(
+                mapCanvas,
+                pointLabelTextBox,
+                fileLoadDialog,
+                new WindowMapCanvasLoadedPointDrawer(
+                    mapCanvas,
+                    new WindowMapCanvasLoadedPointFormatter(new PointElementInformation()),
+                    new WindowMapCanvasPointFactoryFacade()
+                )
+            );
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            _mapEditorLoadedMinimapPointsActionHandler.Inject(dataType, data);
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapEditorLoadedMinimapPointsActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapEditorLoadedMinimapPointsActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowMapEditorLoadedMenuStateModifier : AbstractWindowStateModifier
+    {
+        private Button _editButton;
+
+        private TextBox _labelTextBox;
+
+        private TextBox _pointLocationX;
+
+        private TextBox _pointLocationY;
+
+        private AbstractWindowMapEditMenuState _menuState;
+
+        public WindowMapEditorLoadedMenuStateModifier(
+            Button editButton,
+            TextBox labelTextBox,
+            TextBox pointLocationX,
+            TextBox pointLocationY,
+            AbstractWindowMapEditMenuState menuState
+        )
+        {
+            _editButton = editButton;
+            _labelTextBox = labelTextBox;
+            _pointLocationX = pointLocationX;
+            _pointLocationY = pointLocationY;
+            _menuState = menuState;
+        }
+
+        public override void Modify(object? value)
+        {
+            _editButton.IsEnabled = false;
+            _labelTextBox.Text = "";
+            _pointLocationX.Text = "";
+            _pointLocationY.Text = "";
+            _menuState.Deselect();
+        }
+    }
+
+
+    public class WindowMapEditorLoadedMenuStateActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractLoadFileDialog _loadFileDialog;
+
+        private AbstractWindowStateModifier _mapEditorLoadedMenuStateModifier;
+
+        public WindowMapEditorLoadedMenuStateActionHandler(
+            AbstractLoadFileDialog loadFileDialog,
+            AbstractWindowStateModifier mapEditorLoadedMenuStateModifier
+        )
+        {
+            _loadFileDialog = loadFileDialog;
+            _mapEditorLoadedMenuStateModifier = mapEditorLoadedMenuStateModifier;
+            _loadFileDialog.FileLoaded += OnEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapEditorLoadedMenuStateModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapEditorLoadedMenuStateModifier.Modify(null);
+        }
+    }
+
+
+    public class WindowMapEditorLoadedMenuStateActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _mapEditorLoadedMenuStateActionHandler;
+
+        public WindowMapEditorLoadedMenuStateActionHandlerFacade(
+            Button editButton,
+            TextBox labelTextBox,
+            TextBox locationX,
+            TextBox locationY,
+            AbstractLoadFileDialog loadFileDialog,
+            AbstractWindowMapEditMenuState menuState
+        )
+        {
+            _mapEditorLoadedMenuStateActionHandler = new WindowMapEditorLoadedMenuStateActionHandler(
+                loadFileDialog,
+                new WindowMapEditorLoadedMenuStateModifier(
+                    editButton,
+                    locationX,
+                    locationY,
+                    labelTextBox,
+                    menuState
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapEditorLoadedMenuStateActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapEditorLoadedMenuStateActionHandler.OnEvent(sender, e);
         }
     }
 }

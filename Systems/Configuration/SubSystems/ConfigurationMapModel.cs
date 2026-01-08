@@ -91,10 +91,10 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         public int MapAreaTop { set; get; } = 0;
 
         [JsonPropertyName("map_area_right")]
-        public int MapAreaRight { set; get; } = 0;
+        public int MapAreaRight { set; get; } = 1;
 
         [JsonPropertyName("map_area_bottom")]
-        public int MapAreaBottom { set; get; } = 0;
+        public int MapAreaBottom { set; get; } = 1;
 
         [JsonPropertyName("map_points")]
         public List<ConfigurationMinimapPoint> MapPoints { set; get; } = [];
@@ -137,8 +137,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
                     ReadCommentHandling = JsonCommentHandling.Skip,
                 };
                 var result = JsonSerializer.Deserialize<ConfigurationMapModel>(jsonString, options);
-                Debug.Assert(result != null);
-                return result;
+                return result!;
             }
             catch
             {

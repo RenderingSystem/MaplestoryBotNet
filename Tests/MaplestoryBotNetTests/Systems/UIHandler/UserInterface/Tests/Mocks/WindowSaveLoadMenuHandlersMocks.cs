@@ -35,16 +35,5 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks
             PromptCalls++;
             PromptCallArg_initialDirectory.Add(initialDirectory);
         }
-
-        public int InvokeFileLoadedCalls = 0;
-        public List<string> InvokeFileLoadedCallArg_filePath = [];
-        public List<string> InvokeFileLoadedCallArg_loadContent = [];
-        public override void InvokeFileLoaded(string filePath, string loadContent)
-        {
-            CallOrder.Add(new TestUtilities().Reference(this) + "InvokeFileLoaded");
-            InvokeFileLoadedCalls++;
-            InvokeFileLoadedCallArg_filePath.Add(filePath);
-            InvokeFileLoadedCallArg_loadContent.Add(loadContent);
-        }
     }
 }

@@ -32,22 +32,14 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
 
         public override ConfigurationMacroData DeserializeMacroData(string jsonString)
         {
-            try
+            var options = new JsonSerializerOptions
             {
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    AllowTrailingCommas = true,
-                    ReadCommentHandling = JsonCommentHandling.Skip,
-                };
-                var result = JsonSerializer.Deserialize<ConfigurationMacroData>(jsonString, options);
-                Debug.Assert(result != null);
-                return result;
-            }
-            catch
-            {
-                return new ConfigurationMacroData();
-            }
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
+            };
+            var result = JsonSerializer.Deserialize<ConfigurationMacroData>(jsonString, options);
+            return result!;
         }
     }
 
@@ -67,23 +59,16 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
 
         public override string SerializeMacroData(ConfigurationMacroData macroData)
         {
-            try
+            var options = new JsonSerializerOptions
             {
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                    IndentCharacter = ' ',
-                    IndentSize = 4
-                };
-                var result = JsonSerializer.Serialize(macroData, options);
-                return result;
-            }
-            catch
-            {
-                return "";
-            }
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                IndentCharacter = ' ',
+                IndentSize = 4
+            };
+            var result = JsonSerializer.Serialize(macroData, options);
+            return result;
         }
     }
 }

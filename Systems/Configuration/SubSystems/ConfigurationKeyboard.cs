@@ -66,8 +66,7 @@ namespace MaplestoryBotNet.Systems.Configuration
                 ReadCommentHandling = JsonCommentHandling.Skip,
             };
             var result = JsonSerializer.Deserialize<KeyboardMapping>(jsonString, options);
-            Debug.Assert(result != null);
-            return result;
+            return result!;
         }
 
         public override object Deserialize(string jsonString)
