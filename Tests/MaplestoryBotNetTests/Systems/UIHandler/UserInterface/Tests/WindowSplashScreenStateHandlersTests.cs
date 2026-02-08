@@ -1,6 +1,7 @@
 ﻿
 
 using MaplestoryBotNet.Systems;
+using MaplestoryBotNet.Systems.GPUSelector;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNetTests.Systems.Tests;
@@ -60,7 +61,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var completer = _fixture();
             var keyboardDeviceContext = new KeyboardDeviceContext(123, 234);
+            var gpuSelection = new GPUSelection();
             completer.Modify(keyboardDeviceContext);
+            completer.Modify(gpuSelection);
             Debug.Assert(_dispatcher.DispatchCalls == 1);
         }
 
@@ -75,7 +78,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var completer = _fixture();
             var keyboardDeviceContext = new KeyboardDeviceContext(123, 234);
+            var gpuSelection = new GPUSelection();
             completer.Modify(keyboardDeviceContext);
+            completer.Modify(gpuSelection);
             Debug.Assert(_splashScreen.CloseCalls == 0);
             Debug.Assert(_mainWindow.ShowCalls == 0);
             _dispatcher.DispatchCallArg_action[0]();
@@ -94,7 +99,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var completer = _fixture();
             var keyboardDeviceContext = new KeyboardDeviceContext(123, 234);
+            var gpuSelection = new GPUSelection();
             completer.Modify(keyboardDeviceContext);
+            completer.Modify(gpuSelection);
             Debug.Assert(_keyboardDeviceInjectable.InjectCalls == 0);
             _dispatcher.DispatchCallArg_action[0]();
             Debug.Assert(_keyboardDeviceInjectable.InjectCalls == 1);
@@ -109,6 +116,40 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
+         * @brief Tests that modification without keyboard device context does not dispatch
+         * 
+         * @test Validates that transitions require keyboard device context for dispatch.
+         * 
+         * Verifies that the splash screen transition does not initiate when the
+         * keyboard device context is missing, ensuring that critical input devices
+         * are configured before the main window becomes active.
+         */
+        public void _testModifyWithoutKeyboardDeviceContextDoesntDispatch()
+        {
+            var completer = _fixture();
+            var gpuSelection = new GPUSelection();
+            completer.Modify(gpuSelection);
+            Debug.Assert(_dispatcher.DispatchCalls == 0);
+        }
+
+        /**
+         * @brief Tests that modification without GPU selection does not dispatch
+         * 
+         * @test Validates that transitions require GPU selection for dispatch.
+         * 
+         * Verifies that the splash screen transition does not initiate when the
+         * GPU selection is missing, ensuring that graphics hardware is properly
+         * configured before the main window becomes active.
+         */
+        public void _testModifyWithoutGpuSelectionDoesntDispatch()
+        {
+            var completer = _fixture();
+            var keyboardDeviceContext = new KeyboardDeviceContext(123, 234);
+            completer.Modify(keyboardDeviceContext);
+            Debug.Assert(_dispatcher.DispatchCalls == 0);
+        }
+
+        /**
          * @brief Executes all splash screen transition validation tests
          * 
          * Runs the complete test suite to ensure the splash screen completer
@@ -120,6 +161,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _testModifyDispatchesModificationEvent();
             _testModifyHidesSplashScreenAndShowsMainWindow();
             _testModifyInjectsKeyboardDevice();
+            _testModifyWithoutKeyboardDeviceContextDoesntDispatch();
+            _testModifyWithoutGpuSelectionDoesntDispatch();
         }
     }
 

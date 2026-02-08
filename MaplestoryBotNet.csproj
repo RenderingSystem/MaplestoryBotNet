@@ -12,12 +12,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ArrayFireNCC\**" />
     <Compile Remove="Interception.net\**" />
     <Compile Remove="Tests\**" />
+    <EmbeddedResource Remove="ArrayFireNCC\**" />
     <EmbeddedResource Remove="Interception.net\**" />
     <EmbeddedResource Remove="Tests\**" />
+    <None Remove="ArrayFireNCC\**" />
     <None Remove="Interception.net\**" />
     <None Remove="Tests\**" />
+    <Page Remove="ArrayFireNCC\**" />
     <Page Remove="Interception.net\**" />
     <Page Remove="Tests\**" />
   </ItemGroup>
@@ -44,6 +48,20 @@
     <PackageReference Include="ScreenCapture.NET.DX11" Version="3.0.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
     <PackageReference Include="System.Drawing.Common" Version="9.0.8" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <Reference Include="ArrayFireNCC">
+      <HintPath>x64\Debug\ArrayFireNCC.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <Reference Include="ArrayFireNCC">
+      <HintPath>x64\Release\ArrayFireNCC.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
@@ -90,7 +108,6 @@
 
   <ItemGroup>
     <Folder Include="Images\Ailments\" />
-    <Folder Include="Maps\" />
   </ItemGroup>
 
   <ItemGroup>

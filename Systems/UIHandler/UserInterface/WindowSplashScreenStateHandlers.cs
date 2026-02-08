@@ -1,4 +1,4 @@
-﻿using MaplestoryBotNet.Systems;
+﻿using MaplestoryBotNet.Systems.GPUSelector;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using System.Diagnostics;
 
@@ -15,6 +15,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private ISystemInjectable _keyboardDeviceInjectable;
 
+        private KeyboardDeviceContext? _keyboardDeviceContext;
+
+        private AbstractGPUSelection? _gpuSelection;
+
         public WindowSplashScreenCompleter(
             AbstractSystemWindow splashScreen,
             AbstractSystemWindow mainWindow,
@@ -26,24 +30,39 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mainWindow = mainWindow;
             _dispatcher = dispatcher;
             _keyboardDeviceInjectable = keyboardDeviceInjectable;
+            _keyboardDeviceContext = null;
+            _gpuSelection = null;
         }
 
         public override void Modify(object? value)
         {
             if (value is KeyboardDeviceContext keyboardDeviceContext)
             {
-                _dispatcher.Dispatch(
-                    () =>
-                    {
-                        _keyboardDeviceInjectable.Inject(
-                            SystemInjectType.KeyboardDevice, keyboardDeviceContext
-                        );
-                        _splashScreen.ShutdownFlag = true;
-                        _splashScreen.Close();
-                        _mainWindow.Show();
-                    }
-                );
+                _keyboardDeviceContext = keyboardDeviceContext;
             }
+            if (value is AbstractGPUSelection gpuSelection)
+            {
+                _gpuSelection = gpuSelection;
+            }
+            if (_keyboardDeviceContext == null)
+            {
+                return;
+            }
+            if (_gpuSelection == null)
+            {
+                return;
+            }
+            _dispatcher.Dispatch(
+                () =>
+                {
+                    _keyboardDeviceInjectable.Inject(
+                        SystemInjectType.KeyboardDevice, _keyboardDeviceContext
+                    );
+                    _splashScreen.ShutdownFlag = true;
+                    _splashScreen.Close();
+                    _mainWindow.Show();
+                }
+            );
         }
     }
 
@@ -80,6 +99,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         {
             _splashScreen = null;
             _mainWindow = null;
+            _dispatcher = null;
             _keyboardDeviceContextInjectable = null;
         }
 

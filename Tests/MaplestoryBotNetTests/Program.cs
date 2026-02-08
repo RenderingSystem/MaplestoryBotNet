@@ -1,4 +1,6 @@
-﻿using MaplestoryBotNetTests.Systems.Configuration.Tests;
+﻿using ArrayFireNCCTests;
+using MaplestoryBotNetTests.Systems.Configuration.Tests;
+using MaplestoryBotNetTests.Systems.GPUSelector.Tests;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests;
 using MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests;
 using MaplestoryBotNetTests.Systems.ScreenCapture.Tests;
@@ -10,6 +12,9 @@ using MaplestoryBotNetTests.UserInterface.Tests;
 
 void UnitTestSuite()
 {
+    // Test the Arrayfire NCC library.
+    new TestTemplateMatcher().run();
+    new GPUSelectorSystemTestSuite().Run();
     // Test the configuration system
     new ConfigurationTestSuite().Run();
     new ConfigurationKeyboardTestSuite().Run();

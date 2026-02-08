@@ -445,7 +445,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var subSystemInfoList = new MainSubSystemInfoList();
             var subSystemInfo = subSystemInfoList.GetSubSystemInfo();
-            Debug.Assert(subSystemInfo.Count == 4);
+            Debug.Assert(subSystemInfo.Count == 5);
         }
 
         /**

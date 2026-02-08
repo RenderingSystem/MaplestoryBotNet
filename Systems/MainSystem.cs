@@ -1,11 +1,11 @@
-﻿using System.Diagnostics;
-using MaplestoryBotNet.Systems.Configuration;
+﻿using MaplestoryBotNet.Systems.Configuration;
+using MaplestoryBotNet.Systems.GPUSelector;
 using MaplestoryBotNet.Systems.Keyboard;
 using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.Systems.UIHandler;
-using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.ThreadingUtils;
 
 
 namespace MaplestoryBotNet.Systems
@@ -205,13 +205,33 @@ namespace MaplestoryBotNet.Systems
             );
         }
 
+        private SystemInformation _gpuSelectorInfo()
+        {
+            return new SystemInformation(
+                new GPUSelectorSystemBuilder(), [], [], 4, 4, 4
+            );
+        }
+
         public override List<SystemInformation> GetSubSystemInfo()
         {
             var keyboardInfo = _keyboardInfo();
             var screenCaptureInfo = _screenCaptureInfo();
             var uiHandlerInfo = _uiHandlerSystemInfo();
-            var configInfo = _configInfo([keyboardInfo, screenCaptureInfo, uiHandlerInfo]);
-            return [configInfo, keyboardInfo, screenCaptureInfo, uiHandlerInfo];
+            var gpuSelectorInfo = _gpuSelectorInfo();
+            var configInfo = _configInfo(
+                [
+                    keyboardInfo,
+                    screenCaptureInfo,
+                    uiHandlerInfo
+                ]
+            );
+            return [
+                configInfo,
+                keyboardInfo,
+                screenCaptureInfo,
+                gpuSelectorInfo,
+                uiHandlerInfo
+            ];
         }
     }
 
