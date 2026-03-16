@@ -1,12 +1,10 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Macro.SubSystems;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
-using static System.Collections.Specialized.BitVector32;
 
 
 namespace MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests

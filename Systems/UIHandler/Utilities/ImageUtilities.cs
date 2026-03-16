@@ -24,8 +24,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         {
             var cropX = Convert.ToInt32(Math.Max(0, Math.Min(crop.X, imageSharpImage.Width - 1)));
             var cropY = Convert.ToInt32(Math.Max(0, Math.Min(crop.Y, imageSharpImage.Height - 1)));
-            var cropWidth = Convert.ToInt32(Math.Min(crop.Width, imageSharpImage.Width - crop.X));
-            var cropHeight = Convert.ToInt32(Math.Min(crop.Height, imageSharpImage.Height - crop.Y));
+            var cropWidth = Convert.ToInt32(Math.Max(1, Math.Min(crop.Width, imageSharpImage.Width - crop.X)));
+            var cropHeight = Convert.ToInt32(Math.Max(1, Math.Min(crop.Height, imageSharpImage.Height - crop.Y)));
             var cropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
             return imageSharpImage.Clone(x => x.Crop(cropRect));
         }

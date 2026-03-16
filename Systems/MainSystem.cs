@@ -1,7 +1,9 @@
 ﻿using MaplestoryBotNet.Systems.Configuration;
+using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.GPUSelector;
 using MaplestoryBotNet.Systems.Keyboard;
 using MaplestoryBotNet.Systems.ScreenCapture;
+using MaplestoryBotNet.Systems.ScreenProcessing;
 using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
@@ -112,9 +114,14 @@ namespace MaplestoryBotNet.Systems
     {
         private AbstractSystem _mainSubSystem;
 
-        private bool _mainSubSystemStarted;
+        private volatile bool _mainSubSystemStarted;
 
-        private ReaderWriterLockSlim _mainSubSystemStartedLock;
+        private bool __mainSubSystemStarted
+        {
+            set => _mainSubSystemStarted = value;
+
+            get => _mainSubSystemStarted;
+        }
 
         public MainSubSystemThread(
             AbstractSystem mainSubSystem,
@@ -123,22 +130,13 @@ namespace MaplestoryBotNet.Systems
         {
             _mainSubSystem = mainSubSystem;
             _mainSubSystemStarted = false;
-            _mainSubSystemStartedLock = new ReaderWriterLockSlim();
         }
 
         public override void ThreadLoop()
         {
             _mainSubSystem.Initialize();
             _mainSubSystem.Start();
-            try
-            {
-                _mainSubSystemStartedLock.EnterWriteLock();
-                _mainSubSystemStarted = true;
-            }
-            finally
-            {
-                _mainSubSystemStartedLock.ExitWriteLock();
-            }
+            __mainSubSystemStarted = true;
             while (_runningState.IsRunning())
             {
                 _mainSubSystem.Update();
@@ -152,38 +150,37 @@ namespace MaplestoryBotNet.Systems
 
         public override object? State()
         {
-            try
-            {
-                _mainSubSystemStartedLock.EnterReadLock();
-                return _mainSubSystemStarted;
-            }
-            finally
-            {
-                _mainSubSystemStartedLock.ExitReadLock();
-            }
+            return __mainSubSystemStarted;
         }
     }
 
 
     public class MainSubSystemInfoList : AbstractSubSystemInfoList
     {
-        private SystemInformation _keyboardInfo()
+        private SystemInformation _configInfo(List<SystemInformation> dependencies)
         {
             return new SystemInformation(
-                new KeyboardSystemBuilder(), [], [], 2, 2, 2
+                new ConfigurationSystemBuilder(),
+                dependencies,
+                [],
+                0,
+                0,
+                0
             );
         }
 
         private SystemInformation _screenCaptureInfo()
         {
-            var semaphore = new SemaphoreSlim(0, 3);
+            var semaphore = new SemaphoreSlim(0, 5);
             return new SystemInformation(
                 new GameScreenCaptureSystemBuilder(),
                 [],
                 [
                     new NullScreenCaptureSubscriber(semaphore),
                     new GameScreenCaptureSubscriber(semaphore),
-                    new GameScreenCaptureMinimapSubscriber(semaphore)
+                    new GameScreenCaptureMinimapSubscriber(semaphore),
+                    new GameMinimapProcessingSubscriber(semaphore, MapIconInfo.Character),
+                    new GameMinimapProcessingSubscriber(semaphore, MapIconInfo.Rune)
                 ],
                 1,
                 1,
@@ -191,24 +188,51 @@ namespace MaplestoryBotNet.Systems
             );
         }
 
-        private SystemInformation _configInfo(List<SystemInformation> dependencies)
+        private SystemInformation _keyboardInfo()
         {
             return new SystemInformation(
-                new ConfigurationSystemBuilder(), dependencies, [], 0, 0, 0
+                new KeyboardSystemBuilder(),
+                [],
+                [],
+                2,
+                2,
+                2
             );
         }
 
         private SystemInformation _uiHandlerSystemInfo()
         {
             return new SystemInformation(
-                new UIHandlerSystemBuilder(), [], [], 3, 3, 3
+                new UIHandlerSystemBuilder(),
+                [],
+                [],
+                3,
+                3,
+                3
             );
         }
 
         private SystemInformation _gpuSelectorInfo()
         {
             return new SystemInformation(
-                new GPUSelectorSystemBuilder(), [], [], 4, 4, 4
+                new GPUSelectorSystemBuilder(),
+                [],
+                [],
+                4,
+                4,
+                4
+            );
+        }
+
+        private SystemInformation _screenProcessingInfo()
+        {
+            return new SystemInformation(
+                new ScreenProcessingSystemBuilder(),
+                [],
+                [],
+                5,
+                5,
+                5
             );
         }
 
@@ -218,11 +242,13 @@ namespace MaplestoryBotNet.Systems
             var screenCaptureInfo = _screenCaptureInfo();
             var uiHandlerInfo = _uiHandlerSystemInfo();
             var gpuSelectorInfo = _gpuSelectorInfo();
+            var screenProcessingInfo = _screenProcessingInfo();
             var configInfo = _configInfo(
                 [
                     keyboardInfo,
                     screenCaptureInfo,
-                    uiHandlerInfo
+                    uiHandlerInfo,
+                    screenProcessingInfo
                 ]
             );
             return [
@@ -230,7 +256,8 @@ namespace MaplestoryBotNet.Systems
                 keyboardInfo,
                 screenCaptureInfo,
                 gpuSelectorInfo,
-                uiHandlerInfo
+                uiHandlerInfo,
+                screenProcessingInfo
             ];
         }
     }
@@ -372,6 +399,14 @@ namespace MaplestoryBotNet.Systems
             _uiHandlers = uiHandlers;
         }
 
+        private Action<SystemInjectType, object> _injectAction(AbstractSystem mainSystem)
+        {
+            return (injectAction, injectObject) =>
+            {
+                mainSystem.Inject(injectAction, injectObject);
+            };
+        }
+
         public override void Synchronize()
         {
             var mainSystem = _mainApplication.System();
@@ -392,6 +427,7 @@ namespace MaplestoryBotNet.Systems
             }
             mainSystem.Inject(SystemInjectType.ConfigurationUpdate, 0);
             mainSystem.Inject(SystemInjectType.MapModel, new MapModel());
+            mainSystem.Inject(SystemInjectType.InjectAction, _injectAction(mainSystem));
         }
     }
 

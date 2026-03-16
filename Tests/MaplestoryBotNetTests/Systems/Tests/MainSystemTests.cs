@@ -445,7 +445,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var subSystemInfoList = new MainSubSystemInfoList();
             var subSystemInfo = subSystemInfoList.GetSubSystemInfo();
-            Debug.Assert(subSystemInfo.Count == 5);
+            Debug.Assert(subSystemInfo.Count == 6);
         }
 
         /**
@@ -505,7 +505,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
                 info => info.SystemBuilder is ConfigurationSystemBuilder
             );
             Debug.Assert(configInfo != null);
-            Debug.Assert(configInfo.BuildDependencies.Count == 3);
+            Debug.Assert(configInfo.BuildDependencies.Count == 4);
             Debug.Assert(
                 configInfo.BuildDependencies.Any(
                     dep => dep.SystemBuilder is GameScreenCaptureSystemBuilder
@@ -851,7 +851,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var mainApplicationInitializer = _fixture();
             mainApplicationInitializer.Initialize();
-            Debug.Assert(_mainSystem.InjectCalls == 5);
+            Debug.Assert(_mainSystem.InjectCalls == 6);
             Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_windowViewUpdaterActionHandler) != -1);
             Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_windowViewCheckboxActionHandler) != -1);
             Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_splashScreenCompleteActionHandler) != -1);

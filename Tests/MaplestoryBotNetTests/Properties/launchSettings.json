@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MaplestoryBotNetTests": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

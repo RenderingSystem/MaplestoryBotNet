@@ -1,8 +1,9 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
-using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
+using MaplestoryBotNet.ThreadingUtils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System.Drawing;
 
 
 namespace MaplestoryBotNet.Systems.ScreenCapture
@@ -18,35 +19,23 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
 
     public class GameScreenCaptureStore : AbstractScreenCaptureStore
     {
-        private object _imageLockObject = new object();
-
-        private Image<Bgra32>? _image = null;
+        private volatile Image<Bgra32>? _image = null;
 
         public override void SetLatest(Image<Bgra32> image)
         {
-            lock (_imageLockObject)
-            {
-                _image = image;
-            }
+            _image = image;
         }
 
         public override Image<Bgra32>? GetLatest()
         {
-            Image<Bgra32>? image = null;
-            lock (_imageLockObject)
-            {
-                image = _image;
-            }
-            return image;
+            return _image;
         }
     }
 
 
     public class GameScreenCaptureStoreThread : AbstractThread
     {
-        private string _processName = "";
-
-        private ReaderWriterLockSlim _processNameLock;
+        private volatile string _processName = "";
 
         private AbstractScreenCaptureOrchestrator _orchestrator;
 
@@ -54,30 +43,9 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
 
         protected string ProcessName
         {
-            get
-            {
-                try
-                {
-                    _processNameLock.EnterReadLock();
-                    return _processName;
-                }
-                finally
-                {
-                    _processNameLock.ExitReadLock();
-                }
-            }
-            set
-            {
-                try
-                {
-                    _processNameLock.EnterWriteLock();
-                    _processName = value;
-                }
-                finally
-                {
-                    _processNameLock.ExitWriteLock();
-                }
-            }
+            get => _processName;
+
+            set => _processName = value;
         }
 
         public GameScreenCaptureStoreThread(
@@ -87,7 +55,6 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         ) : base(runningState)
         {
             _processName = "";
-            _processNameLock = new ReaderWriterLockSlim();
             _orchestrator = orchestrator;
             _store = store;
         }
@@ -191,47 +158,16 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
     }
 
 
-    public abstract class AbstractScreenCapturePublisherCountDown
-    {
-        public abstract void SetCountDown(int countDown);
-
-        public abstract void WaitCountDown();
-
-        public abstract void CountDown();
-    }
-
-
-    public class GameScreenCapturePublisherCountDown : AbstractScreenCapturePublisherCountDown
-    {
-        CountdownEvent _countDownEvent = new CountdownEvent(1);
-
-        public override void SetCountDown(int countDown)
-        {
-            _countDownEvent = new CountdownEvent(countDown);
-        }
-
-        public override void WaitCountDown()
-        {
-            _countDownEvent.Wait();
-        }
-
-        public override void CountDown()
-        {
-            _countDownEvent.Signal();
-        }
-    }
-
-
     public class GameScreenCapturePublisher : AbstractScreenCapturePublisher
     {
         private List<AbstractScreenCaptureSubscriber> _subscribers = [];
 
         
-        private AbstractScreenCapturePublisherCountDown _countDown;
+        private AbstractCountDown _countDown;
 
         public GameScreenCapturePublisher(
             List<AbstractScreenCaptureSubscriber> subscribers,
-            AbstractScreenCapturePublisherCountDown countDown
+            AbstractCountDown countDown
         )
         {
             _subscribers = subscribers;
@@ -269,36 +205,13 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
 
         private bool _imageChanged;
 
-        private AbstractWindowStateModifier? _windowViewCheckbox;
-
-        private ReaderWriterLockSlim _windowViewCheckboxLock;
+        private volatile AbstractWindowStateModifier? _windowViewCheckbox;
 
         private AbstractWindowStateModifier? WindowViewCheckbox
         {
-            get
-            {
-                try
-                {
-                    _windowViewCheckboxLock.EnterReadLock();
-                    return _windowViewCheckbox;
-                }
-                finally
-                {
-                    _windowViewCheckboxLock.ExitReadLock();
-                }
-            }
-            set
-            {
-                try
-                {
-                    _windowViewCheckboxLock.EnterWriteLock();
-                    _windowViewCheckbox = value;
-                }
-                finally
-                {
-                    _windowViewCheckboxLock.ExitWriteLock();
-                }
-            }
+            get => _windowViewCheckbox;
+
+            set => _windowViewCheckbox = value;
         }
 
         public GameScreenCapturePublisherThread(
@@ -312,7 +225,6 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             _latestImage = null;
             _imageChanged = false;
             _windowViewCheckbox = null;
-            _windowViewCheckboxLock = new ReaderWriterLockSlim();
         }
 
         private void _update()
@@ -443,30 +355,25 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
 
     public class GameScreenCaptureSubscriber : AbstractScreenCaptureSubscriber
     {
-        AbstractWindowStateModifier? _viewModifier;
+        private volatile AbstractWindowStateModifier? __viewModifier;
 
-        ReaderWriterLockSlim _viewModifierLock;
+        private AbstractWindowStateModifier? _viewModifier
+        {
+            set => __viewModifier = value;
+
+            get => __viewModifier;
+        }
 
         public GameScreenCaptureSubscriber(
             SemaphoreSlim semaphore
         ) : base(semaphore)
         {
             _viewModifier = null;
-            _viewModifierLock = new ReaderWriterLockSlim();
         }
 
         public override void ProcessImage()
         {
-            AbstractWindowStateModifier? viewModifier = null;
-            try
-            {
-                _viewModifierLock.EnterReadLock();
-                viewModifier = _viewModifier;
-            }
-            finally
-            {
-                _viewModifierLock.ExitReadLock();
-            }
+            AbstractWindowStateModifier? viewModifier = _viewModifier;
             if (viewModifier != null)
             {
                 viewModifier.Modify(_image);
@@ -480,15 +387,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
                 && data is WindowViewUpdaterActionHandler viewModifier
             )
             {
-                try
-                {
-                    _viewModifierLock.EnterWriteLock();
-                    _viewModifier = viewModifier.Modifier();
-                }
-                finally
-                {
-                    _viewModifierLock.ExitWriteLock();
-                }
+                _viewModifier = viewModifier.Modifier();
             }
         }
     }
@@ -721,7 +620,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         )
         {
             return new GameScreenCapturePublisher(
-                subscribers, new GameScreenCapturePublisherCountDown()
+                subscribers, new ThreadCountDown()
             );
         }
 
@@ -762,9 +661,10 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         public override AbstractSystemBuilder WithArg(object arg)
         {
             if (arg is AbstractScreenCaptureSubscriber)
+            {
                 _subscribers.Add((AbstractScreenCaptureSubscriber)arg);
+            }
             return this;
         }
     }
-
 }

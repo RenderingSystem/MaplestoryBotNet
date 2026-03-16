@@ -23,10 +23,6 @@ namespace ArrayFireNCCTests {
 
         void _bitmap_fixture(UINT32* test_bitmap);
 
-        af::array _image_mask_fixture(void);
-
-        af::array _image_maskless_fixture(void);
-
         float _masked_sum(float* bitmap, float* mask, int count);
 
     public:
@@ -37,20 +33,10 @@ namespace ArrayFireNCCTests {
          * @brief Tests bitmap conversion to zero-mean grayscale without masking.
          *
          * Verifies that the converter correctly transforms a color bitmap into a zero-mean grayscale
-         * representation when no mask is applied. The test checks that pixel values are properly
-         * normalized and centered around zero.
+         * representation.
          */
-        void test_convert_with_no_mask(void);
+        void test_convert(void);
 
-
-        /**
-         * @brief Tests bitmap conversion to zero-mean grayscale with masking.
-         *
-         * Verifies that the converter correctly applies a mask during the conversion process, 
-         * producing different zero-mean grayscale values compared to the unmasked version. The
-         * test ensures the mask properly influences the conversion result.
-         */
-        void test_convert_with_mask(void);
 
     };
 
@@ -188,7 +174,12 @@ namespace ArrayFireNCCTests {
 
     private:
 
-        bool _in_matches(int x, int y, List<Tuple<int, int>^>^ matches);
+        bool _in_matches(
+            int x,
+            int y,
+            float confidence,
+            List<Tuple<int, int, float>^>^ matches
+        );
 
     public:
 
@@ -251,7 +242,6 @@ namespace ArrayFireNCCTests {
          * - Confirms NCC handles even-sized templates correctly.
          */
         void test_masked_perfect_even_match(void);
-
     };
 
 
@@ -321,20 +311,20 @@ namespace ArrayFireNCCTests {
 
         Bitmap^ _image_fixture(void);
 
-        Bitmap^ _template_fixture(void);
+        List<Bitmap^>^ _template_fixture(void);
 
         AbstractBitmapTemplateMatcher^ _matcher_fixture(void);
 
         bool _point_in_matches(
-            List<Tuple<int, int, int, int>^>^ matches, int x, int y
+            List<Tuple<int, int, int, int, float>^>^ matches, int x, int y
         );
 
         bool _matches_lt_threshold_area(
-            List<Tuple<int, int, int, int>^>^ matches, int area
+            List<Tuple<int, int, int, int, float>^>^ matches, int area
         );
 
         bool _matches_gt_threshold_area(
-            List<Tuple<int, int, int, int>^>^ matches, int area
+            List<Tuple<int, int, int, int, float>^>^ matches, int area
         );
 
     public:

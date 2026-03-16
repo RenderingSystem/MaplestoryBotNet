@@ -183,6 +183,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 MapAreaTop = (int)mapArea.Top,
                 MapAreaRight = (int)mapArea.Right,
                 MapAreaBottom = (int)mapArea.Bottom,
+                CharacterThreshold = mapModel.GetTemplateThreshold(MapIconInfo.Character),
+                RuneThreshold = mapModel.GetTemplateThreshold(MapIconInfo.Rune),
                 MapPoints = mapModel.Points().Select(
                     minimapPoint => (
                         (ConfigurationMinimapPoint)
@@ -205,6 +207,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 Math.Min(configurationMapModel.MapAreaTop, configurationMapModel.MapAreaBottom),
                 Math.Max(configurationMapModel.MapAreaLeft, configurationMapModel.MapAreaRight),
                 Math.Max(configurationMapModel.MapAreaTop, configurationMapModel.MapAreaBottom)
+            );
+            mapModel.SetTemplateThreshold(
+                MapIconInfo.Character,
+                configurationMapModel.CharacterThreshold
+            );
+            mapModel.SetTemplateThreshold(
+                MapIconInfo.Rune,
+                configurationMapModel.RuneThreshold
             );
             foreach (
                 var minimapPoint in configurationMapModel.MapPoints.Select(

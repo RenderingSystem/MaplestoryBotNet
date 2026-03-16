@@ -11,18 +11,18 @@
     WindowStartupLocation="CenterScreen"
     Title="Map"
     Width="600"
-    Height="400"
-    MaxHeight="400"
+    Height="550"
+    MaxHeight="550"
     MaxWidth="600"
-    MinHeight="400"
+    MinHeight="550"
     MinWidth="600"
     Background="Black"
 >
     <Viewbox Stretch="Fill">
-        <Grid Background="Black" Height="380" Width="575" >
+        <Grid Background="Black" Height="480" Width="575" >
             <Border 
                 Width="400"
-                Height="350"
+                Height="400"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 Background="Black"
@@ -31,14 +31,14 @@
             />
             <Grid
                 Width="400"
-                Height="350"
+                Height="400"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
             >
                 <Image
                     x:Name="MapImage"
                     Width="400"
-                    Height="350"
+                    Height="400"
                     HorizontalAlignment="Center" 
                     VerticalAlignment="Center" 
                 />
@@ -47,7 +47,7 @@
             <Canvas
                 x:Name="MapCanvas"
                 Width="400"
-                Height="350"
+                Height="400"
                 Background="Transparent"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
@@ -59,7 +59,7 @@
                 FontFamily="Courier New"
                 Content="Add point"
                 HorizontalAlignment="Left"
-                Margin="0,355,0,0"
+                Margin="0,405,0,0"
                 Padding="2,2,2,2"
                 VerticalAlignment="Top"
                 Foreground="White"
@@ -73,7 +73,7 @@
                 FontFamily="Courier New"
                 Content="Remove point"
                 HorizontalAlignment="Left"
-                Margin="135,355,0,0"
+                Margin="134,405,0,0"
                 Padding="2,2,2,2"
                 VerticalAlignment="Top"
                 Foreground="White"
@@ -87,7 +87,7 @@
                 FontFamily="Courier New"
                 Content="Edit point"
                 HorizontalAlignment="Left"
-                Margin="270,355,0,0"
+                Margin="269,405,0,0"
                 Padding="2,2,2,2"
                 VerticalAlignment="Top"
                 IsEnabled="False"
@@ -136,28 +136,28 @@
                 FontFamily="Courier New"
                 Content="Save"
                 HorizontalAlignment="Left"
-                Margin="412,330,0,0"
+                Margin="120,444,0,0"
                 Padding="2,2,2,2"
                 VerticalAlignment="Top"
                 Foreground="White"
                 Background="Black"
                 BorderBrush="White"
-                Width="155"
-                IsTabStop="False"
+                Width="160"
+                IsTabStop="False" Height="27"
             />
             <Button
                 x:Name="LoadButton"
                 FontFamily="Courier New"
                 Content="Load"
                 HorizontalAlignment="Left"
-                Margin="412,355,0,0"
+                Margin="298,444,0,0"
                 Padding="2,2,2,2"
                 VerticalAlignment="Top"
                 Foreground="White"
                 Background="Black"
                 BorderBrush="White"
-                Width="155"
-                IsTabStop="False"
+                Width="160"
+                IsTabStop="False" Height="26"
             />
             <Label
                 Content="Point selected:"
@@ -232,7 +232,7 @@
             />
             <TextBox
                 x:Name="MapAreaBottomTextBox"
-                Margin="464,96,10,265"
+                Margin="464,96,10,365"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -240,7 +240,7 @@
             />
             <TextBox
                 x:Name="MapAreaRightTextBox"
-                Margin="464,75,10,285"
+                Margin="464,75,10,385"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -248,7 +248,7 @@
             />
             <TextBox
                 x:Name="MapAreaTopTextBox"
-                Margin="464,53,10,307"
+                Margin="464,53,10,407"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -256,7 +256,7 @@
             />
             <TextBox
                 x:Name="MapAreaLeftTextBox"
-                Margin="464,31,10,328"
+                Margin="464,31,10,428"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -264,7 +264,7 @@
             />
             <TextBox
                 x:Name="LocationTextBoxX"
-                Margin="464,188,10,173"
+                Margin="464,187,10,272"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -282,7 +282,7 @@
             />
             <TextBox
                 x:Name="LocationTextBoxY"
-                Margin="464,208,10,153"
+                Margin="464,209,10,251"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -292,7 +292,7 @@
                 Content="Y:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="412,207,0,0"
+                Margin="412,208,0,0"
                 VerticalAlignment="Top"
                 Width="24"
                 FontSize="10"
@@ -300,7 +300,7 @@
             />
             <TextBox
                 x:Name="LabelTextBox"
-                Margin="464,143,10,218"
+                Margin="464,143,10,317"
                 Background="Black"
                 Foreground="LightYellow"
                 FontFamily="Courier New"
@@ -330,7 +330,7 @@
             />
             <TextBox
                 x:Name="CharacterTextBoxX"
-                Margin="464,248,10,113"
+                Margin="464,247,10,213"
                 Background="Black"
                 Foreground="LightYellow"
                 FontFamily="Courier New"
@@ -349,7 +349,7 @@
             />
             <TextBox
                 x:Name="CharacterTextBoxY"
-                Margin="464,268,10,93"
+                Margin="464,268,10,192"
                 Background="Black"
                 Foreground="LightYellow"
                 FontFamily="Courier New"
@@ -365,6 +365,88 @@
                 Width="24"
                 FontSize="10"
                 Foreground="White"
+            />
+            <Label
+                Content="Rune:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="405,311,0,0"
+                VerticalAlignment="Top"
+                Width="69"
+                Foreground="White"
+                FontSize="10"
+            />
+            <TextBox
+                x:Name="RuneTextBoxX"
+                Margin="464,330,10,130"
+                Background="Black"
+                Foreground="Violet"
+                FontFamily="Courier New"
+                TabIndex="4"
+                IsReadOnly="True"
+            />
+            <Label
+                Content="X:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="412,330,0,0"
+                VerticalAlignment="Top"
+                Width="24"
+                FontSize="10"
+                Foreground="White"
+            />
+            <TextBox
+                x:Name="RuneTextBoxY"
+                Margin="464,352,10,108"
+                Background="Black"
+                Foreground="Violet"
+                FontFamily="Courier New"
+                TabIndex="4"
+                IsReadOnly="True"
+            />
+            <Label
+                Content="Y:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="412,350,0,0"
+                VerticalAlignment="Top"
+                Width="24"
+                FontSize="10"
+                Foreground="White"
+            />
+            <Label Content="Limit:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="412,288,0,0"
+                VerticalAlignment="Top"
+                Width="45"
+                FontSize="10"
+                Foreground="White"
+          />
+            <TextBox
+                x:Name="CharacterThreshold"
+                Margin="464,289,10,171"
+                Background="Black"
+                Foreground="Lime"
+                FontFamily="Courier New"
+                TabIndex="4"
+            />
+            <Label Content="Limit:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="412,372,0,0"
+                VerticalAlignment="Top"
+                Width="45"
+                FontSize="10"
+                Foreground="White"
+            />
+            <TextBox
+                x:Name="RuneThreshold"
+                Margin="464,373,10,87"
+                Background="Black"
+                Foreground="Lime"
+                FontFamily="Courier New"
+                TabIndex="4"
             />
         </Grid>
     </Viewbox>

@@ -380,7 +380,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
 
         private Image<Bgra32> _image = new Image<Bgra32>(1, 1);
 
-        private MockScreenCapturePublisherCountDown _countDown = new MockScreenCapturePublisherCountDown();
+        private MockCountDown _countDown = new MockCountDown();
 
         private List<string> _callOrder = [];
 
@@ -402,7 +402,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
                 new MockScreenCaptureSubscriber(_semaphore)
             ];
             _image = new Image<Bgra32>(1,1);
-            _countDown = new MockScreenCapturePublisherCountDown();
+            _countDown = new MockCountDown();
             _setupSubscribers();
             _setupCallOrder();
             return new GameScreenCapturePublisher(_subscribers, _countDown);

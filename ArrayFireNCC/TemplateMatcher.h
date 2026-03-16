@@ -29,7 +29,7 @@ namespace ArrayFireNCC {
 
     public:
 
-        virtual List<Tuple<int, int, int, int>^>^ calculate(
+        virtual List<Tuple<int, int, int, int, float>^>^ calculate(
             UINT32* image,
             int image_width,
             int image_height,
@@ -37,10 +37,12 @@ namespace ArrayFireNCC {
             float threshold
         ) abstract;
 
-        virtual List<Tuple<int, int, int, int>^>^ calculate(
+        virtual List<Tuple<int, int, int, int, float>^>^ calculate(
             Bitmap^ bitmap,
             float threshold
         ) abstract;
+
+        virtual List<Bitmap^>^ get_templates() abstract;
 
     };
 
@@ -49,8 +51,8 @@ namespace ArrayFireNCC {
 
     public:
 
-        virtual AbstractBitmapTemplateMatcherBuilder^ with_template(
-            Bitmap^ image
+        virtual AbstractBitmapTemplateMatcherBuilder^ with_templates(
+            List<Bitmap^>^ templates
         ) abstract;
 
         virtual AbstractBitmapTemplateMatcher^ build(void) abstract;
@@ -64,7 +66,8 @@ namespace ArrayFireNCC {
 
         virtual void save(
             const af::array& arr,
-            const std::string& filename
+            const std::string& filename,
+            bool normalize
         ) abstract;
 
     };
@@ -78,14 +81,10 @@ namespace ArrayFireNCC {
             UINT32* image,
             int image_width,
             int image_height,
-            int image_stride,
-            af::array& image_mask
+            int image_stride
         ) abstract;
 
-        virtual af::array convert(
-            Bitmap^ bitmap,
-            af::array& image_mask
-        ) abstract;
+        virtual af::array convert(Bitmap^ bitmap) abstract;
     };
 
 
@@ -135,7 +134,7 @@ namespace ArrayFireNCC {
 
     public:
 
-        virtual List<Tuple<int, int>^>^ detect(
+        virtual List<Tuple<int, int, float>^>^ detect(
             af::array& ncc_map,
             float threshold
         ) abstract;
@@ -156,8 +155,8 @@ namespace ArrayFireNCC {
 
     public:
 
-        virtual List<Tuple<int, int, int, int>^>^ merge(
-            List<Tuple<int, int, int, int>^>^ rectangles,
+        virtual List<Tuple<int, int, int, int, float>^>^ merge(
+            List<Tuple<int, int, int, int, float>^>^ rectangles,
             float merge_threshold
         ) abstract;
 
@@ -170,7 +169,8 @@ namespace ArrayFireNCC {
 
         virtual void save(
             const af::array& arr,
-            const std::string& filename
+            const std::string& filename,
+            bool normalize
         ) override;
 
     };
@@ -184,14 +184,10 @@ namespace ArrayFireNCC {
             UINT32* image,
             int image_width,
             int image_height,
-            int image_stride,
-            af::array& image_mask
+            int image_stride
         ) override;
 
-        virtual af::array convert(
-            Bitmap^ bitmap,
-            af::array& image_mask
-        ) override;
+        virtual af::array convert(Bitmap^ bitmap) override;
     };
 
 
@@ -241,7 +237,7 @@ namespace ArrayFireNCC {
 
     public:
 
-        virtual List<Tuple<int, int>^>^ detect(af::array& ncc_map, float threshold) override;
+        virtual List<Tuple<int, int, float>^>^ detect(af::array& ncc_map, float threshold) override;
 
     };
 
@@ -257,6 +253,12 @@ namespace ArrayFireNCC {
         af::array _compute_cross_correlation(
             const af::array& image,
             const af::array& templ
+        );
+
+        af::array NormalizedCrossCorrelation::_compute_image_sq_dev(
+            const af::array& masked_image,
+            const af::array& templ_mask,
+            const af::array& valid_count
         );
 
     public:
@@ -299,16 +301,21 @@ namespace ArrayFireNCC {
 
     private:
 
-        Tuple<int, int, int, int>^ _compute_merge_area(
-            Tuple<int, int, int, int>^ rect_1,
-            Tuple<int, int, int, int>^ rect_2,
+        Tuple<int, int, int, int, float>^ _compute_merge_area(
+            Tuple<int, int, int, int, float>^ rect_1,
+            Tuple<int, int, int, int, float>^ rect_2,
             float merge_threshold
+        );
+
+        static int _compareByConfidenceDescending(
+            Tuple<int, int, int, int, float>^ a,
+            Tuple<int, int, int, int, float>^ b
         );
 
     public:
 
-        virtual List<Tuple<int, int, int, int>^>^ merge(
-            List<Tuple<int, int, int, int>^>^ rectangles,
+        virtual List<Tuple<int, int, int, int, float>^>^ merge(
+            List<Tuple<int, int, int, int, float>^>^ rectangles,
             float merge_threshold
         ) override;
 
@@ -319,7 +326,7 @@ namespace ArrayFireNCC {
 
     private:
 
-        Bitmap^ _templates;
+        List<Bitmap^>^ _templates;
 
         AbstractNormalizedCrossCorrelation^ _matcher;
 
@@ -336,7 +343,7 @@ namespace ArrayFireNCC {
             af::array& af_image_mask
         );
 
-        List<Tuple<int, int, int, int>^>^ _calculate_matches(
+        List<Tuple<int, int, int, int, float>^>^ _calculate_matches(
             array<af::array*>^ ncc_maps,
             float threshold
         );
@@ -348,7 +355,7 @@ namespace ArrayFireNCC {
     public:
 
         BitmapTemplateMatcher(
-            Bitmap^ templates,
+            List<Bitmap^>^ templates,
             AbstractNormalizedCrossCorrelation^ matcher,
             AbstractBitmapToGrayscaleConverter^ grayscale,
             AbstractBitmapToMaskConverter^ mask,
@@ -357,7 +364,7 @@ namespace ArrayFireNCC {
 
         ~BitmapTemplateMatcher(void);
 
-        virtual List<Tuple<int, int, int, int>^>^ calculate(
+        virtual List<Tuple<int, int, int, int, float>^>^ calculate(
             UINT32* image,
             int image_width,
             int image_height,
@@ -365,10 +372,12 @@ namespace ArrayFireNCC {
             float threshold
         ) override;
 
-        virtual List<Tuple<int, int, int, int>^>^ calculate(
+        virtual List<Tuple<int, int, int, int, float>^>^ calculate(
             Bitmap^ bitmap,
             float threshold
         ) override;
+
+        virtual List<Bitmap^>^ get_templates() override;
 
     };
 
@@ -377,18 +386,18 @@ namespace ArrayFireNCC {
 
     private:
 
-        Bitmap^ _image;
+        List<Bitmap^>^ _templates;
 
     private:
 
-        Bitmap^ _deep_clone_gif(void);
+        List<Bitmap^>^ _deep_clone_templates(void);
 
     public:
 
         BitmapTemplateMatcherBuilder();
 
-        virtual AbstractBitmapTemplateMatcherBuilder^ with_template(
-            Bitmap^ image
+        virtual AbstractBitmapTemplateMatcherBuilder^ with_templates(
+            List<Bitmap^>^ templates
         ) override;
 
         virtual AbstractBitmapTemplateMatcher^ build(void) override;

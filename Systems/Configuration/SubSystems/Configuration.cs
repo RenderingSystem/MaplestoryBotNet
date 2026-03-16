@@ -7,6 +7,16 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace MaplestoryBotNet.Systems.Configuration.SubSystems
 {
+    public static class MapIconInfo
+    {
+        public const string Character = "character";
+
+        public const string Rune = "rune";
+
+        public const float DefaultThreshold = 0.6f;
+    }
+
+
     public class Resource : AbstractConfiguration
     {
         [JsonPropertyName("rect")]
@@ -76,10 +86,18 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("image")]
         public string Image { get; set; } = "";
 
+        [JsonPropertyName("check_frequency")]
+        public float Frequency { get; set; } = 0.0f;
+
+        [JsonPropertyName("overlap")]
+        public float Overlap { get; set; } = 0.0f;
+
         public override AbstractConfiguration Copy()
         {
             var mapIcon = new MapIcon();
             mapIcon.Image = new string(Image);
+            mapIcon.Frequency = Frequency;
+            mapIcon.Overlap = Overlap;
             return mapIcon;
         }
     }

@@ -311,11 +311,15 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 {
                     ["character"] = new MapIcon
                     {
-                        Image="some_image_3"
+                        Image="some_image_3",
+                        Frequency=0.12f,
+                        Overlap=0.23f
                     },
                     ["rune"] = new MapIcon
                     {
-                        Image="some_image_4"
+                        Image="some_image_4",
+                        Frequency=0.23f,
+                        Overlap=0.34f
                     }
                 },
                 MacroDirectory="cool_macros",
@@ -416,10 +420,14 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 "ailments_allcure_key": "some_allcure_key",
                 "map_icons": {
                     "character": {
-                        "image": "some_image_3"
+                        "image": "some_image_3",
+                        "check_frequency": 0.12,
+                        "overlap":  0.23
                     },
                     "rune": {
-                        "image": "some_image_4"
+                        "image": "some_image_4",
+                        "check_frequency": 0.23,
+                        "overlap":  0.34
                     }
                 },
                 "macro_directory": "cool_macros",

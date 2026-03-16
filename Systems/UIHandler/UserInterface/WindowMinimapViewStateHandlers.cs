@@ -1,13 +1,17 @@
 ﻿using MaplestoryBotNet.Systems.ScreenCapture;
+using MaplestoryBotNet.Systems.ScreenProcessing.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.ThreadingUtils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Windows;
+using System.Windows.Controls;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 {
-
     public class WindowViewMinimapUpdaterParameters
     {
         public Image<Bgra32>? FullImage;
@@ -26,37 +30,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractSystemWindow _minimapWindow;
 
-        private bool __settingImage;
-
-        private ReaderWriterLockSlim _settingImageLock;
+        private volatile bool __settingImage;
 
         private bool _settingImage
         {
-            set
-            {
-                try
-                {
-                    _settingImageLock.EnterWriteLock();
-                    __settingImage = value;
-                }
-                finally
-                {
-                    _settingImageLock.ExitWriteLock();
-                }
-            }
+            set => __settingImage = value;
 
-            get
-            {
-                try
-                {
-                    _settingImageLock.EnterReadLock();
-                    return __settingImage;
-                }
-                finally
-                {
-                    _settingImageLock.ExitReadLock();
-                }
-            }
+            get => __settingImage;
         }
 
         public WindowViewMinimapUpdater(
@@ -70,7 +50,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _dispatcher = dispatcher;
             _converter = converter;
             _minimapWindow = minimapWindow;
-            _settingImageLock = new ReaderWriterLockSlim();
             _settingImage = false;
         }
 
@@ -82,22 +61,109 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             }
             var croppedImage = _converter.Crop(parameters.FullImage!, parameters.MinimapRect);
             var bitmapSource = _converter.ConvertToBitmap(croppedImage);
-            bitmapSource.Freeze();
-            if (_settingImage)
+            var dispatchLambda = () =>
             {
-                return;
-            }
-            _settingImage = true;
-            _dispatcher.Dispatch(
-                () =>
+                _settingImage = false;
+                if (_minimapWindow.Visible())
                 {
-                    _settingImage = false;
-                    if (_minimapWindow.Visible())
-                    {
-                        _image.Source = bitmapSource;
-                    }
+                    _image.Source = bitmapSource;
                 }
-            );
+            };
+            bitmapSource.Freeze();
+            if (!_settingImage)
+            {
+                _settingImage = true;
+                _dispatcher.Dispatch(dispatchLambda);
+            }
+        }
+    }
+
+
+    public abstract class AbstractImageToCoordinatesConverter
+    {
+        public abstract (int mapX, int mapY) Convert(
+            double imageX,
+            double imageY,
+            double imageWidth,
+            double imageHeight,
+            double coordinateWidth,
+            double coordinateHeight
+        );
+    }
+
+
+    public class ImageToCoordinatesConverter : AbstractImageToCoordinatesConverter
+    {
+        public override (int mapX, int mapY) Convert(
+            double imageX,
+            double imageY,
+            double imageWidth,
+            double imageHeight,
+            double coordinateWidth,
+            double coordinateHeight
+        )
+        {
+            double scaleX = coordinateWidth / imageWidth;
+            double scaleY = coordinateHeight / imageHeight;
+            double scale = Math.Min(scaleX, scaleY);
+            double scaledImageWidth = imageWidth * scale;
+            double scaledImageHeight = imageHeight * scale;
+            double offsetX = (coordinateWidth - scaledImageWidth) / 2;
+            double offsetY = (coordinateHeight - scaledImageHeight) / 2;
+            int mapX = (int)Math.Round(offsetX + (imageX * scale));
+            int mapY = (int)Math.Round(offsetY + (imageY * scale));
+            return (mapX, mapY);
+        }
+    }
+
+
+    public abstract class AbstractPositionUpdater
+    {
+        public abstract void Update(int x, int y, MapModel model, string templateKey);
+    }
+
+
+    public class PositionUpdater : AbstractPositionUpdater
+    {
+        private AbstractImageToCoordinatesConverter _converter;
+
+        private TextBox _textBoxX;
+
+        private TextBox _textBoxY;
+
+        private System.Windows.Controls.Image _mapImage;
+
+        public PositionUpdater(
+            AbstractImageToCoordinatesConverter converter,
+            TextBox textBoxX,
+            TextBox textBoxY,
+            System.Windows.Controls.Image mapImage
+        )
+        {
+            _converter = converter;
+            _textBoxX = textBoxX;
+            _textBoxY = textBoxY;
+            _mapImage = mapImage;
+        }
+
+        public override void Update(
+            int x, int y, MapModel model, string templateKey
+        )
+        {
+            var sourceImage = _mapImage.Source;
+            var (mapX, mapY) = (x >= 0 && y >= 0) ? (
+                _converter.Convert(
+                    x,
+                    y,
+                    sourceImage.Width,
+                    sourceImage.Height,
+                    _mapImage.Width,
+                    _mapImage.Height
+                )
+            ) : (x, y);
+            model.SetTemplatePosition(templateKey, mapX, mapY);
+            _textBoxX.Text = mapX.ToString();
+            _textBoxY.Text = mapY.ToString();
         }
     }
 
@@ -116,6 +182,116 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override AbstractWindowStateModifier Modifier()
         {
             return _viewMinimapUpdater;
+        }
+    }
+
+
+    public class WindowMinimapPositionModifierParameters
+    {
+        public Tuple<int, int> Position = new Tuple<int, int>(0, 0);
+
+        public MapModel Model = new MapModel();
+    }
+
+
+    public class WindowMinimapPositionModifier : AbstractWindowStateModifier
+    {
+        private AbstractDispatcher _dispatcher;
+
+        private AbstractPositionUpdater _positionUpdater;
+
+        private bool _settingImage;
+
+        private string _templateKey;
+
+        public WindowMinimapPositionModifier(
+            AbstractDispatcher dispatcher,
+            AbstractPositionUpdater positionUpdater,
+            string templateKey
+        )
+        {
+            _dispatcher = dispatcher;
+            _positionUpdater = positionUpdater;
+            _templateKey = templateKey;
+            _settingImage = false;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (
+                value is WindowMinimapPositionModifierParameters parameters
+                && !_settingImage
+            )
+            {
+                _settingImage = true;
+                _dispatcher.Dispatch(
+                    () =>
+                    {
+                        _positionUpdater.Update(
+                            parameters.Position.Item1,
+                            parameters.Position.Item2,
+                            parameters.Model,
+                            _templateKey
+                        );
+                        _settingImage = false;
+                    }
+                );
+            }
+        }
+
+        public override object? State(int stateType)
+        {
+            return _templateKey;
+        }
+    }
+
+
+    public class WindowMinimapPositionActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractWindowStateModifier _minimapPositionModifier;
+        public WindowMinimapPositionActionHandler(
+            AbstractWindowStateModifier minimapPositionUpdater
+        )
+        {
+            _minimapPositionModifier = minimapPositionUpdater;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _minimapPositionModifier;
+        }
+    }
+
+
+    public class WindowMinimapPositionActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _minimapPositionActionHandler;
+
+        public WindowMinimapPositionActionHandlerFacade(
+            AbstractDispatcher dispatcher,
+            TextBox textBoxX,
+            TextBox textBoxY,
+            string templateKey,
+            System.Windows.Controls.Image mapImage
+        )
+        {
+            _minimapPositionActionHandler = new WindowMinimapPositionActionHandler(
+                new WindowMinimapPositionModifier(
+                    dispatcher,
+                    new PositionUpdater(
+                        new ImageToCoordinatesConverter(),
+                        textBoxX,
+                        textBoxY,
+                        mapImage
+                    ),
+                    templateKey
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _minimapPositionActionHandler.Modifier();
         }
     }
 
@@ -149,76 +325,26 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class GameScreenCaptureMinimapSubscriber : AbstractScreenCaptureSubscriber
     {
-        private AbstractWindowStateModifier? __viewModifier;
+        private volatile AbstractWindowStateModifier? __viewModifier;
 
-        private ReaderWriterLockSlim _viewModifierLock;
-
-        private MapModel? __mapModel;
-
-        private ReaderWriterLockSlim _mapModelLock;
+        private volatile MapModel? __mapModel;
 
         private AbstractWindowStateModifier? _viewModifier
         {
-            set
-            {
-                try
-                {
-                    _viewModifierLock.EnterWriteLock();
-                    __viewModifier = value;
-                }
-                finally
-                {
-                    _viewModifierLock.ExitWriteLock();
-                }
-            }
+            set => __viewModifier = value;
 
-            get
-            {
-                try
-                {
-                    _viewModifierLock.EnterReadLock();
-                    return __viewModifier;
-                }
-                finally
-                {
-                    _viewModifierLock.ExitReadLock();
-                }
-            }
+            get => __viewModifier;
         }
 
         private MapModel? _mapModel
         {
-            set
-            {
-                try
-                {
-                    _mapModelLock.EnterWriteLock();
-                    __mapModel = value;
-                }
-                finally
-                {
-                    _mapModelLock.ExitWriteLock();
-                }
-            }
+            set => __mapModel = value;
 
-            get
-            {
-                try
-                {
-                    _mapModelLock.EnterReadLock();
-                    return __mapModel;
-                }
-                finally
-                {
-                    _mapModelLock.ExitReadLock();
-                }
-            }
+            get => __mapModel;
         }
 
         public GameScreenCaptureMinimapSubscriber(SemaphoreSlim semaphore) : base(semaphore)
         {
-            _viewModifierLock = new ReaderWriterLockSlim();
-            _mapModelLock = new ReaderWriterLockSlim();
             _viewModifier = null;
             _mapModel = null;
         }
@@ -249,6 +375,118 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 _viewModifier = viewHandler.Modifier();
             }
             if (
+                dataType is SystemInjectType.MapModel
+                && data is MapModel mapModel
+            )
+            {
+                _mapModel = mapModel;
+            }
+        }
+    }
+
+
+    public abstract class AbstractGameMinimapPositionCropper
+    {
+        public abstract Bitmap Crop(Image<Bgra32> fullImage, Rect cropRect);
+    }
+
+
+    public class GameMinimapPositionCropper : AbstractGameMinimapPositionCropper
+    {
+        private AbstractImageSharpConverter _converter;
+
+        public GameMinimapPositionCropper(
+            AbstractImageSharpConverter converter
+        )
+        {
+            _converter = converter;
+        }
+
+        public override Bitmap Crop(Image<Bgra32> fullImage, Rect cropRect)
+        {
+            var croppedImage = _converter.Crop(fullImage, cropRect);
+            var bitmap = new Bitmap(
+                croppedImage.Width,
+                croppedImage.Height,
+                PixelFormat.Format32bppArgb
+            );
+            var bitmapData = bitmap.LockBits(
+                new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                ImageLockMode.WriteOnly,
+                bitmap.PixelFormat
+            );
+            unsafe
+            {
+                var span = new Span<byte>(
+                    bitmapData.Scan0.ToPointer(),
+                    bitmapData.Height * bitmapData.Stride
+                );
+                croppedImage.CopyPixelDataTo(span);
+            }
+            bitmap.UnlockBits(bitmapData);
+            return bitmap;
+        }
+    }
+
+
+    public class GameMinimapProcessingSubscriber : AbstractScreenCaptureSubscriber
+    {
+        protected AbstractGameMinimapPositionCropper _cropper;
+
+        protected volatile MapModel? __mapModel;
+
+        protected volatile AbstractThread? __processorThread;
+
+        private string _templateKey;
+
+        protected AbstractThread? _processorThread
+        {
+            set => __processorThread = value;
+
+            get => __processorThread;
+        }
+
+        protected MapModel? _mapModel
+        {
+            set => __mapModel = value;
+
+            get => __mapModel;
+        }
+
+        public GameMinimapProcessingSubscriber(
+            SemaphoreSlim semaphore,
+            string templateKey
+        ) : base(semaphore)
+        {
+            _templateKey = templateKey;
+            _cropper = new GameMinimapPositionCropper(new ImageSharpConverter());
+            _mapModel = null;
+            _processorThread = null;
+        }
+
+        public override void ProcessImage()
+        {
+            var mapModel = _mapModel;
+            var procesorThread = _processorThread;
+            if (mapModel != null && procesorThread != null)
+            {
+                var bitmap = _cropper.Crop(_image, mapModel.GetMapArea());
+                procesorThread.Inject((SystemInjectType)0x7FFFFFFF, bitmap);
+            }
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (
+                dataType is SystemInjectType.ThreadDependency
+                && data is AbstractThread processorThread
+                && processorThread.State() is GameMinimapProcessorThreadState threadState
+                && threadState.TemplateKey == _templateKey
+            )
+            {
+                _processorThread = processorThread;
+            }
+            else if (
                 dataType is SystemInjectType.MapModel
                 && data is MapModel mapModel
             )

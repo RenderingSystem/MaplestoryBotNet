@@ -55,6 +55,10 @@
       <HintPath>x64\Debug\ArrayFireNCC.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <None Include="C:\Program Files\ArrayFire\v3\lib\*.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </None>
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
@@ -62,6 +66,10 @@
       <HintPath>x64\Release\ArrayFireNCC.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <None Include="C:\Program Files\ArrayFire\v3\lib\*.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -95,7 +103,13 @@
     <None Update="Images\MapIcons\character.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Images\MapIcons\character.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Images\MapIcons\rune.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\MapIcons\rune.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="KeyboardEncoding.json">

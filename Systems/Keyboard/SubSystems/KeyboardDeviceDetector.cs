@@ -59,66 +59,20 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
 
         private KeyboardDeviceContext? _keyboardDevice;
 
-        private ReaderWriterLockSlim _keyboardDeviceLock;
-
-        private AbstractWindowStateModifier? _splashScreenModifier;
-
-        private ReaderWriterLockSlim _splashScreenModifierLock;
+        private volatile AbstractWindowStateModifier? _splashScreenModifier;
 
         protected AbstractWindowStateModifier? SplashScreenModifier
         {
-            get
-            {
-                try
-                {
-                    _splashScreenModifierLock.EnterReadLock();
-                    return _splashScreenModifier;
-                }
-                finally
-                {
-                    _splashScreenModifierLock.ExitReadLock();
-                }
-            }
-            set
-            {
-                try
-                {
-                    _splashScreenModifierLock.EnterWriteLock();
-                    _splashScreenModifier = value;
-                }
-                finally
-                {
-                    _splashScreenModifierLock.ExitWriteLock();
-                }
-            }
+            get => _splashScreenModifier;
+
+            set => _splashScreenModifier = value;
         }
 
         protected KeyboardDeviceContext? KeyboardDeviceContext
         {
-            get
-            {
-                try
-                {
-                    _keyboardDeviceLock.EnterReadLock();
-                    return _keyboardDevice;
-                }
-                finally
-                {
-                    _keyboardDeviceLock.ExitReadLock();
-                }
-            }
-            set
-            {
-                try
-                {
-                    _keyboardDeviceLock.EnterWriteLock();
-                    _keyboardDevice = value;
-                }
-                finally
-                {
-                    _keyboardDeviceLock.ExitWriteLock();
-                }
-            }
+            get => _keyboardDevice;
+
+            set => _keyboardDevice = value;
         }
 
         public KeyboardDeviceDetectorThread(
@@ -128,9 +82,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
         {
             _keyboardDeviceDetector = keyboardDeviceDetector;
             _keyboardDevice = null;
-            _keyboardDeviceLock = new ReaderWriterLockSlim();
             _splashScreenModifier = null;
-            _splashScreenModifierLock = new ReaderWriterLockSlim();
         }
 
         public override void ThreadLoop()

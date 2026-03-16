@@ -39,6 +39,8 @@
     <Compile Include="..\..\Systems\MainSystem.cs" Link="Systems\MainSystem.cs" />
     <Compile Include="..\..\Systems\ScreenCapture\ScreenCaptureSystem.cs" Link="Systems\ScreenCapture\ScreenCaptureSystem.cs" />
     <Compile Include="..\..\Systems\ScreenCapture\SubSystems\ScreenCapture.cs" Link="Systems\ScreenCapture\SubSystems\ScreenCapture.cs" />
+    <Compile Include="..\..\Systems\ScreenProcessing\ScreenProcessingSystem.cs" Link="Systems\ScreenProcessing\ScreenProcessingSystem.cs" />
+    <Compile Include="..\..\Systems\ScreenProcessing\SubSystems\ScreenProcessing.cs" Link="Systems\ScreenProcessing\SubSystems\ScreenProcessing.cs" />
     <Compile Include="..\..\Systems\UIHandler\UIHandlerSystem.cs" Link="Systems\UIHandler\UIHandlerSystem.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\AbstractWindowStateHandlers.cs" Link="Systems\UIHandler\UserInterface\AbstractWindowStateHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowComboBoxScaleHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowComboBoxScaleHandlers.cs" />
@@ -69,8 +71,8 @@
     <Content Include="..\..\Images\Ailments\poison.gif" Link="Images\Ailments\poison.gif" />
     <Content Include="..\..\Images\Ailments\silence.gif" Link="Images\Ailments\silence.gif" />
     <Content Include="..\..\Images\Ailments\weakness.gif" Link="Images\Ailments\weakness.gif" />
-    <Content Include="..\..\Images\MapIcons\character.gif" Link="Images\MapIcons\character.gif" />
-    <Content Include="..\..\Images\MapIcons\rune.gif" Link="Images\MapIcons\rune.gif" />
+    <Content Include="..\..\Images\MapIcons\character.png" Link="Images\MapIcons\character.png" />
+    <Content Include="..\..\Images\MapIcons\rune.png" Link="Images\MapIcons\rune.png" />
   </ItemGroup>
 	
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
@@ -78,6 +80,10 @@
       <HintPath>..\..\x64\Debug\ArrayFireNCC.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <None Include="C:\Program Files\ArrayFire\v3\lib\*.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </None>
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
@@ -85,6 +91,10 @@
       <HintPath>..\..\x64\Release\ArrayFireNCC.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <None Include="C:\Program Files\ArrayFire\v3\lib\*.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </None>
   </ItemGroup>
 	
   <ItemGroup>
@@ -106,6 +116,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="..\..\ArrayFireNCC\TemplateMatcherTestTemplate.gif" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
     <None Update="Systems\Configuration\Tests\TestData\ConfigurationImagesTestData1.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -135,11 +153,20 @@
     <Folder Include="Interception.net\Interception\WinApi\Kernel32\" />
     <Folder Include="Systems\Configuration\SubSystems\" />
     <Folder Include="Systems\ScreenCapture\SubSystems\" />
+    <Folder Include="Systems\ScreenProcessing\SubSystems\" />
     <Folder Include="Xaml\Resources\" />
   </ItemGroup>
 	
   <ItemGroup>
     <Page Include="..\..\Xaml\Resources\ComboBoxResource.xaml" Link="Xaml\Resources\ComboBoxResource.xaml" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
   </ItemGroup>
 	
 </Project>

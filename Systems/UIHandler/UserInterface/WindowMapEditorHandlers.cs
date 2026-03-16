@@ -2613,4 +2613,238 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mapEditorLoadedMenuStateActionHandler.OnEvent(sender, e);
         }
     }
+
+
+    public class WindowMapEditorLoadedThresholdModifierParameters
+    {
+        public MapModel ElementModel = new MapModel();
+    }
+
+
+    public class WindowMapEditorLoadedThresholdModifier : AbstractWindowStateModifier
+    {
+        private TextBox _thresholdTextBox;
+
+        private string _templateKey;
+
+        public WindowMapEditorLoadedThresholdModifier(
+            TextBox thresholdTextBox, string templateKey
+        )
+        {
+            _thresholdTextBox = thresholdTextBox;
+            _templateKey = templateKey;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is not WindowMapEditorLoadedThresholdModifierParameters parameters)
+            {
+                return;
+            }
+            var templateThreshold = (int)Math.Round(
+                parameters.ElementModel.GetTemplateThreshold(_templateKey) * 1000
+            );
+            _thresholdTextBox.Text = templateThreshold.ToString();
+        }
+    }
+
+
+    public class WindowMapEditorLoadedThresholdHandler : AbstractWindowActionHandler
+    {
+        private AbstractLoadFileDialog _loadFileDialog;
+
+        private AbstractWindowStateModifier _mapEditorLoadedThresholdStateModifier;
+
+        private MapModel? _mapModel;
+
+        public WindowMapEditorLoadedThresholdHandler(
+            AbstractLoadFileDialog loadFileDialog,
+            AbstractWindowStateModifier mapEditorLoadedThresholdStateModifier
+        )
+        {
+            _loadFileDialog = loadFileDialog;
+            _mapEditorLoadedThresholdStateModifier = mapEditorLoadedThresholdStateModifier;
+            _loadFileDialog.FileLoaded += OnEvent;
+            _mapModel = null;
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            {
+                _mapModel = mapModel;
+            }
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapEditorLoadedThresholdStateModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (_mapModel == null)
+            {
+                return;
+            }
+            _mapEditorLoadedThresholdStateModifier.Modify(
+                new WindowMapEditorLoadedThresholdModifierParameters
+                {
+                    ElementModel = _mapModel
+                }
+            );
+        }
+    }
+
+
+    public class WindowMapEditorLoadedThresholdHandlerFacade : AbstractWindowActionHandler
+    {
+        AbstractWindowActionHandler _mapEditorLoadedThresholdStateHandler;
+
+        public WindowMapEditorLoadedThresholdHandlerFacade(
+            AbstractLoadFileDialog loadFileDialog,
+            TextBox characterThreshold,
+            string templateKey
+        )
+        {
+            _mapEditorLoadedThresholdStateHandler = new WindowMapEditorLoadedThresholdHandler(
+                loadFileDialog,
+                new WindowMapEditorLoadedThresholdModifier(characterThreshold, templateKey)
+            );
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            _mapEditorLoadedThresholdStateHandler.Inject(dataType, data);
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapEditorLoadedThresholdStateHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapEditorLoadedThresholdStateHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowMapEditorThresholdModifierParameters
+    {
+        public MapModel ElementModel = new MapModel();
+    }
+
+
+    public class WindowMapEditorThresholdModifier : AbstractWindowStateModifier
+    {
+        private TextBox _thresholdTextBox;
+
+        private string _templateKey;
+
+        public WindowMapEditorThresholdModifier(
+            TextBox characterThreshold,
+            string templateKey
+        )
+        {
+            _thresholdTextBox = characterThreshold;
+            _templateKey = templateKey;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is not WindowMapEditorThresholdModifierParameters parameters)
+            {
+                return;
+            }
+            var threshold = Math.Max(
+                MapIconInfo.DefaultThreshold,
+                _thresholdTextBox.Text.Length > 0 ?
+                    float.Parse(_thresholdTextBox.Text) / 1000 :
+                    MapIconInfo.DefaultThreshold
+            );
+            parameters.ElementModel.SetTemplateThreshold(
+                _templateKey, threshold
+            );
+        }
+    }
+
+
+    public class WindowMapEditorThresholdHandler : AbstractWindowActionHandler
+    {
+        private AbstractWindowStateModifier _mapEditorThresholdModifier;
+
+        private TextBox _thresholdTextBox;
+
+        private MapModel? _mapModel;
+
+        public WindowMapEditorThresholdHandler(
+            AbstractWindowStateModifier mapEditorThresholdModifier,
+            TextBox thresholdTextBox
+        )
+        {
+            _mapEditorThresholdModifier = mapEditorThresholdModifier;
+            _thresholdTextBox = thresholdTextBox;
+            _thresholdTextBox.TextChanged += OnEvent;
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            {
+                _mapModel = mapModel;
+            }
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapEditorThresholdModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (_mapModel == null)
+            {
+                return;
+            }
+            _mapEditorThresholdModifier.Modify(
+                new WindowMapEditorThresholdModifierParameters
+                {
+                    ElementModel = _mapModel
+                }
+            );
+        }
+    }
+
+
+    public class WindowMapEditorThresholdHandlerFacade : AbstractWindowActionHandler
+    {
+        AbstractWindowActionHandler _mapEditorCharacterThresholdHandler;
+
+        public WindowMapEditorThresholdHandlerFacade(
+            TextBox characterThreshold,
+            string templateKey
+        )
+        {
+            _mapEditorCharacterThresholdHandler = new WindowMapEditorThresholdHandler(
+                new WindowMapEditorThresholdModifier(characterThreshold, templateKey),
+                characterThreshold
+            );
+        }
+
+        public override void Inject(SystemInjectType dataType, object? data)
+        {
+            _mapEditorCharacterThresholdHandler.Inject(dataType, data);
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapEditorCharacterThresholdHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapEditorCharacterThresholdHandler.OnEvent(sender, e);
+        }
+    }
 }

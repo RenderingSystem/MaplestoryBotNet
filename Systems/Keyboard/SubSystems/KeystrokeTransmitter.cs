@@ -79,38 +79,15 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
 
         private AbstractKeystrokeConverter _keystrokeConverter;
 
-        private KeyboardDeviceContext? _keyboardDeviceValue;
-
-        private ReaderWriterLockSlim _keyboardDeviceLock;
+        private volatile KeyboardDeviceContext? _keyboardDeviceValue;
 
         private object _sendLock;
 
         private KeyboardDeviceContext? _keyboardDevice
         {
-            get
-            {
-                try
-                {
-                    _keyboardDeviceLock.EnterReadLock();
-                    return _keyboardDeviceValue;
-                }
-                finally
-                {
-                    _keyboardDeviceLock.ExitReadLock();
-                }
-            }
-            set
-            {
-                try
-                {
-                    _keyboardDeviceLock.EnterWriteLock();
-                    _keyboardDeviceValue = value;
-                }
-                finally
-                {
-                    _keyboardDeviceLock.ExitWriteLock();
-                }
-            }
+            get => _keyboardDeviceValue;
+
+            set => _keyboardDeviceValue = value;
         }
 
         public KeystrokeTransmitter(
@@ -123,7 +100,6 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
             _keyboardMapping = KeyboardMapping;
             _keystrokeConverter = keystrokeConverter;
             _keyboardDeviceValue = null;
-            _keyboardDeviceLock = new ReaderWriterLockSlim();
             _sendLock = new object();
         }
 
@@ -138,7 +114,10 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
             unsafe
             {
                 var stroke = (InterceptionInterop.Stroke*)&keystroke;
-                lock (_sendLock) { _interceptionLibrary.Send(context, device, stroke, 1); }
+                lock (_sendLock)
+                {
+                    _interceptionLibrary.Send(context, device, stroke, 1);
+                }
             }
         }
 

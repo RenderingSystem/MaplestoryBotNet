@@ -345,7 +345,9 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                             ]
                         }
                     }
-                ]
+                ],
+                CharacterThreshold = 0.234f,
+                RuneThreshold = 0.123f
             };
         }
 
@@ -422,7 +424,9 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                             ]
                         }
                     }
-                ]
+                ],
+                "character_threshold": 0.234,
+                "rune_threshold": 0.123
             }
             """;
         }

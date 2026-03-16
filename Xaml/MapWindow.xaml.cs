@@ -1,4 +1,5 @@
 ﻿using MaplestoryBotNet.Systems;
+using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using System.Windows;
@@ -222,6 +223,60 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
+        public AbstractWindowActionHandler _instantiateCharacterPositionActionHandler()
+        {
+            return new WindowMinimapPositionActionHandlerFacade(
+                new SystemAsyncDispatcher(Dispatcher, DispatcherPriority.Normal),
+                CharacterTextBoxX,
+                CharacterTextBoxY,
+                MapIconInfo.Character,
+                MapImage
+            );
+        }
+
+        public AbstractWindowActionHandler _instantiateRunePositionActionHandler()
+        {
+            return new WindowMinimapPositionActionHandlerFacade(
+                new SystemAsyncDispatcher(Dispatcher, DispatcherPriority.Normal),
+                RuneTextBoxX,
+                RuneTextBoxY,
+                MapIconInfo.Rune,
+                MapImage
+            );
+        }
+
+        public AbstractWindowActionHandler _instantiateLoadCharacterThresholdActionHandler()
+        {
+            return new WindowMapEditorLoadedThresholdHandlerFacade(
+                _loadFileDialog,
+                CharacterThreshold,
+                MapIconInfo.Character
+            );
+        }
+
+        public AbstractWindowActionHandler _instantiateLoadRuneThresholdActionHandler()
+        {
+            return new WindowMapEditorLoadedThresholdHandlerFacade(
+                _loadFileDialog,
+                RuneThreshold,
+                MapIconInfo.Rune
+            );
+        }
+
+        public AbstractWindowActionHandler _instantiateCharacterThresholdHandlerFacade()
+        {
+            return new WindowMapEditorThresholdHandlerFacade(
+                CharacterThreshold, MapIconInfo.Character
+            );
+        }
+
+        public AbstractWindowActionHandler _instantiateRuneThresholdHandlerFacade()
+        {
+            return new WindowMapEditorThresholdHandlerFacade(
+                RuneThreshold, MapIconInfo.Rune
+            );
+        }
+
         public List<AbstractWindowActionHandler> InstantiateActionHandlers(
             AbstractSystemWindow editWindow
         )
@@ -233,12 +288,16 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateNumericTextBoxPropertyActionHandler(MapAreaBottomTextBox, 9999),
                 _instantiateNumericTextBoxPropertyActionHandler(LocationTextBoxX, Convert.ToInt32(MapCanvas.Width)),
                 _instantiateNumericTextBoxPropertyActionHandler(LocationTextBoxY, Convert.ToInt32(MapCanvas.Height)),
+                _instantiateNumericTextBoxPropertyActionHandler(CharacterThreshold, 999),
+                _instantiateNumericTextBoxPropertyActionHandler(RuneThreshold, 999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(MapAreaLeftTextBox, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(MapAreaTopTextBox, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(MapAreaRightTextBox, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(MapAreaBottomTextBox, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(LocationTextBoxX, Convert.ToInt32(MapCanvas.Width)),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(LocationTextBoxY, Convert.ToInt32(MapCanvas.Height)),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(CharacterThreshold, 999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(RuneThreshold, 999),
                 _instantiateMapCanvasDimensionActionHandler(),
                 _instantiateWindowMenuItemHideActionHandler(),
                 _instantiateEditMenuActionHandler(editWindow),
@@ -256,7 +315,13 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateLoadModelActionHandler(),
                 _instantiateLoadMinimapActionHandler(),
                 _instantiateLoadMinimapPointsActionHandler(),
-                _instantiateLoadMenuStateActionHandler()
+                _instantiateLoadMenuStateActionHandler(),
+                _instantiateCharacterPositionActionHandler(),
+                _instantiateRunePositionActionHandler(),
+                _instantiateLoadCharacterThresholdActionHandler(),
+                _instantiateLoadRuneThresholdActionHandler(),
+                _instantiateCharacterThresholdHandlerFacade(),
+                _instantiateRuneThresholdHandlerFacade()
             ];
         }
 

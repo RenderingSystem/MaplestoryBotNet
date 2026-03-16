@@ -14,7 +14,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Vortice.Direct3D11;
 
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
@@ -2076,6 +2075,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     }
                 }
             );
+            mapModel.SetTemplateThreshold(MapIconInfo.Character, 0.234f);
+            mapModel.SetTemplateThreshold(MapIconInfo.Rune, 0.123f);
             return mapModel;
         }
 
@@ -2159,7 +2160,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                             ]
                         }
                     }
-                ]
+                ],
+                "character_threshold": 0.234,
+                "rune_threshold": 0.123
             }
             """;
         }
@@ -3151,7 +3154,97 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _testLoadingFileDeselectsCurrentMenuState();
         }
     }
-    
+
+
+    public class WindowMapEditorLoadedThresholdHandlerTests
+    {
+        TextBox _characterThreshold = new TextBox();
+
+        TextBox _runeThreshold = new TextBox();
+
+        MockLoadFileDialog _loadFileDialog = new MockLoadFileDialog();
+
+        MapModel _mapModel = new MapModel();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            return new WindowMapEditorLoadedThresholdHandlerFacade(
+                _loadFileDialog,
+                _characterThreshold,
+                MapIconInfo.Character
+            );
+        }
+
+        /**
+         * @brief Verifies that when a map file is loaded, the character threshold text box
+         * updates to show the threshold value stored in the map model.
+         * 
+         * The map editor window displays threshold values for template matching when a map file
+         * is loaded. This handler listens for file load events and updates the UI text boxes
+         * with the threshold values from the newly loaded map model. The test simulates loading
+         * a map file, injects the map model with a preset threshold (0.123f), and verifies that
+         * the character threshold text box displays the value multiplied by 1000 ("123") to
+         * present it as a user-friendly integer percentage.
+         */
+        private void _testModificationOfThresholdValues()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _mapModel.SetTemplateThreshold(MapIconInfo.Character, 0.123f);
+            _loadFileDialog.InvokeFileLoaded("", "");
+            Debug.Assert(_characterThreshold.Text == "123");
+        }
+
+        public void Run()
+        {
+            _testModificationOfThresholdValues();
+        }
+    }
+
+
+    public class WindowMapEditorThresholdHandlerTests
+    {
+        private TextBox _thresholdTextBox = new TextBox();
+
+        private MapModel _mapModel = new MapModel();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _thresholdTextBox = new TextBox();
+            _mapModel = new MapModel();
+            return new WindowMapEditorThresholdHandlerFacade(
+                _thresholdTextBox, MapIconInfo.Character
+            );
+        }
+
+        /**
+         * @brief Verifies that typing a threshold value in the text box updates the corresponding
+         * map model setting.
+         * 
+         * The map editor allows users to fine-tune detection thresholds for each map icon type.
+         * When a user enters a number in the threshold text box (like "123" or "789"), the handler
+         * converts this integer input to a float percentage (dividing by 1000) and updates the
+         * map model with the new threshold value, while adjusting to the minimum of 60% confidence.
+         */
+        private void _testThresholdUpdatedOnTextChange()
+        {
+            var textValues = new List<string>() { "123", "789" };
+            var expected = new List<float>() { 0.600f, 0.789f };
+            for (int i = 0; i < textValues.Count; i++)
+            {
+                var handler = _fixture();
+                handler.Inject(SystemInjectType.MapModel, _mapModel);
+                _thresholdTextBox.Text = textValues[i];
+                Debug.Assert(_mapModel.GetTemplateThreshold(MapIconInfo.Character) == expected[i]);
+            }
+        }
+
+        public void Run()
+        {
+            _testThresholdUpdatedOnTextChange();
+        }
+    }
+
 
     public class WindowMapEditorHandlersTestSuite
     {
@@ -3173,6 +3266,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMapEditorLoadMinimapActionHandlerTests().Run();
             new WindowMapEditorLoadMinimapPointsActionHandlerTests().Run();
             new WindowMapEditorLoadedMinimapPointsActionHandlerTests().Run();
+            new WindowMapEditorLoadedThresholdHandlerTests().Run();
+            new WindowMapEditorThresholdHandlerTests().Run();
         }
     }
 }

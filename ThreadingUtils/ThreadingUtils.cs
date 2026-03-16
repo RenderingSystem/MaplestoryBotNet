@@ -1,7 +1,125 @@
 ﻿using MaplestoryBotNet.Systems;
+using System.Diagnostics;
 
 namespace MaplestoryBotNet.ThreadingUtils
 {
+    public abstract class AbstractCountDown
+    {
+        public abstract void SetCountDown(int countDown);
+
+        public abstract void WaitCountDown();
+
+        public abstract int Count();
+
+        public abstract void CountDown();
+    }
+
+
+    public class ThreadCountDown : AbstractCountDown
+    {
+        private CountdownEvent _countDownEvent = new CountdownEvent(1);
+
+        public override void SetCountDown(int countDown)
+        {
+            _countDownEvent = new CountdownEvent(countDown);
+        }
+
+        public override void WaitCountDown()
+        {
+            _countDownEvent.Wait();
+        }
+
+        public override int Count()
+        {
+            return _countDownEvent.CurrentCount;
+        }
+
+        public override void CountDown()
+        {
+            _countDownEvent.Signal();
+        }
+    }
+
+
+    public abstract class AbstractTimestamp
+    {
+        public abstract double GetTimestamp();
+
+        public abstract void SetTimestamp();
+    }
+
+
+    public class StopwatchTimestamp : AbstractTimestamp
+    {
+        private long _startTicks;
+
+        private double _ticksToSeconds;
+
+        private bool _isSet;
+
+        public StopwatchTimestamp()
+        {
+            _startTicks = 0;
+            _ticksToSeconds = 1.0 / Stopwatch.Frequency;
+            _isSet = false;
+        }
+
+        public override double GetTimestamp()
+        {
+            if (!_isSet)
+            {
+                return double.PositiveInfinity;
+            }
+            long currentTicks = Stopwatch.GetTimestamp();
+            long elapsedTicks = currentTicks - _startTicks;
+            return elapsedTicks * _ticksToSeconds;
+        }
+
+        public override void SetTimestamp()
+        {
+            _startTicks = Stopwatch.GetTimestamp();
+            _isSet = true;
+        }
+    }
+
+
+    public class ThreadSafeCountDown : AbstractCountDown
+    {
+        private volatile CountdownEvent __countDownEvent = new CountdownEvent(1);
+
+        private CountdownEvent _countDownEvent
+        {
+            get => __countDownEvent;
+
+            set => __countDownEvent = value;
+        }
+
+        public override void SetCountDown(int countDown)
+        {
+            _countDownEvent = new CountdownEvent(countDown);
+        }
+
+        public override void WaitCountDown()
+        {
+            _countDownEvent.Wait();
+        }
+
+        public override int Count()
+        {
+            return _countDownEvent.CurrentCount;
+        }
+
+        public override void CountDown()
+        {
+            var countDownEvent = _countDownEvent;
+            if (countDownEvent.CurrentCount > 0)
+            {
+                countDownEvent.Signal();
+            }
+        }
+    }
+
+
     public abstract class AbstractThread : ISystemInjectable
     {
         protected Thread? _thread = null;

@@ -15,20 +15,18 @@ namespace MaplestoryBotNet.Systems.GPUSelector
 
     public class GPUSelection : AbstractGPUSelection
     {
-        private int _selection;
-
-        private object _selectionLock;
+        private volatile int _selection;
 
         protected int Selection
         {
-            set {lock (_selectionLock) { _selection = value; }}
-            get {lock (_selectionLock) { return _selection; }}
+            set => _selection = value;
+
+            get => _selection;
         }
 
         public GPUSelection()
         {
             _selection = 0;
-            _selectionLock = new object();
         }
 
         public override void SetSelection(int selection)
@@ -49,9 +47,14 @@ namespace MaplestoryBotNet.Systems.GPUSelector
 
         AbstractGPUSelection _gpuSelection;
 
-        private AbstractWindowStateModifier? _modifier;
+        private volatile AbstractWindowStateModifier? __modifier;
 
-        private object _modifierLock;
+        private AbstractWindowStateModifier? _modifier
+        {
+            set => __modifier = value;
+
+            get => __modifier;
+        }
 
         public GPUSelectorThread(
             AbstractThreadRunningState runningState,
@@ -62,7 +65,6 @@ namespace MaplestoryBotNet.Systems.GPUSelector
             _deviceSelectionSystem = deviceSelectionSystem;
             _gpuSelection = gpuSelection;
             _modifier = null;
-            _modifierLock = new object();
         }
 
         public override void ThreadLoop()
@@ -72,13 +74,11 @@ namespace MaplestoryBotNet.Systems.GPUSelector
             _gpuSelection.SetSelection(selected);
             while (_runningState.IsRunning())
             {
-                lock (_modifierLock)
+                var modifier = _modifier;
+                if (modifier != null)
                 {
-                    if (_modifier != null)
-                    {
-                        _modifier.Modify(_gpuSelection);
-                        return;
-                    }
+                    modifier.Modify(_gpuSelection);
+                    return;
                 }
             }
         }
@@ -90,10 +90,7 @@ namespace MaplestoryBotNet.Systems.GPUSelector
                 && value is WindowSplashScreenCompleteActionHandler handler
             )
             {
-                lock (_modifierLock)
-                {
-                    _modifier = handler.Modifier();
-                }
+                _modifier = handler.Modifier();
             }
         }
     }

@@ -9,8 +9,7 @@ namespace MaplestoryBotNet.Systems.Macro.SubSystems
         private AbstractMacroTranslator _macroTranslator;
         private List<AbstractMacroAction> _macroActions;
         private ReaderWriterLockSlim _macroActionsLock;
-        private bool _pauseRunning;
-        private ReaderWriterLockSlim _pauseRunningLock;
+        private volatile bool _pauseRunning;
 
         public ScriptedMacroAgent(AbstractMacroTranslator macroTranslator)
         {
@@ -18,7 +17,6 @@ namespace MaplestoryBotNet.Systems.Macro.SubSystems
             _macroActions = [];
             _macroActionsLock = new ReaderWriterLockSlim();
             _pauseRunning = false;
-            _pauseRunningLock = new ReaderWriterLockSlim();
         }
 
         public  List<AbstractMacroAction> MacroActions
@@ -51,30 +49,9 @@ namespace MaplestoryBotNet.Systems.Macro.SubSystems
 
         public bool PauseRunning
         {
-            get
-            {
-                _pauseRunningLock.EnterReadLock();
-                try
-                {
-                    return _pauseRunning;
-                }
-                finally
-                {
-                    _pauseRunningLock.ExitReadLock();
-                }
-            }
-            private set
-            {
-                _pauseRunningLock.EnterWriteLock();
-                try
-                {
-                    _pauseRunning = value;
-                }
-                finally
-                {
-                    _pauseRunningLock.ExitWriteLock();
-                }
-            }
+            get => _pauseRunning;
+
+            private set => _pauseRunning = value;
         }
 
         public override void Execute()

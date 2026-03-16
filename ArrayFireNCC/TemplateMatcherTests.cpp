@@ -28,28 +28,6 @@ namespace ArrayFireNCCTests {
         test_bitmap[14] = 0xFF4B7DAF;
     }
 
-    af::array BitmapToZeroMeanGrayscaleConverterTest::_image_mask_fixture(void) {
-        float mask_data[] = {
-            1, 0, 1,
-            0, 1, 0,
-            1, 0, 1,
-            0, 1, 0,
-            1, 0, 1
-        };
-        return af::array(3, 5, mask_data);
-    }
-
-    af::array BitmapToZeroMeanGrayscaleConverterTest::_image_maskless_fixture(void) {
-        float mask_data[] = {
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1,
-            1, 1, 1
-        };
-        return af::array(3, 5, mask_data);
-    }
-
     float BitmapToZeroMeanGrayscaleConverterTest::_masked_sum(float* bitmap, float* mask, int count) {
         float sum = 0.0f;
         for (int i = 0; i < count; i++)
@@ -59,76 +37,38 @@ namespace ArrayFireNCCTests {
     }
 
     void BitmapToZeroMeanGrayscaleConverterTest::run(void) {
-        test_convert_with_no_mask();
-        test_convert_with_mask();
+        test_convert();
     }
 
-    void BitmapToZeroMeanGrayscaleConverterTest::test_convert_with_no_mask(void) {
+    void BitmapToZeroMeanGrayscaleConverterTest::test_convert(void) {
         float sum = 0.0f;
-        auto mask = _image_maskless_fixture();
         UINT32 bitmap_space[15] = { 0 };
         _bitmap_fixture(bitmap_space);
         auto converter = gcnew BitmapToZeroMeanGrayscaleConverter();
-        auto converted = converter->convert(bitmap_space, 3, 5, 3, mask);
+        auto converted = converter->convert(bitmap_space, 3, 5, 3);
         float converted_buffer[15] = { 0 };
         float converted_mask[15] = { 0 };
-        mask.host(converted_mask);
         converted.host(converted_buffer);
         // Row 0: Black to white gradient
-        _assertions.Assert(std::abs(converted_buffer[0] + 0.450921565) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[1] - 0.051039248) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[2] - 0.549078465) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[0] - 0.000000000) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[1] - 0.501960814) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[2] - 1.000000000) < 0.00001f);
         // Row 1: Primary colors
-        _assertions.Assert(std::abs(converted_buffer[3] + 0.151921570) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[4] - 0.136078447) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[5] + 0.336921573) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[3] - 0.298999995) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[4] - 0.587000012) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[5] - 0.114000000) < 0.00001f);
         // Row 2: Mixed colors
-        _assertions.Assert(std::abs(converted_buffer[6] - 0.435078472) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[7] - 0.250078470) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[8] + 0.037921577) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[6] - 0.886000037) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[7] - 0.701000035) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[8] - 0.412999988) < 0.00001f);
         // Row 3: Different shades
-        _assertions.Assert(std::abs(converted_buffer[9] + 0.207392156) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[10] + 0.150921553) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[11] + 0.261803925) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[ 9] - 0.243529409) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[10] - 0.300000012) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[11] - 0.189117655) < 0.00001f);
         // Row 4: More variations
-        _assertions.Assert(std::abs(converted_buffer[12] - 0.036137253) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[13] - 0.137313753) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[14] - 0.003000020) < 0.00001f);
-        _assertions.Assert(_masked_sum(converted_buffer, converted_mask, 15) < 0.00001f);
-    }
-
-    void BitmapToZeroMeanGrayscaleConverterTest::test_convert_with_mask(void) {
-        float sum = 0.0f;
-        auto mask = _image_mask_fixture();
-        UINT32 bitmap_space[15] = { 0 };
-        _bitmap_fixture(bitmap_space);
-        auto converter = gcnew BitmapToZeroMeanGrayscaleConverter();
-        auto converted = converter->convert(bitmap_space, 3, 5, 3, mask);
-        float converted_buffer[15] = { 0 };
-        float converted_mask[15] = { 0 };
-        mask.host(converted_mask);
-        converted.host(converted_buffer);
-        // Row 0: Black to white gradient
-        _assertions.Assert(std::abs(converted_buffer[0] + 0.515872538) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[1] + 0.013911724) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[2] - 0.484127462) < 0.00001f);
-        // Row 1: Primary colors
-        _assertions.Assert(std::abs(converted_buffer[3] + 0.216872543) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[4] - 0.071127474) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[5] + 0.401872545) < 0.00001f);
-        // Row 2: Mixed colors
-        _assertions.Assert(std::abs(converted_buffer[6] - 0.370127499) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[7] - 0.185127497) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[8] + 0.102872550) < 0.00001f);
-        // Row 3: Different shades
-        _assertions.Assert(std::abs(converted_buffer[9] + 0.272343129) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[10] + 0.215872526) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[11] + 0.326754868) < 0.00001f);
-        // Row 4: More variations
-        _assertions.Assert(std::abs(converted_buffer[12] + 0.028813719) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[13] - 0.072362780) < 0.00001f);
-        _assertions.Assert(std::abs(converted_buffer[14] + 0.061950951) < 0.00001f);
-        _assertions.Assert(_masked_sum(converted_buffer, converted_mask, 15) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[12] - 0.487058818) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[13] - 0.588235319) < 0.00001f);
+        _assertions.Assert(std::abs(converted_buffer[14] - 0.453921586) < 0.00001f);
     }
 
 }
@@ -393,12 +333,18 @@ namespace ArrayFireNCCTests {
 
 namespace ArrayFireNCCTests {
 
-    bool LocationDetectorTest::_in_matches(int x, int y, List<Tuple<int, int>^>^ matches) {
+    bool LocationDetectorTest::_in_matches(
+        int x,
+        int y,
+        float confidence,
+        List<Tuple<int, int, float>^>^ matches
+    ) {
         for (int i = 0; i < matches->Count; i++) {
             if (
                 matches[i]->Item1 == x
                 && matches[i]->Item2 == y
-                ) {
+                && matches[i]->Item3 == confidence
+            ) {
                 return true;
             }
         }
@@ -421,19 +367,18 @@ namespace ArrayFireNCCTests {
         af::array ncc_array(6, 6, ncc_vector.data());
         auto matches = LocationDetector().detect(ncc_array, 0.65f);
         _assertions.Assert(matches->Count == 6);
-        _assertions.Assert(_in_matches(2, 2, matches));
-        _assertions.Assert(_in_matches(3, 2, matches));
-        _assertions.Assert(_in_matches(4, 2, matches));
-        _assertions.Assert(_in_matches(2, 4, matches));
-        _assertions.Assert(_in_matches(3, 4, matches));
-        _assertions.Assert(_in_matches(4, 4, matches));
+        _assertions.Assert(_in_matches(2, 2, 0.65f, matches));
+        _assertions.Assert(_in_matches(3, 2, 0.66f, matches));
+        _assertions.Assert(_in_matches(4, 2, 0.67f, matches));
+        _assertions.Assert(_in_matches(2, 4, 0.65f, matches));
+        _assertions.Assert(_in_matches(3, 4, 0.66f, matches));
+        _assertions.Assert(_in_matches(4, 4, 0.67f, matches));
     }
 
 }
 
 
 namespace ArrayFireNCCTests {
-
 
     void NormalizedCrossCorrelationTest::run(void) {
         test_perfect_match();
@@ -467,11 +412,11 @@ namespace ArrayFireNCCTests {
             1, 1, 1
         };
         std::vector<float> expected_data = {
-            0.158606231f, 0.0757188424f, 0.074761852f, 0.068378239f, 0.456303537f,
-            0.047742150f, 0.0705327317f, 0.258780807f, 0.439325482f, 0.460049719f,
-            0.062111016f, 0.2169490310f, 1.000000120f, 0.234141961f, 0.544952452f,
-            0.076862394f, 0.8179282550f, 0.523872793f, 0.291442364f, 0.584963143f,
-            0.552663565f, 0.6423293950f, 0.645036519f, 0.647389412f, 0.797133029f
+            0.000000000f,  0.0000000000f,  0.000000000f,  0.0000000000f, 0.000000000f,
+            0.000000000f, -0.3740542830f, -0.101577379f,  0.2487899960f, 0.000000000f,
+            0.000000000f, -0.1831749830f,  1.000000120f, -0.0566605851f, 0.000000000f,
+            0.000000000f,  0.7232999210f,  0.268781185f, -0.1831442120f, 0.000000000f,
+            0.000000000f,  0.0000000000f,  0.000000000f,  0.0000000000f, 0.000000000f
         };
         std::vector<float> result_data(25);
         af::array image = af::array(5, 5, image_data.data());
@@ -482,7 +427,9 @@ namespace ArrayFireNCCTests {
         auto result = ncc->calculate(image, image_mask, templ, templ_mask);
         result.host(result_data.data());
         for (int i = 0; i < result_data.size(); i++)
+        {
             _assertions.Assert(Math::Abs(expected_data[i] - result_data[i]) < 1e-4f);
+        }
     }
 
     void NormalizedCrossCorrelationTest::test_masked_perfect_match(void) {
@@ -513,12 +460,12 @@ namespace ArrayFireNCCTests {
             0, 1, 0
         };
         std::vector<float> expected_data = {
-            0.912729502f, 0.071857869f, 0.072622999f, 0.324954569f, 0.415650606f,
-            0.032651610f, 0.041964948f, 0.244826987f, 0.454638690f, 0.489754111f,
-            0.049452081f, 0.453074425f, 0.999999940f, 0.506582141f, 0.598544180f,
-            0.402863115f, 0.917722523f, 0.928376734f, 0.558695912f, 0.651209652f,
-            0.455774635f, 0.575925827f, 0.583062768f, 0.589423001f, 0.681755424f,
-            0.627680480f, 0.720693529f, 0.724143088f, 0.727257788f, 0.924373686f
+            0.000000000f,  0.000000000f,  0.000000000f,  0.0000000000f, 0.00000000f,
+            0.000000000f, -0.816060185f, -0.496799260f,  0.1422786270f, 0.00000000f,
+            0.000000000f, -0.162611291f,  1.000000240f,  0.0893548355f, 0.00000000f,
+            0.000000000f,  0.869821668f,  0.858997345f, -0.9276137950f, 0.00000000f,
+            0.000000000f, -0.927625299f, -0.927591860f, -0.9275859000f, 0.00000000f,
+            0.000000000f,  0.000000000f,  0.000000000f,  0.0000000000f, 0.00000000f
         };
         std::vector<float> result_data(30);
         af::array image = af::array(5, 6, image_data.data());
@@ -560,12 +507,12 @@ namespace ArrayFireNCCTests {
             0, 1, 0, 1
         };
         std::vector<float> expected_data = {
-            0.914229095f, 0.911527753f, 0.945480525f, 0.917136371f, 0.972206533f,
-            0.879813373f, 0.686527133f, 0.925224662f, 0.562737942f, 0.997854769f,
-            0.805253804f, 0.940847754f, 0.575110495f, 0.965857327f, 0.564490438f,
-            0.946364403f, 1.000000120f, 0.940846860f, 0.666537046f, 0.986157537f,
-            0.711557388f, 0.938153148f, 0.497089326f, 0.954308391f, 0.572637498f,
-            0.922412455f, 0.749230087f, 0.908773482f, 0.278067172f, 0.973253846f
+            0.000000000f, 0.000000000f,  0.0000000000f, 0.000000000f, 0.000000000f,
+            0.000000000f, 0.642594993f,  0.6227093340f, 0.000000000f, 0.000000000f,
+            0.000000000f, 0.622741878f, -0.0392209105f, 0.000000000f, 0.000000000f,
+            0.000000000f, 0.999999881f,  0.6228618620f, 0.000000000f, 0.000000000f,
+            0.000000000f, 0.622715771f, -0.4754244980f, 0.000000000f, 0.000000000f,
+            0.000000000f, 0.000000000f,  0.0000000000f, 0.000000000f, 0.000000000f,
         };
         std::vector<float> result_data(30);
         af::array image = af::array(5, 6, image_data.data());
@@ -576,9 +523,10 @@ namespace ArrayFireNCCTests {
         auto result = ncc->calculate(image, image_mask, templ, templ_mask);
         result.host(result_data.data());
         for (int i = 0; i < result_data.size(); i++)
+        {
             _assertions.Assert(Math::Abs(expected_data[i] - result_data[i]) < 1e-4f);
+        }
     }
-
 }
 
 
@@ -593,11 +541,11 @@ namespace ArrayFireNCCTests {
 
     void RectangleMergerTest::test_merge_all_rectangles_in_list(void) {
         auto merger = gcnew RectangleMerger();
-        auto rectangles = gcnew List<Tuple<int, int, int, int>^>();
-        rectangles->Add(gcnew Tuple<int, int, int, int>(0, 0, 60, 60));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(40, 0, 60, 60));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(0, 40, 60, 60));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(40, 40, 60, 60));
+        auto rectangles = gcnew List<Tuple<int, int, int, int, float>^>();
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(0, 0, 60, 60, 0.0));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(40, 0, 60, 60, 0.0));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(0, 40, 60, 60, 0.0));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(40, 40, 60, 60, 0.0));
         float merge_threshold = 0.1f;
         auto merged_rects = merger->merge(rectangles, merge_threshold);
         _assertions.Assert(merged_rects->Count == 1);
@@ -610,16 +558,16 @@ namespace ArrayFireNCCTests {
 
     void RectangleMergerTest::test_merge_with_outlier_rectangle(void) {
         auto merger = gcnew RectangleMerger();
-        auto rectangles = gcnew List<Tuple<int, int, int, int>^>();
-        rectangles->Add(gcnew Tuple<int, int, int, int>(0, 0, 60, 60));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(40, 0, 60, 60));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(0, 40, 60, 60));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(200, 200, 30, 30));
+        auto rectangles = gcnew List<Tuple<int, int, int, int, float>^>();
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(0, 0, 60, 60, 0.0));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(40, 0, 60, 60, 0.0));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(0, 40, 60, 60, 0.0));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(200, 200, 30, 30, 0.0));
         float merge_threshold = 0.1f;
         auto merged_rects = merger->merge(rectangles, merge_threshold);
         _assertions.Assert(merged_rects->Count == 2);
-        Tuple<int, int, int, int>^ merged_rect = nullptr;
-        Tuple<int, int, int, int>^ outlier_rect = nullptr;
+        Tuple<int, int, int, int, float>^ merged_rect = nullptr;
+        Tuple<int, int, int, int, float>^ outlier_rect = nullptr;
         for each (auto rect in merged_rects) {
             if (rect->Item3 == 100 && rect->Item4 == 100)
                 merged_rect = rect;
@@ -640,43 +588,37 @@ namespace ArrayFireNCCTests {
 
     void RectangleMergerTest::test_merge_with_two_rectangle_groups(void) {
         auto merger = gcnew RectangleMerger();
-        auto rectangles = gcnew List<Tuple<int, int, int, int>^>();
-        rectangles->Add(gcnew Tuple<int, int, int, int>(0, 0, 60, 60));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(40, 0, 60, 60));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(0, 40, 60, 60));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(40, 40, 60, 60));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(200, 200, 50, 50));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(240, 200, 50, 50));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(200, 240, 50, 50));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(240, 240, 50, 50));
+        auto rectangles = gcnew List<Tuple<int, int, int, int, float>^>();
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(0, 0, 60, 60, 1.0f));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(40, 0, 60, 60, 4.0f));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(0, 40, 60, 60, 3.0f));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(40, 40, 60, 60, 2.0f));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(200, 200, 50, 50, 5.0f));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(240, 200, 50, 50, 8.0f));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(200, 240, 50, 50, 6.0f));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(240, 240, 50, 50, 7.0f));
         float merge_threshold = 0.1f;
         auto merged_rects = merger->merge(rectangles, merge_threshold);
         _assertions.Assert(merged_rects->Count == 2);
-        Tuple<int, int, int, int>^ group1_rect = nullptr;
-        Tuple<int, int, int, int>^ group2_rect = nullptr;
-        for each (auto rect in merged_rects) {
-            if (rect->Item1 == 0 && rect->Item2 == 0)
-                group1_rect = rect;
-            else if (rect->Item1 == 200 && rect->Item2 == 200)
-                group2_rect = rect;
-        }
-        _assertions.Assert(group1_rect != nullptr);
-        _assertions.Assert(group1_rect->Item1 == 0);
-        _assertions.Assert(group1_rect->Item2 == 0);
-        _assertions.Assert(group1_rect->Item3 == 100);
-        _assertions.Assert(group1_rect->Item4 == 100);
-        _assertions.Assert(group2_rect != nullptr);
-        _assertions.Assert(group2_rect->Item1 == 200);
-        _assertions.Assert(group2_rect->Item2 == 200);
-        _assertions.Assert(group2_rect->Item3 == 90);
-        _assertions.Assert(group2_rect->Item4 == 90);
+        _assertions.Assert(merged_rects[0] != nullptr);
+        _assertions.Assert(merged_rects[0]->Item1 == 200);
+        _assertions.Assert(merged_rects[0]->Item2 == 200);
+        _assertions.Assert(merged_rects[0]->Item3 == 90);
+        _assertions.Assert(merged_rects[0]->Item4 == 90);
+        _assertions.Assert(merged_rects[0]->Item5 == 8.0f);
+        _assertions.Assert(merged_rects[1] != nullptr);
+        _assertions.Assert(merged_rects[1]->Item1 == 0);
+        _assertions.Assert(merged_rects[1]->Item2 == 0);
+        _assertions.Assert(merged_rects[1]->Item3 == 100);
+        _assertions.Assert(merged_rects[1]->Item4 == 100);
+        _assertions.Assert(merged_rects[1]->Item5 == 4.0f);
     }
 
     void RectangleMergerTest::test_merge_fails_when_threshold_not_met(void) {
         auto merger = gcnew RectangleMerger();
-        auto rectangles = gcnew List<Tuple<int, int, int, int>^>();
-        rectangles->Add(gcnew Tuple<int, int, int, int>(0, 0, 100, 100));
-        rectangles->Add(gcnew Tuple<int, int, int, int>(95, 95, 100, 100));
+        auto rectangles = gcnew List<Tuple<int, int, int, int, float>^>();
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(0, 0, 100, 100, 0.0));
+        rectangles->Add(gcnew Tuple<int, int, int, int, float>(95, 95, 100, 100, 0.0));
         float merge_threshold = 0.5f;
         auto merged_rects = merger->merge(rectangles, merge_threshold);
         _assertions.Assert(merged_rects->Count == 2);
@@ -713,21 +655,34 @@ namespace ArrayFireNCCTests {
         );
     }
 
-    Bitmap^ BitmapTemplateMatcherTest::_template_fixture() {
-        return dynamic_cast<Bitmap^>(
-            Bitmap::FromFile("TemplateMatcherTestTemplate.gif")
+    List<Bitmap^>^ BitmapTemplateMatcherTest::_template_fixture() {
+        auto fixture = gcnew List<Bitmap^>();
+        fixture->Add(
+            dynamic_cast<Bitmap^>(
+                Bitmap::FromFile("TemplateMatcherTestTemplate1.png")
+                )
         );
+        fixture->Add(
+            dynamic_cast<Bitmap^>(
+                Bitmap::FromFile("TemplateMatcherTestTemplate2.png")
+                )
+        );
+        fixture->Add(
+            dynamic_cast<Bitmap^>(
+                Bitmap::FromFile("TemplateMatcherTestTemplate3.png")
+                )
+        );
+        return fixture;
     }
 
     AbstractBitmapTemplateMatcher^ BitmapTemplateMatcherTest::_matcher_fixture(void) {
-        auto templ = _template_fixture();
+        auto templates = _template_fixture();
         auto builder = gcnew BitmapTemplateMatcherBuilder();
-        return builder->with_template(templ)->build();
-
+        return builder->with_templates(templates)->build();
     }
 
     bool BitmapTemplateMatcherTest::_point_in_matches(
-        List<Tuple<int, int, int, int>^>^ matches, int x, int y
+        List<Tuple<int, int, int, int, float>^>^ matches, int x, int y
     ) {
         for each (auto match in matches) {
             auto left = match->Item1;
@@ -741,7 +696,7 @@ namespace ArrayFireNCCTests {
     }
 
     bool BitmapTemplateMatcherTest::_matches_lt_threshold_area(
-        List<Tuple<int, int, int, int>^>^ matches, int area
+        List<Tuple<int, int, int, int, float>^>^ matches, int area
     ) {
         for each (auto match in matches) {
             auto left = match->Item1;
@@ -755,7 +710,7 @@ namespace ArrayFireNCCTests {
     }
 
     bool BitmapTemplateMatcherTest::_matches_gt_threshold_area(
-        List<Tuple<int, int, int, int>^>^ matches, int area
+        List<Tuple<int, int, int, int, float>^>^ matches, int area
     ) {
         for each (auto match in matches) {
             auto left = match->Item1;

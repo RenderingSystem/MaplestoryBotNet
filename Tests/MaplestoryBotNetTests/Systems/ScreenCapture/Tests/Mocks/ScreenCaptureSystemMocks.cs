@@ -3,6 +3,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNet.Systems;
+using MaplestoryBotNet.ThreadingUtils;
 
 
 namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks
@@ -93,7 +94,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks
     }
 
 
-    public class MockScreenCapturePublisherCountDown : AbstractScreenCapturePublisherCountDown
+    public class MockCountDown : AbstractCountDown
     {
         public List<string> CallOrder = [];
 
@@ -121,6 +122,20 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks
             var callReference = new TestUtilities().Reference(this) + "WaitCountDown";
             CallOrder.Add(callReference);
             WaitCountDownCalls++;
+        }
+
+        public int CountCalls = 0;
+        public int CountIndex = 0;
+        public List<int> CountReturn = [];
+        public override int Count()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Count";
+            CallOrder.Add(callReference);
+            if (CountIndex < CountReturn.Count)
+            {
+                return CountReturn[CountIndex++];
+            }
+            throw new IndexOutOfRangeException();
         }
     }
 

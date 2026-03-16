@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MaplestoryBotNet": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

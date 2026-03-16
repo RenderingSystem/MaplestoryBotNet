@@ -1,6 +1,6 @@
-﻿using MaplestoryBotNet.Systems.UIHandler.UserInterface;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Threading;
+
 
 namespace MaplestoryBotNet.Systems
 {
@@ -14,6 +14,8 @@ namespace MaplestoryBotNet.Systems
         ShutDown,
         ActionHandler,
         MapModel,
+        InjectAction,
+        ThreadDependency,
         SystemInjectTypeMaxNum,
     }
 
@@ -51,6 +53,7 @@ namespace MaplestoryBotNet.Systems
 
         }
     }
+
 
     public class SystemInjector : ISystemInjectable
     {

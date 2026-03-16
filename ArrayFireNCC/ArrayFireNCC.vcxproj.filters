@@ -1,80 +1,80 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\Main">
+    <Filter Include="Resource Files\Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resource Files\Source Files\Main">
       <UniqueIdentifier>{7481ea5c-b913-4c6d-898b-f6a7670318e3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\GPU">
+    <Filter Include="Resource Files\Source Files\GPU">
       <UniqueIdentifier>{ec859f4b-0ccb-4b8a-ade1-9b9b7335130a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\GPU\Tests">
+    <Filter Include="Resource Files\Source Files\GPU\Tests">
       <UniqueIdentifier>{485f79ee-fe86-4f6a-befd-681fd007924d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\GPU\Mocks">
+    <Filter Include="Resource Files\Source Files\GPU\Mocks">
       <UniqueIdentifier>{6897367d-77a4-4864-a6bc-4a1cb7686d61}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\TestUtilities">
+    <Filter Include="Resource Files\Source Files\TestUtilities">
       <UniqueIdentifier>{60ee0760-69bd-4e50-aa9d-4aff3ea47375}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
-      <Filter>Source Files\Main</Filter>
+      <Filter>Resource Files\Source Files\Main</Filter>
     </ClInclude>
     <ClInclude Include="pch.h">
-      <Filter>Source Files\Main</Filter>
+      <Filter>Resource Files\Source Files\Main</Filter>
     </ClInclude>
     <ClInclude Include="AcceleratedDeviceSelectionSystem.h">
-      <Filter>Source Files\GPU</Filter>
+      <Filter>Resource Files\Source Files\GPU</Filter>
     </ClInclude>
     <ClInclude Include="ArrayFireWrapper.h">
-      <Filter>Source Files\GPU</Filter>
+      <Filter>Resource Files\Source Files\GPU</Filter>
     </ClInclude>
     <ClInclude Include="TemplateMatcher.h">
-      <Filter>Source Files\GPU</Filter>
+      <Filter>Resource Files\Source Files\GPU</Filter>
     </ClInclude>
     <ClInclude Include="AcceleratedDeviceSelectionSystemMocks.h">
-      <Filter>Source Files\GPU\Mocks</Filter>
+      <Filter>Resource Files\Source Files\GPU\Mocks</Filter>
     </ClInclude>
     <ClInclude Include="TemplateMatcherTests.h">
-      <Filter>Source Files\GPU\Tests</Filter>
+      <Filter>Resource Files\Source Files\GPU\Tests</Filter>
     </ClInclude>
     <ClInclude Include="Assertions.h">
-      <Filter>Source Files\TestUtilities</Filter>
+      <Filter>Resource Files\Source Files\TestUtilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
-      <Filter>Source Files\Main</Filter>
+      <Filter>Resource Files\Source Files\Main</Filter>
     </ClCompile>
     <ClCompile Include="AssemblyInfo.cpp">
-      <Filter>Source Files\Main</Filter>
+      <Filter>Resource Files\Source Files\Main</Filter>
     </ClCompile>
     <ClCompile Include="AcceleratedDeviceSelectionSystem.cpp">
-      <Filter>Source Files\GPU</Filter>
+      <Filter>Resource Files\Source Files\GPU</Filter>
     </ClCompile>
     <ClCompile Include="ArrayFireWrapper.cpp">
-      <Filter>Source Files\GPU</Filter>
+      <Filter>Resource Files\Source Files\GPU</Filter>
     </ClCompile>
     <ClCompile Include="TemplateMatcher.cpp">
-      <Filter>Source Files\GPU</Filter>
+      <Filter>Resource Files\Source Files\GPU</Filter>
     </ClCompile>
     <ClCompile Include="AcceleratedDeviceSelectionSystemMocks.cpp">
-      <Filter>Source Files\GPU\Mocks</Filter>
+      <Filter>Resource Files\Source Files\GPU\Mocks</Filter>
     </ClCompile>
     <ClCompile Include="TemplateMatcherTests.cpp">
-      <Filter>Source Files\GPU\Tests</Filter>
+      <Filter>Resource Files\Source Files\GPU\Tests</Filter>
     </ClCompile>
     <ClCompile Include="Assertions.cpp">
-      <Filter>Source Files\TestUtilities</Filter>
+      <Filter>Resource Files\Source Files\TestUtilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -87,10 +87,10 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="TemplateMatcherTestImage.png">
-      <Filter>Source Files\GPU\Tests</Filter>
+      <Filter>Resource Files\Source Files\GPU\Tests</Filter>
     </Image>
-    <Image Include="TemplateMatcherTestTemplate.gif">
-      <Filter>Source Files\GPU\Tests</Filter>
+    <Image Include="TemplateMatcherTestTemplate.png">
+      <Filter>Resource Files\Source Files\GPU\Tests</Filter>
     </Image>
   </ItemGroup>
 </Project>

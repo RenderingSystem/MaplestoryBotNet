@@ -1,5 +1,7 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using System.Collections.Concurrent;
 using System.Windows;
+using System.Windows.Input;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.Utilities
@@ -102,6 +104,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public abstract void SetMapArea(int left, int top, int right, int bottom);
 
+        public abstract float GetTemplateThreshold(string templateKey);
+
+        public abstract void SetTemplateThreshold(string templateKey, float threshold);
+
+        public abstract Tuple<int, int> GetTemplatePosition(string templateKey);
+
+        public abstract void SetTemplatePosition(string templateKey, int x, int y);
+
         public abstract void SetMapModel(MapModel model);
     }
 
@@ -115,6 +125,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         private ReaderWriterLockSlim _mapAreaLock = new ReaderWriterLockSlim();
 
         private Rect _mapArea = new Rect(0, 0, 1, 1);
+
+        private ConcurrentDictionary<string, Tuple<int, int>> _templatePosition = [];
+
+        private ConcurrentDictionary<string, float> _templateThreshold = [];
 
         public override List<MinimapPoint> Points()
         {
@@ -268,22 +282,70 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             }
         }
 
+        public override Tuple<int, int> GetTemplatePosition(string templateKey)
+        {
+            if (_templatePosition.TryGetValue(templateKey, out Tuple<int, int>? value))
+            {
+                return value;
+            }
+            return new Tuple<int, int>(-1, -1);
+        }
+
+        public override void SetTemplatePosition(string templateKey, int x, int y)
+        {
+            _templatePosition.AddOrUpdate(
+                templateKey,
+                new Tuple<int, int>(x, y),
+                (_, __) => {return new Tuple<int, int>(x, y);}
+            );
+        }
+
+        private ConcurrentDictionary<string, Tuple<int, int>> _copyTemplatePositions()
+        {
+            var copy = new ConcurrentDictionary<string, Tuple<int, int>>();
+            foreach (var kvp in _templatePosition)
+            {
+                copy.TryAdd(kvp.Key, kvp.Value);
+            }
+            return copy;
+        }
+
         public override void SetMapModel(MapModel model)
         {
+            var mapArea = model.GetMapArea();
+            var modelPoints = model.Points();
+            var templatePosition = _copyTemplatePositions();
             try
             {
-                var mapArea = model.GetMapArea();
-                var modelPoints = model.Points();
                 _mapAreaLock.EnterWriteLock();
                 _pointsLock.EnterWriteLock();
                 _mapArea = mapArea;
                 _points = modelPoints;
+                _templatePosition = templatePosition;
             }
             finally
             {
                 _mapAreaLock.ExitWriteLock();
                 _pointsLock.ExitWriteLock();
             }
+        }
+
+        public override float GetTemplateThreshold(string templateKey)
+        {
+            if (_templateThreshold.TryGetValue(templateKey, out float value))
+            {
+                return value;
+            }
+            return MapIconInfo.DefaultThreshold;
+        }
+
+        public override void SetTemplateThreshold(string templateKey, float threshold)
+        {
+            _templateThreshold.AddOrUpdate(
+                templateKey,
+                threshold,
+                (_, __) => { return threshold; }
+            );
         }
     }
 }

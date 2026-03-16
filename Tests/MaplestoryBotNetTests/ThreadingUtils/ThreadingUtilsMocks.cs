@@ -192,4 +192,33 @@ namespace MaplestoryBotNetTests.ThreadingUtils
             WaitCalls++;
         }
     }
+
+
+    public class MockTimestamp : AbstractTimestamp
+    {
+        public List<string> CallOrder = [];
+
+        public int GetTimestampCalls = 0;
+        public int GetTimestampIndex = 0;
+        public List<double> GetTimestampReturn = [];
+        public override double GetTimestamp()
+        {
+            var callReference = new TestUtilities().Reference(this) + "GetTimestamp";
+            CallOrder.Add(callReference);
+            GetTimestampCalls++;
+            if (GetTimestampIndex < GetTimestampReturn.Count)
+            {
+                return GetTimestampReturn[GetTimestampIndex++];
+            }
+            throw new IndexOutOfRangeException();
+        }
+
+        public int SetTimestampCalls = 0;
+        public override void SetTimestamp()
+        {
+            var callReference = new TestUtilities().Reference(this) + "SetTimestamp";
+            CallOrder.Add(callReference);
+            SetTimestampCalls++;
+        }
+    }
 }

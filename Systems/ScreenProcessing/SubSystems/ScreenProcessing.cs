@@ -1,0 +1,428 @@
+﻿using ArrayFireNCC;
+using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
+using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.ThreadingUtils;
+using System.Drawing;
+using System.Windows;
+
+
+namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
+{
+    public abstract class AbstractGameMinimapProcessorThreadStateUpdater<T> where T : class
+    {
+        public abstract void AtomicUpdate(ref T? atomicField, T? updateObject);
+    }
+
+
+    public class GameMinimapProcessorThreadState
+    {
+
+        public static readonly GameMinimapProcessorThreadState Empty = (
+            new GameMinimapProcessorThreadState()
+        );
+
+        public string? TemplateKey;
+
+        public Bitmap? CurrentBitmap;
+
+        public AbstractBitmapTemplateMatcher? TemplateMatcher;
+
+        public AbstractRectangleMerger? RectangleMerger;
+
+        public MapIcon? MapIcon;
+
+        public MapModel? MapModel;
+
+        public float? Threshold;
+
+        public AbstractWindowStateModifier? PositionUpdater;
+
+        public GameMinimapProcessorThreadState(
+            string? templateKey = null,
+            Bitmap? bitmap = null,
+            AbstractBitmapTemplateMatcher? templateMatcher = null,
+            AbstractRectangleMerger? rectangleMerger = null,
+            MapIcon? mapIcon = null,
+            MapModel? mapModel = null,
+            float? threshold = null,
+            AbstractWindowStateModifier? positionUpdater = null
+        )
+        {
+            TemplateKey = templateKey;
+            CurrentBitmap = bitmap;
+            TemplateMatcher = templateMatcher;
+            RectangleMerger = rectangleMerger;
+            MapIcon = mapIcon;
+            MapModel = mapModel;
+            Threshold = threshold;
+            PositionUpdater = positionUpdater;
+        }
+
+        public GameMinimapProcessorThreadState(
+            GameMinimapProcessorThreadState copy
+        )
+        {
+            TemplateKey = copy.TemplateKey;
+            CurrentBitmap = copy.CurrentBitmap;
+            TemplateMatcher = copy.TemplateMatcher;
+            RectangleMerger = copy.RectangleMerger;
+            MapIcon = copy.MapIcon;
+            MapModel = copy.MapModel;
+            Threshold = copy.Threshold;
+            PositionUpdater = copy.PositionUpdater;
+        }
+
+        public static void AtomicUpdate(
+            ref GameMinimapProcessorThreadState stateField,
+            string? templateKey = null,
+            Bitmap? currentBitmap = null,
+            AbstractBitmapTemplateMatcher? templateMatcher = null,
+            AbstractRectangleMerger? rectangleMerger = null,
+            MapIcon? mapIcon = null,
+            MapModel? mapModel = null,
+            float? threshold = null,
+            AbstractWindowStateModifier? positionUpdater = null
+        )
+        {
+            while (true)
+            {
+                var current = stateField;
+                var updated = new GameMinimapProcessorThreadState(
+                    templateKey ?? current.TemplateKey,
+                    currentBitmap ?? current.CurrentBitmap,
+                    templateMatcher ?? current.TemplateMatcher,
+                    rectangleMerger ?? current.RectangleMerger,
+                    mapIcon ?? current.MapIcon,
+                    mapModel ?? current.MapModel,
+                    threshold ?? current.Threshold,
+                    positionUpdater ?? current.PositionUpdater
+                );
+                if (Interlocked.CompareExchange(ref stateField, updated, current) == current)
+                {
+                    return;
+                }
+            }
+        }
+    }
+
+
+    public class GameMinimapProcessorThreadStateUpdater : 
+        AbstractGameMinimapProcessorThreadStateUpdater<
+            GameMinimapProcessorThreadState
+        >
+    {
+        public override void AtomicUpdate(
+            ref GameMinimapProcessorThreadState? atomicField,
+            GameMinimapProcessorThreadState? updateObject
+        )
+        {
+            if (atomicField != null && updateObject != null)
+            {
+                GameMinimapProcessorThreadState.AtomicUpdate(
+                    ref atomicField,
+                    updateObject.TemplateKey,
+                    updateObject.CurrentBitmap,
+                    updateObject.TemplateMatcher,
+                    updateObject.RectangleMerger,
+                    updateObject.MapIcon,
+                    updateObject.MapModel,
+                    updateObject.Threshold,
+                    updateObject.PositionUpdater
+                );
+            }
+        }
+    }
+
+
+    public abstract class AbstractGameMinimapPositionProcessor
+    {
+        public abstract Tuple<int, int>? Process(
+            AbstractBitmapTemplateMatcher templateMatcher,
+            AbstractRectangleMerger merger,
+            float threshold,
+            float overlap,
+            Bitmap inputSource
+        );
+    }
+
+
+    public class GameMinimapPositionProcessor : AbstractGameMinimapPositionProcessor
+    {
+        public override Tuple<int, int>? Process(
+            AbstractBitmapTemplateMatcher templateMatcher,
+            AbstractRectangleMerger merger,
+            float threshold,
+            float overlap,
+            Bitmap inputSource
+        )
+        {
+            var matches = templateMatcher.calculate(
+                inputSource, threshold
+            );
+            if (matches.Count > 0)
+            {
+                var match = merger.merge(matches, overlap)[0];
+                var x = match.Item1 + (match.Item3 / 2);
+                var y = match.Item2 + (match.Item4 / 2);
+                return new Tuple<int, int>(x, y);
+            }
+            return null;
+        }
+    }
+
+
+    public abstract class AbstractGameMinimapProcessHandler
+    {
+        public abstract void Handle(GameMinimapProcessorThreadState threadState);
+    }
+
+
+    public class GameMinimapProcessHandler : AbstractGameMinimapProcessHandler
+    {
+        private AbstractTimestamp _timestamp;
+
+        private AbstractGameMinimapPositionProcessor _positionProcessor;
+
+        public GameMinimapProcessHandler(
+            AbstractTimestamp timestamp,
+            AbstractGameMinimapPositionProcessor positionProcessor
+        )
+        {
+            _timestamp = timestamp;
+            _positionProcessor = positionProcessor;
+        }
+
+        public override void Handle(
+            GameMinimapProcessorThreadState currentThreadState
+        )
+        {
+            if (
+                currentThreadState.TemplateKey == null
+                || currentThreadState.TemplateMatcher == null
+                || currentThreadState.RectangleMerger == null
+                || currentThreadState.Threshold == null
+                || currentThreadState.MapIcon == null
+                || currentThreadState.CurrentBitmap == null
+                || currentThreadState.MapModel == null
+                || currentThreadState.PositionUpdater == null
+            )
+            {
+                return;
+            }
+            var frequency = currentThreadState.MapIcon.Frequency;
+            var period = frequency > 1e-8 ? (1.0 / frequency) : 0.0;
+            if (_timestamp.GetTimestamp() <= period)
+            {
+                return;
+            }
+            _timestamp.SetTimestamp();
+            var parameters = new WindowMinimapPositionModifierParameters
+            {
+                Model = currentThreadState.MapModel,
+                Position = (
+                    _positionProcessor.Process(
+                        currentThreadState.TemplateMatcher,
+                        currentThreadState.RectangleMerger,
+                        currentThreadState.Threshold.Value,
+                        currentThreadState.MapIcon.Overlap,
+                        currentThreadState.CurrentBitmap
+                    ) ?? new Tuple<int, int>(-1, -1)
+                )
+            };
+            currentThreadState.PositionUpdater.Modify(parameters);
+        }
+    }
+
+
+    public class GameMinimapProcessorThread : AbstractThread
+    {
+        private AbstractCountDown _threadLoopCountDown;
+
+        private AbstractBitmapTemplateMatcherBuilder _templateMatcherBuilder;
+
+        private AbstractGameMinimapPositionCropper _cropper;
+
+        private AbstractGameMinimapProcessHandler _processHandler;
+
+        private string _imageKey;
+
+        protected AbstractGameMinimapProcessorThreadStateUpdater<
+            GameMinimapProcessorThreadState
+        > _threadStateUpdater;
+
+        public GameMinimapProcessorThreadState ThreadState;
+
+        public GameMinimapProcessorThread(
+            AbstractThreadRunningState runningState,
+            AbstractBitmapTemplateMatcherBuilder templateMatcherBuilder,
+            AbstractRectangleMerger matchMerger,
+            AbstractGameMinimapPositionCropper cropper,
+            AbstractGameMinimapProcessHandler processHandler,
+            AbstractCountDown threadLoopCountDown,
+            AbstractGameMinimapProcessorThreadStateUpdater<
+                GameMinimapProcessorThreadState
+            > threadStateUpdater,
+            string imageKey
+        ) : base(runningState)
+        {
+            _threadLoopCountDown = threadLoopCountDown;
+            _templateMatcherBuilder = templateMatcherBuilder;
+            _cropper = cropper;
+            _processHandler = processHandler;
+            _imageKey = imageKey;
+            _threadStateUpdater = threadStateUpdater;
+            ThreadState = new GameMinimapProcessorThreadState(
+                templateKey: imageKey, rectangleMerger: matchMerger
+            );
+        }
+
+        public override void ThreadLoop()
+        {
+            while (_runningState.IsRunning())
+            {
+                _threadLoopCountDown.SetCountDown(1);
+                _threadLoopCountDown.WaitCountDown();
+                _processHandler.Handle(ThreadState);
+                _threadStateUpdater.AtomicUpdate(
+                    ref ThreadState!,
+                    new GameMinimapProcessorThreadState(ThreadState)
+                    {
+                        CurrentBitmap = null
+                    }
+                );
+            }
+        }
+
+        public override void Inject(SystemInjectType dataType, object? value)
+        {
+            if (
+                dataType == SystemInjectType.MapModel
+                && value is MapModel mapModel
+            )
+            {
+                var threadState = ThreadState;
+                _threadStateUpdater.AtomicUpdate(
+                    ref ThreadState!,
+                    new GameMinimapProcessorThreadState(ThreadState)
+                    {
+                        MapModel = mapModel
+                    }
+                );
+            }
+            else if (
+                dataType == SystemInjectType.Configuration
+                && value is ConfigurationImages configurationImages
+            )
+            {
+                var character = configurationImages.MapIconImages[_imageKey];
+                var templateBitmap = _cropper.Crop(
+                    configurationImages.MapIconImages[_imageKey],
+                    new Rect(0, 0, character.Width, character.Height)
+                );
+                var templateMatcher = (
+                    _templateMatcherBuilder
+                        .with_templates([templateBitmap])
+                        .build()
+                );
+                _threadStateUpdater.AtomicUpdate(
+                    ref ThreadState!,
+                    new GameMinimapProcessorThreadState(ThreadState)
+                    {
+                        TemplateMatcher = templateMatcher
+                    }
+                );
+            }
+            else if (
+                dataType == SystemInjectType.Configuration
+                && value is MaplestoryBotConfiguration configuration
+            )
+            {
+                _threadStateUpdater.AtomicUpdate(
+                    ref ThreadState!,
+                    new GameMinimapProcessorThreadState(ThreadState)
+                    {
+                        MapIcon = configuration.MapIcons[_imageKey]
+                    }
+                );
+            }
+            else if (value is Bitmap bitmap)
+            {
+                var threadState = ThreadState;
+                if (
+                    _threadLoopCountDown.Count() > 0
+                    && threadState.MapModel != null
+                    && bitmap.Width > 1
+                    && bitmap.Height > 1
+                )
+                {
+                    _threadStateUpdater.AtomicUpdate(
+                        ref ThreadState!,
+                        new GameMinimapProcessorThreadState(ThreadState)
+                        {
+                            CurrentBitmap = bitmap,
+                            Threshold = threadState.MapModel.GetTemplateThreshold(_imageKey)
+                        }
+                    );
+                    _threadLoopCountDown.CountDown();
+                }
+            }
+            else if (
+                dataType == SystemInjectType.ActionHandler
+                && value is WindowMinimapPositionActionHandlerFacade handler
+                && handler.Modifier().State(0) is string templateKey
+                && templateKey == _imageKey
+            )
+            {
+                _threadStateUpdater.AtomicUpdate(
+                    ref ThreadState!,
+                    new GameMinimapProcessorThreadState(ThreadState)
+                    {
+                        PositionUpdater = handler.Modifier()
+                    }
+                );
+            }
+        }
+
+        public override object? State()
+        {
+            return ThreadState;
+        }
+    }
+
+    
+    public class GameMinimapCharacterProcessorThreadFactory : AbstractThreadFactory
+    {
+        public override AbstractThread CreateThread()
+        {
+            return new GameMinimapProcessorThread(
+                new ThreadRunningState(),
+                new BitmapTemplateMatcherBuilder(),
+                new RectangleMerger(),
+                new GameMinimapPositionCropper(new ImageSharpConverter()),
+                new GameMinimapProcessHandler(new StopwatchTimestamp(), new GameMinimapPositionProcessor()),
+                new ThreadSafeCountDown(),
+                new GameMinimapProcessorThreadStateUpdater(),
+                MapIconInfo.Character
+            );
+        }
+    }
+
+
+    public class GameMinimapRuneProcessorThreadFactory : AbstractThreadFactory
+    {
+        public override AbstractThread CreateThread() {
+            return new GameMinimapProcessorThread(
+                new ThreadRunningState(),
+                new BitmapTemplateMatcherBuilder(),
+                new RectangleMerger(),
+                new GameMinimapPositionCropper(new ImageSharpConverter()),
+                new GameMinimapProcessHandler(new StopwatchTimestamp(), new GameMinimapPositionProcessor()),
+                new ThreadSafeCountDown(),
+                new GameMinimapProcessorThreadStateUpdater(),
+                MapIconInfo.Rune
+            );
+        }
+    }
+}
+

@@ -99,6 +99,12 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("map_points")]
         public List<ConfigurationMinimapPoint> MapPoints { set; get; } = [];
 
+        [JsonPropertyName("character_threshold")]
+        public float CharacterThreshold { set; get; } = 0.6f;
+
+        [JsonPropertyName("rune_threshold")]
+        public float RuneThreshold { set; get; } = 0.6f;
+
         public override AbstractConfiguration Copy()
         {
             return new ConfigurationMapModel
@@ -107,6 +113,8 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
                 MapAreaTop = MapAreaTop,
                 MapAreaRight = MapAreaRight,
                 MapAreaBottom = MapAreaBottom,
+                CharacterThreshold = CharacterThreshold,
+                RuneThreshold = RuneThreshold,
                 MapPoints = MapPoints.Select(point => point.Copy()).ToList()
             };
         }
