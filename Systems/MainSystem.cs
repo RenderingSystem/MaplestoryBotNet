@@ -93,10 +93,11 @@ namespace MaplestoryBotNet.Systems
                 {
                     system.Update();
                 }
+                Thread.Yield();
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             for (int i = 0; i < _updateList.Count; i++)
             {
@@ -143,7 +144,7 @@ namespace MaplestoryBotNet.Systems
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? value)
+        public override void Inject(object dataType, object? value)
         {
             _mainSubSystem.Inject(dataType, value);
         }
@@ -306,7 +307,7 @@ namespace MaplestoryBotNet.Systems
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (_mainSubSystemThread != null)
             {
@@ -399,14 +400,6 @@ namespace MaplestoryBotNet.Systems
             _uiHandlers = uiHandlers;
         }
 
-        private Action<SystemInjectType, object> _injectAction(AbstractSystem mainSystem)
-        {
-            return (injectAction, injectObject) =>
-            {
-                mainSystem.Inject(injectAction, injectObject);
-            };
-        }
-
         public override void Synchronize()
         {
             var mainSystem = _mainApplication.System();
@@ -427,7 +420,7 @@ namespace MaplestoryBotNet.Systems
             }
             mainSystem.Inject(SystemInjectType.ConfigurationUpdate, 0);
             mainSystem.Inject(SystemInjectType.MapModel, new MapModel());
-            mainSystem.Inject(SystemInjectType.InjectAction, _injectAction(mainSystem));
+            mainSystem.Inject(SystemInjectType.InjectAction, new InjectAction((_, __) => { mainSystem.Inject(_, __); }));
         }
     }
 

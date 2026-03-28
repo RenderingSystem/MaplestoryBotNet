@@ -1,5 +1,9 @@
-﻿using MaplestoryBotNet.Systems.UIHandler.UserInterface;
+﻿using MaplestoryBotNet.Systems;
+using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
+using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.Tests;
+using MaplestoryBotNetTests.ThreadingUtils;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
@@ -133,12 +137,194 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
-    public class WIndowMenuItemPopupHandlersTestSuite
+    public class WindowMenuItemStartTextActionHandlerTests
+    {
+        private MenuItem _menuItem = new MenuItem();
+
+        private MockDispatcher _dispatcher = new MockDispatcher();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _menuItem = new MenuItem();
+            _dispatcher = new MockDispatcher();
+            return new WindowMenuItemStartTextActionHandlerFacade(_menuItem, _dispatcher);
+        }
+
+        /**
+         * @brief Verifies the menu item text changes correctly for each automation state
+         * 
+         * When users interact with the automation system, the start/stop menu item
+         * should update to clearly indicate what action will happen if clicked.
+         * 
+         * State transitions:
+         * - When automation is Stopped -> Shows "Start!" (click to start)
+         * - When starting up -> Shows "Starting..." (feedback that start is in progress)
+         * - When running → Shows "Stop!" (click to stop)
+         * - When stopping → Shows "Stopping..." (feedback that stop is in progress)
+         */
+        private void _testInjectingExecutorThreadedUpdateSetsMenuItemText()
+        {
+            var injectItems = new[]
+            {
+                 KeystrokeTransmitterExecutorThreadedUpdate.Starting,
+                 KeystrokeTransmitterExecutorThreadedUpdate.Started,
+                 KeystrokeTransmitterExecutorThreadedUpdate.Stopping,
+                 KeystrokeTransmitterExecutorThreadedUpdate.Stopped
+            };
+            var expectedText = new[]
+            {
+                "Starting...",
+                "Stop!",
+                "Stopping...",
+                "Start!"
+            };
+            for (int i = 0; i < injectItems.Length; i++)
+            {
+                var startTextActionHandler = _fixture();
+                startTextActionHandler.Inject(injectItems[i], null);
+                Debug.Assert(_dispatcher.DispatchCalls == 1);
+                Debug.Assert(_menuItem.Header == null);
+                _dispatcher.DispatchCallArg_action[0]();
+                Debug.Assert((string) _menuItem.Header! == expectedText[i]);
+            }
+        }
+
+        public void Run()
+        {
+            _testInjectingExecutorThreadedUpdateSetsMenuItemText();
+        }
+    }
+
+
+    public class WindowMeuItemStartActionHandlerTests
+    {
+        private MenuItem _menuItem = new MenuItem();
+
+        private MockThread _mockThread = new MockThread(new ThreadRunningState());
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _menuItem = new MenuItem();
+            _mockThread = new MockThread(new ThreadRunningState());
+            return new WindowMenuItemStartActionHandlerFacade(_menuItem);
+        }
+
+        /**
+         * @brief Verifies that clicking "Start!" sends a start command to the orchestrator
+         * 
+         * When users click the button while it shows "Start!", the system should
+         * tell the orchestrator to begin botting. This test ensures the start
+         * command is properly sent to the thread that controls automation.
+         */
+        private void _testClickingMenuItemInjectsStartThread()
+        {
+            var startActionHandler = _fixture();
+            _mockThread.ThreadStateReturn.Add(new KeystrokeTransmitterThreadState(0));
+            startActionHandler.Inject(SystemInjectType.ThreadDependency, _mockThread);
+            _menuItem.Header = WindowMenuItemStartTextTypes.Start;
+            _menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            Debug.Assert(_mockThread.InjectCalls == 1);
+            Debug.Assert(
+                (int) _mockThread.InjectCallArg_dataType[0]
+                == (int) KeystrokeTransmitterOrchestratorThreadInjectType.Start
+            );
+        }
+
+        /**
+         * @brief Ensures start command is only sent to the orchestrator thread, not other threads
+         * 
+         * The system may have multiple threads that can be injected as dependencies.
+         * Only the orchestrator thread should respond to start/stop commands. This test
+         * verifies that if a thread dependency is injected that is not a valid orchestrator
+         * thread (returns null state), clicking the button does nothing rather than
+         * accidentally sending commands to the wrong thread.
+         */
+        private void _testClickingMenuItemDoesntInjectStartWhenWrongThread()
+        {
+            var startActionHandler = _fixture();
+            _mockThread.ThreadStateReturn.Add(null);
+            startActionHandler.Inject(SystemInjectType.ThreadDependency, _mockThread);
+            _menuItem.Header = WindowMenuItemStartTextTypes.Start;
+            _menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            Debug.Assert(_mockThread.InjectCalls == 0);
+        }
+
+        /**
+         * @brief Verifies that clicking "Stop!" sends a stop command to the orchestrator
+         * 
+         * When users click the button while it shows "Stop!", the system should
+         * tell the orchestrator to stop botting. This test ensures the stop
+         * command is properly sent to the thread controlling automation.
+         */
+        private void _testClickingMenuItemInjectsStopThread()
+        {
+            var startActionHandler = _fixture();
+            _mockThread.ThreadStateReturn.Add(new KeystrokeTransmitterThreadState(0));
+            startActionHandler.Inject(SystemInjectType.ThreadDependency, _mockThread);
+            _menuItem.Header = WindowMenuItemStartTextTypes.Stop;
+            _menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            Debug.Assert(_mockThread.InjectCalls == 1);
+            Debug.Assert(
+                (int)_mockThread.InjectCallArg_dataType[0]
+                == (int)KeystrokeTransmitterOrchestratorThreadInjectType.Stop
+            );
+        }
+
+        /**
+         * @brief Ensures stop command is only sent to the orchestrator thread, not other threads
+         * 
+         * The system may have multiple threads that can be injected as dependencies.
+         * Only the orchestrator thread should respond to start/stop commands. This test
+         * verifies that if a thread dependency is injected that is not a valid orchestrator
+         * thread (returns null state), clicking the button does nothing rather than
+         * accidentally sending commands to the wrong thread.
+         */
+        private void _testClickingMenuItemDoesntInjectStopWhenWrongThread()
+        {
+            var startActionHandler = _fixture();
+            _mockThread.ThreadStateReturn.Add(null);
+            startActionHandler.Inject(SystemInjectType.ThreadDependency, _mockThread);
+            _menuItem.Header = WindowMenuItemStartTextTypes.Stop;
+            _menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            Debug.Assert(_mockThread.InjectCalls == 0);
+        }
+
+        /**
+         * @brief Ensures clicks only work when the button shows proper start/stop text
+         * 
+         * The UI should only respond to clicks when the button shows valid
+         * start or stop text. This test ensures that if the button
+         * displays unexpected text, clicking it won't send any commands.
+         */
+        private void _testClickingMenuItemDoesntInjectWhenWrongText()
+        {
+            var startActionHandler = _fixture();
+            _mockThread.ThreadStateReturn.Add(new KeystrokeTransmitterThreadState(0));
+            startActionHandler.Inject(SystemInjectType.ThreadDependency, _mockThread);
+            _menuItem.Header = "meow";
+            _menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            Debug.Assert(_mockThread.InjectCalls == 0);
+        }
+
+        public void Run()
+        {
+            _testClickingMenuItemInjectsStartThread();
+            _testClickingMenuItemDoesntInjectStartWhenWrongThread();
+            _testClickingMenuItemInjectsStopThread();
+            _testClickingMenuItemDoesntInjectStopWhenWrongThread();
+            _testClickingMenuItemDoesntInjectWhenWrongText();
+        }
+    }
+
+
+    public class WindowMenuItemPopupHandlersTestSuite
     {
         public void Run()
         {
             new WindowMenuItemPopupHandlerTests().Run();
             new WindowMenuItemHideHandlerTests().Run();
+            new WindowMenuItemStartTextActionHandlerTests().Run();
+            new WindowMeuItemStartActionHandlerTests().Run();
         }
     }
 }

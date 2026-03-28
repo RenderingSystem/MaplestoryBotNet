@@ -82,7 +82,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         /**
          * @brief Verifies that dispatched position updates update the UI text boxes
-         *        with scaled coordinates.
+         * with scaled coordinates.
          * 
          * Beyond updating the model, the handler must also refresh the UI text boxes
          * so users can see the current detected position. This test confirms that

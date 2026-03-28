@@ -185,7 +185,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 MapAreaBottom = (int)mapArea.Bottom,
                 CharacterThreshold = mapModel.GetTemplateThreshold(MapIconInfo.Character),
                 RuneThreshold = mapModel.GetTemplateThreshold(MapIconInfo.Rune),
-                MapPoints = mapModel.Points().Select(
+                MapPoints = mapModel.MacroPoints().Select(
                     minimapPoint => (
                         (ConfigurationMinimapPoint)
                         _minimapPointConverter.ToConfiguration(minimapPoint)!
@@ -208,24 +208,19 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 Math.Max(configurationMapModel.MapAreaLeft, configurationMapModel.MapAreaRight),
                 Math.Max(configurationMapModel.MapAreaTop, configurationMapModel.MapAreaBottom)
             );
-            mapModel.SetTemplateThreshold(
-                MapIconInfo.Character,
-                configurationMapModel.CharacterThreshold
-            );
-            mapModel.SetTemplateThreshold(
-                MapIconInfo.Rune,
-                configurationMapModel.RuneThreshold
-            );
+            mapModel.SetTemplateThreshold(MapIconInfo.Character, configurationMapModel.CharacterThreshold);
+            mapModel.SetTemplateThreshold(MapIconInfo.Rune, configurationMapModel.RuneThreshold);
             foreach (
                 var minimapPoint in configurationMapModel.MapPoints.Select(
-                    configurationMinimapPoint => (
-                        (MinimapPoint)
-                        _minimapPointConverter.ToDataModel(configurationMinimapPoint)!
-                    )
+                    (configurationMinimapPoint) => {
+                        return (MinimapPoint) (
+                            _minimapPointConverter.ToDataModel(configurationMinimapPoint)!
+                        );
+                    }
                 )
             )
             {
-                mapModel.Add(minimapPoint);
+                mapModel.AddMacroPoint(minimapPoint);
             }
             return mapModel;
         }

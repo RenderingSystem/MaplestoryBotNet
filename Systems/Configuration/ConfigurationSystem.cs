@@ -46,12 +46,12 @@ namespace MaplestoryBotNet.Systems.Configuration
 
         private AbstractFileReader _fileReader;
 
-        private ISystemInjectable _configurationInjector;
+        private IDataInjectable _configurationInjector;
 
         public ConfigurationSystem(
             List<ConfigurationEntry> configurationEntries,
             AbstractFileReader fileReader,
-            ISystemInjectable configurationInjector
+            IDataInjectable configurationInjector
         ) {
             _configurationEntries = configurationEntries;
             _fileReader = fileReader;
@@ -133,9 +133,9 @@ namespace MaplestoryBotNet.Systems.Configuration
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (dataType != SystemInjectType.ConfigurationUpdate)
+            if (dataType is not SystemInjectType.ConfigurationUpdate)
             {
                 return;
             }

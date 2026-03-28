@@ -67,10 +67,10 @@ namespace MaplestoryBotNet.Systems.UIHandler
             return _windowSaveMenuModifier;
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (
-                dataType == SystemInjectType.ConfigurationUpdate
+                dataType is SystemInjectType.ConfigurationUpdate
                 && data is MaplestoryBotConfiguration configuration
             )
             {
@@ -109,7 +109,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
         {
             return _saveMenuActionHandler.Modifier();
         }
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _saveMenuActionHandler.Inject(dataType, data);
         }
@@ -153,10 +153,10 @@ namespace MaplestoryBotNet.Systems.UIHandler
             return _windowLoadMenuModifier;
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (
-                dataType == SystemInjectType.ConfigurationUpdate &&
+                dataType is SystemInjectType.ConfigurationUpdate &&
                 data is MaplestoryBotConfiguration configuration
             )
             {
@@ -190,7 +190,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
             return _loadMenuActionHandler.Modifier();
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _loadMenuActionHandler.Inject(dataType, data);
         }
@@ -640,7 +640,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
             {
                 return;
             }
-            var minimapPoint = parameters.ElementModel.FindName(selectedElement.Name);
+            var minimapPoint = parameters.ElementModel.FindMacroPointByName(selectedElement.Name);
             if (minimapPoint == null)
             {
                 return;
@@ -707,9 +707,9 @@ namespace MaplestoryBotNet.Systems.UIHandler
             return _macroCommandsDisplayLoadingModifier;
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -746,7 +746,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
             return _macroCommandsDisplayLoadingActionHandler.Modifier();
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _macroCommandsDisplayLoadingActionHandler.Inject(dataType, data);
         }
@@ -900,12 +900,12 @@ namespace MaplestoryBotNet.Systems.UIHandler
             _updateTextDependencies();
             _macroLabelsListBox.SelectedIndex = -1;
             _macroLabelsListBox.Focus();
-            _mapModel.Edit(minimapPoint);
+            _mapModel.EditMacroPoint(minimapPoint);
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -936,7 +936,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
             return _macroCommandsDisplaySavingActionHandler.Modifier();
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _macroCommandsDisplaySavingActionHandler.Inject(dataType, data);
         }

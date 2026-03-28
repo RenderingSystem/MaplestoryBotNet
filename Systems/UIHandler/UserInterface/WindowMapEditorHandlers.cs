@@ -341,13 +341,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     YRange = boundingRect.Height,
                     PointData = pointData
                 };
-                mapModel.Add(minimapPoint);
+                mapModel.AddMacroPoint(minimapPoint);
             }
         }
 
         private string _generateElementName(AbstractMapModel mapModel)
         {
-            var mapPoints = mapModel.Points();
+            var mapPoints = mapModel.MacroPoints();
             var elementCount = mapPoints.Count;
             var existingElements = new HashSet<string>(
                 mapPoints.Select(p => p.PointData.ElementName)
@@ -361,7 +361,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private string _generatePointLabel(AbstractMapModel mapModel)
         {
-            var mapPoints = mapModel.Points();
+            var mapPoints = mapModel.MacroPoints();
             var pointCount = mapPoints.Count;
             var existingNames = new HashSet<string>(
                 mapPoints.Select(p => p.PointData.PointName)
@@ -411,7 +411,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override FrameworkElement? Locate(AbstractMapModel mapModel, Point point)
         {
-            var pointHit = mapModel.Points().LastOrDefault(
+            var pointHit = mapModel.MacroPoints().LastOrDefault(
                 p =>
                 (
                     point.X >= p.X - p.XRange / 2 && point.X <= p.X + p.XRange / 2 &&
@@ -672,9 +672,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -716,7 +716,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mapCanvasPointDrawingActionHandler.OnEvent(sender, e);
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _mapCanvasPointDrawingActionHandler.Inject(dataType, data);
         }
@@ -756,7 +756,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 if (pointUI != null)
                 {
                     _canvas.Children.Remove(pointUI);
-                    parameters.ElementModel.Remove(pointUI.Name);
+                    parameters.ElementModel.RemoveMacroPointByName(pointUI.Name);
                 }
             }
         }
@@ -809,9 +809,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -850,7 +850,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mapCanvasPointEraserActionHandler.OnEvent(sender, e);
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _mapCanvasPointEraserActionHandler.Inject(dataType, data);
         }
@@ -1082,7 +1082,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private void _assignUITexts(FrameworkElement element, AbstractMapModel mapModel)
         {
-            var selectedPoint = mapModel.FindName(element.Name);
+            var selectedPoint = mapModel.FindMacroPointByName(element.Name);
             if (selectedPoint != null)
             {
                 _menuState.SetEditingText(true);
@@ -1165,9 +1165,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -1212,7 +1212,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mapCanvasSelectActionHandler.OnEvent(sender, e);
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _mapCanvasSelectActionHandler.Inject(dataType, data);
         }
@@ -1264,12 +1264,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             AbstractMapModel mapModel
         )
         {
-            var draggingPoint = mapModel.FindName(draggingElement.Name);
+            var draggingPoint = mapModel.FindMacroPointByName(draggingElement.Name);
             if (draggingPoint != null)
             {
                 draggingPoint.X = point.X;
                 draggingPoint.Y = point.Y;
-                mapModel.Edit(draggingPoint);
+                mapModel.EditMacroPoint(draggingPoint);
             }
         }
 
@@ -1332,9 +1332,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return _mapCanvasDragModifier;
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -1432,7 +1432,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return _mapCanvasDragActionHandler.Modifier();
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _mapCanvasDragActionHandler.Inject(dataType, data);
         }
@@ -1520,7 +1520,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mapEditButtonAccessibilityActionHandler.OnEvent(sender, e);
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _mapEditButtonAccessibilityActionHandler.Inject(dataType, data);
         }
@@ -1554,12 +1554,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private void _updateMapModel(AbstractMapModel mapModel, Point point, string name)
         {
-            var model = mapModel.FindName(name);
+            var model = mapModel.FindMacroPointByName(name);
             if (model != null)
             {
                 model.X = point.X;
                 model.Y = point.Y;
-                mapModel.Edit(model);
+                mapModel.EditMacroPoint(model);
             }
         }
 
@@ -1637,9 +1637,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -1674,7 +1674,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _canvasPointLocationActionHandler.OnEvent(sender, e);
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _canvasPointLocationActionHandler.Inject(dataType, data);
         }
@@ -1767,12 +1767,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return _mapCanvasDimensionModifier;
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (
-                dataType == SystemInjectType.MapModel
-                && data is MapModel mapModel
-            )
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -1820,7 +1817,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return _mapCanvasDimensionActionHandler.Modifier();
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _mapCanvasDimensionActionHandler.Inject(dataType, data);
         }
@@ -1887,19 +1884,16 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             );
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (
-                dataType == SystemInjectType.ConfigurationUpdate &&
+                dataType is SystemInjectType.ConfigurationUpdate &&
                 data is MaplestoryBotConfiguration configuration
             )
             {
                 _initialDirectory = configuration.MapDirectory;
             }
-            if (
-                dataType == SystemInjectType.MapModel
-                && data is MapModel mapModel
-            )
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -1937,7 +1931,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _windowMapEditorSaveConfigurationActionHandler.OnEvent(sender, e);
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _windowMapEditorSaveConfigurationActionHandler.Inject(dataType, data);
         }
@@ -1982,10 +1976,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             );
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (
-                dataType == SystemInjectType.ConfigurationUpdate &&
+                dataType is SystemInjectType.ConfigurationUpdate &&
                 data is MaplestoryBotConfiguration configuration
             )
             {
@@ -2018,7 +2012,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mapEditorLoadConfigurationActionHandler.OnEvent(sender, e);
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _mapEditorLoadConfigurationActionHandler.Inject(dataType, data);
         }
@@ -2092,12 +2086,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return _mapEditorLoadModelModifier;
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (
-                dataType == SystemInjectType.MapModel
-                && data is MapModel mapModel
-            )
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -2146,7 +2137,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return _mapEditorLoadModelActionHandler.Modifier();
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _mapEditorLoadModelActionHandler.Inject(dataType, data);
         }
@@ -2160,6 +2151,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowMapEditorLoadMinimapModifierParameters
     {
+        public string LoadedConfiguration = "";
+
         public MapModel ElementModel = new MapModel();
     }
 
@@ -2232,12 +2225,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return _mapEditorLoadMinimapModifier;
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (
-                dataType == SystemInjectType.MapModel
-                && data is MapModel mapModel
-            )
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -2291,7 +2281,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return _mapEditorLoadMinimapActionHandler.Modifier();
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _mapEditorLoadMinimapActionHandler.Inject(dataType, data);
         }
@@ -2437,9 +2427,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _fileLoadDialog.FileLoaded += OnEvent;
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -2456,7 +2446,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 return;
             }
-            var minimapPoints = _mapModel.Points();
+            var minimapPoints = _mapModel.MacroPoints();
             _mapCanvas.Children.Clear();
             foreach (var minimapPoint in minimapPoints)
             {
@@ -2467,7 +2457,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                         ElementDependencies = [_pointLabelTextBox]
                     }
                 );
-                _mapModel.Edit(minimapPoint);
+                _mapModel.EditMacroPoint(minimapPoint);
             }
         }
     }
@@ -2495,7 +2485,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             );
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _mapEditorLoadedMinimapPointsActionHandler.Inject(dataType, data);
         }
@@ -2668,9 +2658,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mapModel = null;
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -2683,6 +2673,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
+            if (e is not FileLoadedEventArgs fileLoadedEventArgs)
+            {
+                return;
+            }
             if (_mapModel == null)
             {
                 return;
@@ -2713,7 +2707,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             );
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _mapEditorLoadedThresholdStateHandler.Inject(dataType, data);
         }
@@ -2788,9 +2782,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _thresholdTextBox.TextChanged += OnEvent;
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
-            if (dataType == SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
             {
                 _mapModel = mapModel;
             }
@@ -2832,7 +2826,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             );
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             _mapEditorCharacterThresholdHandler.Inject(dataType, data);
         }

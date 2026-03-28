@@ -89,7 +89,10 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
         {
             var keyboardDevice = _keyboardDeviceDetector.Detect();
             KeyboardDeviceContext = keyboardDevice;
-            while (SplashScreenModifier == null) ;
+            while (SplashScreenModifier == null)
+            {
+                Thread.Yield();
+            }
             SplashScreenModifier.Modify(KeyboardDeviceContext);
         }
 
@@ -98,10 +101,10 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
             return KeyboardDeviceContext;
         }
 
-        public override void Inject(SystemInjectType dataType, object? value)
+        public override void Inject(object dataType, object? value)
         {
             if (
-                dataType == SystemInjectType.ActionHandler
+                dataType is SystemInjectType.ActionHandler
                 && value is WindowSplashScreenCompleteActionHandler splashScreen
             )
             {
@@ -154,7 +157,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (_keyboardDeviceDetectorThread != null)
             {

@@ -107,7 +107,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             Debug.Assert(_keyboardDeviceInjectable.InjectCalls == 1);
             Debug.Assert(
                 _keyboardDeviceInjectable.InjectCallArg_dataType[0]
-                == SystemInjectType.KeyboardDevice
+                is SystemInjectType.KeyboardDevice
             );
             Debug.Assert(
                 _keyboardDeviceInjectable.InjectCallArg_data[0]

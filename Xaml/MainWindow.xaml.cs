@@ -54,6 +54,19 @@ namespace MaplestoryBotNet
                 .Build();
         }
 
+        private AbstractWindowActionHandler _instantiateWindowMenuItemTextActionHandler()
+        {
+            return new WindowMenuItemStartTextActionHandlerFacade(
+                StartMenuItem,
+                new SystemAsyncDispatcher(Dispatcher, DispatcherPriority.Background)
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateWindowMenuItemStartActionHandler()
+        {
+            return new WindowMenuItemStartActionHandlerFacade(StartMenuItem);
+        }
+
         public List<AbstractWindowActionHandler> InstantiateActionHandlers(
             AbstractSystemWindow systemWindow
         )
@@ -62,7 +75,9 @@ namespace MaplestoryBotNet
                 _instantiateWindowExiterActionHandler(),
                 _instantiateWindowViewUpdaterActionHandler(),
                 _instantiateWindowViewCheckboxActionHandler(),
-                _instantiateMacroWindowMenuItemPopupActionHandler(systemWindow)
+                _instantiateMacroWindowMenuItemPopupActionHandler(systemWindow),
+                _instantiateWindowMenuItemTextActionHandler(),
+                _instantiateWindowMenuItemStartActionHandler()
             ];
         }
 

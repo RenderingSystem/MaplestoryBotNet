@@ -2,7 +2,6 @@
 using MaplestoryBotNetTests.Systems.Configuration.Tests;
 using MaplestoryBotNetTests.Systems.GPUSelector.Tests;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests;
-using MaplestoryBotNetTests.Systems.Macro.SubSystems.Tests;
 using MaplestoryBotNetTests.Systems.ScreenCapture.Tests;
 using MaplestoryBotNetTests.Systems.ScreenProcessing.Tests;
 using MaplestoryBotNetTests.Systems.Tests;
@@ -30,18 +29,16 @@ void UnitTestSuite()
     // Test the keyboard system
     new KeyboardDeviceDetectorTestSuite().Run();
     new KeystrokeTransmitterTestSuite().Run();
+    new KeystrokeTransmitterCommandsTestSuite().Run();
     new KeyboardSystemTestSuite().Run();
     // Test the macro system
-    new MacroTranslatorTestSuite().Run();
-    new ScriptedMacroAgentTestSuite().Run();
-    new AbstractMacroAgentTestSuite().Run();
     new MacroDataTestSuite().Run();
     // Test the main system
     new MainSystemTestSuite().Run();
     // Test the user interface
     new WindowSplashScreenStateHandlersTestSuite().Run();
     new WindowViewStateHandlersTestSuite().Run();
-    new WIndowMenuItemPopupHandlersTestSuite().Run();
+    new WindowMenuItemPopupHandlersTestSuite().Run();
     new UIHandlerSystemTestSuite().Run();
     new WindowSaveLoadMenuHandlersTestSuite().Run();
     new WindowComboBoxScaleHandlersTestSuite().Run();

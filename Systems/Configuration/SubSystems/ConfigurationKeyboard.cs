@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
 
@@ -20,6 +19,9 @@ namespace MaplestoryBotNet.Systems.Configuration
         [JsonPropertyName("functions")]
         public Dictionary<string, string> Functions { get; set; } = new Dictionary<string, string>();
 
+        [JsonPropertyName("arrows")]
+        public Dictionary<string, string> Arrows { get; set; } = new Dictionary<string, string>();
+
         public override AbstractConfiguration Copy()
         {
             var keyboardMapping = new KeyboardMapping();
@@ -31,6 +33,8 @@ namespace MaplestoryBotNet.Systems.Configuration
                 keyboardMapping.Numpad.Add(item.Key, item.Value);
             foreach (var item in Functions)
                 keyboardMapping.Functions.Add(item.Key, item.Value);
+            foreach (var item in Arrows)
+                keyboardMapping.Arrows.Add(item.Key, item.Value);
             return keyboardMapping;
         }
 
@@ -44,6 +48,8 @@ namespace MaplestoryBotNet.Systems.Configuration
                 return Characters[key];
             if (Numpad.ContainsKey(key))
                 return Numpad[key];
+            if (Arrows.ContainsKey(key))
+                return Arrows[key];
             return "";
         }
     }

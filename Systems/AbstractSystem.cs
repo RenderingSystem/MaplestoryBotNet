@@ -20,13 +20,13 @@ namespace MaplestoryBotNet.Systems
     }
 
 
-    public interface ISystemInjectable
+    public interface IDataInjectable
     {
-        public abstract void Inject(SystemInjectType dataType, object? data);
+        public abstract void Inject(object dataType, object? data);
     }
 
 
-    public abstract class AbstractSystem : ISystemInjectable
+    public abstract class AbstractSystem : IDataInjectable
     {
         public virtual void Initialize()
         {
@@ -48,14 +48,14 @@ namespace MaplestoryBotNet.Systems
             return null;
         }
 
-        public virtual void Inject(SystemInjectType dataType, object? data)
+        public virtual void Inject(object dataType, object? data)
         {
 
         }
     }
 
 
-    public class SystemInjector : ISystemInjectable
+    public class SystemInjector : IDataInjectable
     {
         List<AbstractSystem> _systems;
 
@@ -64,7 +64,7 @@ namespace MaplestoryBotNet.Systems
             _systems = systems;
         }
 
-        public void Inject(SystemInjectType dataType, object? data)
+        public void Inject(object dataType, object? data)
         {
             for (int i = 0; i < _systems.Count; i++)
             {
@@ -259,6 +259,28 @@ namespace MaplestoryBotNet.Systems
         public override void Dispatch(Action action)
         {
             _dispatcher.BeginInvoke(action, _priority);
+        }
+    }
+
+
+    public abstract class AbstractInjectAction
+    {
+        public abstract Action<object, object> GetAction();
+    }
+
+
+    public class InjectAction : AbstractInjectAction
+    {
+        private Action<object, object> _injectAction;
+
+        public InjectAction(Action<object, object> injectAction)
+        {
+            _injectAction = injectAction;
+        }
+
+        public override Action<object, object> GetAction()
+        {
+            return _injectAction;
         }
     }
 }

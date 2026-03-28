@@ -10,10 +10,10 @@ namespace MaplestoryBotNet
     {
         private AbstractSystemWindow? _systemWindow = null;
 
-        private ISystemInjectable _keyboardDeviceContextInjectable;
+        private IDataInjectable _keyboardDeviceContextInjectable;
 
         public SplashScreen(
-            ISystemInjectable keyboardDeviceContextInjectable
+            IDataInjectable keyboardDeviceContextInjectable
         )
         {
             _keyboardDeviceContextInjectable = keyboardDeviceContextInjectable;

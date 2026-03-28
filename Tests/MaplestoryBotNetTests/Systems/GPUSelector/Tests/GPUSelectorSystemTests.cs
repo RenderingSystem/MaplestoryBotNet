@@ -231,7 +231,7 @@ namespace MaplestoryBotNetTests.Systems.GPUSelector.Tests
             selectorSystem.Initialize();
             selectorSystem.Inject(SystemInjectType.Configuration, 1234);
             Debug.Assert(_mockThread.InjectCalls == 1);
-            Debug.Assert(_mockThread.InjectCallArg_dataType[0] == SystemInjectType.Configuration);
+            Debug.Assert(_mockThread.InjectCallArg_dataType[0] is SystemInjectType.Configuration);
             Debug.Assert((int)_mockThread.InjectCallArg_data[0]! == 1234);
         }
 

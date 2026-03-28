@@ -75,9 +75,9 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? value)
+        public override void Inject(object dataType, object? value)
         {
-            if (dataType == SystemInjectType.Configuration
+            if (dataType is SystemInjectType.Configuration
                 && value is MaplestoryBotConfiguration configuration
             )
             {
@@ -138,7 +138,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (_storeThread != null)
             {
@@ -148,13 +148,13 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
     }
 
 
-    public abstract class AbstractScreenCapturePublisher : ISystemInjectable
+    public abstract class AbstractScreenCapturePublisher : IDataInjectable
     {
         public abstract void Publish(Image<Bgra32> image, bool updated);
 
         public abstract void NotifyComplete();
 
-        public abstract void Inject(SystemInjectType dataType, object? data);
+        public abstract void Inject(object dataType, object? data);
     }
 
 
@@ -189,7 +189,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             _countDown.CountDown();
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
         }
     }
@@ -264,10 +264,10 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? value)
+        public override void Inject(object dataType, object? value)
         {
             if (
-                dataType == SystemInjectType.ActionHandler
+                dataType is SystemInjectType.ActionHandler
                 && value is WindowViewCheckboxActionHandler windowViewCheckbox
             )
             {
@@ -301,7 +301,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
     }
 
 
-    public abstract class AbstractScreenCaptureSubscriber : ISystemInjectable
+    public abstract class AbstractScreenCaptureSubscriber : IDataInjectable
     {
         protected Image<Bgra32> _image;
 
@@ -330,7 +330,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             _semaphore.Wait();
         }
 
-        public virtual void Inject(SystemInjectType dataType, object? data)
+        public virtual void Inject(object dataType, object? data)
         {
 
         }
@@ -380,7 +380,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (
                 dataType is SystemInjectType.ActionHandler
@@ -419,7 +419,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? value)
+        public override void Inject(object dataType, object? value)
         {
             _subscriber.Inject(dataType, value);
             _publisher.Inject(dataType, value);
@@ -467,7 +467,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
 
         public override void Initialize()
         {
-			_publisherThread = _publisherThreadFactory.CreateThread();
+            _publisherThread = _publisherThreadFactory.CreateThread();
         }
 
         public override void Start()
@@ -478,7 +478,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (_publisherThread != null)
             {
@@ -521,7 +521,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             for (int i = 0; i < _subscriberThreads.Count; i++)
             {
@@ -561,7 +561,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             for (int i = 0; i < _subSystems.Count; i++)
             {

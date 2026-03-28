@@ -1,110 +1,101 @@
-﻿using Interception;
-using MaplestoryBotNet.Systems.Configuration;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+﻿using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using MaplestoryBotNetTests.TestHelpers;
 
 
 namespace MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks
 {
-    public class MockKeystrokeTransmitter : AbstractKeystrokeTransmitter
-    {
-        public List<string> CallOrder = [];
-
-        public int InjectKeyboardDeviceCalls = 0;
-        public List<KeyboardDeviceContext> InjectKeyboardDeviceCallArg_keyboardDevice = [];
-        public override void InjectKeyboardDevice(KeyboardDeviceContext keyboardDevice)
-        {
-            var callReference = new TestUtilities().Reference(this) + "InjectKeyboardDevice";
-            CallOrder.Add(callReference);
-            InjectKeyboardDeviceCalls++;
-            InjectKeyboardDeviceCallArg_keyboardDevice.Add(keyboardDevice);
-        }
-
-        public int KeydownCalls = 0;
-        public List<string> KeydownCallArg_keystroke = [];
-        public override void Keydown(string keystroke)
-        {
-            var callReference = new TestUtilities().Reference(this) + "Keydown";
-            CallOrder.Add(callReference);
-            KeydownCalls++;
-            KeydownCallArg_keystroke.Add(keystroke);
-        }
-
-        public int KeyupCalls = 0;
-        public List<string> KeyupCallArg_keystroke = [];
-        public override void Keyup(string keystroke)
-        {
-            var callReference = new TestUtilities().Reference(this) + "Keyup";
-            CallOrder.Add(callReference);
-            KeyupCalls++;
-            KeyupCallArg_keystroke.Add(keystroke);
-        }
-    }
-
-
-    public class MockKeystrokeConverter : AbstractKeystrokeConverter
-    {
-        public List<string> CallOrder = [];
-
-        public int ConvertToKeydownCalls = 0;
-        public int ConvertToKeydownIndex = 0;
-        public List<string> ConvertToKeydownCallArg_stroke = [];
-        public List<InterceptionInterop.KeyStroke> ConvertToKeydownReturn = [];
-        public override InterceptionInterop.KeyStroke ConvertToKeydown(string stroke)
-        {
-            var callReference = new TestUtilities().Reference(this) + "ConvertToKeydown";
-            CallOrder.Add(callReference);
-            ConvertToKeydownCalls++;
-            ConvertToKeydownCallArg_stroke.Add(stroke);
-            if (ConvertToKeydownIndex < ConvertToKeydownReturn.Count)
-                return ConvertToKeydownReturn[ConvertToKeydownIndex++];
-            throw new IndexOutOfRangeException();
-        }
-
-        public int ConvertToKeyupCalls = 0;
-        public int ConvertToKeyupIndex = 0;
-        public List<string> ConvertToKeyupCallArg_stroke = [];
-        public List<InterceptionInterop.KeyStroke> ConvertToKeyupReturn = [];
-        public override InterceptionInterop.KeyStroke ConvertToKeyup(string stroke)
-        {
-            var callReference = new TestUtilities().Reference(this) + "ConvertToKeyup";
-            CallOrder.Add(callReference);
-            ConvertToKeyupCalls++;
-            ConvertToKeyupCallArg_stroke.Add(stroke);
-            if (ConvertToKeyupIndex < ConvertToKeyupReturn.Count)
-                return ConvertToKeyupReturn[ConvertToKeyupIndex++];
-            throw new IndexOutOfRangeException();
-        }
-    }
-
-
-    public class MockKeystrokeTransmitterBuilder : AbstractKeystrokeTransmitterBuilder
+    public class MockMacroCommandsExecutorBuilder : AbstractMacroCommandsExecutorBuilder
     {
         public List<string> CallOrder = [];
 
         public int BuildCalls = 0;
         public int BuildIndex = 0;
-        public List<AbstractKeystrokeTransmitter> BuildReturn = [];
-        public override AbstractKeystrokeTransmitter Build()
+        public List<AbstractMacroCommandsExecutor> BuildReturn = [];
+        public override AbstractMacroCommandsExecutor Build()
         {
             var callReference = new TestUtilities().Reference(this) + "Build";
             CallOrder.Add(callReference);
             BuildCalls++;
             if (BuildIndex < BuildReturn.Count)
+            {
                 return BuildReturn[BuildIndex++];
+            }
             throw new IndexOutOfRangeException();
         }
 
-        public int WithKeyboardMappingCalls = 0;
-        public int WithKeyboardMappingIndex = 0;
-        public List<KeyboardMapping> WithKeyboardMappingCallArg_keyboardMapping = [];
-        public override AbstractKeystrokeTransmitterBuilder WithKeyboardMapping(KeyboardMapping keyboardMapping)
+        public int WithArgCalls = 0;
+        public List<object> WithArgCallArg_arg = [];
+        public override AbstractMacroCommandsExecutorBuilder WithArg(object arg)
         {
-            var callReference = new TestUtilities().Reference(this) + "WithKeyboardMapping";
+            var callReference = new TestUtilities().Reference(this) + "WithArg";
             CallOrder.Add(callReference);
-            WithKeyboardMappingCalls++;
-            WithKeyboardMappingCallArg_keyboardMapping.Add(keyboardMapping);
+            WithArgCalls++;
+            WithArgCallArg_arg.Add(arg);
             return this;
+        }
+    }
+
+
+    public class MockKeystrokeTransmitterExecutorThreadHelper : AbstractKeystrokeTransmitterExecutorThreadHelper
+    {
+        public List<string> CallOrder = [];
+
+        public int InjectCalls = 0;
+        public List<object> InjectCallArg_dataType = [];
+        public List<object?> InjectCallArg_data = [];
+        public override void Inject(object dataType, object? data)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Inject";
+            CallOrder.Add(callReference);
+            InjectCalls++;
+            InjectCallArg_dataType.Add(dataType);
+            InjectCallArg_data.Add(data);
+        }
+
+        public int TransmitCalls = 0;
+        public int TransmitIndex = 0;
+        public List<bool> TransmitReturn = [];
+        public override bool Transmit()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Transmit";
+            CallOrder.Add(callReference);
+            TransmitCalls++;
+            if (TransmitIndex < TransmitReturn.Count)
+            {
+                return TransmitReturn[TransmitIndex++];
+            }
+            throw new IndexOutOfRangeException();
+        }
+    }
+
+
+    public class MockKeystrokeTransmitterThreadState : AbstractKeystrokeTransmitterThreadState
+    {
+        public List<string> CallOrder = [];
+
+        public int GetStateCalls = 0;
+        public int GetStateIndex = 0;
+        public List<int> GetStateReturn = [];
+        public override int GetState()
+        {
+            var callReference = new TestUtilities().Reference(this) + "GetState";
+            CallOrder.Add(callReference);
+            GetStateCalls++;
+            if (GetStateIndex < GetStateReturn.Count)
+            {
+                return GetStateReturn[GetStateIndex++];
+            }
+            throw new IndexOutOfRangeException();
+        }
+
+        public int SetStateCalls = 0;
+        public List<int> SetStateCallArg_state = [];
+        public override void SetState(int state)
+        {
+            var callReference = new TestUtilities().Reference(this) + "SetState";
+            CallOrder.Add(callReference);
+            SetStateCalls++;
+            SetStateCallArg_state.Add(state);
         }
     }
 }

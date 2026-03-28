@@ -365,7 +365,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (
                 dataType is SystemInjectType.ActionHandler
@@ -475,7 +475,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (
                 dataType is SystemInjectType.ThreadDependency

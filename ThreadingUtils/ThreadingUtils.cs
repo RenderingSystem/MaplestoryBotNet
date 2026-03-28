@@ -120,7 +120,7 @@ namespace MaplestoryBotNet.ThreadingUtils
     }
 
 
-    public abstract class AbstractThread : ISystemInjectable
+    public abstract class AbstractThread : IDataInjectable
     {
         protected Thread? _thread = null;
 
@@ -150,17 +150,23 @@ namespace MaplestoryBotNet.ThreadingUtils
         public virtual void Start()
         {
             if (_runningState.IsRunning())
+            {
                 return;
+            }
             _runningState.SetRunning(true);
-            _thread = new Thread(ThreadLoop);
-            _thread.IsBackground = true;
+            _thread = new Thread(ThreadLoop)
+            {
+                IsBackground = true
+            };
             _thread.Start();
         }
 
         public virtual void Stop()
         {
             if (!_runningState.IsRunning())
+            {
                 return;
+            }
             _runningState.SetRunning(false);
         }
 
@@ -174,7 +180,7 @@ namespace MaplestoryBotNet.ThreadingUtils
             return true;
         }
 
-        public virtual void Inject(SystemInjectType dataType, object? value)
+        public virtual void Inject(object dataType, object? value)
         {
 
         }
@@ -251,26 +257,16 @@ namespace MaplestoryBotNet.ThreadingUtils
 
     public class ThreadRunningState : AbstractThreadRunningState
     {
-        private object _isRunningLockObject = new object();
-
-        private bool _isRunning = false;
+        private volatile bool _isRunning = false;
 
         public override bool IsRunning()
         {
-            bool running = false;
-            lock (_isRunningLockObject)
-            {
-                running = _isRunning;
-            }
-            return running;
+            return _isRunning;
         }
 
         public override void SetRunning(bool running)
         {
-            lock (_isRunningLockObject)
-            {
-                _isRunning = running;
-            }
+            _isRunning = running;
         }
     }
 

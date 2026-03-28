@@ -13,7 +13,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractDispatcher _dispatcher;
 
-        private ISystemInjectable _keyboardDeviceInjectable;
+        private IDataInjectable _keyboardDeviceInjectable;
 
         private KeyboardDeviceContext? _keyboardDeviceContext;
 
@@ -23,7 +23,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             AbstractSystemWindow splashScreen,
             AbstractSystemWindow mainWindow,
             AbstractDispatcher dispatcher,
-            ISystemInjectable keyboardDeviceInjectable
+            IDataInjectable keyboardDeviceInjectable
         )
         {
             _splashScreen = splashScreen;
@@ -93,7 +93,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractDispatcher? _dispatcher;
 
-        private ISystemInjectable? _keyboardDeviceContextInjectable;
+        private IDataInjectable? _keyboardDeviceContextInjectable;
 
         public WindowSplashScreenCompleteActionHandlerBuilder()
         {
@@ -136,7 +136,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 _dispatcher = dispatcher;
             }
-            else if (args is ISystemInjectable systemInjectable)
+            else if (args is IDataInjectable systemInjectable)
             {
                 _keyboardDeviceContextInjectable = systemInjectable;
             }

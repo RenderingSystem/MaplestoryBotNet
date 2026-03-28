@@ -173,7 +173,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             for (int i = 0; i < 3; i++)
             {
                 var configurationSystemConfiguration = _configurations[i];
-                Debug.Assert(_injector.InjectCallArg_dataType[i] == SystemInjectType.ConfigurationUpdate);
+                Debug.Assert(_injector.InjectCallArg_dataType[i] is SystemInjectType.ConfigurationUpdate);
                 Debug.Assert(_injector.InjectCallArg_data[i] == configurationSystemConfiguration);
             }
         }

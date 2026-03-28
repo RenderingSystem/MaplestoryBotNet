@@ -35,9 +35,10 @@
                 <MenuItem x:Name="NCCMenuItem" Header="NCC" IsCheckable="True"/>
             </MenuItem>
             <MenuItem Header="Botting">
-                <MenuItem x:Name="MacroMenuItem" Header="Macro"/>
-                <MenuItem x:Name="LocationMenuItem" Header="Location"/>
+                <MenuItem x:Name="MacroMenuItem" Header="Map"/>
                 <MenuItem x:Name="RuneMenuItem" Header="Rune"/>
+                <Separator />
+                <MenuItem x:Name="StartMenuItem" Header="Start!"/>
             </MenuItem>
         </Menu>
         <Image

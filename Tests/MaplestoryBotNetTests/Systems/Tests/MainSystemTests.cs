@@ -253,7 +253,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
             Debug.Assert(_callOrder[2] == ref0 + "Inject");
             for (int i = 0; i < _systems.Count; i++)
             {
-                Debug.Assert(((MockSystem)_systems[i]).InjectCallArg_dataType[0] == (SystemInjectType)0x1234);
+                Debug.Assert(((MockSystem)_systems[i]).InjectCallArg_dataType[0] is (SystemInjectType)0x1234);
                 Debug.Assert((int?)((MockSystem)_systems[i]).InjectCallArg_data[0] == 0x2345);
             }
         }
@@ -731,7 +731,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
             var mainApplication = _fixture();
             mainApplication.ShutDown();
             Debug.Assert(_mainSystem.InjectCalls == 1);
-            Debug.Assert(_mainSystem.InjectCallArg_dataType[0] == SystemInjectType.ShutDown);
+            Debug.Assert(_mainSystem.InjectCallArg_dataType[0] is SystemInjectType.ShutDown);
             Debug.Assert((bool?)_mainSystem.InjectCallArg_data[0] == true);
         }
 
@@ -857,7 +857,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
             Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_splashScreenCompleteActionHandler) != -1);
             for (int i = 0; i < 3; i++)
             {
-                Debug.Assert(_mainSystem.InjectCallArg_dataType[i] == SystemInjectType.ActionHandler);
+                Debug.Assert(_mainSystem.InjectCallArg_dataType[i] is SystemInjectType.ActionHandler);
             }
         }
 

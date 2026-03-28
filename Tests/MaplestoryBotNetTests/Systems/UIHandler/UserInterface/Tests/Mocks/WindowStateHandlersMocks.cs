@@ -75,9 +75,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks
         }
 
         public int InjectCalls = 0;
-        public List<SystemInjectType> InjectCallArg_dataType = [];
+        public List<object> InjectCallArg_dataType = [];
         public List<object?> InjectCallArg_data = [];
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             var callReference = new TestUtilities().Reference(this) + "Inject";
             CallOrder.Add(callReference);

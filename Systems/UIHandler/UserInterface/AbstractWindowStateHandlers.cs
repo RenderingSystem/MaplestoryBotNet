@@ -42,7 +42,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public abstract class AbstractWindowActionHandler : ISystemInjectable
+    public abstract class AbstractWindowActionHandler : IDataInjectable
     {
         public virtual void OnEvent(object? sender, EventArgs e)
         {
@@ -58,7 +58,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public abstract AbstractWindowStateModifier Modifier();
 
-        public virtual void Inject(SystemInjectType dataType, object? data)
+        public virtual void Inject(object dataType, object? data)
         {
 
         }

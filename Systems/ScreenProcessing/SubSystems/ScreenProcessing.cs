@@ -294,10 +294,10 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? value)
+        public override void Inject(object dataType, object? value)
         {
             if (
-                dataType == SystemInjectType.MapModel
+                dataType is SystemInjectType.MapModel
                 && value is MapModel mapModel
             )
             {
@@ -311,7 +311,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                 );
             }
             else if (
-                dataType == SystemInjectType.Configuration
+                dataType is SystemInjectType.Configuration
                 && value is ConfigurationImages configurationImages
             )
             {
@@ -334,7 +334,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                 );
             }
             else if (
-                dataType == SystemInjectType.Configuration
+                dataType is SystemInjectType.Configuration
                 && value is MaplestoryBotConfiguration configuration
             )
             {
@@ -368,7 +368,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                 }
             }
             else if (
-                dataType == SystemInjectType.ActionHandler
+                dataType is SystemInjectType.ActionHandler
                 && value is WindowMinimapPositionActionHandlerFacade handler
                 && handler.Modifier().State(0) is string templateKey
                 && templateKey == _imageKey

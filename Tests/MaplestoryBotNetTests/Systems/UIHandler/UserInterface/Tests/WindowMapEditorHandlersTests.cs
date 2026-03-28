@@ -47,7 +47,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             string name
         )
         {
-            mapModel.Add(
+            mapModel.AddMacroPoint(
                 new MinimapPoint
                 {
                     X = x,
@@ -378,7 +378,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 {
                     _canvas.RaiseEvent(_mouseButtonEvent);
                 }
-                var minimapPoints = _mapModel.Points();
+                var minimapPoints = _mapModel.MacroPoints();
                 for (int j = 0; j < i; j++)
                 {
                     Debug.Assert(minimapPoints.Count == i);
@@ -410,12 +410,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _mousePositionExtractor.GetPositionReturn.Add(new Point(23, 34));
             _canvas.RaiseEvent(_mouseButtonEvent);
             Debug.Assert(_canvas.Children.Count == 1);
-            var selectedPoint = _mapModel.FindLabel("P0")!;
+            var selectedPoint = _mapModel.FindMacroPointByLabel("P0")!;
             selectedPoint.PointData.PointName = "P1";
-            _mapModel.Edit(selectedPoint);
+            _mapModel.EditMacroPoint(selectedPoint);
             _canvas.RaiseEvent(_mouseButtonEvent);
             Debug.Assert(_canvas.Children.Count == 2);
-            Debug.Assert(_mapModel.FindLabel("P2") != null);
+            Debug.Assert(_mapModel.FindMacroPointByLabel("P2") != null);
         }
 
         public void Run()
@@ -770,11 +770,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 new MapCanvasPointAdder().AddPoint(
                     _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
                 );
-                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_mapModel.MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonEvent);
-                Debug.Assert(_mapModel.Points().Count == 0);
+                Debug.Assert(_mapModel.MacroPoints().Count == 0);
                 Debug.Assert(_canvas.Children.Count == 0);
             }
         }
@@ -797,11 +797,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 new MapCanvasPointAdder().AddPoint(
                     _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
                 );
-                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_mapModel.MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonEvent);
-                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_mapModel.MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
             }
         }
@@ -823,11 +823,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 new MapCanvasPointAdder().AddPoint(
                     _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
                 );
-                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_mapModel.MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonEvent);
-                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_mapModel.MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
             }
         }
@@ -848,11 +848,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 new MapCanvasPointAdder().AddPoint(
                     _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
                 );
-                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_mapModel.MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonEvent);
-                Debug.Assert(_mapModel.Points().Count == 1);
+                Debug.Assert(_mapModel.MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
             }
         }
@@ -1220,8 +1220,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _canvas.RaiseEvent(_mouseMoveEvent);
                 _canvas.RaiseEvent(_mouseMoveEvent);
                 _canvas.RaiseEvent(_mouseButtonUpEvent);
-                Debug.Assert(_mapModel.FindName("lol2")!.X == 12);
-                Debug.Assert(_mapModel.FindName("lol2")!.Y == 23);
+                Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 12);
+                Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 23);
                 Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
                 Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 12);
                 Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 23);
@@ -1257,8 +1257,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _canvas.RaiseEvent(_mouseMoveEvent);
                 _canvas.RaiseEvent(_mouseMoveEvent);
                 _canvas.RaiseEvent(_mouseButtonUpEvent);
-                Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
-                Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+                Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
+                Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
                 Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
                 Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 123);
                 Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 234);
@@ -1295,8 +1295,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _mousePositionExtractor.GetPositionReturn.Add(point);
                 _canvas.RaiseEvent(_mouseMoveEvent);
                 _canvas.RaiseEvent(_mouseButtonUpEvent);
-                Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
-                Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+                Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
+                Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
                 Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
                 Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 123);
                 Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 234);
@@ -1326,8 +1326,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _canvas.RaiseEvent(_mouseMoveEvent);
             _canvas.RaiseEvent(_mouseMoveEvent);
             _canvas.RaiseEvent(_mouseButtonUpEvent);
-            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
             Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
             Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 123);
             Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 234);
@@ -1357,8 +1357,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _canvas.RaiseEvent(_mouseMoveEvent);
             _canvas.RaiseEvent(_mouseMoveEvent);
             _canvas.RaiseEvent(_mouseButtonUpEvent);
-            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
             Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
             Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 123);
             Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 234);
@@ -1588,13 +1588,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _selectedTextX.Text = "12";
             Debug.Assert(Canvas.GetLeft(selected) == 12);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindName("lol2")!.X == 12);
-            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 12);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
             _selectedTextY.Text = "23";
             Debug.Assert(Canvas.GetLeft(selected) == 12);
             Debug.Assert(Canvas.GetTop(selected) == 23);
-            Debug.Assert(_mapModel.FindName("lol2")!.X == 12);
-            Debug.Assert(_mapModel.FindName("lol2")!.Y == 23);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 12);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 23);
         }
 
         /**
@@ -1617,13 +1617,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _selectedTextX.Text = "12";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
             _selectedTextY.Text = "23";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
         }
 
         /**
@@ -1647,13 +1647,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _selectedTextX.Text = "";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
             _selectedTextY.Text = "";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
         }
 
         /**
@@ -1677,13 +1677,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _selectedTextX.Text = "12";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
             _selectedTextY.Text = "23";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
         }
 
         /**
@@ -1709,13 +1709,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _selectedTextX.Text = "12";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
             _selectedTextY.Text = "23";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindName("lol2")!.Y == 234);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
         }
 
         /**
@@ -2019,7 +2019,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var mapModel = new MapModel();
             mapModel.SetMapArea(12, 23, 34, 45);
-            mapModel.Add(
+            mapModel.AddMacroPoint(
                 new MinimapPoint
                 {
                     X = 12,
@@ -2047,7 +2047,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     }
                 }
             );
-            mapModel.Add(
+            mapModel.AddMacroPoint(
                 new MinimapPoint
                 {
                     X = 23,
@@ -2546,7 +2546,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
             handler.Inject(SystemInjectType.MapModel, _mapModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
-            var mapPoints = _mapModel.Points();
+            var mapPoints = _mapModel.MacroPoints();
             Debug.Assert(mapPoints.Count == 1);
             Debug.Assert(mapPoints[0].X == 12);
             Debug.Assert(mapPoints[0].Y == 23);
@@ -2570,7 +2570,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
             handler.Inject(SystemInjectType.MapModel, _mapModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
-            var mapPoints = _mapModel.Points();
+            var mapPoints = _mapModel.MacroPoints();
             Debug.Assert(mapPoints[0].PointData.ElementName == "E1");
             Debug.Assert(mapPoints[0].PointData.PointName == "P1");
         }
@@ -2590,7 +2590,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
             handler.Inject(SystemInjectType.MapModel, _mapModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
-            var mapPoints = _mapModel.Points();
+            var mapPoints = _mapModel.MacroPoints();
             Debug.Assert(mapPoints[0].PointData.Commands.Count == 1);
             Debug.Assert(mapPoints[0].PointData.Commands[0].MacroName == "M1");
             Debug.Assert(mapPoints[0].PointData.Commands[0].MacroChance == 12);
@@ -2611,7 +2611,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
             handler.Inject(SystemInjectType.MapModel, _mapModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
-            var mapPoints = _mapModel.Points();
+            var mapPoints = _mapModel.MacroPoints();
             Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands.Count == 3);
             Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands[0] == "C10");
             Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands[1] == "C11");
@@ -2633,7 +2633,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var handler = _fixture();
             var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
-            var mapPoints = _mapModel.Points();
+            var mapPoints = _mapModel.MacroPoints();
             Debug.Assert(mapPoints.Count == 0);
         }
 
@@ -2862,7 +2862,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          */
         private void _populateMapModel()
         {
-            _mapModel.Add(
+            _mapModel.AddMacroPoint(
                 new MinimapPoint
                 {
                     X = 123,
@@ -2874,7 +2874,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     }
                 }
             );
-            _mapModel.Add(
+            _mapModel.AddMacroPoint(
                 new MinimapPoint
                 {
                     X = 234,
@@ -2957,7 +2957,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             handler.Inject(SystemInjectType.MapModel, _mapModel);
             _populateMapModel();
             _loadFileDialog.InvokeFileLoaded("lol", "");
-            var minimapPoints = _mapModel.Points();
+            var minimapPoints = _mapModel.MacroPoints();
             Debug.Assert(minimapPoints.Count == 2);
             Debug.Assert(minimapPoints[0].PointData.ElementTexts.Count == 2);
             Debug.Assert(minimapPoints[0].PointData.ElementTexts.IndexOf(_pointLabelTextBox) != 0);

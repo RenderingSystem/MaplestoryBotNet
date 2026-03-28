@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 
 namespace MaplestoryBotNet.Systems.Macro
 {
@@ -19,7 +14,7 @@ namespace MaplestoryBotNet.Systems.Macro
             throw new NotImplementedException();
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             throw new NotImplementedException();
         }

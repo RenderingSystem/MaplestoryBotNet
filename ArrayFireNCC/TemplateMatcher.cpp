@@ -221,6 +221,7 @@ namespace ArrayFireNCC {
 
 
 namespace ArrayFireNCC {
+
     List<Tuple<int, int, float>^>^ LocationDetector::detect(af::array& ncc_map, float threshold)
     {
         // Find peaks on GPU
@@ -257,6 +258,7 @@ namespace ArrayFireNCC {
         }
         return matches;
     }
+
 }
 
 
@@ -310,7 +312,7 @@ namespace ArrayFireNCC {
         const af::array& templ_mask
     )
     {
-        // Compute normalization
+        // Compute masked images
         auto masked_image = image * image_mask;
         auto masked_templ = templ * templ_mask;
         // Compute zero-mean to image and template
@@ -333,7 +335,7 @@ namespace ArrayFireNCC {
         ncc_map(ncc_map >= +1.0f + 1e-6) = 0.0f;
         ncc_map(ncc_map <= -1.0f - 1e-6) = 0.0f;
         return ncc_map * valid_confidence;
-    }   
+    }
 
 }
 
@@ -424,7 +426,8 @@ namespace ArrayFireNCC {
 
     int RectangleMerger::_compareByConfidenceDescending(
         Tuple<int, int, int, int, float>^ a,
-        Tuple<int, int, int, int, float>^ b)
+        Tuple<int, int, int, int, float>^ b
+    )
     {
         return b->Item5.CompareTo(a->Item5);
     }

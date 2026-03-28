@@ -122,6 +122,7 @@
 
   <ItemGroup>
     <Folder Include="Images\Ailments\" />
+    <Folder Include="Systems\Macro\SubSystems\" />
   </ItemGroup>
 
   <ItemGroup>

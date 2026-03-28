@@ -310,7 +310,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             keyboardDeviceDetectorSystem.Initialize();
             keyboardDeviceDetectorSystem.Inject(SystemInjectType.KeyboardDevice, deviceContext);
             Debug.Assert(_thread.InjectCalls == 1);
-            Debug.Assert(_thread.InjectCallArg_dataType[0] == SystemInjectType.KeyboardDevice);
+            Debug.Assert(_thread.InjectCallArg_dataType[0] is SystemInjectType.KeyboardDevice);
             Debug.Assert(_thread.InjectCallArg_data[0] == deviceContext);
         }
 

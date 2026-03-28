@@ -83,10 +83,10 @@ namespace MaplestoryBotNet.Systems.GPUSelector
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? value)
+        public override void Inject(object dataType, object? value)
         {
             if (
-                dataType == SystemInjectType.ActionHandler
+                dataType is SystemInjectType.ActionHandler
                 && value is WindowSplashScreenCompleteActionHandler handler
             )
             {
@@ -145,7 +145,7 @@ namespace MaplestoryBotNet.Systems.GPUSelector
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (_gpuSelectorThread != null)
             {

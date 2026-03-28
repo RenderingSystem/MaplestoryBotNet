@@ -1,7 +1,6 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using System.Collections.Concurrent;
 using System.Windows;
-using System.Windows.Input;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.Utilities
@@ -86,19 +85,19 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
     public abstract class AbstractMapModel
     {
-        public abstract List<MinimapPoint> Points();
+        public abstract List<MinimapPoint> MacroPoints();
 
-        public abstract void Add(MinimapPoint point);
+        public abstract void AddMacroPoint(MinimapPoint point);
 
-        public abstract void Edit(MinimapPoint point);
+        public abstract void EditMacroPoint(MinimapPoint point);
 
-        public abstract MinimapPoint? FindName(string name);
+        public abstract MinimapPoint? FindMacroPointByName(string name);
 
-        public abstract MinimapPoint? FindLabel(string label);
+        public abstract MinimapPoint? FindMacroPointByLabel(string label);
 
-        public abstract void Remove(string name);
+        public abstract void RemoveMacroPointByName(string name);
 
-        public abstract void Clear();
+        public abstract void CLearMacroPoints();
 
         public abstract Rect GetMapArea();
 
@@ -128,9 +127,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         private ConcurrentDictionary<string, Tuple<int, int>> _templatePosition = [];
 
-        private ConcurrentDictionary<string, float> _templateThreshold = [];
+        private ConcurrentDictionary<string, float> _templateThresholds = [];
 
-        public override List<MinimapPoint> Points()
+        public override List<MinimapPoint> MacroPoints()
         {
             var pointsCopy = new List<MinimapPoint>();
             try
@@ -148,7 +147,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             return pointsCopy;
         }
 
-        public override void Edit(MinimapPoint point)
+        public override void EditMacroPoint(MinimapPoint point)
         {
             try
             {
@@ -167,7 +166,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             }
         }
 
-        public override MinimapPoint? FindName(string name)
+        public override MinimapPoint? FindMacroPointByName(string name)
         {
             try
             {
@@ -187,7 +186,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             }
         }
 
-        public override MinimapPoint? FindLabel(string label)
+        public override MinimapPoint? FindMacroPointByLabel(string label)
         {
             try
             {
@@ -207,7 +206,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             }
         }
 
-        public override void Add(MinimapPoint point)
+        public override void AddMacroPoint(MinimapPoint point)
         {
             try
             {
@@ -224,7 +223,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             }
         }
 
-        public override void Remove(string name)
+        public override void RemoveMacroPointByName(string name)
         {
             try
             {
@@ -243,7 +242,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             }
         }
 
-        public override void Clear()
+        public override void CLearMacroPoints()
         {
             try
             {
@@ -300,10 +299,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             );
         }
 
-        private ConcurrentDictionary<string, Tuple<int, int>> _copyTemplatePositions()
+        private ConcurrentDictionary<string, float> _copyTemplateThresholds()
         {
-            var copy = new ConcurrentDictionary<string, Tuple<int, int>>();
-            foreach (var kvp in _templatePosition)
+            var copy = new ConcurrentDictionary<string, float>();
+            foreach (var kvp in _templateThresholds)
             {
                 copy.TryAdd(kvp.Key, kvp.Value);
             }
@@ -313,15 +312,15 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         public override void SetMapModel(MapModel model)
         {
             var mapArea = model.GetMapArea();
-            var modelPoints = model.Points();
-            var templatePosition = _copyTemplatePositions();
+            var modelPoints = model.MacroPoints();
+            var templateThresholds = model._copyTemplateThresholds();
             try
             {
                 _mapAreaLock.EnterWriteLock();
                 _pointsLock.EnterWriteLock();
                 _mapArea = mapArea;
                 _points = modelPoints;
-                _templatePosition = templatePosition;
+                _templateThresholds = templateThresholds;
             }
             finally
             {
@@ -332,7 +331,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public override float GetTemplateThreshold(string templateKey)
         {
-            if (_templateThreshold.TryGetValue(templateKey, out float value))
+            if (_templateThresholds.TryGetValue(templateKey, out float value))
             {
                 return value;
             }
@@ -341,7 +340,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public override void SetTemplateThreshold(string templateKey, float threshold)
         {
-            _templateThreshold.AddOrUpdate(
+            _templateThresholds.AddOrUpdate(
                 templateKey,
                 threshold,
                 (_, __) => { return threshold; }

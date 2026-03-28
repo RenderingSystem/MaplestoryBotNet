@@ -7,10 +7,10 @@ namespace MaplestoryBotNet.Systems.UIHandler
     {
         private List<AbstractWindowActionHandler> _handlers = [];
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (
-                dataType == SystemInjectType.ActionHandler
+                dataType is SystemInjectType.ActionHandler
                 && data is AbstractWindowActionHandler handler
             )
             {

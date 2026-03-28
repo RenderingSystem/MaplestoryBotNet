@@ -1,176 +1,470 @@
-﻿using System.Globalization;
-using Interception;
-using MaplestoryBotNet.LibraryWrappers;
-using MaplestoryBotNet.Systems.Configuration;
+﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.ThreadingUtils;
 
 
 namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
 {
-    public abstract class AbstractKeystrokeTransmitter
+    public enum KeystrokeTransmitterOrchestratorThreadInjectType
     {
-        public abstract void InjectKeyboardDevice(KeyboardDeviceContext keyboardDevice);
-
-        public abstract void Keydown(string keystroke);
-
-        public abstract void Keyup(string keystroke);
+        None = 0,
+        Stop,
+        Start,
+        MaxNum
     }
 
 
-    public abstract class AbstractKeystrokeConverter
+    public enum KeystrokeTransmitterExecutorThreadedUpdate
     {
-
-        public abstract InterceptionInterop.KeyStroke ConvertToKeydown(string stroke);
-
-        public abstract InterceptionInterop.KeyStroke ConvertToKeyup(string stroke);
-
+        Stopping = 0,
+        Stopped,
+        Starting,
+        Started,
+        KeystrokeTransmitterOrchestratorThreadStateMaxNum
     }
 
 
-    public abstract class AbstractKeystrokeTransmitterBuilder
+    public abstract class AbstractKeystrokeTransmitterThreadState
     {
-        public abstract AbstractKeystrokeTransmitterBuilder WithKeyboardMapping(KeyboardMapping keyboardMapping);
+        public abstract int GetState();
 
-        public abstract AbstractKeystrokeTransmitter Build();
+        public abstract void SetState(int state);
     }
 
 
-    public class KeystrokeConverter : AbstractKeystrokeConverter
+    public abstract class AbstractMacroCommandsSelector
     {
-        private InterceptionInterop.KeyStroke _parseStroke(string stroke)
-        {
-            var split = stroke.Split(' ');
-            var keystroke = new InterceptionInterop.KeyStroke();
-            for (int i = 0; i < split.Length; i++)
-            {
-                var hex = split[i].ToUpper();
-                if (hex.StartsWith("0X"))
-                    hex = hex.Substring(2);
-                if (hex == "E0")
-                    keystroke.State |= InterceptionInterop.KeyState.E0;
-                else if (hex == "E1")
-                    keystroke.State |= InterceptionInterop.KeyState.E1;
-                else
-                    keystroke.Code = ushort.Parse(hex, NumberStyles.HexNumber);
-            }
-            return keystroke;
-        }
-
-        public override InterceptionInterop.KeyStroke ConvertToKeydown(string keystrokeString)
-        {
-            var keystroke = _parseStroke(keystrokeString);
-            keystroke.State |= InterceptionInterop.KeyState.Down;
-            return keystroke;
-        }
-
-        public override InterceptionInterop.KeyStroke ConvertToKeyup(string keystrokeString)
-        {
-            var keystroke = _parseStroke(keystrokeString);
-            keystroke.State |= InterceptionInterop.KeyState.Up;
-            return keystroke;
-        }
+        public abstract List<string> SelectMacroCommands(
+            List<MinimapPointMacros> macros
+        );
     }
 
 
-    public class KeystrokeTransmitter : AbstractKeystrokeTransmitter
+    public abstract class AbstractPointDataSelector
     {
-        private AbstractInterceptionLibrary _interceptionLibrary;
+        public abstract MinimapPointData? SelectPoint(MapModel mapModel);
+    }
 
-        private KeyboardMapping _keyboardMapping;
 
-        private AbstractKeystrokeConverter _keystrokeConverter;
+    public abstract class AbstractKeystrokeTransmitterExecutorThreadHelper : IDataInjectable
+    {
+        public abstract bool Transmit();
 
-        private volatile KeyboardDeviceContext? _keyboardDeviceValue;
+        public abstract void Inject(object dataType, object? data);
+    }
 
-        private object _sendLock;
 
-        private KeyboardDeviceContext? _keyboardDevice
-        {
-            get => _keyboardDeviceValue;
-
-            set => _keyboardDeviceValue = value;
-        }
-
-        public KeystrokeTransmitter(
-            AbstractInterceptionLibrary interceptionLibrary,
-            AbstractKeystrokeConverter keystrokeConverter,
-            KeyboardMapping KeyboardMapping
+    public class RandomMacroCommandsSelector : AbstractMacroCommandsSelector
+    {
+        AbstractMacroRandom _macroRandom;
+        public RandomMacroCommandsSelector(
+            AbstractMacroRandom macroRandom
         )
         {
-            _interceptionLibrary = interceptionLibrary;
-            _keyboardMapping = KeyboardMapping;
-            _keystrokeConverter = keystrokeConverter;
-            _keyboardDeviceValue = null;
-            _sendLock = new object();
+            _macroRandom = macroRandom;
         }
 
-
-        private void _sendKeyStroke(InterceptionInterop.KeyStroke keystroke)
+        public override List<string> SelectMacroCommands(
+            List<MinimapPointMacros> macros
+        )
         {
-            var keyboardDevice = _keyboardDevice;
-            if (keyboardDevice == null)
-                return;
-            var context = keyboardDevice.Context;
-            var device = keyboardDevice.Device;
-            unsafe
+            var totalChance = 0;
+            for (int i = 0; i < macros.Count; i++)
             {
-                var stroke = (InterceptionInterop.Stroke*)&keystroke;
-                lock (_sendLock)
+                totalChance += macros[i].MacroChance;
+            }
+            var randomNumber = _macroRandom.Next(0, totalChance - 1);
+            var cumulativeChance = 0;
+            for (int i = 0; i < macros.Count; i++)
+            {
+                cumulativeChance += macros[i].MacroChance;
+                if (randomNumber < cumulativeChance)
                 {
-                    _interceptionLibrary.Send(context, device, stroke, 1);
+                    return macros[i].MacroCommands;
+                }
+            }
+            return [];
+        }
+    }
+
+
+    public class KeystrokeTransmitterPointDataSelector : AbstractPointDataSelector
+    {
+        private string _templateKey;
+        public KeystrokeTransmitterPointDataSelector(string templateKey)
+        {
+            _templateKey = templateKey;
+        }
+
+        public override MinimapPointData? SelectPoint(MapModel mapModel)
+        {
+            var minimapPoints = mapModel.MacroPoints();
+            var (charX, charY) = mapModel.GetTemplatePosition(_templateKey);
+            MinimapPointData? selectedMinimapPoint = null;
+            var minDistanceSquared = double.PositiveInfinity;
+            for (int i = 0; i < minimapPoints.Count; i++)
+            {
+                var currMinimapPoint = minimapPoints[i];
+                var currX = currMinimapPoint.X + (currMinimapPoint.XRange / 2);
+                var currY = currMinimapPoint.Y + (currMinimapPoint.YRange / 2);
+                var (vX, vY) = (charX - currX, charY - currY);
+                var distanceSquared = (vX * vX) + (vY * vY);
+                if (distanceSquared < minDistanceSquared)
+                {
+                    minDistanceSquared = distanceSquared;
+                    selectedMinimapPoint = currMinimapPoint.PointData.Copy();
+                }
+            }
+            return selectedMinimapPoint;
+        }
+    }
+
+
+    public class KeystrokeTransmitterExecutorThreadHelper : AbstractKeystrokeTransmitterExecutorThreadHelper
+    {
+        private AbstractPointDataSelector _pointDataSelector;
+
+        private AbstractMacroCommandsSelector _macroCommandsSelector;
+
+        private AbstractMacroCommandsExecutorBuilder _macroCommandsExecutorBuilder;
+
+        private AbstractMacroCommandsExecutor? _macroCommandsExecutor;
+
+        private MapModel? _mapModel;
+
+        public KeystrokeTransmitterExecutorThreadHelper(
+            AbstractPointDataSelector pointDataSelector,
+            AbstractMacroCommandsSelector macroCommandsSelector,
+            AbstractMacroCommandsExecutorBuilder executorBuilder
+
+        )
+        {
+            _pointDataSelector = pointDataSelector;
+            _macroCommandsSelector = macroCommandsSelector;
+            _macroCommandsExecutorBuilder = executorBuilder;
+            _macroCommandsExecutor = null;
+        }
+
+        public override bool Transmit()
+        {
+            var transmitData = _pointDataSelector.SelectPoint(_mapModel!);
+            if (transmitData != null)
+            {
+                var commands = transmitData.Commands;
+                var macroCommands = _macroCommandsSelector.SelectMacroCommands(commands);
+                _macroCommandsExecutor!.Execute(macroCommands);
+            }
+            return true;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (
+                dataType is SystemInjectType.KeystrokeTransmitter
+                && data is AbstractKeystrokeTransmitter keystrokeTransmitter
+            )
+            {
+                _macroCommandsExecutor = _macroCommandsExecutorBuilder
+                    .WithArg(keystrokeTransmitter)
+                    .Build();
+            }
+            else if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            {
+                _mapModel = mapModel;
+            }
+        }
+    }
+
+
+    public class KeystrokeTransmitterThreadState : AbstractKeystrokeTransmitterThreadState
+    {
+        private volatile int _threadState;
+
+        public KeystrokeTransmitterThreadState(int threadState)
+        {
+            _threadState = threadState;
+        }
+
+        public override int GetState()
+        {
+            return _threadState;
+        }
+
+        public override void SetState(int state)
+        {
+            _threadState = state;
+        }
+    }
+
+
+    public class KeystrokeTransmitterExecutorThread : AbstractThread
+    {
+        private AbstractCountDown _receiveCountDown;
+
+        private AbstractCountDown _transmitCountDown;
+
+        private AbstractKeystrokeTransmitterExecutorThreadHelper _keystrokeTransmitterExecutorThreadHelper;
+
+        private AbstractKeystrokeTransmitterThreadState _threadState;
+
+        private AbstractInjectAction? _threadedInjectAction;
+
+        public KeystrokeTransmitterExecutorThread(
+            AbstractCountDown receiveCountDown,
+            AbstractCountDown transmitCountDown,
+            AbstractKeystrokeTransmitterExecutorThreadHelper keystrokeTransmitterExecutorThreadHelpers,
+            AbstractKeystrokeTransmitterThreadState threadState,
+            AbstractThreadRunningState runningState
+        ) : base(runningState)
+        {
+            _receiveCountDown = receiveCountDown;
+            _transmitCountDown = transmitCountDown;
+            _keystrokeTransmitterExecutorThreadHelper = keystrokeTransmitterExecutorThreadHelpers;
+            _threadState = threadState;
+            _threadedInjectAction = null;
+        }
+
+        public override void ThreadLoop()
+        {
+            while (_runningState.IsRunning())
+            {
+                _receiveCountDown.WaitCountDown();
+                if (_runningState.IsRunning())
+                {
+                    while (_threadState.GetState() == (int)KeystrokeTransmitterExecutorThreadedUpdate.Started)
+                    {
+                        if (!_keystrokeTransmitterExecutorThreadHelper.Transmit())
+                        {
+                            break;
+                        }
+                    }
+                }
+                _receiveCountDown.SetCountDown(1);
+                _transmitCountDown.CountDown();
+            }
+        }
+
+        public override void Stop()
+        {
+            base.Stop();
+            Inject(KeystrokeTransmitterOrchestratorThreadInjectType.Stop, null);
+        }
+
+        private void _threadedStateUpdate(KeystrokeTransmitterExecutorThreadedUpdate newState)
+        {
+            _threadState.SetState((int) newState);
+            if (_threadedInjectAction != null)
+            {
+                _threadedInjectAction.GetAction()(newState, 0);
+            }
+        }
+
+        public override void Inject(object dataType, object? value)
+        {
+            if (dataType is KeystrokeTransmitterOrchestratorThreadInjectType injectType)
+            {
+                if (injectType == KeystrokeTransmitterOrchestratorThreadInjectType.Start)
+                {
+                    _transmitCountDown.SetCountDown(1);
+                    _threadedStateUpdate(KeystrokeTransmitterExecutorThreadedUpdate.Starting);
+                    _receiveCountDown.CountDown();
+                    _transmitCountDown.WaitCountDown();
+                    _threadedStateUpdate(KeystrokeTransmitterExecutorThreadedUpdate.Started);
+                    _receiveCountDown.CountDown();
+                }
+                else if (injectType == KeystrokeTransmitterOrchestratorThreadInjectType.Stop)
+                {
+                    _transmitCountDown.SetCountDown(1);
+                    _threadedStateUpdate(KeystrokeTransmitterExecutorThreadedUpdate.Stopping);
+                    _receiveCountDown.CountDown();
+                    _transmitCountDown.WaitCountDown();
+                    _threadedStateUpdate(KeystrokeTransmitterExecutorThreadedUpdate.Stopped);
+                }
+            }
+            else
+            {
+                _keystrokeTransmitterExecutorThreadHelper.Inject(dataType, value);
+                if (
+                    dataType is SystemInjectType.InjectAction
+                    && value is AbstractInjectAction injectAction
+                )
+                {
+                    _threadedInjectAction = injectAction;
                 }
             }
         }
 
-        public override void InjectKeyboardDevice(KeyboardDeviceContext keyboardDevice)
+        public override object? State()
         {
-            _keyboardDevice = keyboardDevice;
+            return _threadState;
+        }
+    }
+
+
+    public class KeystrokeTransmitterOrchestratorThread : AbstractThread
+    {
+        private AbstractCountDown _receiveCountDown;
+
+        private AbstractThread _keystrokeTransmitterExecutorThread;
+
+        private AbstractKeystrokeTransmitterThreadState _threadState;
+
+        public KeystrokeTransmitterOrchestratorThread(
+            AbstractKeystrokeTransmitterThreadState threadState,
+            AbstractCountDown receiveCountDown,
+            AbstractThread keystrokeTransmitterExecutorThread,
+            AbstractThreadRunningState runningState
+        ) : base(runningState)
+        {
+            _threadState = threadState;
+            _receiveCountDown = receiveCountDown;
+            _keystrokeTransmitterExecutorThread = keystrokeTransmitterExecutorThread;
         }
 
-        public override void Keydown(string keystroke)
+        public override void Start()
         {
-            var byteString = _keyboardMapping.GetMapping(keystroke);
-            if (byteString.Length > 0)
+            base.Start();
+            _keystrokeTransmitterExecutorThread.Start();
+        }
+
+        public override void Stop()
+        {
+            base.Stop();
+            _keystrokeTransmitterExecutorThread.Stop();
+            _receiveCountDown.CountDown();
+        }
+
+        public override void ThreadLoop()
+        {
+            while (_runningState.IsRunning())
             {
-                var keydown = _keystrokeConverter.ConvertToKeydown(byteString);
-                _sendKeyStroke(keydown);
+                _receiveCountDown.WaitCountDown();
+                if (_runningState.IsRunning())
+                {
+                    _keystrokeTransmitterExecutorThread.Inject(
+                        (KeystrokeTransmitterOrchestratorThreadInjectType) _threadState.GetState(), null
+                    );
+                }
+                _receiveCountDown.SetCountDown(1);
             }
         }
 
-        public override void Keyup(string keystroke)
+        public override void Inject(object dataType, object? value)
         {
-            var byteString = _keyboardMapping.GetMapping(keystroke);
-            if (byteString.Length > 0)
+            if (dataType is KeystrokeTransmitterOrchestratorThreadInjectType injectType)
             {
-                var keyup = _keystrokeConverter.ConvertToKeyup(byteString);
-                _sendKeyStroke(keyup);
+                _threadState.SetState((int) injectType);
+                _receiveCountDown.CountDown();
+            }
+            else
+            {
+                _keystrokeTransmitterExecutorThread.Inject(dataType, value);
+                if (
+                    dataType is SystemInjectType.InjectAction
+                    && value is AbstractInjectAction injectAction
+                )
+                {
+                    injectAction.GetAction()(SystemInjectType.ThreadDependency, this);
+                }
+            }
+        }
+
+        public override object? State()
+        {
+            return _keystrokeTransmitterExecutorThread.State();
+        }
+    }
+
+
+    public class KeystrokeTransmitterOrchestratorThreadFactory : AbstractThreadFactory
+    {
+        private string _templateKey;
+
+        public KeystrokeTransmitterOrchestratorThreadFactory(string templateKey)
+        {
+            _templateKey = templateKey;
+        }
+
+        public override AbstractThread CreateThread()
+        {
+            return new KeystrokeTransmitterOrchestratorThread(
+                new KeystrokeTransmitterThreadState(
+                    (int) KeystrokeTransmitterOrchestratorThreadInjectType.None
+                ),
+                new ThreadSafeCountDown(),
+                new KeystrokeTransmitterExecutorThread(
+                    new ThreadSafeCountDown(),
+                    new ThreadSafeCountDown(),
+                    new KeystrokeTransmitterExecutorThreadHelper(
+                        new KeystrokeTransmitterPointDataSelector(_templateKey),
+                        new RandomMacroCommandsSelector(new MacroRandom()),
+                        new MacroCommandsExecutorBuilder()
+                    ),
+                    new KeystrokeTransmitterThreadState(
+                        (int) KeystrokeTransmitterExecutorThreadedUpdate.Stopped
+                    ),
+                    new ThreadRunningState()
+                ),
+                new ThreadRunningState()
+            );
+        }
+    }
+
+
+    public class KeystrokeTransmitterOrchestratorSystem : AbstractSystem
+    {
+        private List<AbstractThreadFactory> _threadFactories;
+
+        private List<AbstractThread> _threads;
+
+        public KeystrokeTransmitterOrchestratorSystem(
+            List<AbstractThreadFactory> threadFactories
+        )
+        {
+            _threadFactories = threadFactories;
+            _threads = [];
+        }
+
+        public override void Initialize()
+        {
+            for (int i = 0; i < _threadFactories.Count; i++)
+            {
+                _threads.Add(_threadFactories[i].CreateThread());
+            }
+        }
+
+        public override void Start()
+        {
+            for (int i = 0; i < _threads.Count; i++)
+            {
+                _threads[i].Start();
+            }
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            for (int i = 0; i < _threads.Count; i++)
+            {
+                _threads[i].Inject(dataType, data);
             }
         }
     }
 
 
-    public class KeystrokeTransmitterBuilder : AbstractKeystrokeTransmitterBuilder
+    public class KeystrokeTransmitterOrchestratorSystemBuilder : AbstractSystemBuilder
     {
-        private KeyboardMapping? _keyboardMapping;
-
-        public override AbstractKeystrokeTransmitterBuilder WithKeyboardMapping(
-            KeyboardMapping keyboardMapping
-        )
+        public override AbstractSystem Build()
         {
-            _keyboardMapping = keyboardMapping;
-            return this;
+            return new KeystrokeTransmitterOrchestratorSystem(
+                [
+                    new KeystrokeTransmitterOrchestratorThreadFactory(MapIconInfo.Character)
+                ]
+            );
         }
 
-        public override AbstractKeystrokeTransmitter Build()
+        public override AbstractSystemBuilder WithArg(object arg)
         {
-            if (_keyboardMapping == null)
-            {
-                _keyboardMapping = new KeyboardMapping();
-            }
-            return new KeystrokeTransmitter(
-                new InterceptionLibrary(),
-                new KeystrokeConverter(),
-                _keyboardMapping
-            );
+            return this;
         }
     }
 }

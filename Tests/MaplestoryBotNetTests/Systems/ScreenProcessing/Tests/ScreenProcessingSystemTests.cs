@@ -65,21 +65,23 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
         public void _testInjectActionWithCreatedThreads()
         {
             var _screenProcessingSystem = _fixture();
-            var dataTypes = new List<SystemInjectType>();
+            var dataTypes = new List<object>();
             var dataList = new List<object>();
             _screenProcessingSystem.Initialize();
             _screenProcessingSystem.Inject(
                 SystemInjectType.InjectAction,
-                (SystemInjectType dataType, object data) => {
-                    dataTypes.Add(dataType);
-                    dataList.Add(data);
-                }
+                new InjectAction(
+                    (object dataType, object data) => {
+                        dataTypes.Add(dataType);
+                        dataList.Add(data);
+                    }
+                )
             );
             Debug.Assert(dataTypes.Count == _mockThreads.Count);
             Debug.Assert(dataList.Count == _mockThreads.Count);
             for (int i = 0; i < _mockThreads.Count; i++)
             {
-                Debug.Assert(dataTypes[i] == SystemInjectType.ThreadDependency);
+                Debug.Assert((SystemInjectType) dataTypes[i] == SystemInjectType.ThreadDependency);
                 Debug.Assert(dataList[i] == _mockThreads[i]);
             }
 

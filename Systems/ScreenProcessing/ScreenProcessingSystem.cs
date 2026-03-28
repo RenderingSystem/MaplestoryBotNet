@@ -37,16 +37,16 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing
             }
         }
 
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             if (
-                dataType == SystemInjectType.InjectAction
-                && data is Action<SystemInjectType, object> injectAction
+                dataType is SystemInjectType.InjectAction
+                && data is AbstractInjectAction injectAction
             )
             {
                 for (int i = 0; i < _processingThreads.Count; i++)
                 {
-                    injectAction(
+                    injectAction.GetAction()(
                         SystemInjectType.ThreadDependency,
                         _processingThreads[i]
                     );

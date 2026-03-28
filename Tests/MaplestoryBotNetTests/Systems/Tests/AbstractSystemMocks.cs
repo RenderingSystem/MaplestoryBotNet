@@ -33,9 +33,9 @@ namespace MaplestoryBotNetTests.Systems.Tests
         }
 
         public int InjectCalls = 0;
-        public List<SystemInjectType> InjectCallArg_dataType = [];
+        public List<object> InjectCallArg_dataType = [];
         public List<object?> InjectCallArg_data = [];
-        public override void Inject(SystemInjectType dataType, object? data)
+        public override void Inject(object dataType, object? data)
         {
             var callReference = new TestUtilities().Reference(this) + "Inject";
             CallOrder.Add(callReference);
@@ -89,14 +89,14 @@ namespace MaplestoryBotNetTests.Systems.Tests
     }
 
 
-    public class MockInjector : ISystemInjectable
+    public class MockInjector : IDataInjectable
     {
         public List<string> CallOrder = [];
 
         public int InjectCalls = 0;
-        public List<SystemInjectType> InjectCallArg_dataType = [];
+        public List<object> InjectCallArg_dataType = [];
         public List<object?> InjectCallArg_data = [];
-        public void Inject(SystemInjectType dataType, object? data)
+        public void Inject(object dataType, object? data)
         {
             var callReference = new TestUtilities().Reference(this) + "Inject";
             CallOrder.Add(callReference);
@@ -161,13 +161,13 @@ namespace MaplestoryBotNetTests.Systems.Tests
     }
 
 
-    public class MockSystemInjectable : ISystemInjectable
+    public class MockSystemInjectable : IDataInjectable
     {
         public List<string> CallOrder = [];
         public int InjectCalls = 0;
-        public List<SystemInjectType> InjectCallArg_dataType = [];
+        public List<object> InjectCallArg_dataType = [];
         public List<object?> InjectCallArg_data = [];
-        public void Inject(SystemInjectType dataType, object? data)
+        public void Inject(object dataType, object? data)
         {
             var callReference = new TestUtilities().Reference(this) + "Inject";
             CallOrder.Add(callReference);
@@ -264,6 +264,27 @@ namespace MaplestoryBotNetTests.Systems.Tests
             if (VisibleIndex < VisibleReturn.Count)
             {
                 return VisibleReturn[VisibleIndex++];
+            }
+            throw new IndexOutOfRangeException();
+        }
+    }
+
+
+    public class MockInjectAction : AbstractInjectAction
+    {
+        public List<string> CallOrder = [];
+
+        public int GetActionCalls = 0;
+        public int GetActionIndex = 0;
+        public List<Action<object, object>> GetActionReturn = [];
+        public override Action<object, object> GetAction()
+        {
+            var callReference = new TestUtilities().Reference(this) + "GetAction";
+            CallOrder.Add(callReference);
+            GetActionCalls++;
+            if (GetActionIndex < GetActionReturn.Count)
+            {
+                return GetActionReturn[GetActionIndex++];
             }
             throw new IndexOutOfRangeException();
         }

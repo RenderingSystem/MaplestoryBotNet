@@ -125,9 +125,9 @@ namespace MaplestoryBotNetTests.ThreadingUtils
         }
 
         public int InjectCalls = 0;
-        public List<SystemInjectType> InjectCallArg_dataType = [];
+        public List<object> InjectCallArg_dataType = [];
         public List<object?> InjectCallArg_data = [];
-        public override void Inject(SystemInjectType dataType, object? value)
+        public override void Inject(object dataType, object? value)
         {
             var callReference = new TestUtilities().Reference(this) + "ThreadInject";
             CallOrder.Add(callReference);

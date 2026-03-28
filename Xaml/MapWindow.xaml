@@ -334,7 +334,7 @@
                 Background="Black"
                 Foreground="LightYellow"
                 FontFamily="Courier New"
-                TabIndex="4"
+                TabIndex="7"
                 IsReadOnly="True"
             />
             <Label
@@ -353,7 +353,7 @@
                 Background="Black"
                 Foreground="LightYellow"
                 FontFamily="Courier New"
-                TabIndex="4"
+                TabIndex="8"
                 IsReadOnly="True"
             />
             <Label
@@ -382,7 +382,7 @@
                 Background="Black"
                 Foreground="Violet"
                 FontFamily="Courier New"
-                TabIndex="4"
+                TabIndex="10"
                 IsReadOnly="True"
             />
             <Label
@@ -401,7 +401,7 @@
                 Background="Black"
                 Foreground="Violet"
                 FontFamily="Courier New"
-                TabIndex="4"
+                TabIndex="11"
                 IsReadOnly="True"
             />
             <Label
@@ -429,7 +429,7 @@
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
-                TabIndex="4"
+                TabIndex="9"
             />
             <Label Content="Limit:"
                 FontFamily="Courier New"
@@ -446,7 +446,7 @@
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
-                TabIndex="4"
+                TabIndex="12"
             />
         </Grid>
     </Viewbox>
