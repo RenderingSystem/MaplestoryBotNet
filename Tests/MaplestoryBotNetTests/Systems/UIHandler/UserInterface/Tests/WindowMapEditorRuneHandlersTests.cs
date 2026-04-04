@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Xml.Linq;
 
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
@@ -41,6 +42,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var frameCanvas = (Canvas)frameFactory.Create();
             var rectangle = frameCanvas.Children.OfType<Rectangle>().ToList()[0];
             var ellipses = frameCanvas.Children.OfType<Ellipse>().ToList();
+            var textBlock = frameCanvas.Children.OfType<TextBlock>().ToList()[0];
             var tl = ellipses.FirstOrDefault(e => e.Name == WindowMapCanvasFrameTypes.TL)!;
             var tr = ellipses.FirstOrDefault(e => e.Name == WindowMapCanvasFrameTypes.TR)!;
             var bl = ellipses.FirstOrDefault(e => e.Name == WindowMapCanvasFrameTypes.BL)!;
@@ -426,11 +428,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Verifies that dragging a frame correctly updates its position and size
+         * @brief Verifies that dragging updates the frame's position and size
          * 
-         * When users drag a frame by clicking and moving the mouse, the frame should
-         * move to the new position and resize appropriately based on which corner
-         * grip was used as the anchor point.
+         * When users drag a frame (by clicking and moving the mouse), the frame should
+         * update its position and size based on which grip was used and whether
+         * dragging is active.
          */
         private void _testDraggingSelectedFrameAdjustsCanvasDimensions()
         {
@@ -438,6 +440,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var dragPoints = _dragPoints();
             for (int i = 0; i < anchorPoints.Count; i++)
             for (int j = 0; j < dragPoints.Count; j++)
+            for (int dragging = 0; dragging < 2; dragging++)
             {
                 var anchorPoint = anchorPoints[i];
                 var dragPoint = new Point(
@@ -453,23 +456,26 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                         DragPoint = new Tuple<double, double>(anchorPoint.X, anchorPoint.Y)
                     }
                 );
-                _editMenuState.SetDragging(true);
+                _editMenuState.SetDragging(dragging == 1);
                 _mapCanvas.RaiseEvent(_mouseMoveEvent());
-                var left = Canvas.GetLeft(frame);
-                Debug.Assert(Canvas.GetLeft(frame) == dragPoint.X);
-                Debug.Assert(Canvas.GetTop(frame) == dragPoint.Y);
-                Debug.Assert(frame.Width == Math.Abs(anchorPoint.X - dragPoint.X));
-                Debug.Assert(frame.Height == Math.Abs(anchorPoint.Y - dragPoint.Y));
+                var left = (dragging == 1) ? dragPoint.X : 100;
+                var top = (dragging == 1) ? dragPoint.Y : 100;
+                var width = (dragging == 1) ? anchorPoint.X - dragPoint.X : 300;
+                var height = (dragging == 1) ? anchorPoint.Y - dragPoint.Y : 300;
+                Debug.Assert(Canvas.GetLeft(frame) == left);
+                Debug.Assert(Canvas.GetTop(frame) == top);
+                Debug.Assert(frame.Width == width);
+                Debug.Assert(frame.Height == height);
             }
 
         }
 
         /**
-         * @brief Verifies that the frame's border rectangle resizes correctly during drag
+         * @brief Verifies that the frame's border rectangle resizes correctly
          * 
          * When users resize a frame by dragging a corner grip, the inner rectangle
          * that represents the frame border should update its dimensions to match
-         * the new frame size.
+         * the new frame size exactly.
          */
         private void _testDraggingSelectedFrameAdjustsRectangleDimensions()
         {
@@ -477,6 +483,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var dragPoints = _dragPoints();
             for (int i = 0; i < anchorPoints.Count; i++)
             for (int j = 0; j < dragPoints.Count; j++)
+            for (int dragging = 0; dragging < 2; dragging++)
             {
                 var anchorPoint = anchorPoints[i];
                 var dragPoint = new Point(
@@ -492,20 +499,22 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                         DragPoint = new Tuple<double, double>(anchorPoint.X, anchorPoint.Y)
                     }
                 );
-                _editMenuState.SetDragging(true);
+                _editMenuState.SetDragging(dragging == 1);
                 _mapCanvas.RaiseEvent(_mouseMoveEvent());
                 var rectangle = frame.Children.OfType<Rectangle>().ToList()[0];
-                Debug.Assert(rectangle.Width == anchorPoint.X - dragPoint.X);
-                Debug.Assert(rectangle.Height == anchorPoint.Y - dragPoint.Y);
+                var width = (dragging == 1) ? anchorPoint.X - dragPoint.X : 300.0;
+                var height = (dragging == 1) ? anchorPoint.Y - dragPoint.Y : 300.0;
+                Debug.Assert(rectangle.Width == width);
+                Debug.Assert(rectangle.Height == height);
             }
         }
 
         /**
-         * @brief Verifies that corner grips reposition correctly during frame resize
+         * @brief Verifies that corner grips reposition correctly during resize
          * 
          * When users resize a frame by dragging a corner grip, the remaining three
          * corner grips should reposition themselves to maintain their correct
-         * positions at the frame's corners.
+         * positions at the frame's four corners.
          */
         private void _testDraggingSelectedFrameAdjustsGripDimensions()
         {
@@ -513,6 +522,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var dragPoints = _dragPoints();
             for (int i = 0; i < anchorPoints.Count; i++)
             for (int j = 0; j < dragPoints.Count; j++)
+            for (int dragging = 0; dragging < 2; dragging++)
             {
                 var anchorPoint = anchorPoints[i];
                 var dragPoint = new Point(
@@ -528,30 +538,32 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                         DragPoint = new Tuple<double, double>(anchorPoint.X, anchorPoint.Y)
                     }
                 );
-                _editMenuState.SetDragging(true);
+                _editMenuState.SetDragging(dragging == 1);
                 _mapCanvas.RaiseEvent(_mouseMoveEvent());
                 var ellipses = frame.Children.OfType<Ellipse>().ToList();
                 var tl = ellipses.FirstOrDefault(e => e.Name == WindowMapCanvasFrameTypes.TL)!;
                 var tr = ellipses.FirstOrDefault(e => e.Name == WindowMapCanvasFrameTypes.TR)!;
                 var bl = ellipses.FirstOrDefault(e => e.Name == WindowMapCanvasFrameTypes.BL)!;
                 var br = ellipses.FirstOrDefault(e => e.Name == WindowMapCanvasFrameTypes.BR)!;
+                var width = (dragging == 1) ? anchorPoint.X - dragPoint.X : 300.0;
+                var height = (dragging == 1) ? anchorPoint.Y - dragPoint.Y : 300.0;
                 Debug.Assert(tl.RenderTransform.Value.OffsetX == -tl.Width / 2);
                 Debug.Assert(tl.RenderTransform.Value.OffsetY == -tl.Height / 2);
-                Debug.Assert(tr.RenderTransform.Value.OffsetX == anchorPoint.X - dragPoint.X - tr.Width / 2);
+                Debug.Assert(tr.RenderTransform.Value.OffsetX == width - tr.Width / 2);
                 Debug.Assert(tr.RenderTransform.Value.OffsetY == -tr.Height / 2);
                 Debug.Assert(bl.RenderTransform.Value.OffsetX == -bl.Width / 2);
-                Debug.Assert(bl.RenderTransform.Value.OffsetY == anchorPoint.Y - dragPoint.Y - bl.Height / 2);
-                Debug.Assert(br.RenderTransform.Value.OffsetX == anchorPoint.X - dragPoint.X - br.Width / 2);
-                Debug.Assert(br.RenderTransform.Value.OffsetY == anchorPoint.Y - dragPoint.Y - br.Height / 2);
+                Debug.Assert(bl.RenderTransform.Value.OffsetY == height - bl.Height / 2);
+                Debug.Assert(br.RenderTransform.Value.OffsetX == width - br.Width / 2);
+                Debug.Assert(br.RenderTransform.Value.OffsetY == height - br.Height / 2);
             }
         }
 
         /**
-         * @brief Verifies that the frame label stays in the correct position during resize
+         * @brief Verifies that the frame label stays correctly positioned during resize
          * 
          * When users resize or move a frame, the text label that identifies the frame
          * should maintain its position relative to the frame (typically at the top-left
-         * corner with a small margin).
+         * corner with a small fixed margin).
          */
         private void _testDraggingSelectedFrameAdjustsLabelDimensions()
         {
