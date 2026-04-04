@@ -413,6 +413,18 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             };
         }
 
+        private List<Point> _dragPoints()
+        {
+            return new List<Point>
+            {
+                new Point(9, 7),
+                new Point(-100, -100),
+                new Point(600, -100),
+                new Point(-100, -600),
+                new Point(600, 600),
+            };
+        }
+
         /**
          * @brief Verifies that dragging a frame correctly updates its position and size
          * 
@@ -423,10 +435,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testDraggingSelectedFrameAdjustsCanvasDimensions()
         {
             var anchorPoints = _anchorPoints();
-            var dragPoint = new Point(9, 7);
+            var dragPoints = _dragPoints();
             for (int i = 0; i < anchorPoints.Count; i++)
+            for (int j = 0; j < dragPoints.Count; j++)
             {
                 var anchorPoint = anchorPoints[i];
+                var dragPoint = new Point(
+                    Math.Min(0, Math.Max(_mapCanvas.Width, dragPoints[j].X)),
+                    Math.Min(0, Math.Max(_mapCanvas.Height, dragPoints[j].Y))
+                );
                 var frameDragActionHandler = _fixture(dragPoint.X, dragPoint.Y);
                 var frame = FrameFixture.GenerateFrame(100, 100, 300, 300, _mapCanvas);
                 _editMenuState.Select(
@@ -441,8 +458,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 var left = Canvas.GetLeft(frame);
                 Debug.Assert(Canvas.GetLeft(frame) == dragPoint.X);
                 Debug.Assert(Canvas.GetTop(frame) == dragPoint.Y);
-                Debug.Assert(frame.Width == anchorPoint.X - dragPoint.X);
-                Debug.Assert(frame.Height == anchorPoint.Y - dragPoint.Y);
+                Debug.Assert(frame.Width == Math.Abs(anchorPoint.X - dragPoint.X));
+                Debug.Assert(frame.Height == Math.Abs(anchorPoint.Y - dragPoint.Y));
             }
 
         }
@@ -457,10 +474,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testDraggingSelectedFrameAdjustsRectangleDimensions()
         {
             var anchorPoints = _anchorPoints();
-            var dragPoint = new Point(9, 7);
+            var dragPoints = _dragPoints();
             for (int i = 0; i < anchorPoints.Count; i++)
+            for (int j = 0; j < dragPoints.Count; j++)
             {
                 var anchorPoint = anchorPoints[i];
+                var dragPoint = new Point(
+                    Math.Min(0, Math.Max(_mapCanvas.Width, dragPoints[j].X)),
+                    Math.Min(0, Math.Max(_mapCanvas.Height, dragPoints[j].Y))
+                );
                 var frameDragActionHandler = _fixture(dragPoint.X, dragPoint.Y);
                 var frame = FrameFixture.GenerateFrame(100, 100, 300, 300, _mapCanvas);
                 _editMenuState.Select(
@@ -488,10 +510,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testDraggingSelectedFrameAdjustsGripDimensions()
         {
             var anchorPoints = _anchorPoints();
-            var dragPoint = new Point(9, 7);
+            var dragPoints = _dragPoints();
             for (int i = 0; i < anchorPoints.Count; i++)
+            for (int j = 0; j < dragPoints.Count; j++)
             {
                 var anchorPoint = anchorPoints[i];
+                var dragPoint = new Point(
+                    Math.Min(0, Math.Max(_mapCanvas.Width, dragPoints[j].X)),
+                    Math.Min(0, Math.Max(_mapCanvas.Height, dragPoints[j].Y))
+                );
                 var frameDragActionHandler = _fixture(dragPoint.X, dragPoint.Y);
                 var frame = FrameFixture.GenerateFrame(100, 100, 300, 300, _mapCanvas);
                 _editMenuState.Select(
@@ -529,10 +556,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testDraggingSelectedFrameAdjustsLabelDimensions()
         {
             var anchorPoints = _anchorPoints();
-            var dragPoint = new Point(9, 7);
+            var dragPoints = _dragPoints();
             for (int i = 0; i < anchorPoints.Count; i++)
+            for (int j = 0; j < dragPoints.Count; j++)
             {
                 var anchorPoint = anchorPoints[i];
+                var dragPoint = new Point(
+                    Math.Min(0, Math.Max(_mapCanvas.Width, dragPoints[j].X)),
+                    Math.Min(0, Math.Max(_mapCanvas.Height, dragPoints[j].Y))
+                );
                 var frameDragActionHandler = _fixture(dragPoint.X, dragPoint.Y);
                 var frame = FrameFixture.GenerateFrame(100, 100, 300, 300, _mapCanvas);
                 _editMenuState.Select(
