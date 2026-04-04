@@ -6,7 +6,7 @@ using System.Windows.Input;
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.Utilities.Mocks
 {
-    public class MockMouseEventPositionExtractor : AbstractMouseEventPositionExtractor
+    public class MockMouseEventDataExtractor : AbstractMouseEventDataExtractor
     {
         public List<string> CallOrder = [];
 
@@ -28,6 +28,23 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.Utilities.Mocks
             if (GetPositionIndex < GetPositionReturn.Count)
             {
                 return GetPositionReturn[GetPositionIndex++];
+            }
+            throw new IndexOutOfRangeException();
+        }
+
+        public int GetButtonStateCalls = 0;
+        public int GetButtonStateIndex = 0;
+        public List<MouseButtonState> GetButtonStateCallArg_buttonState = [];
+        public List<MouseButtonState> GetButtonStateReturn = [];
+        public override MouseButtonState GetButtonState(MouseButtonState buttonState)
+        {
+            var callReference = new TestUtilities().Reference(this) + "GetButtonState";
+            CallOrder.Add(callReference);
+            GetButtonStateCalls++;
+            GetButtonStateCallArg_buttonState.Add(buttonState);
+            if (GetButtonStateIndex < GetButtonStateReturn.Count)
+            {
+                return GetButtonStateReturn[GetButtonStateIndex++];
             }
             throw new IndexOutOfRangeException();
         }

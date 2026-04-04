@@ -32,7 +32,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
 
         public MapIcon? MapIcon;
 
-        public MapModel? MapModel;
+        public AbstractBottingModel? BottingModel;
 
         public float? Threshold;
 
@@ -44,7 +44,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
             AbstractBitmapTemplateMatcher? templateMatcher = null,
             AbstractRectangleMerger? rectangleMerger = null,
             MapIcon? mapIcon = null,
-            MapModel? mapModel = null,
+            AbstractBottingModel? bottingModel = null,
             float? threshold = null,
             AbstractWindowStateModifier? positionUpdater = null
         )
@@ -54,7 +54,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
             TemplateMatcher = templateMatcher;
             RectangleMerger = rectangleMerger;
             MapIcon = mapIcon;
-            MapModel = mapModel;
+            BottingModel = bottingModel;
             Threshold = threshold;
             PositionUpdater = positionUpdater;
         }
@@ -68,7 +68,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
             TemplateMatcher = copy.TemplateMatcher;
             RectangleMerger = copy.RectangleMerger;
             MapIcon = copy.MapIcon;
-            MapModel = copy.MapModel;
+            BottingModel = copy.BottingModel;
             Threshold = copy.Threshold;
             PositionUpdater = copy.PositionUpdater;
         }
@@ -80,7 +80,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
             AbstractBitmapTemplateMatcher? templateMatcher = null,
             AbstractRectangleMerger? rectangleMerger = null,
             MapIcon? mapIcon = null,
-            MapModel? mapModel = null,
+            AbstractBottingModel? bottingModel = null,
             float? threshold = null,
             AbstractWindowStateModifier? positionUpdater = null
         )
@@ -94,7 +94,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                     templateMatcher ?? current.TemplateMatcher,
                     rectangleMerger ?? current.RectangleMerger,
                     mapIcon ?? current.MapIcon,
-                    mapModel ?? current.MapModel,
+                    bottingModel ?? current.BottingModel,
                     threshold ?? current.Threshold,
                     positionUpdater ?? current.PositionUpdater
                 );
@@ -126,7 +126,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                     updateObject.TemplateMatcher,
                     updateObject.RectangleMerger,
                     updateObject.MapIcon,
-                    updateObject.MapModel,
+                    updateObject.BottingModel,
                     updateObject.Threshold,
                     updateObject.PositionUpdater
                 );
@@ -204,7 +204,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                 || currentThreadState.Threshold == null
                 || currentThreadState.MapIcon == null
                 || currentThreadState.CurrentBitmap == null
-                || currentThreadState.MapModel == null
+                || currentThreadState.BottingModel == null
                 || currentThreadState.PositionUpdater == null
             )
             {
@@ -219,7 +219,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
             _timestamp.SetTimestamp();
             var parameters = new WindowMinimapPositionModifierParameters
             {
-                Model = currentThreadState.MapModel,
+                Model = currentThreadState.BottingModel.GetMapModel(),
                 Position = (
                     _positionProcessor.Process(
                         currentThreadState.TemplateMatcher,
@@ -297,8 +297,8 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
         public override void Inject(object dataType, object? value)
         {
             if (
-                dataType is SystemInjectType.MapModel
-                && value is MapModel mapModel
+                dataType is SystemInjectType.BottingModel
+                && value is AbstractBottingModel bottingModel
             )
             {
                 var threadState = ThreadState;
@@ -306,7 +306,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                     ref ThreadState!,
                     new GameMinimapProcessorThreadState(ThreadState)
                     {
-                        MapModel = mapModel
+                        BottingModel = bottingModel
                     }
                 );
             }
@@ -351,7 +351,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                 var threadState = ThreadState;
                 if (
                     _threadLoopCountDown.Count() > 0
-                    && threadState.MapModel != null
+                    && threadState.BottingModel != null
                     && bitmap.Width > 1
                     && bitmap.Height > 1
                 )
@@ -361,7 +361,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                         new GameMinimapProcessorThreadState(ThreadState)
                         {
                             CurrentBitmap = bitmap,
-                            Threshold = threadState.MapModel.GetTemplateThreshold(_imageKey)
+                            Threshold = threadState.BottingModel.GetMapModel().GetTemplateThreshold(_imageKey)
                         }
                     );
                     _threadLoopCountDown.CountDown();

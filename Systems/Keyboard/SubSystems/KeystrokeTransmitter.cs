@@ -42,7 +42,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
 
     public abstract class AbstractPointDataSelector
     {
-        public abstract MinimapPointData? SelectPoint(MapModel mapModel);
+        public abstract MinimapPointData? SelectPoint(AbstractBottingModel bottingModel);
     }
 
 
@@ -96,10 +96,10 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
             _templateKey = templateKey;
         }
 
-        public override MinimapPointData? SelectPoint(MapModel mapModel)
+        public override MinimapPointData? SelectPoint(AbstractBottingModel bottingModel)
         {
-            var minimapPoints = mapModel.MacroPoints();
-            var (charX, charY) = mapModel.GetTemplatePosition(_templateKey);
+            var minimapPoints = bottingModel.GetMacroModel().MacroPoints();
+            var (charX, charY) = bottingModel.GetMapModel().GetTemplatePosition(_templateKey);
             MinimapPointData? selectedMinimapPoint = null;
             var minDistanceSquared = double.PositiveInfinity;
             for (int i = 0; i < minimapPoints.Count; i++)
@@ -130,7 +130,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
 
         private AbstractMacroCommandsExecutor? _macroCommandsExecutor;
 
-        private MapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         public KeystrokeTransmitterExecutorThreadHelper(
             AbstractPointDataSelector pointDataSelector,
@@ -147,7 +147,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
 
         public override bool Transmit()
         {
-            var transmitData = _pointDataSelector.SelectPoint(_mapModel!);
+            var transmitData = _pointDataSelector.SelectPoint(_bottingModel!);
             if (transmitData != null)
             {
                 var commands = transmitData.Commands;
@@ -168,9 +168,9 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
                     .WithArg(keystrokeTransmitter)
                     .Build();
             }
-            else if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            else if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
     }

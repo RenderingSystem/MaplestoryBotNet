@@ -119,7 +119,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public abstract class AbstractPositionUpdater
     {
-        public abstract void Update(int x, int y, MapModel model, string templateKey);
+        public abstract void Update(
+            int x, int y, AbstractMapModel mapModel, string templateKey
+        );
     }
 
 
@@ -147,7 +149,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         }
 
         public override void Update(
-            int x, int y, MapModel model, string templateKey
+            int x, int y, AbstractMapModel mapModel, string templateKey
         )
         {
             var sourceImage = _mapImage.Source;
@@ -161,7 +163,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     _mapImage.Height
                 )
             ) : (x, y);
-            model.SetTemplatePosition(templateKey, mapX, mapY);
+            mapModel.SetTemplatePosition(templateKey, mapX, mapY);
             _textBoxX.Text = mapX.ToString();
             _textBoxY.Text = mapY.ToString();
         }
@@ -190,7 +192,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         public Tuple<int, int> Position = new Tuple<int, int>(0, 0);
 
-        public MapModel Model = new MapModel();
+        public AbstractMapModel Model = new MapModel();
     }
 
 
@@ -327,7 +329,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private volatile AbstractWindowStateModifier? __viewModifier;
 
-        private volatile MapModel? __mapModel;
+        private volatile AbstractBottingModel? __bottingModel;
 
         private AbstractWindowStateModifier? _viewModifier
         {
@@ -336,30 +338,30 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             get => __viewModifier;
         }
 
-        private MapModel? _mapModel
+        private AbstractBottingModel? _bottingModel
         {
-            set => __mapModel = value;
+            set => __bottingModel = value;
 
-            get => __mapModel;
+            get => __bottingModel;
         }
 
         public GameScreenCaptureMinimapSubscriber(SemaphoreSlim semaphore) : base(semaphore)
         {
             _viewModifier = null;
-            _mapModel = null;
+            _bottingModel = null;
         }
 
         public override void ProcessImage()
         {
             var viewModifier = _viewModifier;
-            var mapModel = _mapModel;
-            if (viewModifier != null && mapModel != null)
+            var bottingModel = _bottingModel;
+            if (viewModifier != null && bottingModel != null)
             {
                 viewModifier.Modify(
                     new WindowViewMinimapUpdaterParameters
                     {
                         FullImage = _image,
-                        MinimapRect = mapModel.GetMapArea()
+                        MinimapRect = bottingModel.GetMapModel().GetMapArea()
                     }
                 );
             }
@@ -375,11 +377,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 _viewModifier = viewHandler.Modifier();
             }
             if (
-                dataType is SystemInjectType.MapModel
-                && data is MapModel mapModel
+                dataType is SystemInjectType.BottingModel
+                && data is AbstractBottingModel bottingModel
             )
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
     }
@@ -433,7 +435,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         protected AbstractGameMinimapPositionCropper _cropper;
 
-        protected volatile MapModel? __mapModel;
+        protected volatile AbstractBottingModel? __bottingModel;
 
         protected volatile AbstractThread? __processorThread;
 
@@ -446,11 +448,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             get => __processorThread;
         }
 
-        protected MapModel? _mapModel
+        protected AbstractBottingModel? _bottingModel
         {
-            set => __mapModel = value;
+            set => __bottingModel = value;
 
-            get => __mapModel;
+            get => __bottingModel;
         }
 
         public GameMinimapProcessingSubscriber(
@@ -460,17 +462,17 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         {
             _templateKey = templateKey;
             _cropper = new GameMinimapPositionCropper(new ImageSharpConverter());
-            _mapModel = null;
+            _bottingModel = null;
             _processorThread = null;
         }
 
         public override void ProcessImage()
         {
-            var mapModel = _mapModel;
+            var bottingModel = _bottingModel;
             var procesorThread = _processorThread;
-            if (mapModel != null && procesorThread != null)
+            if (bottingModel != null && procesorThread != null)
             {
-                var bitmap = _cropper.Crop(_image, mapModel.GetMapArea());
+                var bitmap = _cropper.Crop(_image, bottingModel.GetMapModel().GetMapArea());
                 procesorThread.Inject((SystemInjectType)0x7FFFFFFF, bitmap);
             }
         }
@@ -487,11 +489,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 _processorThread = processorThread;
             }
             else if (
-                dataType is SystemInjectType.MapModel
-                && data is MapModel mapModel
+                dataType is SystemInjectType.BottingModel
+                && data is AbstractBottingModel bottingModel
             )
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
     }

@@ -22,7 +22,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private AbstractWindowActionHandler _viewHandler;
 
-        private MapModel _mapModel;
+        private BottingModel _bottingModel;
 
         private SemaphoreSlim _semaphore;
 
@@ -38,7 +38,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _imageSharpImage = new Image<Bgra32>(567, 678);
             _dispatcher = new MockDispatcher();
             _systemWindow = new MockSystemWindow();
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             _viewHandler = new WindowViewMinimapUpdaterActionHandlerFacade(
                 _imageDisplay, _dispatcher, _systemWindow
             );
@@ -114,10 +114,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testImageProcessingSetsImageDisplayWithCroppedImage()
         {
             var subscriber = _fixture();
-            subscriber.Inject(SystemInjectType.MapModel, _mapModel);
+            subscriber.Inject(SystemInjectType.BottingModel, _bottingModel);
             subscriber.Inject(SystemInjectType.ActionHandler, _viewHandler);
             subscriber.Notify(_imageSharpImage, true);
-            _mapModel.SetMapArea(12, 23, 123, 234);
+            _bottingModel.GetMapModel().SetMapArea(12, 23, 123, 234);
             _systemWindow.VisibleReturn.Add(true);
             _imageSharpImage[12, 23] = new Bgra32(12, 23, 34, 45);
             subscriber.ProcessImage();
@@ -150,10 +150,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testImageProcessingOnlyProcessesOneImageAtATime()
         {
             var subscriber = _fixture();
-            subscriber.Inject(SystemInjectType.MapModel, _mapModel);
+            subscriber.Inject(SystemInjectType.BottingModel, _bottingModel);
             subscriber.Inject(SystemInjectType.ActionHandler, _viewHandler);
             subscriber.Notify(_imageSharpImage, true);
-            _mapModel.SetMapArea(12, 23, 123, 234);
+            _bottingModel.GetMapModel().SetMapArea(12, 23, 123, 234);
             _systemWindow.VisibleReturn.Add(true);
             _systemWindow.VisibleReturn.Add(true);
             _systemWindow.VisibleReturn.Add(true);
@@ -184,7 +184,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var subscriber = _fixture();
             subscriber.Inject(SystemInjectType.ActionHandler, _viewHandler);
             subscriber.Notify(_imageSharpImage, true);
-            _mapModel.SetMapArea(12, 23, 123, 234);
+            _bottingModel.GetMapModel().SetMapArea(12, 23, 123, 234);
             _systemWindow.VisibleReturn.Add(true);
             _imageSharpImage[12, 23] = new Bgra32(12, 23, 34, 45);
             subscriber.ProcessImage();
@@ -205,9 +205,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testImageProcessingDoesntProcessWhenActionHandlerNotInjected()
         {
             var subscriber = _fixture();
-            subscriber.Inject(SystemInjectType.MapModel, _mapModel);
+            subscriber.Inject(SystemInjectType.BottingModel, _bottingModel);
             subscriber.Notify(_imageSharpImage, true);
-            _mapModel.SetMapArea(12, 23, 123, 234);
+            _bottingModel.GetMapModel().SetMapArea(12, 23, 123, 234);
             _systemWindow.VisibleReturn.Add(true);
             _imageSharpImage[12, 23] = new Bgra32(12, 23, 34, 45);
             subscriber.ProcessImage();
@@ -228,10 +228,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testImageProcessingDoesntProcessWhenMinimapWindowIsNotVisible()
         {
             var subscriber = _fixture();
-            subscriber.Inject(SystemInjectType.MapModel, _mapModel);
+            subscriber.Inject(SystemInjectType.BottingModel, _bottingModel);
             subscriber.Inject(SystemInjectType.ActionHandler, _viewHandler);
             subscriber.Notify(_imageSharpImage, true);
-            _mapModel.SetMapArea(12, 23, 123, 234);
+            _bottingModel.GetMapModel().SetMapArea(12, 23, 123, 234);
             _systemWindow.VisibleReturn.Add(false);
             _imageSharpImage[12, 23] = new Bgra32(12, 23, 34, 45);
             subscriber.ProcessImage();

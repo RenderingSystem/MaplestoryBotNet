@@ -67,7 +67,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 
     public class KeystrokeTransmitterPointDataSelectorTests
     {
-        private MapModel _mapModel = new MapModel();
+        private BottingModel _bottingModel = new BottingModel();
 
         private List<RectangleF> _minimapRects()
         {
@@ -93,11 +93,11 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 
         private AbstractPointDataSelector _fixture()
         {
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             var minimapRects = _minimapRects();
             for (int i = 0; i < minimapRects.Count(); i++)
             {
-                _mapModel.AddMacroPoint(
+                _bottingModel.GetMacroModel().AddMacroPoint(
                     new MinimapPoint
                     {
                         X = minimapRects[i].X,
@@ -126,8 +126,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             for (int i = 0; i < closestPoints.Count(); i++)
             {
                 var (pX, pY) = ((int)closestPoints[i].X, (int)closestPoints[i].Y);
-                _mapModel.SetTemplatePosition("some key", pX, pY);
-                var result = pointDataSelector.SelectPoint(_mapModel);
+                _bottingModel.GetMapModel().SetTemplatePosition("some key", pX, pY);
+                var result = pointDataSelector.SelectPoint(_bottingModel);
                 Debug.Assert(result!.ElementName == i.ToString());
             }
         }
@@ -147,7 +147,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 
         private AbstractKeystrokeTransmitter _keystrokeTransmitter = new MockKeystrokeTransmitter();
 
-        private MapModel _mapModel = new MapModel();
+        private BottingModel _bottingModel = new BottingModel();
 
         private List<RectangleF> _minimapRects()
         {
@@ -176,11 +176,11 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _executorBuilder = new MockMacroCommandsExecutorBuilder();
             _executor = new MockMacroCommandsExecutor();
             _keystrokeTransmitter = new MockKeystrokeTransmitter();
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             var minimapRects = _minimapRects();
             for (int i = 0; i < minimapRects.Count(); i++)
             {
-                _mapModel.AddMacroPoint(
+                _bottingModel.GetMacroModel().AddMacroPoint(
                     new MinimapPoint
                     {
                         X = minimapRects[i].X,
@@ -240,9 +240,9 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             {
                 var executorThreadHelper = _fixture();
                 var (pX, pY) = ((int) closestPoints[i].X, (int) closestPoints[i].Y);
-                _mapModel.SetTemplatePosition("some key", pX, pY);
+                _bottingModel.GetMapModel().SetTemplatePosition("some key", pX, pY);
                 executorThreadHelper.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
-                executorThreadHelper.Inject(SystemInjectType.MapModel, _mapModel);
+                executorThreadHelper.Inject(SystemInjectType.BottingModel, _bottingModel);
                 executorThreadHelper.Transmit();
                 Debug.Assert(_executor.ExecuteCalls == 1);
                 Debug.Assert(_executor.ExecuteCallArg_macroCommands.Count == 1);

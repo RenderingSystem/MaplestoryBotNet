@@ -6,20 +6,543 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:MaplestoryBotNet.Xaml"
     xmlns:interactivity="http://schemas.microsoft.com/xaml/behaviors"
+    xmlns:eo="http://schemas.microsoft.com/netfx/2009/xaml/presentation"
     mc:Ignorable="d"
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
     Title="Map"
     Width="600"
-    Height="550"
-    MaxHeight="550"
+    Height="600"
+    MaxHeight="600"
     MaxWidth="600"
-    MinHeight="550"
+    MinHeight="600"
     MinWidth="600"
     Background="Black"
 >
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Xaml/Resources/TabItemResource.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <Style TargetType="{x:Type eo:TabItem}" BasedOn="{StaticResource TabItemStyle}"/>
+        </ResourceDictionary>
+    </Window.Resources>
     <Viewbox Stretch="Fill">
-        <Grid Background="Black" Height="480" Width="575" >
+        <Grid Background="Black" Height="530" Width="575" >
+            <TabControl x:Name="MapTabControl">
+                <TabItem x:Name="BottingTabItem" Header="Botting">
+                    <Grid Background="Black" Height="530" Width="575" >
+                        <ToggleButton
+                            x:Name="BottingAddButton"
+                            FontFamily="Courier New"
+                            Content="Add point"
+                            HorizontalAlignment="Left"
+                            Margin="0,405,0,0"
+                            Padding="2,2,2,2"
+                            VerticalAlignment="Top"
+                            Foreground="White"
+                            Background="Black"
+                            BorderBrush="White"
+                            Width="130"
+                            IsTabStop="False" Grid.ColumnSpan="4"
+                        />
+                        <ToggleButton
+                            x:Name="BottingRemoveButton"
+                            FontFamily="Courier New"
+                            Content="Remove point"
+                            HorizontalAlignment="Left"
+                            Margin="135,405,0,0"
+                            Padding="2,2,2,2"
+                            VerticalAlignment="Top"
+                            Foreground="White"
+                            Background="Black"
+                            BorderBrush="White"
+                            Width="130"
+                            IsTabStop="False"
+                        />
+                        <Button
+                            x:Name="BottingEditButton"
+                            FontFamily="Courier New"
+                            Content="Edit point"
+                            HorizontalAlignment="Left"
+                            Margin="270,405,0,0"
+                            Padding="2,2,2,2"
+                            VerticalAlignment="Top"
+                            IsEnabled="False"
+                            Width="130"
+                            IsTabStop="False"
+                        >
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border
+                                        x:Name="BottingBorder"
+                                        Background="Black"
+                                        BorderBrush="White"
+                                        BorderThickness="1"
+                                    >
+                                        <ContentPresenter
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Margin="{TemplateBinding Padding}"
+                                            RecognizesAccessKey="True"
+                                        />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter TargetName="BottingBorder" Property="BorderBrush" Value="Gray"/>
+                                            <Setter TargetName="BottingBorder" Property="Background" Value="Black"/>
+                                            <Setter Property="Foreground" Value="#A0A0A0"/>
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="True">
+                                            <Setter TargetName="BottingBorder" Property="BorderBrush" Value="White"/>
+                                            <Setter TargetName="BottingBorder" Property="Background" Value="Black"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="BottingBorder" Property="BorderBrush" Value="LightSkyBlue"/>
+                                            <Setter TargetName="BottingBorder" Property="Background" Value="#BEE6FD"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="BottingBorder" Property="Background" Value="LightBlue"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Label
+                            Content="Point selected:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="402,123,0,0"
+                            VerticalAlignment="Top"
+                            Width="193"
+                            Foreground="White"
+                            FontSize="11" FontWeight="Bold"
+                        />
+                        <Label
+                            Content="Point location:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,167,0,0"
+                            VerticalAlignment="Top"
+                            Width="128"
+                            Foreground="White"
+                            FontSize="11"
+                            FontWeight="Bold"
+                        />
+                        <TextBox
+                            x:Name="BottingLocationTextBoxX"
+                            Margin="468,190,10,318"
+                            Background="Black"
+                            Foreground="Lime"
+                            FontFamily="Courier New"
+                            TabIndex="5"
+                        />
+                        <Label
+                            Content="X:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,191,0,0"
+                            VerticalAlignment="Top"
+                            Width="25"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <TextBox
+                            x:Name="BottingLocationTextBoxY"
+                            Margin="468,212,10,298"
+                            Background="Black"
+                            Foreground="Lime"
+                            FontFamily="Courier New"
+                            TabIndex="6"
+                        />
+                        <Label
+                            Content="Y:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,212,0,0"
+                            VerticalAlignment="Top"
+                            Width="25"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <TextBox
+                            x:Name="BottingLabelTextBox"
+                            Margin="468,145,10,364"
+                            Background="Black"
+                            Foreground="LightYellow"
+                            FontFamily="Courier New"
+                            TabIndex="4"
+                            IsReadOnly="True"
+                        />
+                        <Label
+                            Content="Label:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,145,0,0"
+                            VerticalAlignment="Top"
+                            Width="48"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <Label
+                            Content="Character:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,231,0,0"
+                            VerticalAlignment="Top"
+                            Width="73"
+                            Foreground="White"
+                            FontSize="11" FontWeight="Bold"
+                        />
+                        <TextBox
+                            x:Name="BottingCharacterTextBoxX"
+                            Margin="468,253,10,256"
+                            Background="Black"
+                            Foreground="LightYellow"
+                            FontFamily="Courier New"
+                            TabIndex="7"
+                            IsReadOnly="True"
+                        />
+                        <Label
+                            Content="X:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,0,0,0"
+                            VerticalAlignment="Center"
+                            Width="25"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <TextBox
+                            x:Name="BottingCharacterTextBoxY"
+                            Margin="468,274,10,235"
+                            Background="Black"
+                            Foreground="LightYellow"
+                            FontFamily="Courier New"
+                            TabIndex="8"
+                            IsReadOnly="True"
+                        />
+                        <Label
+                            Content="Y:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,274,0,0"
+                            VerticalAlignment="Top"
+                            Width="25"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <Label
+                            Content="Limit:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,295,0,0"
+                            VerticalAlignment="Top"
+                            Width="48"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <TextBox
+                            x:Name="BottingCharacterThreshold"
+                            Margin="468,295,10,214"
+                            Background="Black"
+                            Foreground="Lime"
+                            FontFamily="Courier New"
+                            TabIndex="9"
+                        />
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="RuneingTabItem" Header="Runeing">
+                    <Grid Background="Black" Height="530" Width="575">
+                        <ToggleButton
+                            x:Name="RuneingAddButton"
+                            FontFamily="Courier New"
+                            Content="Add frame"
+                            HorizontalAlignment="Left"
+                            Margin="0,405,0,0"
+                            Padding="2,2,2,2"
+                            VerticalAlignment="Top"
+                            Foreground="White"
+                            Background="Black"
+                            BorderBrush="White"
+                            Width="130"
+                            IsTabStop="False"
+                        />
+                        <ToggleButton
+                            x:Name="RuneingRemoveButton"
+                            FontFamily="Courier New"
+                            Content="Remove frame"
+                            HorizontalAlignment="Left"
+                            Margin="135,405,0,0"
+                            Padding="2,2,2,2"
+                            VerticalAlignment="Top"
+                            Foreground="White"
+                            Background="Black"
+                            BorderBrush="White"
+                            Width="130"
+                            IsTabStop="False"
+                        />
+                        <Button
+                            x:Name="RuneingEditButton"
+                            FontFamily="Courier New"
+                            Content="Edit frame"
+                            HorizontalAlignment="Left"
+                            Margin="270,405,0,0"
+                            Padding="2,2,2,2"
+                            VerticalAlignment="Top"
+                            IsEnabled="False"
+                            Width="130"
+                            IsTabStop="False"
+                        >
+                            <Button.Template>
+                                <ControlTemplate TargetType="{x:Type Button}">
+                                    <Border
+                                        x:Name="BottingBorder"
+                                        Background="Black"
+                                        BorderBrush="White"
+                                        BorderThickness="1"
+                                    >
+                                        <ContentPresenter
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Margin="{TemplateBinding Padding}"
+                                            RecognizesAccessKey="True"
+                                        />
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter TargetName="BottingBorder" Property="BorderBrush" Value="Gray"/>
+                                            <Setter TargetName="BottingBorder" Property="Background" Value="Black"/>
+                                            <Setter Property="Foreground" Value="#A0A0A0"/>
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="True">
+                                            <Setter TargetName="BottingBorder" Property="BorderBrush" Value="White"/>
+                                            <Setter TargetName="BottingBorder" Property="Background" Value="Black"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="BottingBorder" Property="BorderBrush" Value="LightSkyBlue"/>
+                                            <Setter TargetName="BottingBorder" Property="Background" Value="#BEE6FD"/>
+                                        </Trigger>
+                                        <Trigger Property="IsPressed" Value="True">
+                                            <Setter TargetName="BottingBorder" Property="Background" Value="LightBlue"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Label
+                            Content="Rune:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,279,0,0"
+                            VerticalAlignment="Top"
+                            Width="73"
+                            Foreground="White"
+                            FontSize="11"
+                            FontWeight="Bold"
+                        />
+                        <TextBox
+                            x:Name="RuneingRuneTextBoxX"
+                            Margin="468,300,10,209"
+                            Background="Black"
+                            Foreground="Violet"
+                            FontFamily="Courier New"
+                            TabIndex="9"
+                            IsReadOnly="True"
+                        />
+                        <Label
+                            Content="X:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,301,0,0"
+                            VerticalAlignment="Top"
+                            Width="25"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <TextBox
+                            x:Name="RuneingRuneTextBoxY"
+                            Margin="468,322,10,187"
+                            Background="Black"
+                            Foreground="Violet"
+                            FontFamily="Courier New"
+                            TabIndex="10"
+                            IsReadOnly="True"
+                        />
+                        <Label
+                            Content="Y:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,321,0,0"
+                            VerticalAlignment="Top"
+                            Width="25"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <Label
+                            Content="Limit:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,343,0,0"
+                            VerticalAlignment="Top"
+                            Width="48"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <TextBox
+                            x:Name="RuneingRuneThreshold"
+                            Margin="468,343,10,167"
+                            Background="Black"
+                            Foreground="Lime"
+                            FontFamily="Courier New"
+                            TabIndex="11"
+                        />
+                        <Label
+                            Content="Frame selected:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="402,123,0,0"
+                            VerticalAlignment="Top"
+                            Width="193"
+                            Foreground="White"
+                            FontSize="11" FontWeight="Bold"
+                        />
+                        <TextBox
+                            x:Name="RuneingLabelTextBox"
+                            Margin="468,145,10,364"
+                            Background="Black"
+                            Foreground="LightYellow"
+                            FontFamily="Courier New"
+                            TabIndex="4"
+                            IsReadOnly="True"
+                        />
+                        <Label
+                            Content="Label:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,145,0,0"
+                            VerticalAlignment="Top"
+                            Width="48"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <TextBox
+                            x:Name="RuneingFrameLeftTextBox"
+                            Margin="468,190,10,318"
+                            Background="Black"
+                            Foreground="Lime"
+                            FontFamily="Courier New"
+                            TabIndex="5"
+                        />
+                        <Label
+                            Content="Left:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,191,0,0"
+                            VerticalAlignment="Top"
+                            Width="48"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <TextBox
+                            x:Name="RuneingFrameTopTextBox"
+                            Margin="468,212,10,297"
+                            Background="Black"
+                            Foreground="Lime"
+                            FontFamily="Courier New"
+                            TabIndex="6"
+                        />
+                        <Label
+                            Content="Top:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,212,0,0"
+                            VerticalAlignment="Top"
+                            Width="48"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <Label
+                            Content="Frame area:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,167,0,0"
+                            VerticalAlignment="Top"
+                            Width="128"
+                            Foreground="White"
+                            FontSize="11" FontWeight="Bold"
+                        />
+                        <TextBox
+                            x:Name="RuneingFrameRightTextBox"
+                            Margin="468,235,10,273"
+                            Background="Black"
+                            Foreground="Lime"
+                            FontFamily="Courier New"
+                            TabIndex="7"
+                        />
+                        <Label
+                            Content="Right:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,236,0,0"
+                            VerticalAlignment="Top"
+                            Width="48"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <TextBox
+                            x:Name="RuneingFrameBottomTextBox"
+                            Margin="468,259,10,251"
+                            Background="Black"
+                            Foreground="Lime"
+                            FontFamily="Courier New"
+                            TabIndex="8"
+                        />
+                        <Label
+                            Content="Bottom:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,259,0,0"
+                            VerticalAlignment="Top"
+                            Width="59"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <Label
+                            Content="Activation:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,366,0,0"
+                            VerticalAlignment="Top"
+                            Width="120"
+                            Foreground="White"
+                            FontSize="11"
+                            FontWeight="Bold"
+                        />
+                        <Label
+                            Content="Seconds:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,389,0,0"
+                            VerticalAlignment="Top"
+                            Width="61"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <TextBox
+                            x:Name="RuneingRuneActivation"
+                            Margin="468,389,10,120"
+                            Background="Black"
+                            Foreground="Violet"
+                            FontFamily="Courier New"
+                            TabIndex="12"
+                            IsReadOnly="True"
+                        />
+                    </Grid>
+                </TabItem>
+            </TabControl>
             <Border 
                 Width="400"
                 Height="400"
@@ -28,24 +551,27 @@
                 Background="Black"
                 BorderBrush="White"
                 BorderThickness="1,1,1,1"
-            />
+                Margin="0,30,0,0"
+            >
+            </Border>
             <Grid
                 Width="400"
                 Height="400"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
+                Margin="0,30,0,0"
             >
                 <Image
                     x:Name="MapImage"
                     Width="400"
                     Height="400"
                     HorizontalAlignment="Center" 
-                    VerticalAlignment="Center" 
+                    VerticalAlignment="Center"
                 />
-                <Frame Background="#8C000000"/>
+                <Frame Background="#8C000000" Focusable="False"/>
             </Grid>
             <Canvas
-                x:Name="MapCanvas"
+                x:Name="BottingMapCanvas"
                 Width="400"
                 Height="400"
                 Background="Transparent"
@@ -53,149 +579,37 @@
                 VerticalAlignment="Top"
                 IsHitTestVisible="True"
                 Visibility="Visible"
+                Margin="0,30,0,0"
             />
-            <ToggleButton
-                x:Name="AddButton"
-                FontFamily="Courier New"
-                Content="Add point"
+            <Canvas
+                x:Name="RuneingMapCanvas"
+                Width="400"
+                Height="400"
+                Background="Transparent"
                 HorizontalAlignment="Left"
-                Margin="0,405,0,0"
-                Padding="2,2,2,2"
                 VerticalAlignment="Top"
-                Foreground="White"
-                Background="Black"
-                BorderBrush="White"
-                Width="130"
-                IsTabStop="False"
-            />
-            <ToggleButton
-                x:Name="RemoveButton"
-                FontFamily="Courier New"
-                Content="Remove point"
-                HorizontalAlignment="Left"
-                Margin="134,405,0,0"
-                Padding="2,2,2,2"
-                VerticalAlignment="Top"
-                Foreground="White"
-                Background="Black"
-                BorderBrush="White"
-                Width="130"
-                IsTabStop="False"
-            />
-            <Button
-                x:Name="EditButton"
-                FontFamily="Courier New"
-                Content="Edit point"
-                HorizontalAlignment="Left"
-                Margin="269,405,0,0"
-                Padding="2,2,2,2"
-                VerticalAlignment="Top"
-                IsEnabled="False"
-                Width="130"
-                IsTabStop="False"
-            >
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            x:Name="border"
-                            Background="Black"
-                            BorderBrush="White"
-                            BorderThickness="1"
-                        >
-                            <ContentPresenter
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Margin="{TemplateBinding Padding}"
-                                RecognizesAccessKey="True"
-                            />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="border" Property="BorderBrush" Value="Gray"/>
-                                <Setter TargetName="border" Property="Background" Value="Black"/>
-                                <Setter Property="Foreground" Value="#A0A0A0"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="White"/>
-                                <Setter TargetName="border" Property="Background" Value="Black"/>
-                                <Setter Property="Foreground" Value="White"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="BorderBrush" Value="LightSkyBlue"/>
-                                <Setter TargetName="border" Property="Background" Value="#BEE6FD"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="LightBlue"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
-            <Button
-                x:Name="SaveButton"
-                FontFamily="Courier New"
-                Content="Save"
-                HorizontalAlignment="Left"
-                Margin="120,444,0,0"
-                Padding="2,2,2,2"
-                VerticalAlignment="Top"
-                Foreground="White"
-                Background="Black"
-                BorderBrush="White"
-                Width="160"
-                IsTabStop="False" Height="27"
-            />
-            <Button
-                x:Name="LoadButton"
-                FontFamily="Courier New"
-                Content="Load"
-                HorizontalAlignment="Left"
-                Margin="298,444,0,0"
-                Padding="2,2,2,2"
-                VerticalAlignment="Top"
-                Foreground="White"
-                Background="Black"
-                BorderBrush="White"
-                Width="160"
-                IsTabStop="False" Height="26"
-            />
-            <Label
-                Content="Point selected:"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="404,120,0,0"
-                VerticalAlignment="Top"
-                Width="180"
-                Foreground="White"
-                FontSize="10"
-            />
-            <Label
-                Content="Point location:"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="405,163,0,0"
-                VerticalAlignment="Top"
-                Width="120"
-                Foreground="White"
-                FontSize="10"
+                IsHitTestVisible="True"
+                Visibility="Visible"
+                Margin="0,30,0,0"
             />
             <Label
                 Content="Map Area:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="405,10,0,0"
+                Margin="404,42,0,0"
                 VerticalAlignment="Top"
-                Width="69"
-                FontSize="10"
+                Width="73"
+                FontSize="11"
                 Foreground="White"
+                FontWeight="Bold"
             />
             <Label
                 Content="Left:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="412,31,0,0"
+                Margin="405,67,0,0"
                 VerticalAlignment="Top"
-                Width="41"
+                Width="43"
                 FontSize="10"
                 Foreground="White"
             />
@@ -203,9 +617,9 @@
                 Content="Top:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="412,52,0,0"
+                Margin="405,88,0,0"
                 VerticalAlignment="Top"
-                Width="41"
+                Width="43"
                 FontSize="10"
                 Foreground="White"
             />
@@ -213,9 +627,9 @@
                 Content="Right:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="412,73,0,0"
+                Margin="405,109,0,0"
                 VerticalAlignment="Top"
-                Width="47"
+                Width="50"
                 FontSize="10"
                 Foreground="White"
             />
@@ -223,16 +637,16 @@
                 Content="Bottom:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="412,94,0,0"
+                Margin="405,130,0,0"
                 VerticalAlignment="Top"
-                Width="52"
+                Width="55"
                 FontSize="10"
                 Foreground="White"
                 RenderTransformOrigin="0.509,1.614"
             />
             <TextBox
                 x:Name="MapAreaBottomTextBox"
-                Margin="464,96,10,365"
+                Margin="468,130,10,381"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -240,7 +654,7 @@
             />
             <TextBox
                 x:Name="MapAreaRightTextBox"
-                Margin="464,75,10,385"
+                Margin="468,109,10,402"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -248,7 +662,7 @@
             />
             <TextBox
                 x:Name="MapAreaTopTextBox"
-                Margin="464,53,10,407"
+                Margin="468,87,10,424"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -256,197 +670,40 @@
             />
             <TextBox
                 x:Name="MapAreaLeftTextBox"
-                Margin="464,31,10,428"
+                Margin="468,65,10,446"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
                 TabIndex="0"
             />
-            <TextBox
-                x:Name="LocationTextBoxX"
-                Margin="464,187,10,272"
+            <Button
+                x:Name="SaveButton"
+                FontFamily="Courier New"
+                Content="Save"
+                HorizontalAlignment="Left"
+                Margin="99,478,0,0"
+                Padding="2,2,2,2"
+                VerticalAlignment="Top"
+                Foreground="White"
                 Background="Black"
-                Foreground="Lime"
-                FontFamily="Courier New"
-                TabIndex="5"
+                BorderBrush="White"
+                Width="160"
+                IsTabStop="False"
+                Height="27"
             />
-            <Label
-                Content="X:"
+            <Button
+                x:Name="LoadButton"
                 FontFamily="Courier New"
+                Content="Load"
                 HorizontalAlignment="Left"
-                Margin="412,187,0,0"
+                Margin="320,478,0,0"
+                Padding="2,2,2,2"
                 VerticalAlignment="Top"
-                Width="24"
-                FontSize="10"
                 Foreground="White"
-            />
-            <TextBox
-                x:Name="LocationTextBoxY"
-                Margin="464,209,10,251"
                 Background="Black"
-                Foreground="Lime"
-                FontFamily="Courier New"
-                TabIndex="6"
-            />
-            <Label
-                Content="Y:"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="412,208,0,0"
-                VerticalAlignment="Top"
-                Width="24"
-                FontSize="10"
-                Foreground="White"
-            />
-            <TextBox
-                x:Name="LabelTextBox"
-                Margin="464,143,10,317"
-                Background="Black"
-                Foreground="LightYellow"
-                FontFamily="Courier New"
-                TabIndex="4"
-                IsReadOnly="True"
-            />
-            <Label
-                Content="Label:"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="412,141,0,0"
-                VerticalAlignment="Top"
-                Width="45"
-                FontSize="10"
-                Foreground="White"
-                RenderTransformOrigin="0.509,1.614"
-            />
-            <Label
-                Content="Character:"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="405,228,0,0"
-                VerticalAlignment="Top"
-                Width="69"
-                Foreground="White"
-                FontSize="10"
-            />
-            <TextBox
-                x:Name="CharacterTextBoxX"
-                Margin="464,247,10,213"
-                Background="Black"
-                Foreground="LightYellow"
-                FontFamily="Courier New"
-                TabIndex="7"
-                IsReadOnly="True"
-            />
-            <Label
-                Content="X:"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="412,247,0,0"
-                VerticalAlignment="Top"
-                Width="24"
-                FontSize="10"
-                Foreground="White"
-            />
-            <TextBox
-                x:Name="CharacterTextBoxY"
-                Margin="464,268,10,192"
-                Background="Black"
-                Foreground="LightYellow"
-                FontFamily="Courier New"
-                TabIndex="8"
-                IsReadOnly="True"
-            />
-            <Label
-                Content="Y:"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="412,267,0,0"
-                VerticalAlignment="Top"
-                Width="24"
-                FontSize="10"
-                Foreground="White"
-            />
-            <Label
-                Content="Rune:"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="405,311,0,0"
-                VerticalAlignment="Top"
-                Width="69"
-                Foreground="White"
-                FontSize="10"
-            />
-            <TextBox
-                x:Name="RuneTextBoxX"
-                Margin="464,330,10,130"
-                Background="Black"
-                Foreground="Violet"
-                FontFamily="Courier New"
-                TabIndex="10"
-                IsReadOnly="True"
-            />
-            <Label
-                Content="X:"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="412,330,0,0"
-                VerticalAlignment="Top"
-                Width="24"
-                FontSize="10"
-                Foreground="White"
-            />
-            <TextBox
-                x:Name="RuneTextBoxY"
-                Margin="464,352,10,108"
-                Background="Black"
-                Foreground="Violet"
-                FontFamily="Courier New"
-                TabIndex="11"
-                IsReadOnly="True"
-            />
-            <Label
-                Content="Y:"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="412,350,0,0"
-                VerticalAlignment="Top"
-                Width="24"
-                FontSize="10"
-                Foreground="White"
-            />
-            <Label Content="Limit:"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="412,288,0,0"
-                VerticalAlignment="Top"
-                Width="45"
-                FontSize="10"
-                Foreground="White"
-          />
-            <TextBox
-                x:Name="CharacterThreshold"
-                Margin="464,289,10,171"
-                Background="Black"
-                Foreground="Lime"
-                FontFamily="Courier New"
-                TabIndex="9"
-            />
-            <Label Content="Limit:"
-                FontFamily="Courier New"
-                HorizontalAlignment="Left"
-                Margin="412,372,0,0"
-                VerticalAlignment="Top"
-                Width="45"
-                FontSize="10"
-                Foreground="White"
-            />
-            <TextBox
-                x:Name="RuneThreshold"
-                Margin="464,373,10,87"
-                Background="Black"
-                Foreground="Lime"
-                FontFamily="Courier New"
-                TabIndex="12"
+                BorderBrush="White"
+                Width="160"
+                IsTabStop="False" Height="26"
             />
         </Grid>
     </Viewbox>

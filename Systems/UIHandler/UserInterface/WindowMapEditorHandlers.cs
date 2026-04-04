@@ -4,8 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Shapes;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
@@ -21,13 +19,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public abstract class AbstractWindowMapEditMenuState
     {
-        public abstract WindowMapEditMenuStateTypes GetState();
+        public abstract int GetState();
 
-        public abstract void SetState(WindowMapEditMenuStateTypes state);
+        public abstract void SetState(int state);
 
         public abstract object? Selected();
 
-        public abstract void Select(object selected);
+        public abstract void Select(object? selected);
 
         public abstract void Deselect();
 
@@ -41,39 +39,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public abstract class AbstractMapCanvasElementFactory
-    {
-        public abstract FrameworkElement Create();
-    }
-
-
-    public abstract class AbstractMapCanvasFormatter
-    {
-        public abstract void Format(
-            FrameworkElement canvas,
-            List<FrameworkElement> textDepdendencies,
-            object formatData
-        );
-    }
-
-
-    public abstract class AbstractMapCanvasElementLocator
-    {
-        public abstract FrameworkElement? Locate(AbstractMapModel mapModel, Point point);
-    }
-
-
-    public abstract class AbstractPointElementInformation
-    {
-        public abstract Rect BoundingRect(FrameworkElement frameworkElement);
-
-        public abstract TextBlock? Label(FrameworkElement frameworkElement);
-    }
-
-
     public class WindowMapEditMenuState : AbstractWindowMapEditMenuState
     {
-        private WindowMapEditMenuStateTypes _currentState = WindowMapEditMenuStateTypes.Select;
+        private int _currentState = 0;
 
         private object? _selected = null;
 
@@ -81,17 +49,17 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private bool _editing = false;
 
-        public override WindowMapEditMenuStateTypes GetState()
+        public override int GetState()
         {
             return _currentState;
         }
 
-        public override void SetState(WindowMapEditMenuStateTypes state)
+        public override void SetState(int state)
         {
             _currentState = state;
         }
 
-        public override void Select(object selected)
+        public override void Select(object? selected)
         {
             _selected = selected;
         }
@@ -216,16 +184,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowMapCanvasDrawerParameters
-    {
-        public Point ElementPoint = new Point();
-
-        public List<FrameworkElement> ElementDependencies = [];
-
-        public AbstractMapModel ElementModel = new MapModel();
-    }
-
-
     public class PointElementInformation : AbstractPointElementInformation
     {
         public override Rect BoundingRect(FrameworkElement frameworkElement)
@@ -319,7 +277,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         private void _setupMinimapPoint(
             FrameworkElement createdPoint,
             List<FrameworkElement> textDependencies,
-            AbstractMapModel mapModel,
+            AbstractMacroModel macroModel,
             string pointLabel,
             string elementName
         )
@@ -341,13 +299,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     YRange = boundingRect.Height,
                     PointData = pointData
                 };
-                mapModel.AddMacroPoint(minimapPoint);
+                macroModel.AddMacroPoint(minimapPoint);
             }
         }
 
-        private string _generateElementName(AbstractMapModel mapModel)
+        private string _generateElementName(AbstractMacroModel macroModel)
         {
-            var mapPoints = mapModel.MacroPoints();
+            var mapPoints = macroModel.MacroPoints();
             var elementCount = mapPoints.Count;
             var existingElements = new HashSet<string>(
                 mapPoints.Select(p => p.PointData.ElementName)
@@ -359,7 +317,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return "T" + elementCount;
         }
 
-        private string _generatePointLabel(AbstractMapModel mapModel)
+        private string _generatePointLabel(AbstractMacroModel mapModel)
         {
             var mapPoints = mapModel.MacroPoints();
             var pointCount = mapPoints.Count;
@@ -379,16 +337,17 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             object formatData
         )
         {
-            if (formatData is not MapModel mapModel)
+            if (formatData is not BottingModel bottingModel)
             {
                 return;
             }
-            var pointLabel = _generatePointLabel(mapModel);
-            var elementName = _generateElementName(mapModel);
+            var macroModel = bottingModel.GetMacroModel();
+            var pointLabel = _generatePointLabel(macroModel);
+            var elementName = _generateElementName(macroModel);
             _setupMinimapPoint(
                 createdPoint,
                 textDependencies,
-                mapModel,
+                macroModel,
                 pointLabel,
                 elementName
             );
@@ -409,9 +368,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _canvas = canvas;
         }
 
-        public override FrameworkElement? Locate(AbstractMapModel mapModel, Point point)
+        public override FrameworkElement? Locate(AbstractMacroModel macroModel, Point point)
         {
-            var pointHit = mapModel.MacroPoints().LastOrDefault(
+            var pointHit = macroModel.MacroPoints().LastOrDefault(
                 p =>
                 (
                     point.X >= p.X - p.XRange / 2 && point.X <= p.X + p.XRange / 2 &&
@@ -443,7 +402,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             Canvas canvas,
             AbstractMapCanvasElementFactory pointFactory,
             AbstractMapCanvasFormatter formatter
-
         )
         {
             _canvas = canvas;
@@ -475,152 +433,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowMapCanvasCircleFactory : AbstractMapCanvasElementFactory
-    {
-        private Brush _fill;
-
-        private Brush _stroke;
-
-        private int _strokeThickness;
-
-        private double _radius;
-        public WindowMapCanvasCircleFactory(
-            Brush fill,
-            Brush stroke,
-            int strokeThickness,
-            double radius
-        )
-        {
-            _fill = fill;
-            _stroke = stroke;
-            _strokeThickness = strokeThickness;
-            _radius = radius;
-        }
-
-        public override FrameworkElement Create()
-        {
-            return new Ellipse
-            {
-                Fill = _fill,
-                Stroke = _stroke,
-                StrokeThickness = _strokeThickness,
-                Width = _radius * 2,
-                Height = _radius * 2,
-                RenderTransform = new TranslateTransform { X=-_radius, Y=-_radius },
-            };
-        }
-    }
-
-
-    public class WindowMapCanvasLabelFactory : AbstractMapCanvasElementFactory
-    {
-        private string _text;
-
-        private string _fontFamily;
-
-        private double _fontSize;
-
-        private double _offsetX;
-
-        private double _offsetY;
-
-        private Brush _foreground;
-
-        private Brush _background;
-
-        public WindowMapCanvasLabelFactory(
-            string text,
-            string fontFamily,
-            double fontSize,
-            double offsetX,
-            double offsetY,
-            Brush foreground,
-            Brush background
-        )
-        {
-            _text = text;
-            _fontFamily = fontFamily;
-            _fontSize = fontSize;
-            _offsetX = offsetX;
-            _offsetY = offsetY;
-            _foreground = foreground;
-            _background = background;
-        }
-
-        public override FrameworkElement Create()
-        {
-            return new TextBlock
-            {
-                Text = _text,
-                FontFamily = new FontFamily(_fontFamily),
-                FontSize = _fontSize,
-                Foreground = _foreground,
-                Background = _background,
-                RenderTransform = new TranslateTransform { X = _offsetX, Y = _offsetY }
-            };
-        }
-    }
-
-
-    public class WindowMapCanvasPointFactory : AbstractMapCanvasElementFactory
-    {
-        private AbstractMapCanvasElementFactory _elementFactory;
-
-        private AbstractMapCanvasElementFactory _labelFactory;
-
-        public WindowMapCanvasPointFactory(
-            AbstractMapCanvasElementFactory elementFactory,
-            AbstractMapCanvasElementFactory labelFactory
-        )
-        {
-            _elementFactory = elementFactory;
-            _labelFactory = labelFactory;
-        }
-
-        public override FrameworkElement Create()
-        {
-            var element = _elementFactory.Create();
-            var label = _labelFactory.Create();
-            var container = new Canvas();
-            container.Children.Add(element);
-            container.Children.Add(label);
-            return container;
-        }
-    }
-
-
-    public class WindowMapCanvasPointFactoryFacade : AbstractMapCanvasElementFactory
-    {
-        private AbstractMapCanvasElementFactory _mapCanvasPointFactory;
-
-        public WindowMapCanvasPointFactoryFacade()
-        {
-            _mapCanvasPointFactory = new WindowMapCanvasPointFactory(
-                new WindowMapCanvasCircleFactory(
-                    Brushes.Aqua,
-                    Brushes.LightBlue,
-                    1,
-                    5
-                ),
-                new WindowMapCanvasLabelFactory(
-                    "Lorem Ipsum",
-                    "Courier New",
-                    10.0,
-                    0.0,
-                    -16.0,
-                    Brushes.White,
-                    Brushes.Transparent
-                )
-            );
-        }
-
-        public override FrameworkElement Create()
-        {
-            return _mapCanvasPointFactory.Create();
-        }
-    }
-
-
     public class WindowMapCanvasPointDrawingActionHandler : AbstractWindowActionHandler
     {
         private Canvas _canvas;
@@ -631,15 +443,15 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractWindowStateModifier _pointDrawer;
 
-        private AbstractMouseEventPositionExtractor _mousePositionExtractor;
+        private AbstractMouseEventDataExtractor _mousePositionExtractor;
 
-        private AbstractMapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         public WindowMapCanvasPointDrawingActionHandler(
             Canvas canvas,
             TextBox pointLabelTextBox,
             AbstractWindowMapEditMenuState menuState,
-            AbstractMouseEventPositionExtractor mousePositionExtractor,
+            AbstractMouseEventDataExtractor mousePositionExtractor,
             AbstractWindowStateModifier pointDrawer
         )
         {
@@ -649,7 +461,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mousePositionExtractor = mousePositionExtractor;
             _pointDrawer = pointDrawer;
             _canvas.MouseLeftButtonDown += OnEvent;
-            _mapModel = null;
+            _bottingModel = null;
         }
 
         public override AbstractWindowStateModifier Modifier()
@@ -659,14 +471,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (_menuState.GetState() == WindowMapEditMenuStateTypes.Add && _mapModel != null)
+            if (_menuState.GetState() == (int) WindowMapEditMenuStateTypes.Add && _bottingModel != null)
             {
                 _pointDrawer.Modify(
                     new WindowMapCanvasDrawerParameters
                     {
                         ElementPoint = _mousePositionExtractor.GetPosition((MouseButtonEventArgs)e, _canvas),
                         ElementDependencies = [_pointLabelTextBox],
-                        ElementModel = _mapModel,
+                        ElementModel = _bottingModel,
                     }
                 );
             }
@@ -674,9 +486,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel mapModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = mapModel;
             }
         }
     }
@@ -690,7 +502,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             Canvas canvas,
             TextBox pointLabelTextBox,
             AbstractWindowMapEditMenuState menuState,
-            AbstractMouseEventPositionExtractor mouseEventPositionExtractor
+            AbstractMouseEventDataExtractor mouseEventPositionExtractor
         )
         {
             _mapCanvasPointDrawingActionHandler = new WindowMapCanvasPointDrawingActionHandler(
@@ -727,7 +539,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         public Point ElementPoint = new Point();
 
-        public AbstractMapModel ElementModel = new MapModel();
+        public AbstractMacroModel ElementModel = new MacroModel();
     }
 
 
@@ -771,14 +583,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractWindowStateModifier _pointEraser;
 
-        private AbstractMouseEventPositionExtractor _mousePositionExtractor;
+        private AbstractMouseEventDataExtractor _mousePositionExtractor;
 
-        private AbstractMapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         public WindowMapCanvasPointErasingActionHandler(
             Canvas canvas,
             AbstractWindowMapEditMenuState menuState,
-            AbstractMouseEventPositionExtractor mouseEventPositionExtractor,
+            AbstractMouseEventDataExtractor mouseEventPositionExtractor,
             AbstractWindowStateModifier pointEraser
         )
         {
@@ -787,7 +599,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _pointEraser = pointEraser;
             _mousePositionExtractor = mouseEventPositionExtractor;
             _canvas.MouseLeftButtonDown += OnEvent;
-            _mapModel = null;
+            _bottingModel = null;
         }
 
         public override AbstractWindowStateModifier Modifier()
@@ -797,13 +609,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (_menuState.GetState() == WindowMapEditMenuStateTypes.Remove && _mapModel != null)
+            if (_menuState.GetState() == (int) WindowMapEditMenuStateTypes.Remove && _bottingModel != null)
             {
                 _pointEraser.Modify(
                     new WindowMapCanvasEraserParameters
                     {
                         ElementPoint = _mousePositionExtractor.GetPosition((MouseButtonEventArgs)e, _canvas),
-                        ElementModel = _mapModel,
+                        ElementModel = _bottingModel.GetMacroModel(),
                     }
                 );
             }
@@ -811,9 +623,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
     }
@@ -826,7 +638,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public WindowMapCanvasPointErasingActionHandlerFacade(
             Canvas canvas,
             AbstractWindowMapEditMenuState menuState,
-            AbstractMouseEventPositionExtractor mouseEventPositionExtractor
+            AbstractMouseEventDataExtractor mouseEventPositionExtractor
         )
         {
             _mapCanvasPointEraserActionHandler = new WindowMapCanvasPointErasingActionHandler(
@@ -857,7 +669,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowMapCanvasAddPointButtonModifier : AbstractWindowStateModifier
+    public class WindowMapCanvasAddButtonModifier : AbstractWindowStateModifier
     {
         private AbstractWindowMapEditMenuState _menuState;
 
@@ -865,7 +677,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private List<ToggleButton> _radioButtons;
 
-        public WindowMapCanvasAddPointButtonModifier(
+        public WindowMapCanvasAddButtonModifier(
             AbstractWindowMapEditMenuState menuState,
             ToggleButton addButton,
             List<ToggleButton> radioButtons
@@ -889,19 +701,19 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 var nextState = checkedState ?
                     WindowMapEditMenuStateTypes.Add :
                     WindowMapEditMenuStateTypes.Select;
-                _menuState.SetState(nextState);
+                _menuState.SetState((int) nextState);
             }
         }
     }
 
 
-    public class WindowMapAddPointButtonActionHandler : AbstractWindowActionHandler
+    public class WindowMapAddButtonActionHandler : AbstractWindowActionHandler
     {
         private ToggleButton _addPointButton;
 
         private AbstractWindowStateModifier _addStateModifier;
 
-        public WindowMapAddPointButtonActionHandler(
+        public WindowMapAddButtonActionHandler(
             ToggleButton addPointButton,
             AbstractWindowStateModifier addStateModifier
         )
@@ -923,35 +735,35 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowMapAddPointButtonActionHandlerFacade : AbstractWindowActionHandler
+    public class WindowMapAddButtonActionHandlerFacade : AbstractWindowActionHandler
     {
-        private WindowMapAddPointButtonActionHandler _mapCanvasAddPointButtonActionHandler;
+        private WindowMapAddButtonActionHandler _mapCanvasAddButtonActionHandler;
 
-        public WindowMapAddPointButtonActionHandlerFacade(
+        public WindowMapAddButtonActionHandlerFacade(
             ToggleButton addPointButton,
             List<ToggleButton> radioButtons,
             AbstractWindowMapEditMenuState menuState
         )
         {
-            _mapCanvasAddPointButtonActionHandler = new WindowMapAddPointButtonActionHandler(
+            _mapCanvasAddButtonActionHandler = new WindowMapAddButtonActionHandler(
                 addPointButton,
-                new WindowMapCanvasAddPointButtonModifier(menuState, addPointButton, radioButtons)
+                new WindowMapCanvasAddButtonModifier(menuState, addPointButton, radioButtons)
             );
         }
 
         public override AbstractWindowStateModifier Modifier()
         {
-            return _mapCanvasAddPointButtonActionHandler.Modifier();
+            return _mapCanvasAddButtonActionHandler.Modifier();
         }
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            _mapCanvasAddPointButtonActionHandler.OnEvent(sender, e);
+            _mapCanvasAddButtonActionHandler.OnEvent(sender, e);
         }
     }
 
 
-    public class WindowMapRemovePointButtonModifier : AbstractWindowStateModifier
+    public class WindowMapRemoveButtonModifier : AbstractWindowStateModifier
     {
         private AbstractWindowMapEditMenuState _menuState;
 
@@ -959,7 +771,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private List<ToggleButton> _radioButtons;
 
-        public WindowMapRemovePointButtonModifier(
+        public WindowMapRemoveButtonModifier(
             AbstractWindowMapEditMenuState menuState,
             ToggleButton addButton,
             List<ToggleButton> radioButtons
@@ -983,19 +795,19 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 var nextState = checkedState ?
                     WindowMapEditMenuStateTypes.Remove :
                     WindowMapEditMenuStateTypes.Select;
-                _menuState.SetState(nextState);
+                _menuState.SetState((int) nextState);
             }
         }
     }
 
 
-    public class WindowMapRemovePointButtonActionHandler : AbstractWindowActionHandler
+    public class WindowMapRemoveButtonActionHandler : AbstractWindowActionHandler
     {
         private ToggleButton _removePointButton;
 
         private AbstractWindowStateModifier _addStateModifier;
 
-        public WindowMapRemovePointButtonActionHandler(
+        public WindowMapRemoveButtonActionHandler(
             ToggleButton removePointButton,
             AbstractWindowStateModifier addStateModifier
         )
@@ -1017,30 +829,30 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowMapRemovePointButtonActionHandlerFacade : AbstractWindowActionHandler
+    public class WindowMapRemoveButtonActionHandlerFacade : AbstractWindowActionHandler
     {
-        private WindowMapRemovePointButtonActionHandler _mapCanvasRemovePointButtonActionHandler;
+        private WindowMapRemoveButtonActionHandler _mapCanvasRemoveButtonActionHandler;
 
-        public WindowMapRemovePointButtonActionHandlerFacade(
+        public WindowMapRemoveButtonActionHandlerFacade(
             ToggleButton removePointButton,
             List<ToggleButton> radioButtons,
             AbstractWindowMapEditMenuState menuState
         )
         {
-            _mapCanvasRemovePointButtonActionHandler = new WindowMapRemovePointButtonActionHandler(
+            _mapCanvasRemoveButtonActionHandler = new WindowMapRemoveButtonActionHandler(
                 removePointButton,
-                new WindowMapRemovePointButtonModifier(menuState, removePointButton, radioButtons)
+                new WindowMapRemoveButtonModifier(menuState, removePointButton, radioButtons)
             );
         }
 
         public override AbstractWindowStateModifier Modifier()
         {
-            return _mapCanvasRemovePointButtonActionHandler.Modifier();
+            return _mapCanvasRemoveButtonActionHandler.Modifier();
         }
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            _mapCanvasRemovePointButtonActionHandler.OnEvent(sender, e);
+            _mapCanvasRemoveButtonActionHandler.OnEvent(sender, e);
         }
     }
 
@@ -1049,7 +861,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         public Point ElementPoint = new Point(0, 0);
 
-        public AbstractMapModel ElementModel = new MapModel();
+        public AbstractMacroModel ElementModel = new MacroModel();
     }
 
 
@@ -1080,7 +892,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _menuState = menuState;
         }
 
-        private void _assignUITexts(FrameworkElement element, AbstractMapModel mapModel)
+        private void _assignUITexts(FrameworkElement element, AbstractMacroModel mapModel)
         {
             var selectedPoint = mapModel.FindMacroPointByName(element.Name);
             if (selectedPoint != null)
@@ -1132,34 +944,34 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractWindowStateModifier _mapCanvasSelectModifier;
 
-        private AbstractMouseEventPositionExtractor _mousePositionExtractor;
+        private AbstractMouseEventDataExtractor _mousePositionExtractor;
 
-        private AbstractMapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         public WindowMapCanvasSelectActionHandler(
             Canvas canvas,
             AbstractWindowMapEditMenuState menuState,
             AbstractWindowStateModifier mapCanvasSelectModifier,
-            AbstractMouseEventPositionExtractor mousePositionExtractor
+            AbstractMouseEventDataExtractor mousePositionExtractor
         )
         {
             _canvas = canvas;
             _menuState = menuState;
             _mapCanvasSelectModifier = mapCanvasSelectModifier;
             _mousePositionExtractor = mousePositionExtractor;
-            _mapModel = null;
+            _bottingModel = null;
             _canvas.MouseLeftButtonDown += OnEvent;
         }
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (_menuState.GetState() == WindowMapEditMenuStateTypes.Select && _mapModel != null)
+            if (_menuState.GetState() == (int) WindowMapEditMenuStateTypes.Select && _bottingModel != null)
             {
                 _mapCanvasSelectModifier.Modify(
                     new WindowMapCanvasSelectModifierParameters
                     {
                         ElementPoint = _mousePositionExtractor.GetPosition((MouseButtonEventArgs)e, _canvas),
-                        ElementModel = _mapModel
+                        ElementModel = _bottingModel.GetMacroModel()
                     }
                 );
             }
@@ -1167,9 +979,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
 
@@ -1190,7 +1002,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox selectedTextY,
             TextBox selectedTextBox,
             AbstractWindowMapEditMenuState menuState,
-            AbstractMouseEventPositionExtractor mousePositionExtractor
+            AbstractMouseEventDataExtractor mousePositionExtractor
         )
         {
             _mapCanvasSelectActionHandler = new WindowMapCanvasSelectActionHandler(
@@ -1230,7 +1042,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public FrameworkElement ElementDragging = new FrameworkElement();
 
-        public AbstractMapModel ElementModel = new MapModel();
+        public AbstractMacroModel ElementModel = new MacroModel();
     }
 
 
@@ -1258,18 +1070,18 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _selectedTextY.Text = Convert.ToInt32(point.Y).ToString();
         }
 
-        private void _updateMapModel(
+        private void _updateMacroModel(
             FrameworkElement draggingElement,
             Point point,
-            AbstractMapModel mapModel
+            AbstractMacroModel macroModel
         )
         {
-            var draggingPoint = mapModel.FindMacroPointByName(draggingElement.Name);
+            var draggingPoint = macroModel.FindMacroPointByName(draggingElement.Name);
             if (draggingPoint != null)
             {
                 draggingPoint.X = point.X;
                 draggingPoint.Y = point.Y;
-                mapModel.EditMacroPoint(draggingPoint);
+                macroModel.EditMacroPoint(draggingPoint);
             }
         }
 
@@ -1281,7 +1093,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     parameters.ElementDragging,
                     parameters.ElementPoint
                 );
-                _updateMapModel(
+                _updateMacroModel(
                     parameters.ElementDragging,
                     parameters.ElementPoint,
                     parameters.ElementModel
@@ -1301,9 +1113,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractMapCanvasElementLocator _mapCanvasElementLocator;
 
-        private AbstractMouseEventPositionExtractor _mousePositionExtractor;
+        private AbstractMouseEventDataExtractor _mousePositionExtractor;
 
-        private AbstractMapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         private FrameworkElement? _draggingElement;
 
@@ -1312,7 +1124,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             AbstractWindowMapEditMenuState menuState,
             AbstractWindowStateModifier mapCanvasDragModifier,
             AbstractMapCanvasElementLocator mapCanvasElementLocator,
-            AbstractMouseEventPositionExtractor mousePositionExtractor
+            AbstractMouseEventDataExtractor mousePositionExtractor
         )
         {
             _canvas = canvas;
@@ -1321,7 +1133,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mapCanvasElementLocator = mapCanvasElementLocator;
             _mousePositionExtractor = mousePositionExtractor;
             _draggingElement = null;
-            _mapModel = null;
+            _bottingModel = null;
             _canvas.MouseLeftButtonDown += OnEvent;
             _canvas.MouseLeftButtonUp += OnEvent;
             _canvas.MouseMove += OnEvent;
@@ -1334,16 +1146,18 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
 
         private void _handleMouseLeftButtonDown(MouseButtonEventArgs eventArgs)
         {
             var mousePoint = _mousePositionExtractor.GetPosition(eventArgs, _canvas);
-            _draggingElement = _mapCanvasElementLocator.Locate(_mapModel!, mousePoint);
+            _draggingElement = _mapCanvasElementLocator.Locate(
+                _bottingModel!.GetMacroModel(), mousePoint
+            );
         }
 
         private void _handleMouseLeftButtonUp(MouseButtonEventArgs eventArgs)
@@ -1370,7 +1184,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     {
                         ElementPoint = mousePoint,
                         ElementDragging = _draggingElement,
-                        ElementModel = _mapModel!,
+                        ElementModel = _bottingModel!.GetMacroModel(),
                     }
                 );
             }
@@ -1378,11 +1192,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (_menuState.GetState() != WindowMapEditMenuStateTypes.Select)
+            if (_menuState.GetState() != (int) WindowMapEditMenuStateTypes.Select)
             {
                 return;
             }
-            if (_mapModel == null)
+            if (_bottingModel == null)
             {
                 return;
             }
@@ -1415,7 +1229,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox selectedX,
             TextBox selectedY,
             AbstractWindowMapEditMenuState menuState,
-            AbstractMouseEventPositionExtractor mousePositionExtractor
+            AbstractMouseEventDataExtractor mousePositionExtractor
         )
         {
             _mapCanvasDragActionHandler = new WindowMapCanvasDragActionHandler(
@@ -1531,7 +1345,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         public Point ElementPoint = new Point();
 
-        public AbstractMapModel ElementModel = new MapModel();
+        public AbstractMacroModel ElementModel = new MacroModel();
     }
 
 
@@ -1552,14 +1366,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             Canvas.SetTop(selected, point.Y);
         }
 
-        private void _updateMapModel(AbstractMapModel mapModel, Point point, string name)
+        private void _updateMacroModel(AbstractMacroModel macroModel, Point point, string name)
         {
-            var model = mapModel.FindMacroPointByName(name);
+            var model = macroModel.FindMacroPointByName(name);
             if (model != null)
             {
                 model.X = point.X;
                 model.Y = point.Y;
-                mapModel.EditMacroPoint(model);
+                macroModel.EditMacroPoint(model);
             }
         }
 
@@ -1572,7 +1386,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 var selected = _menuState.Selected();
                 if (selected is FrameworkElement selectedElement)
                 {
-                    _updateMapModel(
+                    _updateMacroModel(
                         parameters.ElementModel,
                         parameters.ElementPoint,
                         selectedElement.Name
@@ -1593,7 +1407,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBox _selectedTextY;
 
-        private AbstractMapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         private AbstractWindowStateModifier _canvasPointLocationModifier;
 
@@ -1607,7 +1421,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _selectedTextY = selectedTextY;
             _selectedTextX.TextChanged += OnEvent;
             _selectedTextY.TextChanged += OnEvent;
-            _mapModel = null;
+            _bottingModel = null;
             _canvasPointLocationModifier = canvasPointLocationModifier;
         }
 
@@ -1618,7 +1432,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (_mapModel == null)
+            if (_bottingModel == null)
             {
                 return;
             }
@@ -1631,7 +1445,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                             Convert.ToInt32(_selectedTextX.Text),
                             Convert.ToInt32(_selectedTextY.Text)
                         ),
-                        ElementModel = _mapModel
+                        ElementModel = _bottingModel.GetMacroModel()
                     }
                 );
             }
@@ -1639,9 +1453,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
     }
@@ -1683,7 +1497,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowMapCanvasDimensionModifierParameters
     {
-        public MapModel ElementModel = new MapModel();
+        public AbstractMapModel ElementModel = new MapModel();
     }
 
 
@@ -1740,7 +1554,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractWindowStateModifier _mapCanvasDimensionModifier;
 
-        private MapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         public WindowMapCanvasDimensionActionHandler(
             TextBox textBoxLeft,
@@ -1759,7 +1573,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _textBoxTop.TextChanged += OnEvent;
             _textBoxRight.TextChanged += OnEvent;
             _textBoxBottom.TextChanged += OnEvent;
-            _mapModel = null;
+            _bottingModel = null;
         }
 
         public override AbstractWindowStateModifier Modifier()
@@ -1769,9 +1583,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
 
@@ -1780,7 +1594,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mapCanvasDimensionModifier.Modify(
                 new WindowMapCanvasDimensionModifierParameters
                 {
-                    ElementModel = _mapModel!
+                    ElementModel = _bottingModel!.GetMapModel()
                 }
             );
         }
@@ -1839,7 +1653,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractWindowStateModifier _windowSaveDialogModifier;
 
-        private MapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         private string _initialDirectory;
 
@@ -1860,7 +1674,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (_mapModel == null)
+            if (_bottingModel == null)
             {
                 return;
             }
@@ -1870,7 +1684,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             }
             var configuration = (
                 (ConfigurationMapModel)
-                _mapModelConverter.ToConfiguration(_mapModel)!
+                _mapModelConverter.ToConfiguration(_bottingModel)!
             );
             var serialized = (
                 _mapModelSerializer.Serialize(configuration)
@@ -1893,9 +1707,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 _initialDirectory = configuration.MapDirectory;
             }
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
 
@@ -1910,19 +1724,15 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private AbstractWindowActionHandler _windowMapEditorSaveConfigurationActionHandler;
 
-        public WindowMapEditorSaveConfigurationActionHandlerFacade(Button saveButton)
+        public WindowMapEditorSaveConfigurationActionHandlerFacade(
+            Button saveButton, AbstractSaveFileDialog saveFileDialog
+        )
         {
             _windowMapEditorSaveConfigurationActionHandler = new WindowMapEditorSaveConfigurationActionHandler(
                 saveButton,
                 new ConfigurationMapModelSerializer(),
-                new MapModelConverterFacade(),
-                new WindowSaveMenuModifier(
-                    new WindowSaveFileDialog(
-                        "Save Map",
-                        "JSON files (*.json)|*.json",
-                        ".json"
-                    )
-                )
+                new BottingModelConverterFacade(),
+                new WindowSaveMenuModifier(saveFileDialog)
             );
         }
 
@@ -2028,7 +1838,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         public string LoadedConfiguration = "";
 
-        public MapModel ElementModel = new MapModel();
+        public AbstractBottingModel ElementModel = new BottingModel();
     }
 
 
@@ -2056,8 +1866,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             var deserialized = _mapModelDeserializer.Deserialize(
                 parameters.LoadedConfiguration
             );
-            var mapModel = (MapModel)_mapModelConverter.ToDataModel(deserialized)!;
-            parameters.ElementModel.SetMapModel(mapModel);
+            var bottingModel = (BottingModel)_mapModelConverter.ToDataModel(deserialized)!;
+            parameters.ElementModel.SetBottingModel(bottingModel);
         }
     }
 
@@ -2068,7 +1878,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractWindowStateModifier _mapEditorLoadModelModifier;
 
-        private MapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         public WindowMapEditorLoadModelActionHandler(
             AbstractLoadFileDialog loadFileDialog,
@@ -2077,7 +1887,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         {
             _loadFileDialog = loadFileDialog;
             _mapEditorLoadModelModifier = mapEditorLoadModelModifier;
-            _mapModel = null;
+            _bottingModel = null;
             _loadFileDialog.FileLoaded += OnEvent;
         }
 
@@ -2088,9 +1898,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
 
@@ -2100,7 +1910,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 return;
             }
-            if (_mapModel == null)
+            if (_bottingModel == null)
             {
                 return;
             }
@@ -2108,7 +1918,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 new WindowMapEditorLoadModelModifierParameters
                 {
                     LoadedConfiguration = fileLoadEventArgs.Content,
-                    ElementModel = _mapModel
+                    ElementModel = _bottingModel
                 }
             );
         }
@@ -2127,7 +1937,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 loadFileDialog,
                 new WindowMapEditorLoadModelModifier(
                     new ConfigurationMapModelDeserializer(),
-                    new MapModelConverterFacade()
+                    new BottingModelConverterFacade()
                 )
             );
         }
@@ -2153,7 +1963,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         public string LoadedConfiguration = "";
 
-        public MapModel ElementModel = new MapModel();
+        public AbstractMapModel ElementModel = new MapModel();
     }
 
 
@@ -2207,7 +2017,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractWindowStateModifier _mapEditorLoadMinimapModifier;
 
-        private MapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         public WindowMapEditorLoadMinimapActionHandler(
             AbstractLoadFileDialog loadFileDialog,
@@ -2217,7 +2027,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _loadFileDialog = loadFileDialog;
             _mapEditorLoadMinimapModifier = mapEditorLoadMinimapModifier;
             _loadFileDialog.FileLoaded += OnEvent;
-            _mapModel = null;
+            _bottingModel = null;
         }
 
         public override AbstractWindowStateModifier Modifier()
@@ -2227,9 +2037,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
 
@@ -2239,14 +2049,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 return;
             }
-            if (_mapModel == null)
+            if (_bottingModel == null)
             {
                 return;
             }
             _mapEditorLoadMinimapModifier.Modify(
                 new WindowMapEditorLoadMinimapModifierParameters
                 {
-                    ElementModel = _mapModel
+                    ElementModel = _bottingModel.GetMapModel()
                 }
             );
         }
@@ -2410,7 +2220,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractWindowStateModifier _mapCanvasLoadedPointDrawer;
 
-        private MapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         public WindowMapEditorLoadedMinimapPointsActionHandler(
             Canvas mapCanvas,
@@ -2423,15 +2233,15 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _fileLoadDialog = fileLoadDialog;
             _pointLabelTextBox = pointLabelTextBox;
             _mapCanvasLoadedPointDrawer = mapCanvasLoadedPointDrawer;
-            _mapModel = null;
+            _bottingModel = null;
             _fileLoadDialog.FileLoaded += OnEvent;
         }
 
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
 
@@ -2442,11 +2252,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (_mapModel == null)
+            if (_bottingModel == null)
             {
                 return;
             }
-            var minimapPoints = _mapModel.MacroPoints();
+            var macroModel = _bottingModel.GetMacroModel();
+            var minimapPoints = macroModel.MacroPoints();
             _mapCanvas.Children.Clear();
             foreach (var minimapPoint in minimapPoints)
             {
@@ -2457,7 +2268,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                         ElementDependencies = [_pointLabelTextBox]
                     }
                 );
-                _mapModel.EditMacroPoint(minimapPoint);
+                macroModel.EditMacroPoint(minimapPoint);
             }
         }
     }
@@ -2607,7 +2418,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowMapEditorLoadedThresholdModifierParameters
     {
-        public MapModel ElementModel = new MapModel();
+        public AbstractMapModel ElementModel = new MapModel();
     }
 
 
@@ -2645,7 +2456,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractWindowStateModifier _mapEditorLoadedThresholdStateModifier;
 
-        private MapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         public WindowMapEditorLoadedThresholdHandler(
             AbstractLoadFileDialog loadFileDialog,
@@ -2655,14 +2466,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _loadFileDialog = loadFileDialog;
             _mapEditorLoadedThresholdStateModifier = mapEditorLoadedThresholdStateModifier;
             _loadFileDialog.FileLoaded += OnEvent;
-            _mapModel = null;
+            _bottingModel = null;
         }
 
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
 
@@ -2677,14 +2488,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 return;
             }
-            if (_mapModel == null)
+            if (_bottingModel == null)
             {
                 return;
             }
             _mapEditorLoadedThresholdStateModifier.Modify(
                 new WindowMapEditorLoadedThresholdModifierParameters
                 {
-                    ElementModel = _mapModel
+                    ElementModel = _bottingModel.GetMapModel()
                 }
             );
         }
@@ -2726,7 +2537,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowMapEditorThresholdModifierParameters
     {
-        public MapModel ElementModel = new MapModel();
+        public AbstractMapModel ElementModel = new MapModel();
     }
 
 
@@ -2770,7 +2581,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBox _thresholdTextBox;
 
-        private MapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         public WindowMapEditorThresholdHandler(
             AbstractWindowStateModifier mapEditorThresholdModifier,
@@ -2784,9 +2595,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
 
@@ -2797,14 +2608,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (_mapModel == null)
+            if (_bottingModel == null)
             {
                 return;
             }
             _mapEditorThresholdModifier.Modify(
                 new WindowMapEditorThresholdModifierParameters
                 {
-                    ElementModel = _mapModel
+                    ElementModel = _bottingModel.GetMapModel()
                 }
             );
         }
@@ -2839,6 +2650,80 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override void OnEvent(object? sender, EventArgs e)
         {
             _mapEditorCharacterThresholdHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowMapEditorTabControlCanvasModifier : AbstractWindowStateModifier
+    {
+        private Canvas _canvas;
+
+        public WindowMapEditorTabControlCanvasModifier(Canvas canvas)
+        {
+            _canvas = canvas;
+        }
+
+        public override void Modify(object? value)
+        {
+            _canvas.Visibility = (value is bool show && show) ?
+                Visibility.Visible : Visibility.Hidden;
+        }
+    }
+
+
+    public class WindowMapEditorTabControlCanvasActionHandler : AbstractWindowActionHandler
+    {
+        private TabControl _tabControl;
+
+        private TabItem _tabItem;
+
+        private AbstractWindowStateModifier _tabControlCanvasModifier;
+
+        public WindowMapEditorTabControlCanvasActionHandler(
+            TabControl tabControl,
+            TabItem tabItem,
+            AbstractWindowStateModifier tabControlCanvasModifier
+        )
+        {
+            _tabControl = tabControl;
+            _tabItem = tabItem;
+            _tabControlCanvasModifier = tabControlCanvasModifier;
+            _tabControl.SelectionChanged += OnEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _tabControlCanvasModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _tabControlCanvasModifier.Modify(_tabControl.SelectedItem == _tabItem);
+        }
+    }
+
+
+    public class WindowMapEditorTabControlCanvasActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _tabControlCanvasActionHandler;
+
+        public WindowMapEditorTabControlCanvasActionHandlerFacade(
+            TabControl tabControl, TabItem tabItem, Canvas canvas
+        )
+        {
+            _tabControlCanvasActionHandler = new WindowMapEditorTabControlCanvasActionHandler(
+                tabControl, tabItem, new WindowMapEditorTabControlCanvasModifier(canvas)
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _tabControlCanvasActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _tabControlCanvasActionHandler.OnEvent(sender, e);
         }
     }
 }

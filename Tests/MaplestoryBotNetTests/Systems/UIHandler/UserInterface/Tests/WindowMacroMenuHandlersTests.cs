@@ -943,7 +943,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private TextBox _pointMacroTemplateProb;
 
-        private MapModel _mapModel;
+        private BottingModel _mapModel;
 
         private FrameworkElement _selectedElement;
 
@@ -972,7 +972,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _pointMacroTemplate = new Grid();
             _pointMacroTemplateMacro = new TextBox();
             _pointMacroTemplateProb = new TextBox();
-            _mapModel = new MapModel();
+            _mapModel = new BottingModel();
             _selectedElement = new FrameworkElement();
             _minimapPointData = new MinimapPointData();
             _minimapPoint = new MinimapPoint();
@@ -1000,11 +1000,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _pointMacroTemplate = new Grid();
             _pointMacroTemplateMacro = new TextBox{ Tag = "MacroNameTag" };
             _pointMacroTemplateProb = new TextBox{ Tag = "ProbabilityTag" };
-            _mapModel = new MapModel();
+            _mapModel = new BottingModel();
             _selectedElement = new FrameworkElement{ Name = "meow" };
             _minimapPointData = new MinimapPointData{ ElementName = "meow", PointName = "meow point" };
             _minimapPoint = new MinimapPoint { PointData = _minimapPointData };
-            _mapModel.AddMacroPoint(_minimapPoint);
+            _mapModel.GetMacroModel().AddMacroPoint(_minimapPoint);
             _pointMacroTemplate.Children.Add(_pointMacroTemplateMacro);
             _pointMacroTemplate.Children.Add(_pointMacroTemplateProb);
             return new WindowMacroDisplayLoadingActionHandlerFacade(
@@ -1031,7 +1031,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private AbstractWindowActionHandler _testSetup()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _mapModel);
             _macroWindow.VisibleReturn.Add(true);
             _menuState.Select(_selectedElement);
             return handler;
@@ -1205,7 +1205,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testWindowBecomingInvisibleDoesNotPopulateLabels()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _mapModel);
             _macroWindow.VisibleReturn.Add(false);
             _menuState.Select(_selectedElement);
             _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 12, MacroName = "meow 1" });
@@ -1227,7 +1227,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testWindowBecomingVisibleDoesNotPopulateLabelsWhenNoSelection()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _mapModel);
             _macroWindow.VisibleReturn.Add(true);
             _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 12, MacroName = "meow 1" });
             _minimapPointData.Commands.Add(new MinimapPointMacros { MacroChance = 23, MacroName = "meow 2" });
@@ -1281,7 +1281,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private MinimapPoint _minimapPoint;
 
-        private MapModel _mapModel;
+        private BottingModel _bottingModel;
 
         /**
          * @brief Constructor initializing test dependencies with clean state.
@@ -1299,7 +1299,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _macroLabelsListBox = new ListBox();
             _minimapPointData = new MinimapPointData();
             _minimapPoint = new MinimapPoint();
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
         }
 
 
@@ -1354,7 +1354,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _macroLabelsListBox = new ListBox();
             _minimapPointData = new MinimapPointData();
             _minimapPoint = new MinimapPoint { PointData = _minimapPointData };
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             _macroLabelsListBox.Tag = _minimapPoint;
             return new WindowMacroCommandLabelSavingActionHandlerFacade(
                 _macroWindow,
@@ -1376,15 +1376,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var handle = _fixture();
             _minimapPoint.PointData.ElementName = "meow";
-            _mapModel.AddMacroPoint(_minimapPoint.Copy());
-            handle.Inject(SystemInjectType.MapModel, _mapModel);
+            _bottingModel.GetMacroModel().AddMacroPoint(_minimapPoint.Copy());
+            handle.Inject(SystemInjectType.BottingModel, _bottingModel);
             _macroWindow.VisibleReturn.Add(false);
             var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
             adder.Add("meow 1", "12", ["1c1", "1c2", "1c3"]);
             adder.Add("meow 2", "23", ["2c1", "2c2", "2c3"]);
             adder.Add("meow 3", "34", ["3c1", "3c2", "3c3"]);
             handle.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
-            var savedMinimapPoint = _mapModel.FindMacroPointByName("meow")!;
+            var savedMinimapPoint = _bottingModel.GetMacroModel().FindMacroPointByName("meow")!;
             Debug.Assert(savedMinimapPoint.PointData.Commands[0].MacroName == "meow 1");
             Debug.Assert(savedMinimapPoint.PointData.Commands[0].MacroChance == 12);
             Debug.Assert(savedMinimapPoint.PointData.Commands[0].MacroCommands[0] == "1c1");
@@ -1415,8 +1415,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var handle = _fixture();
             _minimapPoint.PointData.ElementName = "meow";
-            _mapModel.AddMacroPoint(_minimapPoint.Copy());
-            handle.Inject(SystemInjectType.MapModel, _mapModel);
+            _bottingModel.GetMacroModel().AddMacroPoint(_minimapPoint.Copy());
+            handle.Inject(SystemInjectType.BottingModel, _bottingModel);
             _macroWindow.VisibleReturn.Add(false);
             var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
             adder.Add("meow 1", "12", ["1c1", "1c2", "1c3"]);
@@ -1450,8 +1450,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 var elementTexts = elementTextsParameters[i];
                 var handle = _fixture();
                 _minimapPoint.PointData.ElementName = "meow";
-                _mapModel.AddMacroPoint(_minimapPoint.Copy());
-                handle.Inject(SystemInjectType.MapModel, _mapModel);
+                _bottingModel.GetMacroModel().AddMacroPoint(_minimapPoint.Copy());
+                handle.Inject(SystemInjectType.BottingModel, _bottingModel);
                 _macroWindow.VisibleReturn.Add(false);
                 _macroLabelTextBox.Text = "meowth thats right!";
                 _minimapPoint.PointData.ElementTexts = elementTexts;
@@ -1487,15 +1487,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var handle = _fixture();
             _minimapPoint.PointData.ElementName = "meow";
-            _mapModel.AddMacroPoint(_minimapPoint.Copy());
-            handle.Inject(SystemInjectType.MapModel, _mapModel);
+            _bottingModel.GetMacroModel().AddMacroPoint(_minimapPoint.Copy());
+            handle.Inject(SystemInjectType.BottingModel, _bottingModel);
             _macroWindow.VisibleReturn.Add(true);
             var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
             adder.Add("meow 1", "12", ["1c1", "1c2", "1c3"]);
             adder.Add("meow 2", "23", ["2c1", "2c2", "2c3"]);
             adder.Add("meow 3", "34", ["3c1", "3c2", "3c3"]);
             handle.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
-            var savedMinimapPoint = _mapModel.FindMacroPointByName("meow")!;
+            var savedMinimapPoint = _bottingModel.GetMacroModel().FindMacroPointByName("meow")!;
             Debug.Assert(savedMinimapPoint.PointData.Commands.Count == 0);
         }
 
@@ -1512,14 +1512,14 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var handle = _fixture();
             _minimapPoint.PointData.ElementName = "meow";
-            _mapModel.AddMacroPoint(_minimapPoint.Copy());
+            _bottingModel.GetMacroModel().AddMacroPoint(_minimapPoint.Copy());
             _macroWindow.VisibleReturn.Add(false);
             var adder = new ListBoxElementAdder(_macroLabelsListBox, _minimapPoint);
             adder.Add("meow 1", "12", ["1c1", "1c2", "1c3"]);
             adder.Add("meow 2", "23", ["2c1", "2c2", "2c3"]);
             adder.Add("meow 3", "34", ["3c1", "3c2", "3c3"]);
             handle.OnDependencyEvent(new object(), new DependencyPropertyChangedEventArgs());
-            var savedMinimapPoint = _mapModel.FindMacroPointByName("meow")!;
+            var savedMinimapPoint = _bottingModel.GetMacroModel().FindMacroPointByName("meow")!;
             Debug.Assert(savedMinimapPoint.PointData.Commands.Count == 0);
         }
 

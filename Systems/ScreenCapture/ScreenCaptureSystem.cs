@@ -3,12 +3,10 @@ using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.ThreadingUtils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using System.Drawing;
 
 
 namespace MaplestoryBotNet.Systems.ScreenCapture
 {
-
     public abstract class AbstractScreenCaptureStore
     {
         public abstract void SetLatest(Image<Bgra32> image);

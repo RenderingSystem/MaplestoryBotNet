@@ -29,7 +29,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private System.Windows.Controls.Image _mapImage = new System.Windows.Controls.Image();
 
-        private MapModel _mapModel = new MapModel();
+        private BottingModel _bottingModel = new BottingModel();
 
         public AbstractWindowActionHandler _fixture()
         {
@@ -37,13 +37,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _textBoxX = new TextBox();
             _textBoxY = new TextBox();
             _templateKey = "lol";
-            _mapImage = new System.Windows.Controls.Image();
-            _mapImage.Source = new WriteableBitmap(
-                1234, 2345, 96, 96, PixelFormats.Bgra32, null
-            );
-            _mapImage.Width = 12345;
-            _mapImage.Height = 23456;
-            _mapModel = new MapModel();
+            _mapImage = new System.Windows.Controls.Image
+            {
+                Source = new WriteableBitmap(
+                    1234, 2345, 96, 96, PixelFormats.Bgra32, null
+                ),
+                Width = 12345,
+                Height = 23456
+            };
+            _bottingModel = new BottingModel();
             return new WindowMinimapPositionActionHandlerFacade(
                 _dispatcher,
                 _textBoxX,
@@ -70,12 +72,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 new WindowMinimapPositionModifierParameters
                 {
                     Position = new Tuple<int, int>(123, 234),
-                    Model = _mapModel,
+                    Model = _bottingModel.GetMapModel(),
                 }
             );
             Debug.Assert(_dispatcher.DispatchCalls == 1);
             _dispatcher.DispatchCallArg_action[0]();
-            var templatePosition = _mapModel.GetTemplatePosition("lol");
+            var templatePosition = _bottingModel.GetMapModel().GetTemplatePosition("lol");
             Debug.Assert(templatePosition.Item1 == 1231);
             Debug.Assert(templatePosition.Item2 == 2341);
         }
@@ -96,12 +98,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 new WindowMinimapPositionModifierParameters
                 {
                     Position = new Tuple<int, int>(123, 234),
-                    Model = _mapModel,
+                    Model = _bottingModel.GetMapModel(),
                 }
             );
             Debug.Assert(_dispatcher.DispatchCalls == 1);
             _dispatcher.DispatchCallArg_action[0]();
-            var templatePosition = _mapModel.GetTemplatePosition("lol");
+            var templatePosition = _bottingModel.GetMapModel().GetTemplatePosition("lol");
             Debug.Assert(_textBoxX.Text == "1231");
             Debug.Assert(_textBoxY.Text == "2341");
         }
@@ -116,7 +118,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
     public class GameMinimapProcessingSubscriberTests
     {
-        private MapModel _mapModel = new MapModel();
+        private BottingModel _bottingModel = new BottingModel();
 
         private MockThread _processorThread = new MockThread(new ThreadRunningState());
 
@@ -128,7 +130,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             string stateKey, string templateKey
         )
         {
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             _image = new Image<Bgra32>(10, 10);
             _threadState = new GameMinimapProcessorThreadState(stateKey);
             _processorThread = new MockThread(new ThreadRunningState());
@@ -137,7 +139,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 new SemaphoreSlim(1), templateKey
             );
             fixture.Inject(SystemInjectType.ThreadDependency, _processorThread);
-            fixture.Inject(SystemInjectType.MapModel, _mapModel);
+            fixture.Inject(SystemInjectType.BottingModel, _bottingModel);
             fixture.Notify(_image, true);
             return fixture;
         }
@@ -157,7 +159,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testProcessingImageInjectsCroppedBitmapIntoProcessorThread()
         {
             var fixture = _fixture("lol", "lol");
-            _mapModel.SetMapArea(3, 3, 8, 8);
+            _bottingModel.GetMapModel().SetMapArea(3, 3, 8, 8);
             _image[3, 3] = new Bgra32(12, 23, 34);
             fixture.ProcessImage();
             Debug.Assert(_processorThread.InjectCalls == 1);
@@ -186,7 +188,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testWrongTemplateKeyPreventsImageInjection()
         {
             var fixture = _fixture("lol", "lol2");
-            _mapModel.SetMapArea(3, 3, 8, 8);
+            _bottingModel.GetMapModel().SetMapArea(3, 3, 8, 8);
             _image[3, 3] = new Bgra32(12, 23, 34);
             fixture.ProcessImage();
             Debug.Assert(_processorThread.InjectCalls == 0);

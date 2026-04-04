@@ -336,7 +336,7 @@ namespace ArrayFireNCC {
         ncc_map(ncc_map <= -1.0f - 1e-6) = 0.0f;
         return ncc_map * valid_confidence;
     }
-
+    
 }
 
 

@@ -43,6 +43,7 @@ void UnitTestSuite()
     new WindowSaveLoadMenuHandlersTestSuite().Run();
     new WindowComboBoxScaleHandlersTestSuite().Run();
     new WindowMapEditorHandlersTestSuite().Run();
+    new WindowMapEditorRuneHandlersTestSuite().Run();
     new NumericTextBoxHandlersTestSuite().Run();
     new WindowMinimapViewStateHandlerTestSuite().Run();
     new WindowMinimapPositionHandlersTestSuite().Run();

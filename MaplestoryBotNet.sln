@@ -13,9 +13,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MaplestoryBotNetTests", "Te
 		{50B08E4A-D4D6-5E82-7A40-19A809D4B203} = {50B08E4A-D4D6-5E82-7A40-19A809D4B203}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Interception", "Interception.net\Interception\Interception.csproj", "{1F6F698B-7408-834D-9C3A-49F1438FD07C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Intercept", "Interception.net\Interception\Intercept.csproj", "{1F6F698B-7408-834D-9C3A-49F1438FD07C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArrayFireNCC", "ArrayFireNCC\ArrayFireNCC.vcxproj", "{50B08E4A-D4D6-5E82-7A40-19A809D4B203}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AFNCC", "ArrayFireNCC\ArrayFireNCC.vcxproj", "{50B08E4A-D4D6-5E82-7A40-19A809D4B203}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

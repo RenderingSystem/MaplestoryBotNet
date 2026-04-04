@@ -196,12 +196,12 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
             for (int i = 0; i < injectTypes.Count; i++)
             {
                 var fixture = _fixture();
-                var mapModel = new MapModel();
+                var mapModel = new BottingModel();
                 fixture.Inject(injectTypes[i], mapModel);
                 Debug.Assert(
-                    injectTypes[i] == SystemInjectType.MapModel ?
-                    fixture.ThreadState.MapModel == mapModel :
-                    fixture.ThreadState.MapModel == null
+                    injectTypes[i] == SystemInjectType.BottingModel ?
+                    fixture.ThreadState.BottingModel == mapModel :
+                    fixture.ThreadState.BottingModel == null
                 );
             }
         }
@@ -295,11 +295,11 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
             for (int j = 0; j < bitmaps.Count; j++)
             {
                 var fixture = _fixture();
-                var mapModel = new MapModel();
-                mapModel.SetTemplateThreshold(MapIconInfo.Character, 0.123f);
+                var bottingModel = new BottingModel();
+                bottingModel.GetMapModel().SetTemplateThreshold(MapIconInfo.Character, 0.123f);
                 if (bitmaps[j].Item2)
                 {
-                    fixture.Inject(SystemInjectType.MapModel, mapModel);
+                    fixture.Inject(SystemInjectType.BottingModel, bottingModel);
                 }
                 Debug.Assert(fixture.ThreadState.Threshold == null);
                 fixture.Inject(0, bitmaps[j].Item1);
@@ -326,10 +326,10 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
             for (int i = 0; i < bitmaps.Count; i++)
             {
                 var fixture = _fixture();
-                var mapModel = new MapModel();
+                var mapModel = new BottingModel();
                 if (bitmaps[i].Item2)
                 {
-                    fixture.Inject(SystemInjectType.MapModel, mapModel);
+                    fixture.Inject(SystemInjectType.BottingModel, mapModel);
                 }
                 Debug.Assert(fixture.ThreadState.CurrentBitmap == null);
                 fixture.Inject(0, bitmaps[i].Item1);
@@ -353,10 +353,10 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
             for (int i = 0; i < bitmaps.Count; i++)
             {
                 var fixture = _fixture();
-                var mapModel = new MapModel();
+                var mapModel = new BottingModel();
                 if (bitmaps[i].Item2)
                 {
-                    fixture.Inject(SystemInjectType.MapModel, mapModel);
+                    fixture.Inject(SystemInjectType.BottingModel, mapModel);
                 }
                 Debug.Assert(_threadLoopCountDown.CountDownCalls == 0);
                 fixture.Inject(0, bitmaps[i].Item1);
@@ -524,7 +524,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
 
         private MockWindowStateModifier _positionUpdater = new MockWindowStateModifier();
 
-        private MapModel _mapModel = new MapModel();
+        private BottingModel _bottingModel = new BottingModel();
 
         private MapIcon _mapIcon = new MapIcon();
 
@@ -533,7 +533,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
             _positionProcessor = new MockGameMinimapPositionProcessor();
             _positionUpdater = new MockWindowStateModifier();
             _timestamp = new MockTimestamp();
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             _mapIcon = new MapIcon();
             _threadState = new GameMinimapProcessorThreadState(
                 "lol",
@@ -541,7 +541,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
                 new MockBitmapTemplateMatcher(),
                 new RectangleMerger(),
                 _mapIcon,
-                _mapModel,
+                _bottingModel,
                 0.123f,
                 _positionUpdater
             );
@@ -577,7 +577,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
                     (WindowMinimapPositionModifierParameters)
                     _positionUpdater.ModifyCallArg_value[0]!
                 );
-                Debug.Assert(parameters.Model == _mapModel);
+                Debug.Assert(parameters.Model == _bottingModel.GetMapModel());
                 Debug.Assert(
                     processReturn[i] != null ?
                     parameters.Position.Item1 == 123 :

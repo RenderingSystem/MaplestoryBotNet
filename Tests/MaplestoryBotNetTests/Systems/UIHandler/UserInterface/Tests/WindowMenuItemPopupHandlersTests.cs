@@ -159,8 +159,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * State transitions:
          * - When automation is Stopped -> Shows "Start!" (click to start)
          * - When starting up -> Shows "Starting..." (feedback that start is in progress)
-         * - When running → Shows "Stop!" (click to stop)
-         * - When stopping → Shows "Stopping..." (feedback that stop is in progress)
+         * - When running -> Shows "Stop!" (click to stop)
+         * - When stopping -> Shows "Stopping..." (feedback that stop is in progress)
          */
         private void _testInjectingExecutorThreadedUpdateSetsMenuItemText()
         {

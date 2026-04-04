@@ -13,9 +13,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
     public class PointMacrosConverter : AbstractJsonDataModelConverter
     {
-        public override object? ToConfiguration(
-            object dataModel
-        )
+        public override object? ToConfiguration(object dataModel)
         {
             if (dataModel is not MinimapPointMacros modelPointMacros)
             {
@@ -29,9 +27,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             };
         }
 
-        public override object? ToDataModel(
-            object configuration
-        )
+        public override object? ToDataModel(object configuration)
         {
             if (configuration is not ConfigurationPointMacros configurationPointMacros)
             {
@@ -159,11 +155,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
     }
 
 
-    public class MapModelConverter : AbstractJsonDataModelConverter
+    public class BottingModelConverter : AbstractJsonDataModelConverter
     {
         private AbstractJsonDataModelConverter _minimapPointConverter;
 
-        public MapModelConverter(
+        public BottingModelConverter(
             AbstractJsonDataModelConverter minimapPointConverter
         )
         {
@@ -172,10 +168,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public override object? ToConfiguration(object dataModel)
         {
-            if (dataModel is not MapModel mapModel)
+            if (dataModel is not AbstractBottingModel bottingModel)
             {
                 return null;
             }
+            var mapModel = bottingModel.GetMapModel();
+            var macroModel = bottingModel.GetMacroModel();
             var mapArea = mapModel.GetMapArea();
             return new ConfigurationMapModel
             {
@@ -185,7 +183,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 MapAreaBottom = (int)mapArea.Bottom,
                 CharacterThreshold = mapModel.GetTemplateThreshold(MapIconInfo.Character),
                 RuneThreshold = mapModel.GetTemplateThreshold(MapIconInfo.Rune),
-                MapPoints = mapModel.MacroPoints().Select(
+                MapPoints = macroModel.MacroPoints().Select(
                     minimapPoint => (
                         (ConfigurationMinimapPoint)
                         _minimapPointConverter.ToConfiguration(minimapPoint)!
@@ -201,15 +199,21 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             {
                 return null;
             }
-            var mapModel = new MapModel();
+            var bottingModel = new BottingModel();
+            var mapModel = bottingModel.GetMapModel();
+            var macroModel = bottingModel.GetMacroModel();
             mapModel.SetMapArea(
                 Math.Min(configurationMapModel.MapAreaLeft, configurationMapModel.MapAreaRight),
                 Math.Min(configurationMapModel.MapAreaTop, configurationMapModel.MapAreaBottom),
                 Math.Max(configurationMapModel.MapAreaLeft, configurationMapModel.MapAreaRight),
                 Math.Max(configurationMapModel.MapAreaTop, configurationMapModel.MapAreaBottom)
             );
-            mapModel.SetTemplateThreshold(MapIconInfo.Character, configurationMapModel.CharacterThreshold);
-            mapModel.SetTemplateThreshold(MapIconInfo.Rune, configurationMapModel.RuneThreshold);
+            mapModel.SetTemplateThreshold(
+                MapIconInfo.Character, configurationMapModel.CharacterThreshold
+            );
+            mapModel.SetTemplateThreshold(
+                MapIconInfo.Rune, configurationMapModel.RuneThreshold
+            );
             foreach (
                 var minimapPoint in configurationMapModel.MapPoints.Select(
                     (configurationMinimapPoint) => {
@@ -220,20 +224,20 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 )
             )
             {
-                mapModel.AddMacroPoint(minimapPoint);
+                macroModel.AddMacroPoint(minimapPoint);
             }
-            return mapModel;
+            return bottingModel;
         }
     }
 
 
-    public class MapModelConverterFacade : AbstractJsonDataModelConverter
+    public class BottingModelConverterFacade : AbstractJsonDataModelConverter
     {
         private AbstractJsonDataModelConverter _mapModelConverter;
 
-        public MapModelConverterFacade()
+        public BottingModelConverterFacade()
         {
-            _mapModelConverter = new MapModelConverter(
+            _mapModelConverter = new BottingModelConverter(
                 new MinimapPointConverter(
                     new PointDataConverter(
                         new PointMacrosConverter()

@@ -13,7 +13,7 @@ namespace MaplestoryBotNet.Systems
         KeystrokeTransmitter,
         ShutDown,
         ActionHandler,
-        MapModel,
+        BottingModel,
         InjectAction,
         ThreadDependency,
         SystemInjectTypeMaxNum,

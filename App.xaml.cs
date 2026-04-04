@@ -22,16 +22,18 @@ namespace MaplestoryBotNet
 
         List<AbstractWindowActionHandler> _uiHandlers = [];
 
-        AbstractWindowMapEditMenuState _editMenuState = new WindowMapEditMenuState();
+        AbstractWindowMapEditMenuState _bottingEditMenuState = new WindowMapEditMenuState();
+
+        AbstractWindowMapEditMenuState _runeingEditMenuState = new WindowMapEditMenuState();
 
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            _editMenuState = new WindowMapEditMenuState();
+            _bottingEditMenuState = new WindowMapEditMenuState();
             _mainWindow = new MainWindow();
-            _windowMacroPopup = new MacroBottingWindow(_editMenuState);
+            _windowMacroPopup = new MacroBottingWindow(_bottingEditMenuState);
             _mainApplication = new MainApplicationFacade();
-            _mapWindow = new MapWindow(_editMenuState);
+            _mapWindow = new MapWindow(_bottingEditMenuState, _runeingEditMenuState);
             _splashScreen = new SplashScreen(_mainApplication.System());
             Initialize();
         }

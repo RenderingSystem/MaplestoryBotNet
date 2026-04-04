@@ -5,16 +5,20 @@ using System.Windows.Input;
 
 namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 {
-    public abstract class AbstractMouseEventPositionExtractor
+    public abstract class AbstractMouseEventDataExtractor
     {
         public abstract Point GetPosition(
             MouseEventArgs mouseEventArgs,
             IInputElement relativeTo
         );
+
+        public abstract MouseButtonState GetButtonState(
+            MouseButtonState buttonState
+        );
     }
 
 
-    public class MouseEventPositionExtractor : AbstractMouseEventPositionExtractor
+    public class MouseEventDataExtractor : AbstractMouseEventDataExtractor
     {
         public override Point GetPosition(
             MouseEventArgs mouseEventArgs,
@@ -22,6 +26,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         )
         {
             return mouseEventArgs.GetPosition(relativeTo);
+        }
+
+        public override MouseButtonState GetButtonState(
+            MouseButtonState buttonState
+        )
+        {
+            return buttonState;
         }
     }
 }

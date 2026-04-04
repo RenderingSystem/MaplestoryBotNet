@@ -884,7 +884,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
          * @brief Tests MapModel injection during initialization
          * 
          * Validates that the application initializer creates and injects a MapModel instance
-         * into the main system. The MapModel serves as the central repository for all macro
+         * into the main system. The BottingModel serves as the central repository for all macro
          * points and their associated commands, enabling the macro agent to coordinate
          * character actions based on spatial context and point-specific instructions.
          */
@@ -892,10 +892,10 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var mainApplicationInitializer = _fixture();
             mainApplicationInitializer.Initialize();
-            var mapModelIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.MapModel);
+            var mapModelIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.BottingModel);
             var mapModelData = _mainSystem.InjectCallArg_data[mapModelIndex];
             Debug.Assert(mapModelIndex != -1);
-            Debug.Assert(mapModelData is AbstractMapModel);
+            Debug.Assert(mapModelData is AbstractBottingModel);
         }
 
         /**

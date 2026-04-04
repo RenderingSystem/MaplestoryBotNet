@@ -581,7 +581,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
 
     public class WindowMacroDisplayLoadingModifierParameters
     {
-        public AbstractMapModel ElementModel = new MapModel();
+        public AbstractMacroModel ElementModel = new MacroModel();
     }
 
 
@@ -669,7 +669,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
 
         private AbstractWindowStateModifier _macroCommandsDisplayLoadingModifier;
 
-        private AbstractMapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         public WindowMacroDisplayLoadingActionHandler(
             AbstractSystemWindow macroWindow,
@@ -679,7 +679,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
             _macroWindow = macroWindow;
             ((Window?)_macroWindow.GetWindow())!.IsVisibleChanged += OnDependencyEvent;
             _macroCommandsDisplayLoadingModifier = macroCommandsDisplayLoadingModifier;
-            _mapModel = null;
+            _bottingModel = null;
         }
 
         public override void OnDependencyEvent(
@@ -690,14 +690,14 @@ namespace MaplestoryBotNet.Systems.UIHandler
             {
                 return;
             }
-            if (_mapModel == null)
+            if (_bottingModel == null)
             {
                 return;
             }
             _macroCommandsDisplayLoadingModifier.Modify(
                 new WindowMacroDisplayLoadingModifierParameters
                 {
-                    ElementModel = _mapModel
+                    ElementModel = _bottingModel.GetMacroModel()
                 }
             );
         }
@@ -709,9 +709,9 @@ namespace MaplestoryBotNet.Systems.UIHandler
 
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
     }
@@ -828,7 +828,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
 
         private AbstractWindowStateModifier _macroCommandsDisplaySavingModifier;
 
-        private MapModel? _mapModel;
+        private AbstractBottingModel? _bottingModel;
 
         public WindowMacroCommandLabelSavingActionHandler(
             AbstractSystemWindow macroWindow,
@@ -841,7 +841,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
             _macroLabelTextBox = macroLabelTextBox;
             _macroLabelsListBox = macroLabelsListBox;
             _macroCommandsDisplaySavingModifier = macroCommandsDisplaySavingModifier;
-            _mapModel = null;
+            _bottingModel = null;
             ((Window?)_macroWindow.GetWindow())!.IsVisibleChanged += OnDependencyEvent;
         }
 
@@ -880,7 +880,7 @@ namespace MaplestoryBotNet.Systems.UIHandler
             {
                 return;
             }
-            if (_mapModel == null)
+            if (_bottingModel == null)
             {
                 return;
             }
@@ -900,14 +900,14 @@ namespace MaplestoryBotNet.Systems.UIHandler
             _updateTextDependencies();
             _macroLabelsListBox.SelectedIndex = -1;
             _macroLabelsListBox.Focus();
-            _mapModel.EditMacroPoint(minimapPoint);
+            _bottingModel.GetMacroModel().EditMacroPoint(minimapPoint);
         }
 
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is SystemInjectType.MapModel && data is MapModel mapModel)
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
             {
-                _mapModel = mapModel;
+                _bottingModel = bottingModel;
             }
         }
     }

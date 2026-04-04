@@ -27,12 +27,7 @@
             "active": true,
             "active_delay": 0,
             "threshold": 800,
-            "macro_commands": [
-                "press* allcure_key",
-                "delay random* 50 125",
-                "release* allcure_key",
-                "delay random* 50 125"
-            ],
+            "macro_commands": [],
             "image": "images/ailments/silence.gif",
             "static_rect": [ 0, 0, 0, 0 ]
         },
@@ -40,12 +35,7 @@
             "active": true,
             "active_delay": 0,
             "threshold": 800,
-            "macro_commands": [
-                "press* allcure_key",
-                "delay random* 50 125",
-                "release* allcure_key",
-                "delay random* 50 125"
-            ],
+            "macro_commands": [],
             "image": "images/ailments/weakness.gif",
             "static_rect": [ 0, 0, 0, 0 ]
         },
@@ -53,12 +43,7 @@
             "active": true,
             "active_delay": 0,
             "threshold": 800,
-            "macro_commands": [
-                "press* allcure_key",
-                "delay random* 50 125",
-                "release* allcure_key",
-                "delay random* 50 125"
-            ],
+            "macro_commands": [],
             "image": "images/ailments/blind.gif",
             "static_rect": [ 0, 0, 0, 0 ]
         },
@@ -66,12 +51,7 @@
             "active": true,
             "active_delay": 0,
             "threshold": 800,
-            "macro_commands": [
-                "press* allcure_key",
-                "delay random* 50 125",
-                "release* allcure_key",
-                "delay random* 50 125"
-            ],
+            "macro_commands": [],
             "image": "images/ailments/curse.gif",
             "static_rect": [ 0, 0, 0, 0 ]
         },
@@ -79,12 +59,7 @@
             "active": true,
             "active_delay": 0,
             "threshold": 800,
-            "macro_commands": [
-                "press* allcure_key",
-                "delay random* 50 125",
-                "release* allcure_key",
-                "delay random* 50 125"
-            ],
+            "macro_commands": [],
             "image": "images/ailments/poison.gif",
             "static_rect": [ 0, 0, 0, 0 ]
         },
@@ -92,9 +67,7 @@
             "active": true,
             "active_delay": 4000,
             "threshold": 800,
-            "macro_commands": [
-                "invert-keyboard*"
-            ],
+            "macro_commands": [],
             "image": "images/ailments/confusion.gif",
             "static_rect": [ 0, 0, 0, 0 ]
         },
@@ -102,16 +75,7 @@
             "active": true,
             "active_delay": 4000,
             "threshold": 800,
-            "macro_commands": [
-                "press* left arrow",
-                "delay random* 25 50",
-                "release* left arrow",
-                "delay random* 25 50",
-                "press* right arrow",
-                "delay random* 25 50",
-                "release* right arrow",
-                "delay random* 25 50"
-            ],
+            "macro_commands": [],
             "image": "images/ailments/petrification.gif",
             "static_rect": [ 0, 0, 0, 0 ]
         },
@@ -119,9 +83,7 @@
             "active": true,
             "active_delay": 0,
             "threshold": 800,
-            "macro_commands": [
-                "stop-bot*"
-            ],
+            "macro_commands": [],
             "image": "images/ailments/death.gif",
             "static_rect": [ 0, 0, 1280, 720 ]
         }

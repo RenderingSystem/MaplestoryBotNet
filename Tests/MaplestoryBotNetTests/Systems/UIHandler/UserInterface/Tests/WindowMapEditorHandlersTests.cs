@@ -25,7 +25,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * @brief Helper method to add a test point to both model and canvas
          * 
          * @param canvas The parent Canvas where the visual element will be added
-         * @param mapModel The data model where the point definition will be stored
+         * @param macroModel The data model where the point definition will be stored
          * @param x X-coordinate of the point in canvas units
          * @param y Y-coordinate of the point in canvas units
          * @param xRange Horizontal detection range around the point for hit testing
@@ -38,7 +38,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          */
         public void AddPoint(
             Canvas canvas,
-            MapModel mapModel,
+            AbstractMacroModel mapModel,
             double x,
             double y,
             double xRange,
@@ -163,25 +163,25 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private WindowMapEditMenuState _menuState;
 
-        private MockMouseEventPositionExtractor _mousePositionExtractor;
+        private MockMouseEventDataExtractor _mousePositionExtractor;
 
         private MouseButtonEventArgs _mouseButtonEvent;
 
-        private MapModel _mapModel;
+        private BottingModel _bottingModel;
 
         private TextBox _textBox;
 
         /**
          * @brief Initializes common test dependencies.
          * 
-         * Sets up a canvas, menu state manager, mouse event mock, and an empty map model.
+         * Sets up a canvas, menu state manager, mouse event mock, and an empty botting model.
          * Provides a standard mouse button event configured to simulate a left-click on the canvas.
          */
         public MapCanvasCirclePointDrawingActionHandlerTests()
         {
             _canvas = new Canvas();
             _menuState = new WindowMapEditMenuState();
-            _mousePositionExtractor = new MockMouseEventPositionExtractor();
+            _mousePositionExtractor = new MockMouseEventDataExtractor();
             _mouseButtonEvent = new MouseButtonEventArgs(
                 Mouse.PrimaryDevice, 123, MouseButton.Left
             )
@@ -189,7 +189,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 RoutedEvent = UIElement.MouseLeftButtonDownEvent,
                 Source = _canvas,
             };
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             _textBox = new TextBox();
         }
 
@@ -207,7 +207,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 Height = 200
             };
             _menuState = new WindowMapEditMenuState();
-            _mousePositionExtractor = new MockMouseEventPositionExtractor();
+            _mousePositionExtractor = new MockMouseEventDataExtractor();
             _mouseButtonEvent = new MouseButtonEventArgs(
                 Mouse.PrimaryDevice, 123, MouseButton.Left
             )
@@ -215,7 +215,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 RoutedEvent = UIElement.MouseLeftButtonDownEvent,
                 Source = _canvas,
             };
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             _textBox = new TextBox();
             return new WindowMapCanvasPointDrawingActionHandlerFacade(
                 _canvas, _textBox, _menuState, _mousePositionExtractor
@@ -234,8 +234,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             for (int i = 1; i < 10; i++)
             {
                 var handler = _fixture();
-                _menuState.SetState(WindowMapEditMenuStateTypes.Add);
-                handler.Inject(SystemInjectType.MapModel, _mapModel);
+                _menuState.SetState((int) WindowMapEditMenuStateTypes.Add);
+                handler.Inject(SystemInjectType.BottingModel, _bottingModel);
                 for (int j = 0; j < i; j++)
                 {
                     _mousePositionExtractor.GetPositionReturn.Add(
@@ -265,8 +265,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingOnCanvasDoesNotDrawWhenMenuIsNotAdding()
         {
             var handler = _fixture();
-            _menuState.SetState(WindowMapEditMenuStateTypes.Select);
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _canvas.RaiseEvent(_mouseButtonEvent);
             Debug.Assert(_canvas.Children.Count == 0);
         }
@@ -280,7 +280,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingOnCanvasDoesNotDrawWhenModelIsNotInjected()
         {
             var handler = _fixture();
-            _menuState.SetState(WindowMapEditMenuStateTypes.Add);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Add);
             _canvas.RaiseEvent(_mouseButtonEvent);
             Debug.Assert(_canvas.Children.Count == 0);
         }
@@ -294,8 +294,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingOnCanvasAddsCircularPoint()
         {
             var handler = _fixture();
-            _menuState.SetState(WindowMapEditMenuStateTypes.Add);
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Add);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
             _canvas.RaiseEvent(_mouseButtonEvent);
             var element = (Canvas)_canvas.Children[0];
@@ -324,8 +324,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             for (int i = 1; i < 10; i++)
             {
                 var handler = _fixture();
-                _menuState.SetState(WindowMapEditMenuStateTypes.Add);
-                handler.Inject(SystemInjectType.MapModel, _mapModel);
+                _menuState.SetState((int) WindowMapEditMenuStateTypes.Add);
+                handler.Inject(SystemInjectType.BottingModel, _bottingModel);
                 for (int j = 0; j < i; j++)
                 {
                     _mousePositionExtractor.GetPositionReturn.Add(
@@ -366,8 +366,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             for (int i = 1; i < 10; i++)
             {
                 var handler = _fixture();
-                _menuState.SetState(WindowMapEditMenuStateTypes.Add);
-                handler.Inject(SystemInjectType.MapModel, _mapModel);
+                _menuState.SetState((int) WindowMapEditMenuStateTypes.Add);
+                handler.Inject(SystemInjectType.BottingModel, _bottingModel);
                 for (int j = 0; j < i; j++)
                 {
                     _mousePositionExtractor.GetPositionReturn.Add(
@@ -378,7 +378,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 {
                     _canvas.RaiseEvent(_mouseButtonEvent);
                 }
-                var minimapPoints = _mapModel.MacroPoints();
+                var minimapPoints = _bottingModel.GetMacroModel().MacroPoints();
                 for (int j = 0; j < i; j++)
                 {
                     Debug.Assert(minimapPoints.Count == i);
@@ -404,18 +404,18 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingOnCanvasAddsUniquePointLabel()
         {
             var handler = _fixture();
-            _menuState.SetState(WindowMapEditMenuStateTypes.Add);
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Add);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _mousePositionExtractor.GetPositionReturn.Add(new Point(12, 23));
             _mousePositionExtractor.GetPositionReturn.Add(new Point(23, 34));
             _canvas.RaiseEvent(_mouseButtonEvent);
             Debug.Assert(_canvas.Children.Count == 1);
-            var selectedPoint = _mapModel.FindMacroPointByLabel("P0")!;
+            var selectedPoint = _bottingModel.GetMacroModel().FindMacroPointByLabel("P0")!;
             selectedPoint.PointData.PointName = "P1";
-            _mapModel.EditMacroPoint(selectedPoint);
+            _bottingModel.GetMacroModel().EditMacroPoint(selectedPoint);
             _canvas.RaiseEvent(_mouseButtonEvent);
             Debug.Assert(_canvas.Children.Count == 2);
-            Debug.Assert(_mapModel.FindMacroPointByLabel("P2") != null);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByLabel("P2") != null);
         }
 
         public void Run()
@@ -461,7 +461,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _addPointButton = new ToggleButton();
             _otherButtons = [new ToggleButton(), new ToggleButton(), new ToggleButton()];
             _menuState = new WindowMapEditMenuState();
-            return new WindowMapAddPointButtonActionHandlerFacade(
+            return new WindowMapAddButtonActionHandlerFacade(
                 _addPointButton, _otherButtons, _menuState
             );
         }
@@ -516,17 +516,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * @test Validates that toggling add point button updates central menu state to Add mode
          * 
          * Verifies that when users activate the add point button, the central menu state manager
-         * correctly transitions to WindowMapEditMenuStateTypes.Add, ensuring that subsequent user
+         * correctly transitions to (int) WindowMapEditMenuStateTypes.Add, ensuring that subsequent user
          * interactions (like canvas clicks) are interpreted as point placement operations rather
          * than selection operations.
          */
         private void _testTogglingButtonSetsMenuStateToAdd()
         {
             var handler = _fixture();
-            _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
             _addPointButton.IsChecked = true;
             _addPointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
-            Debug.Assert(_menuState.GetState() == WindowMapEditMenuStateTypes.Add);
+            Debug.Assert(_menuState.GetState() == (int) WindowMapEditMenuStateTypes.Add);
         }
 
         /**
@@ -536,16 +536,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * 
          * Verifies that when users deactivate the add point button (without choosing another mode),
          * the central menu state manager automatically transitions back to the default
-         * WindowMapEditMenuStateTypes.Select mode, providing a safe fallback state for user interaction.
+         * (int) WindowMapEditMenuStateTypes.Select mode, providing a safe fallback state for user interaction.
          */
         private void _testUntogglingButtonSetsMenuStateToSelect()
         {
             var handler = _fixture();
             _addPointButton.UpdateLayout();
-            _menuState.SetState(WindowMapEditMenuStateTypes.Add);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Add);
             _addPointButton.IsChecked = false;
             _addPointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
-            Debug.Assert(_menuState.GetState() == WindowMapEditMenuStateTypes.Select);
+            Debug.Assert(_menuState.GetState() == (int) WindowMapEditMenuStateTypes.Select);
         }
 
         /**
@@ -586,7 +586,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _removePointButton = new ToggleButton();
             _otherButtons = [new ToggleButton(), new ToggleButton(), new ToggleButton()];
             _menuState = new WindowMapEditMenuState();
-            return new WindowMapRemovePointButtonActionHandlerFacade(
+            return new WindowMapRemoveButtonActionHandlerFacade(
                 _removePointButton, _otherButtons, _menuState
             );
         }
@@ -641,17 +641,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         * @test Validates that toggling remove point button updates central menu state to Remove mode
         * 
         * Verifies that when users activate the remove point button, the central menu state manager
-        * correctly transitions to WindowMapEditMenuStateTypes.Remove, ensuring that subsequent user
+        * correctly transitions to (int) WindowMapEditMenuStateTypes.Remove, ensuring that subsequent user
         * interactions (like canvas clicks) are interpreted as point removal operations rather
         * than selection operations.
         */
         private void _testTogglingButtonSetsMenuStateToRemove()
         {
             var handler = _fixture();
-            _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
             _removePointButton.IsChecked = true;
             _removePointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
-            Debug.Assert(_menuState.GetState() == WindowMapEditMenuStateTypes.Remove);
+            Debug.Assert(_menuState.GetState() == (int) WindowMapEditMenuStateTypes.Remove);
         }
 
         /**
@@ -661,16 +661,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         * 
         * Verifies that when users deactivate the remove point button (without choosing another mode),
         * the central menu state manager automatically transitions back to the default
-        * WindowMapEditMenuStateTypes.Select mode, providing a safe fallback state for user interaction.
+        * (int) WindowMapEditMenuStateTypes.Select mode, providing a safe fallback state for user interaction.
         */
         private void _testUntogglingButtonSetsMenuStateToSelect()
         {
             var handler = _fixture();
             _removePointButton.UpdateLayout();
-            _menuState.SetState(WindowMapEditMenuStateTypes.Remove);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Remove);
             _removePointButton.IsChecked = false;
             _removePointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
-            Debug.Assert(_menuState.GetState() == WindowMapEditMenuStateTypes.Select);
+            Debug.Assert(_menuState.GetState() == (int) WindowMapEditMenuStateTypes.Select);
         }
 
         /**
@@ -706,9 +706,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private WindowMapEditMenuState _menuState;
 
-        private MockMouseEventPositionExtractor _mousePositionExtractor;
+        private MockMouseEventDataExtractor _mousePositionExtractor;
 
-        private MapModel _mapModel;
+        private BottingModel _bottingModel;
 
         private MouseButtonEventArgs _mouseButtonEvent;
 
@@ -716,15 +716,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * @brief Initializes common test dependencies
          * 
          * Sets up a fresh canvas, menu state manager, mouse event extractor mock,
-         * empty map model, and configured mouse button event to simulate left-clicks
+         * empty botting model, and configured mouse button event to simulate left-clicks
          * on the canvas for consistent test execution.
          */
         public WindowMapCanvasPointErasingActionHandlerTests()
         {
             _canvas = new Canvas();
             _menuState = new WindowMapEditMenuState();
-            _mousePositionExtractor = new MockMouseEventPositionExtractor();
-            _mapModel = new MapModel();
+            _mousePositionExtractor = new MockMouseEventDataExtractor();
+            _bottingModel = new BottingModel();
             _mouseButtonEvent = new MouseButtonEventArgs(
                 Mouse.PrimaryDevice, 123, MouseButton.Left
             )
@@ -746,8 +746,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             _canvas = new Canvas();
             _menuState = new WindowMapEditMenuState();
-            _mousePositionExtractor = new MockMouseEventPositionExtractor();
-            _mapModel = new MapModel();
+            _mousePositionExtractor = new MockMouseEventDataExtractor();
+            _bottingModel = new BottingModel();
             return new WindowMapCanvasPointErasingActionHandlerFacade(
                 _canvas, _menuState, _mousePositionExtractor
             );
@@ -765,16 +765,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             for (int j = -5; j <= 5; j++)
             {
                 var handler = _fixture();
-                handler.Inject(SystemInjectType.MapModel, _mapModel);
-                _menuState.SetState(WindowMapEditMenuStateTypes.Remove);
+                handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+                _menuState.SetState((int) WindowMapEditMenuStateTypes.Remove);
                 new MapCanvasPointAdder().AddPoint(
-                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                    _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
                 );
-                Debug.Assert(_mapModel.MacroPoints().Count == 1);
+                Debug.Assert(_bottingModel.GetMacroModel().MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonEvent);
-                Debug.Assert(_mapModel.MacroPoints().Count == 0);
+                Debug.Assert(_bottingModel.GetMacroModel().MacroPoints().Count == 0);
                 Debug.Assert(_canvas.Children.Count == 0);
             }
         }
@@ -792,16 +792,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 if (i >= -5 && i <= 5) continue;
                 if (j >= -5 && j <= 5) continue;
                 var handler = _fixture();
-                handler.Inject(SystemInjectType.MapModel, _mapModel);
-                _menuState.SetState(WindowMapEditMenuStateTypes.Remove);
+                handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+                _menuState.SetState((int) WindowMapEditMenuStateTypes.Remove);
                 new MapCanvasPointAdder().AddPoint(
-                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                    _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
                 );
-                Debug.Assert(_mapModel.MacroPoints().Count == 1);
+                Debug.Assert(_bottingModel.GetMacroModel().MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonEvent);
-                Debug.Assert(_mapModel.MacroPoints().Count == 1);
+                Debug.Assert(_bottingModel.GetMacroModel().MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
             }
         }
@@ -818,16 +818,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             for (int j = -5; j <= 5; j++)
             {
                 var handler = _fixture();
-                handler.Inject(SystemInjectType.MapModel, _mapModel);
-                _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+                handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+                _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
                 new MapCanvasPointAdder().AddPoint(
-                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                    _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
                 );
-                Debug.Assert(_mapModel.MacroPoints().Count == 1);
+                Debug.Assert(_bottingModel.GetMacroModel().MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonEvent);
-                Debug.Assert(_mapModel.MacroPoints().Count == 1);
+                Debug.Assert(_bottingModel.GetMacroModel().MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
             }
         }
@@ -844,15 +844,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             for (int j = -5; j <= 5; j++)
             {
                 var handler = _fixture();
-                _menuState.SetState(WindowMapEditMenuStateTypes.Remove);
+                _menuState.SetState((int) WindowMapEditMenuStateTypes.Remove);
                 new MapCanvasPointAdder().AddPoint(
-                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                    _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
                 );
-                Debug.Assert(_mapModel.MacroPoints().Count == 1);
+                Debug.Assert(_bottingModel.GetMacroModel().MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonEvent);
-                Debug.Assert(_mapModel.MacroPoints().Count == 1);
+                Debug.Assert(_bottingModel.GetMacroModel().MacroPoints().Count == 1);
                 Debug.Assert(_canvas.Children.Count == 1);
             }
         }
@@ -885,9 +885,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private AbstractWindowMapEditMenuState _menuState;
 
-        private MapModel _mapModel;
+        private BottingModel _bottingModel;
 
-        private MockMouseEventPositionExtractor _mousePositionExtractor;
+        private MockMouseEventDataExtractor _mousePositionExtractor;
 
         private MouseButtonEventArgs _mouseButtonEvent;
 
@@ -906,8 +906,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _textBoxY = new TextBox();
             _textBoxName = new TextBox();
             _menuState = new WindowMapEditMenuState();
-            _mapModel = new MapModel();
-            _mousePositionExtractor = new MockMouseEventPositionExtractor();
+            _bottingModel = new BottingModel();
+            _mousePositionExtractor = new MockMouseEventDataExtractor();
             _mouseButtonEvent = new MouseButtonEventArgs(
                 Mouse.PrimaryDevice, 123, MouseButton.Left
             )
@@ -934,7 +934,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _textBoxY = new TextBox();
             _textBoxName = new TextBox();
             _menuState = new WindowMapEditMenuState();
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             _mouseButtonEvent = new MouseButtonEventArgs(
                 Mouse.PrimaryDevice, 123, MouseButton.Left
             )
@@ -966,10 +966,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             for (int j = -5; j <= 5; j++)
             {
                 var handler = _fixture();
-                handler.Inject(SystemInjectType.MapModel, _mapModel);
-                _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+                handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+                _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
                 new MapCanvasPointAdder().AddPoint(
-                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                    _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
                 );
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonEvent);
@@ -992,10 +992,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 if (i >= -5 && i <= 5) continue;
                 if (j >= -5 && j <= 5) continue;
                 var handler = _fixture();
-                handler.Inject(SystemInjectType.MapModel, _mapModel);
-                _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+                handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+                _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
                 new MapCanvasPointAdder().AddPoint(
-                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                    _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
                 );
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonEvent);
@@ -1015,10 +1015,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingOnValidPointSetsTextBoxValues()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
-            _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
             new MapCanvasPointAdder().AddPoint(
-                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
             );
             _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
             _canvas.RaiseEvent(_mouseButtonEvent);
@@ -1037,10 +1037,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingOnValidPointDoesNotSelectWhenNotInSelectState()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
-            _menuState.SetState(WindowMapEditMenuStateTypes.Add);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Add);
             new MapCanvasPointAdder().AddPoint(
-                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
             );
             _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
             _canvas.RaiseEvent(_mouseButtonEvent);
@@ -1061,9 +1061,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingOnValidPointDoesNotSelectWhenModelNotInjected()
         {
             var handler = _fixture();
-            _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
             new MapCanvasPointAdder().AddPoint(
-                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
             );
             _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
             _canvas.RaiseEvent(_mouseButtonEvent);
@@ -1111,9 +1111,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private AbstractWindowMapEditMenuState _menuState;
 
-        private MockMouseEventPositionExtractor _mousePositionExtractor;
+        private MockMouseEventDataExtractor _mousePositionExtractor;
 
-        private MapModel _mapModel;
+        private BottingModel _bottingModel;
 
         private MouseButtonEventArgs _mouseButtonDownEvent;
 
@@ -1138,8 +1138,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _selectedX = new TextBox();
             _selectedY = new TextBox();
             _menuState = new WindowMapEditMenuState();
-            _mapModel = new MapModel();
-            _mousePositionExtractor = new MockMouseEventPositionExtractor();
+            _bottingModel = new BottingModel();
+            _mousePositionExtractor = new MockMouseEventDataExtractor();
             _mouseButtonDownEvent = new MouseButtonEventArgs(
                 Mouse.PrimaryDevice, 123, MouseButton.Left
             )
@@ -1181,8 +1181,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _selectedX = new TextBox();
             _selectedY = new TextBox();
             _menuState = new WindowMapEditMenuState();
-            _mapModel = new MapModel();
-            _mousePositionExtractor = new MockMouseEventPositionExtractor();
+            _bottingModel = new BottingModel();
+            _mousePositionExtractor = new MockMouseEventDataExtractor();
             return new WindowMapCanvasDragActionHandlerFacade(
                 _canvas,
                 _selectedX,
@@ -1208,10 +1208,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             for (int j = -5; j <= 5; j++)
             {
                 var handler = _fixture();
-                handler.Inject(SystemInjectType.MapModel, _mapModel);
-                _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+                handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+                _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
                 new MapCanvasPointAdder().AddPoint(
-                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                    _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
                 );
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonDownEvent);
@@ -1220,8 +1220,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _canvas.RaiseEvent(_mouseMoveEvent);
                 _canvas.RaiseEvent(_mouseMoveEvent);
                 _canvas.RaiseEvent(_mouseButtonUpEvent);
-                Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 12);
-                Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 23);
+                Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 12);
+                Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 23);
                 Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
                 Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 12);
                 Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 23);
@@ -1245,10 +1245,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 if (i >= -5 && i <= 5) continue;
                 if (j >= -5 && j <= 5) continue;
                 var handler = _fixture();
-                handler.Inject(SystemInjectType.MapModel, _mapModel);
-                _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+                handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+                _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
                 new MapCanvasPointAdder().AddPoint(
-                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                    _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
                 );
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123 + i, 234 + j));
                 _canvas.RaiseEvent(_mouseButtonDownEvent);
@@ -1257,8 +1257,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _canvas.RaiseEvent(_mouseMoveEvent);
                 _canvas.RaiseEvent(_mouseMoveEvent);
                 _canvas.RaiseEvent(_mouseButtonUpEvent);
-                Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
-                Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
+                Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 123);
+                Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 234);
                 Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
                 Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 123);
                 Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 234);
@@ -1285,18 +1285,18 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             foreach (var point in pointList)
             {
                 var handler = _fixture();
-                handler.Inject(SystemInjectType.MapModel, _mapModel);
-                _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+                handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+                _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
                 new MapCanvasPointAdder().AddPoint(
-                    _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                    _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
                 );
                 _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
                 _canvas.RaiseEvent(_mouseButtonDownEvent);
                 _mousePositionExtractor.GetPositionReturn.Add(point);
                 _canvas.RaiseEvent(_mouseMoveEvent);
                 _canvas.RaiseEvent(_mouseButtonUpEvent);
-                Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
-                Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
+                Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 123);
+                Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 234);
                 Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
                 Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 123);
                 Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 234);
@@ -1314,10 +1314,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testDraggingPointDoesNotDragWhenNotInSelectState()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
-            _menuState.SetState(WindowMapEditMenuStateTypes.Add);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Add);
             new MapCanvasPointAdder().AddPoint(
-                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
             );
             _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
             _canvas.RaiseEvent(_mouseButtonDownEvent);
@@ -1326,8 +1326,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _canvas.RaiseEvent(_mouseMoveEvent);
             _canvas.RaiseEvent(_mouseMoveEvent);
             _canvas.RaiseEvent(_mouseButtonUpEvent);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 234);
             Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
             Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 123);
             Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 234);
@@ -1346,9 +1346,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testDraggingPointDoesNotDragWhenModelNotInjected()
         {
             var handler = _fixture();
-            _menuState.SetState(WindowMapEditMenuStateTypes.Select);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
             new MapCanvasPointAdder().AddPoint(
-                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
             );
             _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
             _canvas.RaiseEvent(_mouseButtonDownEvent);
@@ -1357,8 +1357,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _canvas.RaiseEvent(_mouseMoveEvent);
             _canvas.RaiseEvent(_mouseMoveEvent);
             _canvas.RaiseEvent(_mouseButtonUpEvent);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 234);
             Debug.Assert(((FrameworkElement)_canvas.Children[0]).Name == "lol2");
             Debug.Assert(Canvas.GetLeft(_canvas.Children[0]) == 123);
             Debug.Assert(Canvas.GetTop(_canvas.Children[0]) == 234);
@@ -1515,7 +1515,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     {
         private Canvas _canvas;
 
-        private MapModel _mapModel;
+        private BottingModel _bottingModel;
 
         private AbstractWindowMapEditMenuState _menuState;
 
@@ -1524,7 +1524,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private TextBox _selectedTextY;
 
         /**
-         * @brief Constructs a test environment with coordinate input fields, map model, and selection state
+         * @brief Constructs a test environment with coordinate input fields, botting model, and selection state
          * 
          * Initializes the essential components for testing coordinate-based point movement: text boxes for
          * X and Y coordinate input, a map data model for point storage, a canvas for visual representation,
@@ -1534,7 +1534,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         public WindowMapCanvasPointLocationActionHandlerTests()
         {
             _canvas = new Canvas();
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             _menuState = new WindowMapEditMenuState();
             _selectedTextX = new TextBox();
             _selectedTextY = new TextBox();
@@ -1544,7 +1544,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * @brief Creates a configured instance of the coordinate editing handler with test dependencies
          * 
          * Builds and returns a fully initialized instance with fresh coordinate text fields pre-populated
-         * with test values, a clean map model, and empty selection state. This ensures each test receives
+         * with test values, a clean botting model, and empty selection state. This ensures each test receives
          * a consistent starting environment for validating coordinate editing behavior without interference
          * from previous test executions.
          * 
@@ -1553,7 +1553,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private AbstractWindowActionHandler _fixture()
         {
             _canvas = new Canvas();
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             _menuState = new WindowMapEditMenuState();
             _selectedTextX = new TextBox();
             _selectedTextY = new TextBox();
@@ -1578,9 +1578,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testEditingTextMovesSelectedPointLocation()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             new MapCanvasPointAdder().AddPoint(
-                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
             );
             Debug.Assert(_canvas.Children.Count == 1);
             var selected = _canvas.Children[0];
@@ -1588,13 +1588,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _selectedTextX.Text = "12";
             Debug.Assert(Canvas.GetLeft(selected) == 12);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 12);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 12);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 234);
             _selectedTextY.Text = "23";
             Debug.Assert(Canvas.GetLeft(selected) == 12);
             Debug.Assert(Canvas.GetTop(selected) == 23);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 12);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 23);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 12);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 23);
         }
 
         /**
@@ -1608,22 +1608,22 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testEditingTextDoesntMovePointWhenNotSelected()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             new MapCanvasPointAdder().AddPoint(
-                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
             );
             Debug.Assert(_canvas.Children.Count == 1);
             var selected = _canvas.Children[0];
             _selectedTextX.Text = "12";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 234);
             _selectedTextY.Text = "23";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 234);
         }
 
         /**
@@ -1637,9 +1637,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testEditingTextDoesntMovePointWhenEmpty()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             new MapCanvasPointAdder().AddPoint(
-                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
             );
             Debug.Assert(_canvas.Children.Count == 1);
             var selected = _canvas.Children[0];
@@ -1647,13 +1647,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _selectedTextX.Text = "";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 234);
             _selectedTextY.Text = "";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 234);
         }
 
         /**
@@ -1669,7 +1669,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var handler = _fixture();
             new MapCanvasPointAdder().AddPoint(
-                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
             );
             Debug.Assert(_canvas.Children.Count == 1);
             var selected = _canvas.Children[0];
@@ -1677,13 +1677,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _selectedTextX.Text = "12";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 234);
             _selectedTextY.Text = "23";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 234);
         }
 
         /**
@@ -1698,9 +1698,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         public void _testEditingTextProgrammaticallyDoesntMovePoint()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             new MapCanvasPointAdder().AddPoint(
-                _canvas, _mapModel, 123, 234, 10, 10, "lol1", "lol2"
+                _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
             );
             Debug.Assert(_canvas.Children.Count == 1);
             var selected = _canvas.Children[0];
@@ -1709,13 +1709,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _selectedTextX.Text = "12";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 234);
             _selectedTextY.Text = "23";
             Debug.Assert(Canvas.GetLeft(selected) == 123);
             Debug.Assert(Canvas.GetTop(selected) == 234);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.X == 123);
-            Debug.Assert(_mapModel.FindMacroPointByName("lol2")!.Y == 234);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.X == 123);
+            Debug.Assert(_bottingModel.GetMacroModel().FindMacroPointByName("lol2")!.Y == 234);
         }
 
         /**
@@ -1743,7 +1743,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
      * @brief Unit tests for map canvas dimension boundary textbox validation and synchronization
      *
      * Validates that four boundary textboxes (left, top, right, bottom) correctly update
-     * a map model's coordinate area while enforcing logical dimension constraints.
+     * a botting model's coordinate area while enforcing logical dimension constraints.
      * Tests ensure that the coordinate system maintains proper relationships where
      * left < right, and top < bottom, preventing invalid geometric configurations.
      */
@@ -1757,10 +1757,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private TextBox _textBoxBottom;
 
-        private MapModel _mapModel;
+        private BottingModel _bottingModel;
 
         /**
-         * @brief Initializes test environment with clean boundary textboxes and map model
+         * @brief Initializes test environment with clean boundary textboxes and botting model
          * 
          * Creates fresh instances of four boundary TextBox controls (left, top, right, bottom)
          * and a clean MapModel for each test execution. This ensures isolated testing
@@ -1772,7 +1772,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _textBoxTop = new TextBox();
             _textBoxRight = new TextBox();
             _textBoxBottom = new TextBox();
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
         }
 
         /**
@@ -1783,7 +1783,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * Constructs a complete test environment with four boundary textboxes configured
          * with initial default values (right=1000, bottom=1000) to establish a valid
          * coordinate system baseline. Creates a specialized facade handler that manages
-         * the synchronization between textbox values and map model boundaries.
+         * the synchronization between textbox values and botting model boundaries.
          * 
          * @returns Configured AbstractWindowActionHandler facade for map dimension synchronization
          */
@@ -1795,7 +1795,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _textBoxBottom = new TextBox();
             _textBoxRight.Text = "1000";
             _textBoxBottom.Text = "1000";
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             return new WindowMapCanvasDimensionActionHandlerFacade(
                 _textBoxLeft,
                 _textBoxTop,
@@ -1805,68 +1805,68 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Tests assignment of left boundary value to map model
+         * @brief Tests assignment of left boundary value to botting model
          * 
          * @tests Left boundary synchronization and model update
          * 
          * Verifies that setting the left boundary textbox value correctly updates
-         * the map model's left coordinate.
+         * the botting model's left coordinate.
          */
         private void _testSettingLeftTextBoxAssignsMapArea()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _textBoxLeft.Text = "123";
-            Debug.Assert(_mapModel.GetMapArea().Left == 123);
+            Debug.Assert(_bottingModel.GetMapModel().GetMapArea().Left == 123);
         }
 
 
         /**
-         * @brief Tests assignment of top boundary value to map model
+         * @brief Tests assignment of top boundary value to botting model
          * 
          * @tests Top boundary synchronization and model update
          * 
          * Validates that setting the top boundary textbox value correctly updates
-         * the map model's top coordinate.
+         * the botting model's top coordinate.
          */
         private void _testSettingTopTextBoxAssignsMapArea()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _textBoxTop.Text = "234";
-            Debug.Assert(_mapModel.GetMapArea().Top == 234);
+            Debug.Assert(_bottingModel.GetMapModel().GetMapArea().Top == 234);
         }
 
         /**
-         * @brief Tests assignment of right boundary value to map model
+         * @brief Tests assignment of right boundary value to botting model
          * 
          * @tests Right boundary synchronization and model update
          * 
          * Verifies that setting the right boundary textbox value correctly updates
-         * the map model's right coordinate.
+         * the botting model's right coordinate.
          */
         private void _testSettingRightTextBoxAssignsMapArea()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _textBoxRight.Text = "345";
-            Debug.Assert(_mapModel.GetMapArea().Right == 345);
+            Debug.Assert(_bottingModel.GetMapModel().GetMapArea().Right == 345);
         }
 
         /**
-         * @brief Tests assignment of bottom boundary value to map model
+         * @brief Tests assignment of bottom boundary value to botting model
          * 
          * @tests Bottom boundary synchronization and model update
          * 
          * Validates that setting the bottom boundary textbox value correctly updates
-         * the map model's bottom coordinate.
+         * the botting model's bottom coordinate.
          */
         private void _testSettingBottomTextBoxAssignsMapArea()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _textBoxBottom.Text = "456";
-            Debug.Assert(_mapModel.GetMapArea().Bottom == 456);
+            Debug.Assert(_bottingModel.GetMapModel().GetMapArea().Bottom == 456);
         }
 
         /**
@@ -1881,10 +1881,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testSettingInvalidLeftTextBoxIsRejected()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _textBoxRight.Text = "100";
             _textBoxLeft.Text = "200";
-            Debug.Assert(_mapModel.GetMapArea().Left == 0);
+            Debug.Assert(_bottingModel.GetMapModel().GetMapArea().Left == 0);
         }
 
         /**
@@ -1899,10 +1899,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testSettingInvalidRightTextBoxIsRejected()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _textBoxLeft.Text = "200";
             _textBoxRight.Text = "100";
-            Debug.Assert(_mapModel.GetMapArea().Right == 1000);
+            Debug.Assert(_bottingModel.GetMapModel().GetMapArea().Right == 1000);
         }
 
         /**
@@ -1917,10 +1917,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testSettingInvalidTopTextBoxIsRejected()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _textBoxBottom.Text = "100";
             _textBoxTop.Text = "200";
-            Debug.Assert(_mapModel.GetMapArea().Top == 0);
+            Debug.Assert(_bottingModel.GetMapModel().GetMapArea().Top == 0);
         }
 
         /**
@@ -1935,10 +1935,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testSettingInvalidBottomextBoxIsRejected()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _textBoxTop.Text = "200";
             _textBoxBottom.Text = "100";
-            Debug.Assert(_mapModel.GetMapArea().Bottom == 1000);
+            Debug.Assert(_bottingModel.GetMapModel().GetMapArea().Bottom == 1000);
         }
 
         /**
@@ -1978,7 +1978,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     {
         private Button _saveButton;
 
-        private MapModel _mapModel;
+        private BottingModel _bottingModel;
 
         private MockWindowStateModifier _windowSaveMenumodifier;
 
@@ -1999,27 +1999,27 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         public WindowMapEditorSaveConfigurationActionHandlerTests()
         {
             _saveButton = new Button();
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             _windowSaveMenumodifier = new MockWindowStateModifier();
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration();
         }
 
         /**
-         * @brief Creates a comprehensive map model for testing
+         * @brief Creates a comprehensive botting model for testing
          * 
          * @test
          * Builds a realistic map configuration with boundaries, waypoints, and automation commands.
          * 
          * @details
-         * The generated map model represents a typical user configuration where multiple
+         * The generated botting model represents a typical user configuration where multiple
          * points of interest are defined with specific automation behaviors, allowing for
          * thorough testing of the serialization and saving processes.
          */
-        private MapModel _generateMapModel()
+        private BottingModel _generateBottingModel()
         {
-            var mapModel = new MapModel();
-            mapModel.SetMapArea(12, 23, 34, 45);
-            mapModel.AddMacroPoint(
+            var bottingModel = new BottingModel();
+            bottingModel.GetMapModel().SetMapArea(12, 23, 34, 45);
+            bottingModel.GetMacroModel().AddMacroPoint(
                 new MinimapPoint
                 {
                     X = 12,
@@ -2047,7 +2047,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     }
                 }
             );
-            mapModel.AddMacroPoint(
+            bottingModel.GetMacroModel().AddMacroPoint(
                 new MinimapPoint
                 {
                     X = 23,
@@ -2075,9 +2075,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     }
                 }
             );
-            mapModel.SetTemplateThreshold(MapIconInfo.Character, 0.234f);
-            mapModel.SetTemplateThreshold(MapIconInfo.Rune, 0.123f);
-            return mapModel;
+            bottingModel.GetMapModel().SetTemplateThreshold(MapIconInfo.Character, 0.234f);
+            bottingModel.GetMapModel().SetTemplateThreshold(MapIconInfo.Rune, 0.123f);
+            return bottingModel;
         }
 
         /**
@@ -2180,7 +2180,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private AbstractWindowActionHandler _fixture()
         {
             _saveButton = new Button();
-            _mapModel = _generateMapModel();
+            _bottingModel = _generateBottingModel();
             _windowSaveMenumodifier = new MockWindowStateModifier();
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration
             {
@@ -2189,7 +2189,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             return new WindowMapEditorSaveConfigurationActionHandler(
                 _saveButton,
                 new ConfigurationMapModelSerializer(),
-                new MapModelConverterFacade(),
+                new BottingModelConverterFacade(),
                 _windowSaveMenumodifier
             );
         }
@@ -2207,7 +2207,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingSaveButtonSavesMapModelToFile()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             handler.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);
             _saveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             Debug.Assert(_windowSaveMenumodifier.ModifyCalls == 1);
@@ -2259,7 +2259,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingSaveButtonDoesntSaveWhenInitialDirectoryNotInjected()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _saveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             Debug.Assert(_windowSaveMenumodifier.ModifyCalls == 0);
         }
@@ -2408,7 +2408,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     public class WindowMapEditorFileLoadData
     {
         /**
-         * @brief Provides sample JSON configuration data for testing map model loading
+         * @brief Provides sample JSON configuration data for testing botting model loading
          * 
          * @tests Data structure for file loading and deserialization tests
          * 
@@ -2459,14 +2459,14 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     /**
      * @class WindowMapEditorLoadModelActionHandlerTests
      * 
-     * @brief Unit tests for map model file loading functionality
+     * @brief Unit tests for botting model file loading functionality
      * 
      * @tests 
-     * File loading and deserialization into map model structure
+     * File loading and deserialization into botting model structure
      * 
      * @details
      * Validates that map configuration files can be successfully loaded, deserialized,
-     * and reconstructed into a fully populated map model. Tests ensure that all
+     * and reconstructed into a fully populated botting model. Tests ensure that all
      * hierarchical data layers are correctly restored from file storage to runtime
      * model representation.
      */
@@ -2474,7 +2474,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     {
         private AbstractLoadFileDialog _loadFileDialog;
 
-        private MapModel _mapModel;
+        private BottingModel _bottingModel;
 
         /**
          * @brief Initializes test components with clean state
@@ -2486,7 +2486,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         public WindowMapEditorLoadModelActionHandlerTests()
         {
             _loadFileDialog = new WindowLoadFileDialog("", "");
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
         }
 
 
@@ -2500,12 +2500,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * action handler with necessary modifiers to simulate the complete file
          * loading and model reconstruction pipeline.
          * 
-         * @returns Configured AbstractWindowActionHandler for map model loading testing
+         * @returns Configured AbstractWindowActionHandler for botting model loading testing
          */
         private AbstractWindowActionHandler _fixture()
         {
             _loadFileDialog = new WindowLoadFileDialog("", "");
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             return new WindowMapEditorLoadModelActionHandlerFacade(_loadFileDialog);
         }
 
@@ -2516,15 +2516,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * 
          * @details
          * Validates that map boundary coordinates (left, top, right, bottom) are
-         * correctly extracted from the file and applied to the map model.
+         * correctly extracted from the file and applied to the botting model.
          */
         private void _testLoadingFileSetsMapArea()
         {
             var handler = _fixture();
             var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
-            var mapArea = _mapModel.GetMapArea();
+            var mapArea = _bottingModel.GetMapModel().GetMapArea();
             Debug.Assert(mapArea.Left == 123);
             Debug.Assert(mapArea.Top == 234);
             Debug.Assert(mapArea.Right == 345);
@@ -2538,15 +2538,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * 
          * @details
          * Validates that map point coordinates (X, Y, XRange, YRange) are correctly
-         * extracted from the file and applied to the map model.
+         * extracted from the file and applied to the botting model.
          */
         private void _testLoadingFileSetsMapPoints()
         {
             var handler = _fixture();
             var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
-            var mapPoints = _mapModel.MacroPoints();
+            var mapPoints = _bottingModel.GetMacroModel().MacroPoints();
             Debug.Assert(mapPoints.Count == 1);
             Debug.Assert(mapPoints[0].X == 12);
             Debug.Assert(mapPoints[0].Y == 23);
@@ -2562,15 +2562,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * 
          * @details
          * Validates that point metadata (element name, point name) are correctly
-         * extracted from the file and applied to the map model.
+         * extracted from the file and applied to the botting model.
          */
         private void _testLoadingFileSetsPointData()
         {
             var handler = _fixture();
             var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
-            var mapPoints = _mapModel.MacroPoints();
+            var mapPoints = _bottingModel.GetMacroModel().MacroPoints();
             Debug.Assert(mapPoints[0].PointData.ElementName == "E1");
             Debug.Assert(mapPoints[0].PointData.PointName == "P1");
         }
@@ -2582,15 +2582,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * 
          * @details
          * Validates that point command data (macro names, chances) are correctly
-         * extracted from the file and applied to the map model.
+         * extracted from the file and applied to the botting model.
          */
         private void _testLoadingFileSetsPointDataCommands()
         {
             var handler = _fixture();
             var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
-            var mapPoints = _mapModel.MacroPoints();
+            var mapPoints = _bottingModel.GetMacroModel().MacroPoints();
             Debug.Assert(mapPoints[0].PointData.Commands.Count == 1);
             Debug.Assert(mapPoints[0].PointData.Commands[0].MacroName == "M1");
             Debug.Assert(mapPoints[0].PointData.Commands[0].MacroChance == 12);
@@ -2603,15 +2603,15 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * 
          * @details
          * Validates that command macro sequences are correctly extracted from
-         * the file and applied to the map model in the proper order.
+         * the file and applied to the botting model in the proper order.
          */
         private void _testLoadingFileSetsPointDataCommandMacros()
         {
             var handler = _fixture();
             var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
-            var mapPoints = _mapModel.MacroPoints();
+            var mapPoints = _bottingModel.GetMacroModel().MacroPoints();
             Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands.Count == 3);
             Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands[0] == "C10");
             Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands[1] == "C11");
@@ -2619,13 +2619,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Tests that file loading is ignored when map model dependency is missing
+         * @brief Tests that file loading is ignored when botting model dependency is missing
          * 
          * @tests Graceful handling of missing model dependency during file loading
          * 
          * @details
          * Validates that attempting to load a map configuration file without injecting
-         * the required map model dependency does not affect the existing model state.
+         * the required botting model dependency does not affect the existing model state.
          * Ensures the system maintains data integrity when dependencies are unavailable.
          */
         private void _testLoadingFileWithoutInjectingMapModelDoesntLoad()
@@ -2633,12 +2633,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var handler = _fixture();
             var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
-            var mapPoints = _mapModel.MacroPoints();
+            var mapPoints = _bottingModel.GetMacroModel().MacroPoints();
             Debug.Assert(mapPoints.Count == 0);
         }
 
         /**
-         * @brief Executes comprehensive map model loading test suite
+         * @brief Executes comprehensive botting model loading test suite
          * 
          * @tests 
          * Complete model reconstruction from file data
@@ -2682,14 +2682,14 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private AbstractLoadFileDialog _loadFileDialog;
 
-        private MapModel _mapModel;
+        private BottingModel _bottingModel;
 
         /**
          * @brief Initializes test components with clean state
          * 
          * @details
          * Creates fresh instances of four boundary textboxes, a file dialog,
-         * and a map model for each test execution. Ensures isolated testing
+         * and a botting model for each test execution. Ensures isolated testing
          * environment without residual state, maintaining test reliability.
          */
         public WindowMapEditorLoadMinimapActionHandlerTests()
@@ -2699,7 +2699,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _textBoxRight = new TextBox();
             _textBoxBottom = new TextBox();
             _loadFileDialog = new WindowLoadFileDialog("", "");
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
         }
 
         /**
@@ -2708,7 +2708,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * @tests Test environment setup for minimap file loading and UI synchronization
          * 
          * Constructs a complete test environment with boundary textboxes, file dialog,
-         * and map model. Creates a facade handler that integrates file loading with
+         * and botting model. Creates a facade handler that integrates file loading with
          * UI textbox updates to simulate the production minimap loading workflow.
          * 
          * @returns Configured AbstractWindowActionHandler facade for minimap loading tests
@@ -2720,7 +2720,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _textBoxRight = new TextBox();
             _textBoxBottom = new TextBox();
             _loadFileDialog = new WindowLoadFileDialog("", "");
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             return new WindowMapEditorLoadMinimapActionHandlerFacade(
                 _loadFileDialog,
                 _textBoxLeft,
@@ -2742,8 +2742,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testLoadingFileAssignsMinimapArea()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
-            _mapModel.SetMapArea(12, 23, 34, 45);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _bottingModel.GetMapModel().SetMapArea(12, 23, 34, 45);
             _loadFileDialog.InvokeFileLoaded("lol", "");
             Debug.Assert(_textBoxLeft.Text == "12");
             Debug.Assert(_textBoxTop.Text == "23");
@@ -2752,19 +2752,19 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Tests that file loading without map model injection leaves textboxes unchanged
+         * @brief Tests that file loading without botting model injection leaves textboxes unchanged
          * 
-         * @tests Graceful handling of missing map model dependency during minimap loading
+         * @tests Graceful handling of missing botting model dependency during minimap loading
          * 
          * @details
          * Validates that attempting to load a minimap file without injecting the required
-         * map model dependency does not update any boundary textboxes. Ensures the system
+         * botting model dependency does not update any boundary textboxes. Ensures the system
          * maintains UI stability when required dependencies are unavailable.
          */
         private void _testLoadingFilesWithoutMapModelDoesntAssignMinimapArea()
         {
             var handler = _fixture();
-            _mapModel.SetMapArea(12, 23, 34, 45);
+            _bottingModel.GetMapModel().SetMapArea(12, 23, 34, 45);
             _loadFileDialog.InvokeFileLoaded("lol", "");
             Debug.Assert(_textBoxLeft.Text == "");
             Debug.Assert(_textBoxTop.Text == "");
@@ -2797,7 +2797,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
      * @details
      * Validates that loading a minimap file correctly creates visual point representations
      * on the map canvas with proper element names, point labels, and coordinate positioning.
-     * Tests ensure that map model point data is accurately translated into interactive
+     * Tests ensure that botting model point data is accurately translated into interactive
      * visual elements with correct hierarchical structure and canvas positioning.
      */
     public class WindowMapEditorLoadMinimapPointsActionHandlerTests
@@ -2808,14 +2808,14 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private AbstractLoadFileDialog _loadFileDialog;
 
-        private MapModel _mapModel;
+        private BottingModel _bottingModel;
 
         /**
          * @brief Initializes test components with clean state
          * 
          * @details
          * Creates fresh instances of map canvas, point label textbox, file dialog,
-         * and map model for each test execution. Ensures isolated testing environment
+         * and botting model for each test execution. Ensures isolated testing environment
          * without residual visual elements or model data from previous tests.
          */
         public WindowMapEditorLoadMinimapPointsActionHandlerTests()
@@ -2823,7 +2823,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _mapCanvas = new Canvas();
             _pointLabelTextBox = new TextBox();
             _loadFileDialog = new WindowLoadFileDialog("", "");
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
         }
 
         /**
@@ -2832,7 +2832,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * @tests Test environment setup for visual point generation from model data
          * 
          * Constructs a complete test environment with canvas, label textbox, file dialog,
-         * and map model. Creates a facade handler that integrates file loading with
+         * and botting model. Creates a facade handler that integrates file loading with
          * visual point creation to simulate the production minimap point visualization workflow.
          * 
          * @returns Configured AbstractWindowActionHandler facade for point visualization testing
@@ -2842,7 +2842,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _mapCanvas = new Canvas();
             _pointLabelTextBox = new TextBox();
             _loadFileDialog = new WindowLoadFileDialog("", "");
-            _mapModel = new MapModel();
+            _bottingModel = new BottingModel();
             return new WindowMapEditorLoadedMinimapPointsActionHandlerFacade(
                 _mapCanvas,
                 _pointLabelTextBox,
@@ -2851,18 +2851,18 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Populates map model with test minimap point data
+         * @brief Populates botting model with test minimap point data
          * 
          * @tests Test data preparation for visual point generation scenarios
          * 
          * @details
-         * Adds two sample minimap points to the map model with distinct coordinates,
+         * Adds two sample minimap points to the botting model with distinct coordinates,
          * element names, and point names. Provides structured test data for validating
          * visual point creation and canvas integration.
          */
         private void _populateMapModel()
         {
-            _mapModel.AddMacroPoint(
+            _bottingModel.GetMacroModel().AddMacroPoint(
                 new MinimapPoint
                 {
                     X = 123,
@@ -2874,7 +2874,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     }
                 }
             );
-            _mapModel.AddMacroPoint(
+            _bottingModel.GetMacroModel().AddMacroPoint(
                 new MinimapPoint
                 {
                     X = 234,
@@ -2901,7 +2901,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testLoadingFileCreatesNewPointsWithCorrectNames()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _populateMapModel();
             _loadFileDialog.InvokeFileLoaded("lol", "");
             Debug.Assert(_mapCanvas.Children.Count == 2);
@@ -2930,7 +2930,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testLoadingFileCreatesNewPointsWithCorrectLocation()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _populateMapModel();
             _loadFileDialog.InvokeFileLoaded("lol", "");
             Debug.Assert(_mapCanvas.Children.Count == 2);
@@ -2941,23 +2941,23 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Tests that loaded minimap points register label dependencies in map model
+         * @brief Tests that loaded minimap points register label dependencies in botting model
          * 
          * @tests Label dependency tracking and model-visual element association
          * 
          * @details
          * Validates that when minimap points are created on the canvas, their label
-         * text elements are properly registered as dependencies in the map model.
+         * text elements are properly registered as dependencies in the botting model.
          * Ensures the model maintains references to visual text elements for
          * coordinated updates and state management.
          */
         private void _testLoadingFileAddsLabelDependenciesToMapModel()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _populateMapModel();
             _loadFileDialog.InvokeFileLoaded("lol", "");
-            var minimapPoints = _mapModel.MacroPoints();
+            var minimapPoints = _bottingModel.GetMacroModel().MacroPoints();
             Debug.Assert(minimapPoints.Count == 2);
             Debug.Assert(minimapPoints[0].PointData.ElementTexts.Count == 2);
             Debug.Assert(minimapPoints[0].PointData.ElementTexts.IndexOf(_pointLabelTextBox) != 0);
@@ -2973,12 +2973,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Tests that file loading without map model injection creates no visual points
+         * @brief Tests that file loading without botting model injection creates no visual points
          * 
          * @tests Graceful handling of missing model dependency for point visualization
          * 
          * @details
-         * Validates that attempting to load a minimap file without injecting the map model
+         * Validates that attempting to load a minimap file without injecting the botting model
          * does not create any visual points on the canvas. Ensures the system maintains
          * visual integrity when required dependencies are unavailable.
          */
@@ -3160,11 +3160,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     {
         TextBox _characterThreshold = new TextBox();
 
-        TextBox _runeThreshold = new TextBox();
-
         MockLoadFileDialog _loadFileDialog = new MockLoadFileDialog();
 
-        MapModel _mapModel = new MapModel();
+        BottingModel _bottingModel = new BottingModel();
 
         private AbstractWindowActionHandler _fixture()
         {
@@ -3177,20 +3175,20 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         /**
          * @brief Verifies that when a map file is loaded, the character threshold text box
-         * updates to show the threshold value stored in the map model.
+         * updates to show the threshold value stored in the botting model.
          * 
          * The map editor window displays threshold values for template matching when a map file
          * is loaded. This handler listens for file load events and updates the UI text boxes
-         * with the threshold values from the newly loaded map model. The test simulates loading
-         * a map file, injects the map model with a preset threshold (0.123f), and verifies that
+         * with the threshold values from the newly loaded botting model. The test simulates loading
+         * a map file, injects the botting model with a preset threshold (0.123f), and verifies that
          * the character threshold text box displays the value multiplied by 1000 ("123") to
          * present it as a user-friendly integer percentage.
          */
         private void _testModificationOfThresholdValues()
         {
             var handler = _fixture();
-            handler.Inject(SystemInjectType.MapModel, _mapModel);
-            _mapModel.SetTemplateThreshold(MapIconInfo.Character, 0.123f);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _bottingModel.GetMapModel().SetTemplateThreshold(MapIconInfo.Character, 0.123f);
             _loadFileDialog.InvokeFileLoaded("", "");
             Debug.Assert(_characterThreshold.Text == "123");
         }
@@ -3206,12 +3204,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     {
         private TextBox _thresholdTextBox = new TextBox();
 
-        private MapModel _mapModel = new MapModel();
+        private BottingModel _mapModel = new BottingModel();
 
         private AbstractWindowActionHandler _fixture()
         {
             _thresholdTextBox = new TextBox();
-            _mapModel = new MapModel();
+            _mapModel = new BottingModel();
             return new WindowMapEditorThresholdHandlerFacade(
                 _thresholdTextBox, MapIconInfo.Character
             );
@@ -3219,12 +3217,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         /**
          * @brief Verifies that typing a threshold value in the text box updates the corresponding
-         * map model setting.
+         * botting model setting.
          * 
          * The map editor allows users to fine-tune detection thresholds for each map icon type.
          * When a user enters a number in the threshold text box (like "123" or "789"), the handler
          * converts this integer input to a float percentage (dividing by 1000) and updates the
-         * map model with the new threshold value, while adjusting to the minimum of 60% confidence.
+         * botting model with the new threshold value, while adjusting to the minimum of 60% confidence.
          */
         private void _testThresholdUpdatedOnTextChange()
         {
@@ -3233,15 +3231,64 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             for (int i = 0; i < textValues.Count; i++)
             {
                 var handler = _fixture();
-                handler.Inject(SystemInjectType.MapModel, _mapModel);
+                handler.Inject(SystemInjectType.BottingModel, _mapModel);
                 _thresholdTextBox.Text = textValues[i];
-                Debug.Assert(_mapModel.GetTemplateThreshold(MapIconInfo.Character) == expected[i]);
+                Debug.Assert(_mapModel.GetMapModel().GetTemplateThreshold(MapIconInfo.Character) == expected[i]);
             }
         }
 
         public void Run()
         {
             _testThresholdUpdatedOnTextChange();
+        }
+    }
+
+
+    public class WindowMapEditorTabControlCanvasActionHandlerTests
+    {
+        private TabControl _tabControl = new TabControl();
+
+        private TabItem _tabItem1 = new TabItem();
+
+        private TabItem _tabItem2 = new TabItem();
+
+        private Canvas _canvas = new Canvas();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _tabControl = new TabControl();
+            _tabItem1 = new TabItem();
+            _tabItem2 = new TabItem();
+            _canvas = new Canvas{ Visibility = Visibility.Hidden };
+            _tabControl.Items.Add(_tabItem1);
+            _tabControl.Items.Add(_tabItem2);
+            _tabControl.SelectedItem = _tabItem1;
+            return new WindowMapEditorTabControlCanvasActionHandlerFacade(
+                _tabControl, _tabItem2, _canvas
+            );
+        }
+
+        /**
+         * @brief Validates that switching tabs shows/hides the map editor canvas
+         * 
+         * Tests ensure that when users switch between tabs in the map editor window,
+         * the canvas that displays editing tools becomes visible only when the correct
+         * tab is selected. This provides a clean interface where editing tools appear
+         * only when needed.
+         */
+        private void _testSwitchingTabControlControlsCanvasVisibility()
+        {
+            var tabControlCanvasActionHandler = _fixture();
+            Debug.Assert(_canvas.Visibility == Visibility.Hidden);
+            _tabControl.SelectedItem = _tabItem2;
+            Debug.Assert(_canvas.Visibility == Visibility.Visible);
+            _tabControl.SelectedItem = _tabItem1;
+            Debug.Assert(_canvas.Visibility == Visibility.Hidden);
+        }
+
+        public void Run()
+        {
+            _testSwitchingTabControlControlsCanvasVisibility();
         }
     }
 
@@ -3268,6 +3315,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMapEditorLoadedMinimapPointsActionHandlerTests().Run();
             new WindowMapEditorLoadedThresholdHandlerTests().Run();
             new WindowMapEditorThresholdHandlerTests().Run();
+            new WindowMapEditorTabControlCanvasActionHandlerTests().Run();
         }
     }
 }

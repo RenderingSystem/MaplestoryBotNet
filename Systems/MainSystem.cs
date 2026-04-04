@@ -419,7 +419,7 @@ namespace MaplestoryBotNet.Systems
                 mainSystem.Inject(SystemInjectType.ActionHandler, _uiHandlers[i]);
             }
             mainSystem.Inject(SystemInjectType.ConfigurationUpdate, 0);
-            mainSystem.Inject(SystemInjectType.MapModel, new MapModel());
+            mainSystem.Inject(SystemInjectType.BottingModel, new BottingModel());
             mainSystem.Inject(SystemInjectType.InjectAction, new InjectAction((_, __) => { mainSystem.Inject(_, __); }));
         }
     }
