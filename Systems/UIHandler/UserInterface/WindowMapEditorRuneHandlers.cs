@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
@@ -8,11 +9,90 @@ using System.Windows.Shapes;
 
 namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 {
+    public enum WindowMapEditFrameMenuStateTypes
+    {
+        SelectFrame = 0,
+        AddFrame,
+        RemoveFrame,
+        AddPoint,
+        RemovePoint,
+        MaxNum
+    }
+
+
     public class WindowMapEditMenuFrameSelectedObject
     {
         public Tuple<double, double>? DragPoint;
 
         public object DragObject = new object();
+    }
+
+
+    public class WindowMapAddFrameButtonActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _mapCanvasAddButtonActionHandler;
+
+        public WindowMapAddFrameButtonActionHandlerFacade(
+            ToggleButton addFrameButton,
+            List<ToggleButton> radioButtons,
+            AbstractWindowMapEditMenuState menuState
+        )
+        {
+            _mapCanvasAddButtonActionHandler = new WindowMapButtonActionHandler(
+                addFrameButton,
+                new WindowMapButtonModifier(
+                    menuState,
+                    addFrameButton,
+                    radioButtons,
+                    (int) WindowMapEditFrameMenuStateTypes.AddFrame,
+                    (int) WindowMapEditFrameMenuStateTypes.SelectFrame
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapCanvasAddButtonActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapCanvasAddButtonActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowMapRemoveFrameButtonActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _mapCanvasRemoveButtonActionHandler;
+
+        public WindowMapRemoveFrameButtonActionHandlerFacade(
+            ToggleButton addFrameButton,
+            List<ToggleButton> radioButtons,
+            AbstractWindowMapEditMenuState menuState
+        )
+        {
+            _mapCanvasRemoveButtonActionHandler = new WindowMapButtonActionHandler(
+                addFrameButton,
+                new WindowMapButtonModifier(
+                    menuState,
+                    addFrameButton,
+                    radioButtons,
+                    (int)WindowMapEditFrameMenuStateTypes.RemoveFrame,
+                    (int)WindowMapEditFrameMenuStateTypes.SelectFrame
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapCanvasRemoveButtonActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapCanvasRemoveButtonActionHandler.OnEvent(sender, e);
+        }
     }
 
 
@@ -43,7 +123,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void Modify(object? value)
         {
-            if (value is WindowMapCanvasFrameDrawerParameters parameters)
+            if (value is not WindowMapCanvasFrameDrawerParameters parameters)
+            {
+                return;
+            }
+            if (_editMenuState.GetState() == (int)WindowMapEditFrameMenuStateTypes.AddFrame)
             {
                 var createdFrame = _frameFactory.Create();
                 _canvas.Children.Add(createdFrame);
@@ -66,8 +150,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private Canvas _canvas;
 
-        private AbstractWindowMapEditMenuState _editMenuState;
-
         private AbstractWindowStateModifier _frameDrawer;
 
         private AbstractMouseEventDataExtractor _mousePositionExtractor;
@@ -75,13 +157,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public WindowMapCanvasFrameDrawerActionHandler(
             Canvas canvas,
             TextBox frameLabelTextBox,
-            AbstractWindowMapEditMenuState editMenuState,
             AbstractMouseEventDataExtractor mousePositionExtractor,
             AbstractWindowStateModifier frameDrawer
         )
         {
             _canvas = canvas;
-            _editMenuState = editMenuState;
             _mousePositionExtractor = mousePositionExtractor;
             _frameDrawer = frameDrawer;
             _canvas.MouseLeftButtonDown += OnEvent;
@@ -98,18 +178,15 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 return;
             }
-            if (_editMenuState.GetState() == (int) WindowMapEditMenuStateTypes.Add)
-            {
-                var position = _mousePositionExtractor.GetPosition(
-                    mouseButtonEventArgs, _canvas
-                );
-                _frameDrawer.Modify(
-                    new WindowMapCanvasFrameDrawerParameters
-                    {
-                        ElementPoint = new Tuple<double, double>(position.X, position.Y)
-                    }
-                );
-            }
+            var position = _mousePositionExtractor.GetPosition(
+                mouseButtonEventArgs, _canvas
+            );
+            _frameDrawer.Modify(
+                new WindowMapCanvasFrameDrawerParameters
+                {
+                    ElementPoint = new Tuple<double, double>(position.X, position.Y)
+                }
+            );
         }
     }
 
@@ -128,7 +205,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mapCanvasAddFrameActionHandler = new WindowMapCanvasFrameDrawerActionHandler(
                 mapCanvas,
                 frameLabelTextBox,
-                editMenuState,
                 mousePositionExtractor,
                 new WindowMapCanvasFrameDrawerModifier(
                     mapCanvas,
@@ -365,8 +441,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class MapCanvasFrameFormatter : AbstractMapCanvasFormatter
+    public class MapCanvasFrameDragFormatter : AbstractMapCanvasFormatter
     {
+        private AbstractFrameworkElementInformation _pointElementInfo;
+
         private Tuple<double, double, double, double> _calculateRectangle(
             Canvas mapCanvas, MapCanvasFrameFormatterData formatterData
         )
@@ -441,7 +519,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 var rectangle = _calculateRectangle(mapCanvas, frameFormatterData);
                 _formatDragObjectDimensions(frameFormatterData.DragObject, rectangle);
-                _formatChildren(frameFormatterData.DragObject, rectangle); ;
+                _formatChildren(frameFormatterData.DragObject, rectangle);
             }
         }
     }
@@ -540,7 +618,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _frameDragActionHandler = new WindowMapCanvasFrameDragActionHandler(
                 mapCanvas,
                 new WindowMapCanvasFrameDragModifier(
-                    mapCanvas, editMenuState, new MapCanvasFrameFormatter()
+                    mapCanvas, editMenuState, new MapCanvasFrameDragFormatter()
                 ),
                 mousePositionExtractor
             );
@@ -554,6 +632,552 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override void OnEvent(object? sender, EventArgs e)
         {
             _frameDragActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class MapCanvasRuneFrameDataTag
+    {
+        public string FrameName = "";
+
+        public string ElementLabel = "";
+    }
+
+
+    public class FrameworkElementInformation : AbstractFrameworkElementInformation
+    {
+        public override Rect BoundingRect(FrameworkElement frameworkElement)
+        {
+            if (frameworkElement is not Canvas canvasElement)
+            {
+                return new Rect(0.0, 0.0, 0.0, 0.0);
+            }
+            var left = Canvas.GetLeft(canvasElement);
+            var top = Canvas.GetTop(canvasElement);
+            var width = canvasElement.Width;
+            var height = canvasElement.Height;
+            return new Rect(left, top, width, height);
+        }
+
+        public override TextBlock? Label(FrameworkElement frameworkElement)
+        {
+            if (frameworkElement is not Canvas canvasElement)
+            {
+                return null;
+            }
+            var textBlockList = canvasElement.Children.OfType<TextBlock>().ToList();
+            return textBlockList.Count > 0 ? textBlockList[0] : null;
+        }
+    }
+
+
+    public class MapCanvasFrameDataFormatter : AbstractMapCanvasFormatter
+    {
+        private AbstractFrameworkElementInformation _frameElementInfo;
+
+        public MapCanvasFrameDataFormatter(
+            AbstractFrameworkElementInformation frameElementInfo
+        )
+        {
+            _frameElementInfo = frameElementInfo;
+        }
+
+        private void _setupLabelText(
+            FrameworkElement createdFrame,
+            string frameLabel
+        )
+        {
+            var label = _frameElementInfo.Label(createdFrame);
+            if (label != null)
+            {
+                label.Text = frameLabel;
+            }
+        }
+
+        private RuneFrameData _minimapFrameData(
+            FrameworkElement createdFrame,
+            List<FrameworkElement> textDependencies,
+            string frameName,
+            string elementLabel
+        )
+        {
+            createdFrame.Tag = new MapCanvasRuneFrameDataTag
+            {
+                FrameName = frameName,
+                ElementLabel = elementLabel,
+            };
+            return new RuneFrameData
+            {
+                ElementTexts = new List<FrameworkElement>(textDependencies)
+                {
+                    _frameElementInfo.Label(createdFrame)!
+                },
+                FrameName = frameName,
+                ElementLabel = elementLabel,
+                RuneFrameMacros = []
+            };
+        }
+
+        private void _setupMinimapFrame(
+            FrameworkElement createdFrame,
+            List<FrameworkElement> textDependencies,
+            AbstractRuneModel runeModel,
+            string frameLabel,
+            string elementLabel
+        )
+        {
+            if (createdFrame is Canvas canvasElement)
+            {
+                var frameData = _minimapFrameData(
+                    canvasElement,
+                    textDependencies,
+                    frameLabel,
+                    elementLabel
+                );
+                var minimapPoint = new RuneFrame
+                {
+                    X = Canvas.GetLeft(canvasElement),
+                    Y = Canvas.GetTop(canvasElement),
+                    Width = 0.0,
+                    Height = 0.0,
+                    FrameData = frameData
+                };
+                runeModel.AddRuneFrame(minimapPoint);
+            }
+        }
+
+        private string _generateElementLabel(AbstractRuneModel runeModel)
+        {
+            var runeFrames = runeModel.RuneFrames();
+            var elementCount = runeFrames.Count;
+            var existingElements = new HashSet<string>(
+                runeFrames.Select(f => f.FrameData.ElementLabel)
+            );
+            while (existingElements.Contains("FT" + elementCount))
+            {
+                elementCount++;
+            }
+            return "FT" + elementCount;
+        }
+
+        private string _generateFrameName(AbstractRuneModel runeModel)
+        {
+            var mapPoints = runeModel.RuneFrames();
+            var frameCount = mapPoints.Count;
+            var existingNames = new HashSet<string>(
+                mapPoints.Select(p => p.FrameData.FrameName)
+            );
+            while (existingNames.Contains("F" + frameCount))
+            {
+                frameCount++;
+            }
+            return "F" + frameCount;
+        }
+
+        public override void Format(
+            FrameworkElement createdFrame,
+            List<FrameworkElement> textDependencies,
+            object formatData
+        )
+        {
+            if (formatData is not AbstractBottingModel bottingModel)
+            {
+                return;
+            }
+            var runeModel = bottingModel.GetRuneModel();
+            var frameName = _generateFrameName(runeModel);
+            var elementLabel = _generateElementLabel(runeModel);
+            _setupMinimapFrame(
+                createdFrame,
+                textDependencies,
+                runeModel,
+                frameName,
+                elementLabel
+            );
+            _setupLabelText(
+                createdFrame,
+                frameName
+            );
+        }
+    }
+
+
+    public class WindowMapCanvasFrameDataModifier : AbstractWindowStateModifier
+    {
+        private AbstractWindowMapEditMenuState _editMenuState;
+
+        private TextBox _frameLabelTextBox;
+
+        private AbstractMapCanvasFormatter _frameDataFormatter;
+
+        public WindowMapCanvasFrameDataModifier(
+            TextBox frameLabelTextBox,
+            AbstractWindowMapEditMenuState editMenuState,
+            AbstractMapCanvasFormatter frameDataFormatter
+        )
+        {
+            _frameLabelTextBox = frameLabelTextBox;
+            _editMenuState = editMenuState;
+            _frameDataFormatter = frameDataFormatter;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (
+                value is AbstractBottingModel bottingModel
+                && _editMenuState.GetState() is int editMenuState
+                && _editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject selectedObject
+                && editMenuState == (int)WindowMapEditFrameMenuStateTypes.AddFrame
+                && selectedObject.DragObject is FrameworkElement selectedFrame
+            )
+            {
+                _frameDataFormatter.Format(selectedFrame, [_frameLabelTextBox], bottingModel);
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasFrameDataActionHandler : AbstractWindowActionHandler
+    {
+        private Canvas _mapCanvas;
+
+        private AbstractWindowStateModifier _frameDataAdder;
+
+        private AbstractBottingModel? _bottingModel;
+
+        public WindowMapCanvasFrameDataActionHandler(
+            Canvas mapCanvas,
+            AbstractWindowStateModifier frameDataAdder
+        )
+        {
+            _mapCanvas = mapCanvas;
+            _frameDataAdder = frameDataAdder;
+            _mapCanvas.MouseLeftButtonDown += OnEvent;
+            _bottingModel = null;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _frameDataAdder;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (_bottingModel != null)
+            {
+                _frameDataAdder.Modify(_bottingModel);
+            }
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
+            {
+                _bottingModel = bottingModel;
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasFrameDataActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _frameDataActionHandler;
+
+        public WindowMapCanvasFrameDataActionHandlerFacade(
+            Canvas mapCanvas,
+            TextBox frameLabelTextBox,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _frameDataActionHandler = new WindowMapCanvasFrameDataActionHandler(
+                mapCanvas,
+                new WindowMapCanvasFrameDataModifier(
+                    frameLabelTextBox,
+                    editMenuState,
+                    new MapCanvasFrameDataFormatter(new FrameworkElementInformation())
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _frameDataActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _frameDataActionHandler.OnEvent(sender, e);
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _frameDataActionHandler.Inject(dataType, data);
+        }
+    }
+
+
+    public class WindowMapCanvasFrameSelectedTextModifier : AbstractWindowStateModifier
+    {
+        private TextBox _selectedTextLabel;
+
+        private TextBox _selectedTextLeft;
+
+        private TextBox _selectedTextTop;
+
+        private TextBox _selectedTextRight;
+
+        private TextBox _selectedTextBottom;
+
+        private AbstractWindowMapEditMenuState _editMenuState;
+
+        public WindowMapCanvasFrameSelectedTextModifier(
+            TextBox selectedTextLabel,
+            TextBox selectedTextLeft,
+            TextBox selectedTextTop,
+            TextBox selectedTextRight,
+            TextBox selectedTextBottom,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _selectedTextLabel = selectedTextLabel;
+            _selectedTextLeft = selectedTextLeft;
+            _selectedTextTop = selectedTextTop;
+            _selectedTextRight = selectedTextRight;
+            _selectedTextBottom = selectedTextBottom;
+            _editMenuState = editMenuState;
+        }
+
+        private void _assignUITexts(FrameworkElement element)
+        {
+            if (element.Tag is MapCanvasRuneFrameDataTag selectedTag)
+            {
+                _editMenuState.SetEditingText(true);
+                _selectedTextLabel.Text = selectedTag.FrameName;
+                var elementLeft = Canvas.GetLeft(element);
+                var elementTop = Canvas.GetTop(element);
+                _selectedTextLeft.Text = Math.Round(elementLeft).ToString();
+                _selectedTextTop.Text = Math.Round(elementTop).ToString();
+                _selectedTextRight.Text = Math.Round(elementLeft + element.Width).ToString();
+                _selectedTextBottom.Text = Math.Round(elementTop + element.Height).ToString();
+                _editMenuState.SetEditingText(false);
+            }
+        }
+
+        private void _clearUITexts()
+        {
+            _editMenuState.SetEditingText(true);
+            _selectedTextLabel.Text = "";
+            _selectedTextLeft.Text = "";
+            _selectedTextTop.Text = "";
+            _selectedTextRight.Text = "";
+            _selectedTextBottom.Text = "";
+            _editMenuState.SetEditingText(false);
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is not bool clicked)
+            {
+                return;
+            }
+            var selected = _editMenuState.Selected();
+            if (
+                selected is WindowMapEditMenuFrameSelectedObject selectedObject
+                && selectedObject.DragObject is FrameworkElement frame
+            )
+            {
+                if (clicked || _editMenuState.Dragging())
+                {
+                    _assignUITexts(frame);
+                }
+            }
+            else if (selected == null)
+            {
+                _clearUITexts();
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasFrameSelectedTextActionHandler : AbstractWindowActionHandler
+    {
+        private Canvas _mapCanvas;
+
+        private AbstractWindowStateModifier _frameSelectedTextModifier;
+
+        public WindowMapCanvasFrameSelectedTextActionHandler(
+            Canvas mapCanvas,
+            AbstractWindowStateModifier frameSelectedTextModifier
+        )
+        {
+            _mapCanvas = mapCanvas;
+            _frameSelectedTextModifier = frameSelectedTextModifier;
+            _mapCanvas.MouseLeftButtonDown += OnEvent;
+            _mapCanvas.MouseMove += OnEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _frameSelectedTextModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _frameSelectedTextModifier.Modify(e is MouseButtonEventArgs);
+        }
+    }
+
+
+    public class WindowMapCanvasFrameSelectedTextActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _frameSelectedTextActionHandler;
+
+        public WindowMapCanvasFrameSelectedTextActionHandlerFacade(
+            Canvas mapCanvas,
+            TextBox selectedTextLabel,
+            TextBox selectedTextLeft,
+            TextBox selectedTextTop,
+            TextBox selectedTextRight,
+            TextBox selectedTextBottom,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _frameSelectedTextActionHandler = new WindowMapCanvasFrameSelectedTextActionHandler(
+                mapCanvas,
+                new WindowMapCanvasFrameSelectedTextModifier(
+                    selectedTextLabel,
+                    selectedTextLeft,
+                    selectedTextTop,
+                    selectedTextRight,
+                    selectedTextBottom,
+                    editMenuState
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _frameSelectedTextActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _frameSelectedTextActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowMapCanvasFrameSelectedDragDataModifier : AbstractWindowStateModifier
+    {
+        private AbstractWindowMapEditMenuState _editMenuState;
+
+        public WindowMapCanvasFrameSelectedDragDataModifier(
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _editMenuState = editMenuState;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (
+                value is AbstractBottingModel bottingModel
+                && _editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject selectedObject
+                && _editMenuState.Dragging()
+                && selectedObject.DragObject is FrameworkElement frame
+                && frame.Tag is MapCanvasRuneFrameDataTag tag
+                && bottingModel.GetRuneModel() is AbstractRuneModel runeModel
+                && runeModel.FindRuneFrameByName(tag.ElementLabel) is RuneFrame runeFrame
+            )
+            {
+                runeFrame.X = Canvas.GetLeft(frame);
+                runeFrame.Y = Canvas.GetTop(frame);
+                runeFrame.Width = frame.Width;
+                runeFrame.Height = frame.Height;
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasFrameSelectedDragDataActionHandler : AbstractWindowActionHandler
+    {
+        private Canvas _mapCanvas;
+
+        private AbstractWindowStateModifier _frameSelectedDragDataModifier;
+
+        private AbstractBottingModel? _bottingModel;
+
+        public WindowMapCanvasFrameSelectedDragDataActionHandler(
+            Canvas mapCanvas,
+            AbstractWindowStateModifier frameSelectedDragDataModifier
+        )
+        {
+            _mapCanvas = mapCanvas;
+            _frameSelectedDragDataModifier = frameSelectedDragDataModifier;
+            _mapCanvas.MouseMove += OnEvent;
+            _bottingModel = null;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _frameSelectedDragDataModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (_bottingModel != null)
+            {
+                _frameSelectedDragDataModifier.Modify(_bottingModel);
+            }
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
+            {
+                _bottingModel = bottingModel;
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasFrameSelectedDragDataActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _frameSelectedDragDataActionHandler;
+
+        public WindowMapCanvasFrameSelectedDragDataActionHandlerFacade(
+            Canvas mapCanvas,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _frameSelectedDragDataActionHandler = new WindowMapCanvasFrameSelectedDragDataActionHandler(
+                mapCanvas,
+                new WindowMapCanvasFrameSelectedDragDataModifier(editMenuState)
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _frameSelectedDragDataActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _frameSelectedDragDataActionHandler.OnEvent(sender, e);
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _frameSelectedDragDataActionHandler.Inject(dataType, data);
+        }
+    }
+
+
+    public class WindowMapCanvasFrameRemoveModifier : AbstractWindowStateModifier
+    {
+        public override void Modify(object? value)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -41,57 +41,63 @@ namespace MaplestoryBotNet.Xaml
         )
         {
             return [
-                    .. new SaveLoadHandlersContainer(
-                        SaveButton,
-                        LoadButton,
-                        _loadFileDialog,
-                        _saveFileDialog
-                    ).Instantiate(),
+                .. new SaveLoadHandlersContainer(
+                    SaveButton,
+                    LoadButton,
+                    _loadFileDialog,
+                    _saveFileDialog
+                ).Instantiate(),
 
-                    .. new BottingTabHandlersContainer(
-                        BottingAddButton,
-                        BottingRemoveButton,
-                        BottingEditButton,
-                        BottingLabelTextBox,
-                        BottingLocationTextBoxX,
-                        BottingLocationTextBoxY,
-                        BottingCharacterTextBoxX,
-                        BottingCharacterTextBoxY,
-                        BottingCharacterThreshold,
-                        BottingTabItem,
-                        BottingMapCanvas,
-                        MapImage,
-                        MapTabControl,
-                        Dispatcher,
-                        _loadFileDialog,
-                        _bottingEditMenuState,
-                        GetSystemWindow()
-                    ).Instantiate(editWindow),
+                .. new BottingTabHandlersContainer(
+                    BottingAddButton,
+                    BottingRemoveButton,
+                    BottingEditButton,
+                    BottingLabelTextBox,
+                    BottingLocationTextBoxX,
+                    BottingLocationTextBoxY,
+                    BottingCharacterTextBoxX,
+                    BottingCharacterTextBoxY,
+                    BottingCharacterThreshold,
+                    BottingTabItem,
+                    BottingMapCanvas,
+                    MapImage,
+                    MapTabControl,
+                    Dispatcher,
+                    _loadFileDialog,
+                    _bottingEditMenuState,
+                    GetSystemWindow()
+                ).Instantiate(editWindow),
 
-                    .. new RuneingTabHandlersContainer(
-                        RuneingAddButton,
-                        RuneingRemoveButton,
-                        RuneingEditButton,
-                        RuneingLabelTextBox,
-                        RuneingRuneTextBoxX,
-                        RuneingRuneTextBoxY,
-                        RuneingRuneThreshold,
-                        RuneingTabItem,
-                        RuneingMapCanvas,
-                        MapImage,
-                        MapTabControl,
-                        Dispatcher,
-                        _runeingEditMenuState,
-                        _loadFileDialog
-                    ).Instantiate(),
+                .. new RuneingTabHandlersContainer(
+                    RuneingAddButton,
+                    RuneingRemoveButton,
+                    RuneingAddPointButton,
+                    RuneingRemovePointButton,
+                    RuneingEditButton,
+                    RuneingFrameLeftTextBox,
+                    RuneingFrameTopTextBox,
+                    RuneingFrameRightTextBox,
+                    RuneingFrameBottomTextBox,
+                    RuneingLabelTextBox,
+                    RuneingRuneTextBoxX,
+                    RuneingRuneTextBoxY,
+                    RuneingRuneThreshold,
+                    RuneingTabItem,
+                    RuneingMapCanvas,
+                    MapImage,
+                    MapTabControl,
+                    Dispatcher,
+                    _runeingEditMenuState,
+                    _loadFileDialog
+                ).Instantiate(),
 
-                    .. new MapAreaHandlersContainer(
-                        MapAreaLeftTextBox,
-                        MapAreaTopTextBox,
-                        MapAreaRightTextBox,
-                        MapAreaBottomTextBox,
-                        _loadFileDialog
-                    ).Instantiate(),
+                .. new MapAreaHandlersContainer(
+                    MapAreaLeftTextBox,
+                    MapAreaTopTextBox,
+                    MapAreaRightTextBox,
+                    MapAreaBottomTextBox,
+                    _loadFileDialog
+                ).Instantiate(),
             ];
         }
 
@@ -531,7 +537,19 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
 
         private ToggleButton _removeButton;
 
+        private ToggleButton _addPointButton;
+
+        private ToggleButton _removePointButton;
+
         private Button _editBUtton;
+
+        private TextBox _frameTextBoxLeft;
+
+        private TextBox _frameTextBoxTop;
+
+        private TextBox _frameTextBoxRight;
+
+        private TextBox _frameTextBoxBottom;
 
         private TextBox _labelTextBox;
 
@@ -558,7 +576,13 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
         public RuneingTabHandlersContainer(
             ToggleButton addButton,
             ToggleButton removeButton,
+            ToggleButton addPointButton,
+            ToggleButton removePointButton,
             Button editButton,
+            TextBox frameTextBoxLeft,
+            TextBox frameTextBoxTop,
+            TextBox frameTextBoxRight,
+            TextBox frameTextBoxBottom,
             TextBox labelTextBox,
             TextBox runeTextBoxX,
             TextBox runeTextBoxY,
@@ -574,7 +598,13 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
         {
             _addButton = addButton;
             _removeButton = removeButton;
+            _addPointButton = addPointButton;
+            _removePointButton = removePointButton;
             _editBUtton = editButton;
+            _frameTextBoxLeft = frameTextBoxLeft;
+            _frameTextBoxTop = frameTextBoxTop;
+            _frameTextBoxRight = frameTextBoxRight;
+            _frameTextBoxBottom = frameTextBoxBottom;
             _labelTextBox = labelTextBox;
             _runeTextBoxX = runeTextBoxX;
             _runeTextBoxY = runeTextBoxY;
@@ -616,11 +646,11 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
-        private AbstractWindowActionHandler _instantiateAddButtonActionHandler()
+        private AbstractWindowActionHandler _instantiateAddFrameButtonActionHandler()
         {
-            return new WindowMapAddButtonActionHandlerFacade(
+            return new WindowMapAddFrameButtonActionHandlerFacade(
                 _addButton,
-                [_addButton, _removeButton],
+                [_addButton, _removeButton, _addPointButton, _removePointButton],
                 _editMenuState
             );
         }
@@ -653,11 +683,41 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
-        private AbstractWindowActionHandler _instantiateRemoveButtonActionHandler()
+        private AbstractWindowActionHandler _instantiateRemoveFrameButtonActionHandler()
         {
-            return new WindowMapRemoveButtonActionHandlerFacade(
+            return new WindowMapRemoveFrameButtonActionHandlerFacade(
                 _removeButton,
-                [_addButton, _removeButton],
+                [_addButton, _removeButton, _addPointButton, _removePointButton],
+                _editMenuState
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateFrameDataActionHandler()
+        {
+            return new WindowMapCanvasFrameDataActionHandlerFacade(
+                _mapCanvas,
+                _labelTextBox,
+                _editMenuState
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateFrameSelectedTextActionHandler()
+        {
+            return new WindowMapCanvasFrameSelectedTextActionHandlerFacade(
+                _mapCanvas,
+                _labelTextBox,
+                _frameTextBoxLeft,
+                _frameTextBoxTop,
+                _frameTextBoxRight,
+                _frameTextBoxBottom,
+                _editMenuState
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateFrameSelectedDragDataActionHandler()
+        {
+            return new WindowMapCanvasFrameSelectedDragDataActionHandlerFacade(
+                _mapCanvas,
                 _editMenuState
             );
         }
@@ -666,16 +726,27 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
         {
             return [
                 _instantiateNumericTextBoxPropertyActionHandler(_runeThreshold, 999),
+                _instantiateNumericTextBoxPropertyActionHandler(_frameTextBoxLeft, Convert.ToInt32(_mapCanvas.Width)),
+                _instantiateNumericTextBoxPropertyActionHandler(_frameTextBoxTop, Convert.ToInt32(_mapCanvas.Height)),
+                _instantiateNumericTextBoxPropertyActionHandler(_frameTextBoxRight, Convert.ToInt32(_mapCanvas.Width)),
+                _instantiateNumericTextBoxPropertyActionHandler(_frameTextBoxBottom, Convert.ToInt32(_mapCanvas.Height)),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(_runeThreshold, 999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(_frameTextBoxLeft, Convert.ToInt32(_mapCanvas.Width)),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(_frameTextBoxTop, Convert.ToInt32(_mapCanvas.Height)),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(_frameTextBoxRight, Convert.ToInt32(_mapCanvas.Width)),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(_frameTextBoxBottom, Convert.ToInt32(_mapCanvas.Height)),
                 _instantiateTabControlCanvasActionHandler(_tabControl, _tabItem, _mapCanvas),
                 _instantiateRunePositionActionHandler(),
                 _instantiateLoadRuneThresholdActionHandler(),
                 _instantiateRuneThresholdHandler(),
-                _instantiateAddButtonActionHandler(),
+                _instantiateAddFrameButtonActionHandler(),
+                _instantiateRemoveFrameButtonActionHandler(),
                 _instantiateFrameDrawerActionHandler(),
                 _instantiateFrameSelectStateActionHandler(),
                 _instantiateFrameDragActionHandler(),
-                _instantiateRemoveButtonActionHandler()
+                _instantiateFrameDataActionHandler(),
+                _instantiateFrameSelectedTextActionHandler(),
+                _instantiateFrameSelectedDragDataActionHandler()
             ];
         }
     }

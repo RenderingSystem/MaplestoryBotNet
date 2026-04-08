@@ -917,6 +917,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             };
         }
 
+        private List<WindowMapEditMenuStateTypes> _validStates()
+        {
+            return [WindowMapEditMenuStateTypes.Select, WindowMapEditMenuStateTypes.Add];
+        }
+
         /**
          * @brief Creates a configured instance of the selection handler with all test dependencies
          * properly initialized.
@@ -964,10 +969,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             for (int i = -5; i <= 5; i++)
             for (int j = -5; j <= 5; j++)
+            foreach (var state in _validStates())
             {
                 var handler = _fixture();
                 handler.Inject(SystemInjectType.BottingModel, _bottingModel);
-                _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
+                _menuState.SetState((int) state);
                 new MapCanvasPointAdder().AddPoint(
                     _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
                 );
@@ -988,12 +994,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             for (int i = -10; i <= 10; i++)
             for (int j = -10; j <= 10; j++)
+            foreach (var state in _validStates())
             {
                 if (i >= -5 && i <= 5) continue;
                 if (j >= -5 && j <= 5) continue;
                 var handler = _fixture();
                 handler.Inject(SystemInjectType.BottingModel, _bottingModel);
-                _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
+                _menuState.SetState((int) state);
                 new MapCanvasPointAdder().AddPoint(
                     _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
                 );
@@ -1014,17 +1021,20 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          */
         private void _testClickingOnValidPointSetsTextBoxValues()
         {
-            var handler = _fixture();
-            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
-            _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
-            new MapCanvasPointAdder().AddPoint(
-                _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
-            );
-            _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
-            _canvas.RaiseEvent(_mouseButtonEvent);
-            Debug.Assert(_textBoxName.Text == "lol1");
-            Debug.Assert(_textBoxX.Text == "123");
-            Debug.Assert(_textBoxY.Text == "234");
+            foreach (var state in _validStates())
+            {
+                var handler = _fixture();
+                handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+                _menuState.SetState((int) state);
+                new MapCanvasPointAdder().AddPoint(
+                    _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
+                );
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
+                _canvas.RaiseEvent(_mouseButtonEvent);
+                Debug.Assert(_textBoxName.Text == "lol1");
+                Debug.Assert(_textBoxX.Text == "123");
+                Debug.Assert(_textBoxY.Text == "234");
+            }
         }
 
         /**
@@ -1034,11 +1044,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * "Add" mode instead of "Select" mode. This ensures the interface prevents conflicting
          * operations and maintains clear separation between different editing functions.
          */
-        private void _testClickingOnValidPointDoesNotSelectWhenNotInSelectState()
+        private void _testClickingOnValidPointDoesNotSelectWhenInRemoveState()
         {
             var handler = _fixture();
             handler.Inject(SystemInjectType.BottingModel, _bottingModel);
-            _menuState.SetState((int) WindowMapEditMenuStateTypes.Add);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Remove);
             new MapCanvasPointAdder().AddPoint(
                 _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
             );
@@ -1060,17 +1070,20 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          */
         private void _testClickingOnValidPointDoesNotSelectWhenModelNotInjected()
         {
-            var handler = _fixture();
-            _menuState.SetState((int) WindowMapEditMenuStateTypes.Select);
-            new MapCanvasPointAdder().AddPoint(
-                _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
-            );
-            _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
-            _canvas.RaiseEvent(_mouseButtonEvent);
-            Debug.Assert(_menuState.Selected() == null);
-            Debug.Assert(_textBoxName.Text == "");
-            Debug.Assert(_textBoxX.Text == "");
-            Debug.Assert(_textBoxY.Text == "");
+            foreach (var state in _validStates())
+            {
+                var handler = _fixture();
+                _menuState.SetState((int) state);
+                new MapCanvasPointAdder().AddPoint(
+                    _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
+                );
+                _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
+                _canvas.RaiseEvent(_mouseButtonEvent);
+                Debug.Assert(_menuState.Selected() == null);
+                Debug.Assert(_textBoxName.Text == "");
+                Debug.Assert(_textBoxX.Text == "");
+                Debug.Assert(_textBoxY.Text == "");
+            }
         }
 
         /**
@@ -1085,7 +1098,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _testClickingOnValidPointSelects();
             _testClickingOnValidPointSetsTextBoxValues();
             _testClickingOnEmptyPointDoesNotSelect();
-            _testClickingOnValidPointDoesNotSelectWhenNotInSelectState();
+            _testClickingOnValidPointDoesNotSelectWhenInRemoveState();
             _testClickingOnValidPointDoesNotSelectWhenModelNotInjected();
         }
     }

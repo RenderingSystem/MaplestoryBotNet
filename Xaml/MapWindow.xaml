@@ -23,6 +23,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Xaml/Resources/TabItemResource.xaml"/>
+                <ResourceDictionary Source="/Xaml/Resources/ButtonResource.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <Style TargetType="{x:Type eo:TabItem}" BasedOn="{StaticResource TabItemStyle}"/>
         </ResourceDictionary>
@@ -33,37 +34,34 @@
                 <TabItem x:Name="BottingTabItem" Header="Botting">
                     <Grid Background="Black" Height="530" Width="575" >
                         <ToggleButton
+                            Style="{StaticResource BottingToggleButtonStyle}" 
                             x:Name="BottingAddButton"
                             FontFamily="Courier New"
-                            Content="Add point"
+                            Content="+ point"
                             HorizontalAlignment="Left"
                             Margin="0,405,0,0"
                             Padding="2,2,2,2"
                             VerticalAlignment="Top"
-                            Foreground="White"
-                            Background="Black"
-                            BorderBrush="White"
                             Width="130"
-                            IsTabStop="False" Grid.ColumnSpan="4"
+                            IsTabStop="False"
                         />
                         <ToggleButton
+                            Style="{StaticResource BottingToggleButtonStyle}" 
                             x:Name="BottingRemoveButton"
                             FontFamily="Courier New"
-                            Content="Remove point"
+                            Content="- point"
                             HorizontalAlignment="Left"
                             Margin="135,405,0,0"
                             Padding="2,2,2,2"
                             VerticalAlignment="Top"
-                            Foreground="White"
-                            Background="Black"
-                            BorderBrush="White"
                             Width="130"
                             IsTabStop="False"
                         />
                         <Button
+                            Style="{StaticResource BottingButtonStyle}" 
                             x:Name="BottingEditButton"
                             FontFamily="Courier New"
-                            Content="Edit point"
+                            Content="Edit"
                             HorizontalAlignment="Left"
                             Margin="270,405,0,0"
                             Padding="2,2,2,2"
@@ -72,42 +70,6 @@
                             Width="130"
                             IsTabStop="False"
                         >
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border
-                                        x:Name="BottingBorder"
-                                        Background="Black"
-                                        BorderBrush="White"
-                                        BorderThickness="1"
-                                    >
-                                        <ContentPresenter
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            Margin="{TemplateBinding Padding}"
-                                            RecognizesAccessKey="True"
-                                        />
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsEnabled" Value="False">
-                                            <Setter TargetName="BottingBorder" Property="BorderBrush" Value="Gray"/>
-                                            <Setter TargetName="BottingBorder" Property="Background" Value="Black"/>
-                                            <Setter Property="Foreground" Value="#A0A0A0"/>
-                                        </Trigger>
-                                        <Trigger Property="IsEnabled" Value="True">
-                                            <Setter TargetName="BottingBorder" Property="BorderBrush" Value="White"/>
-                                            <Setter TargetName="BottingBorder" Property="Background" Value="Black"/>
-                                            <Setter Property="Foreground" Value="White"/>
-                                        </Trigger>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="BottingBorder" Property="BorderBrush" Value="LightSkyBlue"/>
-                                            <Setter TargetName="BottingBorder" Property="Background" Value="#BEE6FD"/>
-                                        </Trigger>
-                                        <Trigger Property="IsPressed" Value="True">
-                                            <Setter TargetName="BottingBorder" Property="Background" Value="LightBlue"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
                         </Button>
                         <Label
                             Content="Point selected:"
@@ -256,9 +218,10 @@
                 <TabItem x:Name="RuneingTabItem" Header="Runeing">
                     <Grid Background="Black" Height="530" Width="575">
                         <ToggleButton
+                            Style="{StaticResource BottingToggleButtonStyle}" 
                             x:Name="RuneingAddButton"
                             FontFamily="Courier New"
-                            Content="Add frame"
+                            Content="+ frame"
                             HorizontalAlignment="Left"
                             Margin="0,405,0,0"
                             Padding="2,2,2,2"
@@ -266,72 +229,61 @@
                             Foreground="White"
                             Background="Black"
                             BorderBrush="White"
-                            Width="130"
+                            Width="74"
                             IsTabStop="False"
                         />
                         <ToggleButton
+                            Style="{StaticResource BottingToggleButtonStyle}" 
                             x:Name="RuneingRemoveButton"
                             FontFamily="Courier New"
-                            Content="Remove frame"
+                            Content="- frame"
                             HorizontalAlignment="Left"
-                            Margin="135,405,0,0"
+                            Margin="79,405,0,0"
                             Padding="2,2,2,2"
                             VerticalAlignment="Top"
                             Foreground="White"
                             Background="Black"
                             BorderBrush="White"
-                            Width="130"
+                            Width="75"
                             IsTabStop="False"
                         />
+                        <ToggleButton
+                            Style="{StaticResource BottingToggleButtonStyle}" 
+                            x:Name="RuneingAddPointButton"
+                            FontFamily="Courier New"
+                            Content="+ point"
+                            HorizontalAlignment="Left"
+                            Margin="159,405,0,0"
+                            Padding="2,2,2,2"
+                            VerticalAlignment="Top"
+                            Width="75"
+                            IsTabStop="False" IsEnabled="False"
+                        />
+                        <ToggleButton
+                            Style="{StaticResource BottingToggleButtonStyle}" 
+                            x:Name="RuneingRemovePointButton"
+                            FontFamily="Courier New"
+                            Content="- point"
+                            HorizontalAlignment="Left"
+                            Margin="239,405,0,0"
+                            Padding="2,2,2,2"
+                            VerticalAlignment="Top"
+                            Width="74"
+                            IsTabStop="False" RenderTransformOrigin="-1.296,0.826" IsEnabled="False"
+                        />
                         <Button
+                            Style="{StaticResource BottingButtonStyle}" 
                             x:Name="RuneingEditButton"
                             FontFamily="Courier New"
-                            Content="Edit frame"
+                            Content="Edit"
                             HorizontalAlignment="Left"
-                            Margin="270,405,0,0"
+                            Margin="318,405,0,0"
                             Padding="2,2,2,2"
                             VerticalAlignment="Top"
                             IsEnabled="False"
-                            Width="130"
+                            Width="81"
                             IsTabStop="False"
-                        >
-                            <Button.Template>
-                                <ControlTemplate TargetType="{x:Type Button}">
-                                    <Border
-                                        x:Name="BottingBorder"
-                                        Background="Black"
-                                        BorderBrush="White"
-                                        BorderThickness="1"
-                                    >
-                                        <ContentPresenter
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            Margin="{TemplateBinding Padding}"
-                                            RecognizesAccessKey="True"
-                                        />
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsEnabled" Value="False">
-                                            <Setter TargetName="BottingBorder" Property="BorderBrush" Value="Gray"/>
-                                            <Setter TargetName="BottingBorder" Property="Background" Value="Black"/>
-                                            <Setter Property="Foreground" Value="#A0A0A0"/>
-                                        </Trigger>
-                                        <Trigger Property="IsEnabled" Value="True">
-                                            <Setter TargetName="BottingBorder" Property="BorderBrush" Value="White"/>
-                                            <Setter TargetName="BottingBorder" Property="Background" Value="Black"/>
-                                            <Setter Property="Foreground" Value="White"/>
-                                        </Trigger>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="BottingBorder" Property="BorderBrush" Value="LightSkyBlue"/>
-                                            <Setter TargetName="BottingBorder" Property="Background" Value="#BEE6FD"/>
-                                        </Trigger>
-                                        <Trigger Property="IsPressed" Value="True">
-                                            <Setter TargetName="BottingBorder" Property="Background" Value="LightBlue"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                        />
                         <Label
                             Content="Rune:"
                             FontFamily="Courier New"
@@ -677,6 +629,7 @@
                 TabIndex="0"
             />
             <Button
+                Style="{StaticResource BottingButtonStyle}" 
                 x:Name="SaveButton"
                 FontFamily="Courier New"
                 Content="Save"
@@ -684,14 +637,12 @@
                 Margin="99,478,0,0"
                 Padding="2,2,2,2"
                 VerticalAlignment="Top"
-                Foreground="White"
-                Background="Black"
-                BorderBrush="White"
                 Width="160"
                 IsTabStop="False"
                 Height="27"
             />
             <Button
+                Style="{StaticResource BottingButtonStyle}"
                 x:Name="LoadButton"
                 FontFamily="Courier New"
                 Content="Load"
@@ -699,11 +650,9 @@
                 Margin="320,478,0,0"
                 Padding="2,2,2,2"
                 VerticalAlignment="Top"
-                Foreground="White"
-                Background="Black"
-                BorderBrush="White"
                 Width="160"
-                IsTabStop="False" Height="26"
+                IsTabStop="False"
+                Height="27"
             />
         </Grid>
     </Viewbox>

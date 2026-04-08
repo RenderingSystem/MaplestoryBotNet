@@ -496,7 +496,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
     {
         public List<FrameworkElement> ElementTexts = [];
 
-        public string ElementName = "";
+        public string ElementLabel = "";
 
         public string FrameName = "";
 
@@ -507,7 +507,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             return new RuneFrameData
             {
                 ElementTexts = [.. ElementTexts],
-                ElementName = ElementName,
+                ElementLabel = ElementLabel,
                 FrameName = FrameName,
                 RuneFrameMacros = RuneFrameMacros.Select(cmd => cmd.Copy()).ToList(),
             };
@@ -525,8 +525,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public double Height = 0.0;
 
-        public double GripRadius = 0.0;
-
         public RuneFrameData FrameData = new RuneFrameData();
 
         public void Assign(RuneFrame frame)
@@ -535,7 +533,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             Y = frame.Y;
             Width = frame.Width;
             Height = frame.Height;
-            GripRadius = frame.GripRadius;
             FrameData = frame.FrameData.Copy();
         }
     }
@@ -583,7 +580,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             {
                 _runeFrameLock.EnterWriteLock();
                 var frameToEdit = _runeFrames.Find(
-                    f => f.FrameData.ElementName == frame.FrameData.ElementName
+                    f => f.FrameData.ElementLabel == frame.FrameData.ElementLabel
                 );
                 if (frameToEdit == null)
                 {
@@ -623,7 +620,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             {
                 _runeFrameLock.EnterReadLock();
                 var foundFrame = _runeFrames.FirstOrDefault(
-                    p => p.FrameData.ElementName == name
+                    p => p.FrameData.ElementLabel == name
                 );
                 if (foundFrame != null)
                 {
@@ -643,18 +640,20 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             {
                 _runeFrameLock.EnterWriteLock();
                 var foundFrame = _runeFrames.FirstOrDefault(
-                    p => p.FrameData.ElementName == name
+                    p => p.FrameData.ElementLabel == name
                 );
                 if (foundFrame != null)
                 {
                     _runeFrames.Remove(foundFrame);
                     for (int i = 0; i < _runeFrames.Count; i++)
-                    for (int j = 0; j < _runeFrames[i].FrameData.RuneFrameMacros.Count; j++)
                     {
-                        var runeFrameMacro = _runeFrames[i].FrameData.RuneFrameMacros[j];
-                        if (runeFrameMacro.NextRuneFrame == foundFrame)
+                        for (int j = 0; j < _runeFrames[i].FrameData.RuneFrameMacros.Count; j++)
                         {
-                            runeFrameMacro.NextRuneFrame = null;
+                            var runeFrameMacro = _runeFrames[i].FrameData.RuneFrameMacros[j];
+                            if (runeFrameMacro.NextRuneFrame == foundFrame)
+                            {
+                                runeFrameMacro.NextRuneFrame = null;
+                            }
                         }
                     }
                 }

@@ -184,7 +184,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class PointElementInformation : AbstractPointElementInformation
+    public class PointElementInformation : AbstractFrameworkElementInformation
     {
         public override Rect BoundingRect(FrameworkElement frameworkElement)
         {
@@ -226,10 +226,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowMapCanvasPointFormatter : AbstractMapCanvasFormatter
     {
-        private AbstractPointElementInformation _pointElementInfo;
+        private AbstractFrameworkElementInformation _pointElementInfo;
 
         public WindowMapCanvasPointFormatter(
-            AbstractPointElementInformation pointElementInfo
+            AbstractFrameworkElementInformation pointElementInfo
         )
         {
             _pointElementInfo = pointElementInfo;
@@ -669,7 +669,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowMapCanvasAddButtonModifier : AbstractWindowStateModifier
+    public class WindowMapButtonModifier : AbstractWindowStateModifier
     {
         private AbstractWindowMapEditMenuState _menuState;
 
@@ -677,16 +677,24 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private List<ToggleButton> _radioButtons;
 
-        public WindowMapCanvasAddButtonModifier(
+        private int _checkedState;
+
+        private int _uncheckedState;
+
+        public WindowMapButtonModifier(
             AbstractWindowMapEditMenuState menuState,
             ToggleButton addButton,
-            List<ToggleButton> radioButtons
+            List<ToggleButton> radioButtons,
+            int checkedState,
+            int uncheckedState
 
         )
         {
             _menuState = menuState;
             _addButton = addButton;
             _radioButtons = radioButtons;
+            _checkedState = checkedState;
+            _uncheckedState = uncheckedState;
         }
 
         public override void Modify(object? value)
@@ -698,22 +706,19 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     _radioButtons[i].IsChecked = false;
                 }
                 _addButton.IsChecked = checkedState;
-                var nextState = checkedState ?
-                    WindowMapEditMenuStateTypes.Add :
-                    WindowMapEditMenuStateTypes.Select;
-                _menuState.SetState((int) nextState);
+                _menuState.SetState(checkedState ? _checkedState : _uncheckedState);
             }
         }
     }
 
 
-    public class WindowMapAddButtonActionHandler : AbstractWindowActionHandler
+    public class WindowMapButtonActionHandler : AbstractWindowActionHandler
     {
         private ToggleButton _addPointButton;
 
         private AbstractWindowStateModifier _addStateModifier;
 
-        public WindowMapAddButtonActionHandler(
+        public WindowMapButtonActionHandler(
             ToggleButton addPointButton,
             AbstractWindowStateModifier addStateModifier
         )
@@ -737,7 +742,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowMapAddButtonActionHandlerFacade : AbstractWindowActionHandler
     {
-        private WindowMapAddButtonActionHandler _mapCanvasAddButtonActionHandler;
+        private WindowMapButtonActionHandler _mapCanvasAddButtonActionHandler;
 
         public WindowMapAddButtonActionHandlerFacade(
             ToggleButton addPointButton,
@@ -745,9 +750,15 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             AbstractWindowMapEditMenuState menuState
         )
         {
-            _mapCanvasAddButtonActionHandler = new WindowMapAddButtonActionHandler(
+            _mapCanvasAddButtonActionHandler = new WindowMapButtonActionHandler(
                 addPointButton,
-                new WindowMapCanvasAddButtonModifier(menuState, addPointButton, radioButtons)
+                new WindowMapButtonModifier(
+                    menuState,
+                    addPointButton,
+                    radioButtons,
+                    (int) WindowMapEditMenuStateTypes.Add,
+                    (int) WindowMapEditMenuStateTypes.Select
+                )
             );
         }
 
@@ -763,75 +774,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowMapRemoveButtonModifier : AbstractWindowStateModifier
-    {
-        private AbstractWindowMapEditMenuState _menuState;
-
-        private ToggleButton _removeButton;
-
-        private List<ToggleButton> _radioButtons;
-
-        public WindowMapRemoveButtonModifier(
-            AbstractWindowMapEditMenuState menuState,
-            ToggleButton addButton,
-            List<ToggleButton> radioButtons
-
-        )
-        {
-            _menuState = menuState;
-            _removeButton = addButton;
-            _radioButtons = radioButtons;
-        }
-
-        public override void Modify(object? value)
-        {
-            if (value is bool checkedState)
-            {
-                for (int i = 0; i < _radioButtons.Count; i++)
-                {
-                    _radioButtons[i].IsChecked = false;
-                }
-                _removeButton.IsChecked = checkedState;
-                var nextState = checkedState ?
-                    WindowMapEditMenuStateTypes.Remove :
-                    WindowMapEditMenuStateTypes.Select;
-                _menuState.SetState((int) nextState);
-            }
-        }
-    }
-
-
-    public class WindowMapRemoveButtonActionHandler : AbstractWindowActionHandler
-    {
-        private ToggleButton _removePointButton;
-
-        private AbstractWindowStateModifier _addStateModifier;
-
-        public WindowMapRemoveButtonActionHandler(
-            ToggleButton removePointButton,
-            AbstractWindowStateModifier addStateModifier
-        )
-        {
-            _removePointButton = removePointButton;
-            _removePointButton.Click += OnEvent;
-            _addStateModifier = addStateModifier;
-        }
-
-        public override AbstractWindowStateModifier Modifier()
-        {
-            return _addStateModifier;
-        }
-
-        public override void OnEvent(object? sender, EventArgs e)
-        {
-            _addStateModifier.Modify(_removePointButton.IsChecked);
-        }
-    }
-
-
     public class WindowMapRemoveButtonActionHandlerFacade : AbstractWindowActionHandler
     {
-        private WindowMapRemoveButtonActionHandler _mapCanvasRemoveButtonActionHandler;
+        private WindowMapButtonActionHandler _mapCanvasRemoveButtonActionHandler;
 
         public WindowMapRemoveButtonActionHandlerFacade(
             ToggleButton removePointButton,
@@ -839,9 +784,15 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             AbstractWindowMapEditMenuState menuState
         )
         {
-            _mapCanvasRemoveButtonActionHandler = new WindowMapRemoveButtonActionHandler(
+            _mapCanvasRemoveButtonActionHandler = new WindowMapButtonActionHandler(
                 removePointButton,
-                new WindowMapRemoveButtonModifier(menuState, removePointButton, radioButtons)
+                new WindowMapButtonModifier(
+                    menuState,
+                    removePointButton,
+                    radioButtons,
+                    (int) WindowMapEditMenuStateTypes.Remove,
+                    (int) WindowMapEditMenuStateTypes.Select
+                )
             );
         }
 
@@ -965,7 +916,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (_menuState.GetState() == (int) WindowMapEditMenuStateTypes.Select && _bottingModel != null)
+            if (
+                _menuState.GetState() is int selectState
+                && (
+                    selectState == (int) WindowMapEditMenuStateTypes.Add
+                    || selectState == (int) WindowMapEditMenuStateTypes.Select
+                )
+                && _bottingModel != null
+            )
             {
                 _mapCanvasSelectModifier.Modify(
                     new WindowMapCanvasSelectModifierParameters
@@ -2105,10 +2063,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowMapCanvasLoadedPointFormatter : AbstractMapCanvasFormatter
     {
-        private AbstractPointElementInformation _pointElementInformation;
+        private AbstractFrameworkElementInformation _pointElementInformation;
 
         public WindowMapCanvasLoadedPointFormatter(
-            AbstractPointElementInformation pointElementInformation
+            AbstractFrameworkElementInformation pointElementInformation
         )
         {
             _pointElementInformation = pointElementInformation;

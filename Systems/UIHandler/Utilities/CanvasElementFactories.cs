@@ -28,7 +28,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
     }
 
 
-    public abstract class AbstractPointElementInformation
+    public abstract class AbstractFrameworkElementInformation
     {
         public abstract Rect BoundingRect(FrameworkElement frameworkElement);
 
@@ -46,6 +46,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
     {
         public abstract FrameworkElement? Locate(AbstractMacroModel macroModel, Point point);
     }
+
 
 
     public class WindowMapCanvasCircleFactory : AbstractMapCanvasElementFactory
