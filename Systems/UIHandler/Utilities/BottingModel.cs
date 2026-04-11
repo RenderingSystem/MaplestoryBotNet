@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using System.Collections.Concurrent;
 using System.Windows;
+using System.Windows.Controls;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.Utilities
@@ -471,11 +472,19 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public double Y = 0.0;
 
+        public double ScaleX = 0.0;
+
+        public double ScaleY = 0.0;
+
+        public RuneFrame? NextRuneFrame = null;
+
+        public double NextX = 0.0;
+
+        public double NextY = 0.0;
+
         public double Radius = 0.0;
 
         public List<string> RuneFrameCommands = [];
-
-        public RuneFrame? NextRuneFrame = null;
 
         public RuneFrameMacros Copy()
         {
@@ -484,9 +493,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 MacroName = MacroName,
                 X = X,
                 Y = Y,
+                ScaleX = ScaleX,
+                ScaleY = ScaleY,
+                NextRuneFrame = NextRuneFrame,
+                NextX = NextX,
+                NextY = NextY,
                 Radius = Radius,
                 RuneFrameCommands = [.. RuneFrameCommands],
-                NextRuneFrame = NextRuneFrame
             };
         }
     }
@@ -535,6 +548,18 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             Height = frame.Height;
             FrameData = frame.FrameData.Copy();
         }
+
+        public RuneFrame Copy()
+        {
+            return new RuneFrame
+            {
+                X = X,
+                Y = Y,
+                Width = Width,
+                Height = Height,
+                FrameData = FrameData.Copy()
+            };
+        }
     }
 
 
@@ -582,11 +607,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 var frameToEdit = _runeFrames.Find(
                     f => f.FrameData.ElementLabel == frame.FrameData.ElementLabel
                 );
-                if (frameToEdit == null)
-                {
-                    return;
-                }
-                frameToEdit.Assign(frame);
+                frameToEdit?.Assign(frame);
             }
             finally
             {
@@ -602,11 +623,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 var foundPoint = _runeFrames.FirstOrDefault(
                     p => p.FrameData.FrameName == label
                 );
-                if (foundPoint != null)
-                {
-                    return foundPoint;
-                }
-                return null;
+                return foundPoint?.Copy();
             }
             finally
             {
@@ -622,11 +639,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 var foundFrame = _runeFrames.FirstOrDefault(
                     p => p.FrameData.ElementLabel == name
                 );
-                if (foundFrame != null)
-                {
-                    return foundFrame;
-                }
-                return null;
+                return foundFrame?.Copy();
             }
             finally
             {
@@ -772,22 +785,26 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             RuneFrame currentFrame, RuneFrame destinationFrame
         )
         {
-            if (currentFrame == destinationFrame)
+            try
             {
-                return null;
+                _runeFrameLock.EnterReadLock();
+                if (currentFrame == destinationFrame)
+                {
+                    return null;
+                }
+                var framePath = _shortestPath(currentFrame, destinationFrame);
+                if (framePath == null || framePath.Count < 2)
+                {
+                    return null;
+                }
+                var currFrameMacro = currentFrame.FrameData.RuneFrameMacros
+                    .FirstOrDefault(m => m.NextRuneFrame == framePath[1]);
+                return currFrameMacro;
             }
-            var framePath = _shortestPath(currentFrame, destinationFrame);
-            if (framePath == null || framePath.Count < 2)
+            finally
             {
-                return null;
+                _runeFrameLock.ExitReadLock();
             }
-            var currFrameMacro = currentFrame.FrameData.RuneFrameMacros
-                .FirstOrDefault(m => m.NextRuneFrame == framePath[1]);
-            if (currFrameMacro == null)
-            {
-                return null;
-            }
-            return currFrameMacro;
         }
 
         public override AbstractRuneModel Copy()

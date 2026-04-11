@@ -301,8 +301,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var element = (Canvas)_canvas.Children[0];
             var ellipse = element.Children.OfType<Ellipse>().FirstOrDefault();
             Debug.Assert(ellipse != null);
-            Debug.Assert(ellipse.Fill == Brushes.Aqua);
-            Debug.Assert(ellipse.Stroke == Brushes.LightBlue);
+            var ellipseFill = ellipse.Fill as SolidColorBrush;
+            Debug.Assert(ellipseFill is not null);
+            Debug.Assert(ellipseFill.Color.A == 255);
+            Debug.Assert(ellipseFill.Color.R == 0);
+            Debug.Assert(ellipseFill.Color.G == 255);
+            Debug.Assert(ellipseFill.Color.B == 0);
+            Debug.Assert(ellipse.Stroke == Brushes.Transparent);
             Debug.Assert(ellipse.StrokeThickness == 1.0);
             Debug.Assert(ellipse.RenderTransform is TranslateTransform);
             Debug.Assert(((TranslateTransform)ellipse.RenderTransform).X == -5.0);
@@ -344,7 +349,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     Debug.Assert(textBlock.Text == "P" + j.ToString());
                     Debug.Assert(textBlock.FontFamily.ToString() == "Courier New");
                     Debug.Assert(textBlock.FontSize == 10.0);
-                    Debug.Assert(textBlock.Foreground == Brushes.White);
+                    Debug.Assert(textBlock.Foreground == Brushes.GhostWhite);
                     Debug.Assert(textBlock.Background == Brushes.Transparent);
                     Debug.Assert(textBlock.RenderTransform is TranslateTransform);
                     Debug.Assert(((TranslateTransform)textBlock.RenderTransform).X == 0.0);

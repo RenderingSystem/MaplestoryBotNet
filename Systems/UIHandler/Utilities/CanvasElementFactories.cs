@@ -171,8 +171,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         {
             _mapCanvasPointFactory = new WindowMapCanvasPointFactory(
                 new WindowMapCanvasCircleFactory(
-                    Brushes.Aqua,
-                    Brushes.LightBlue,
+                    new SolidColorBrush(Color.FromRgb(0, 255, 0)),
+                    Brushes.Transparent,
                     1,
                     5
                 ),
@@ -182,7 +182,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                     10.0,
                     0.0,
                     -16.0,
-                    Brushes.White,
+                    Brushes.GhostWhite,
                     Brushes.Transparent
                 )
             );
@@ -252,6 +252,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         public const string BL = "FrameBL";
 
         public const string BR = "FrameBR";
+
+        public const string POINT = "FramePoint";
 
         public static List<string> GripNames()
         {
@@ -345,6 +347,40 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         public override FrameworkElement Create()
         {
             return _mapCanvasFrameFactory.Create();
+        }
+    }
+
+
+    public class WindowMapCanvasFramePointFactoryFacade : AbstractMapCanvasElementFactory
+    {
+        private AbstractMapCanvasElementFactory _mapCanvasPointFactory;
+
+        public WindowMapCanvasFramePointFactoryFacade()
+        {
+            _mapCanvasPointFactory = new WindowMapCanvasPointFactory(
+                new WindowMapCanvasCircleFactory(
+                    new SolidColorBrush(Color.FromRgb(0, 255, 0)),
+                    Brushes.Transparent,
+                    1,
+                    5
+                ),
+                new WindowMapCanvasLabelFactory(
+                    "Lorem Ipsum",
+                    "Courier New",
+                    10.0,
+                    0.0,
+                    -16.0,
+                    Brushes.GhostWhite,
+                    Brushes.Transparent
+                )
+            );
+        }
+
+        public override FrameworkElement Create()
+        {
+            var framePoint = _mapCanvasPointFactory.Create();
+            framePoint.Name = WindowMapCanvasFrameTypes.POINT;
+            return framePoint;
         }
     }
 }

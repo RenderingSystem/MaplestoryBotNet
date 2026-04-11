@@ -9,6 +9,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Xml.Linq;
 
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
@@ -47,7 +48,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
     public class FrameFixture
     {
-        private static void _updateFrameworkElement(FrameworkElement frameworkElement)
+        public static void UpdateFrameworkElement(FrameworkElement frameworkElement)
         {
             frameworkElement.Measure(
                 new Size(
@@ -94,14 +95,226 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             Canvas.SetTop(frameCanvas, y);
             frameCanvas.Width = width;
             frameCanvas.Height = height;
-            _updateFrameworkElement(rectangle);
-            _updateFrameworkElement(tl);
-            _updateFrameworkElement(tr);
-            _updateFrameworkElement(bl);
-            _updateFrameworkElement(br);
-            _updateFrameworkElement(frameCanvas);
-            _updateFrameworkElement(mapCanvas);
+            UpdateFrameworkElement(rectangle);
+            UpdateFrameworkElement(tl);
+            UpdateFrameworkElement(tr);
+            UpdateFrameworkElement(bl);
+            UpdateFrameworkElement(br);
+            UpdateFrameworkElement(frameCanvas);
+            UpdateFrameworkElement(mapCanvas);
             return frameCanvas;
+        }
+
+        public static Canvas GenerateFrame(Rect frameRect, Canvas mapCanvas)
+        {
+            return GenerateFrame(
+                frameRect.X,
+                frameRect.Y,
+                frameRect.Width,
+                frameRect.Height,
+                mapCanvas
+            );
+        }
+    }
+
+
+    public class MapCanvasAddFrameButtonActionHandlerTests
+    {
+        private ToggleButton _addFrameButton = new ToggleButton();
+
+        private List<ToggleButton> _otherButtons = [];
+
+        private WindowMapEditMenuState _menuState = new WindowMapEditMenuState();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _addFrameButton = new ToggleButton();
+            _otherButtons = [new ToggleButton(), new ToggleButton(), new ToggleButton()];
+            _menuState = new WindowMapEditMenuState();
+            return new WindowMapAddFrameButtonActionHandlerFacade(
+                _addFrameButton, _otherButtons, _menuState
+            );
+        }
+
+        /**
+         * @brief Verifies that clicking the Add Frame button turns off other mode buttons
+         * 
+         * When users click the Add Frame button, any other editing mode buttons
+         * (like Remove Frame or Select) should automatically turn off. This ensures
+         * only one editing mode is active at a time, preventing confusion.
+         */
+        private void _testTogglingButtonUntogglesOtherButtons()
+        {
+            var handler = _fixture();
+            _otherButtons[0].IsChecked = true;
+            _otherButtons[1].IsChecked = false;
+            _otherButtons[2].IsChecked = true;
+            _addFrameButton.IsChecked = true;
+            _addFrameButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            Debug.Assert(_otherButtons[0].IsChecked == false);
+            Debug.Assert(_otherButtons[1].IsChecked == false);
+            Debug.Assert(_otherButtons[2].IsChecked == false);
+        }
+
+        /**
+         * @brief Verifies that turning off Add Frame clears all active modes
+         * 
+         * When users click the Add Frame button again to turn it off, all editing
+         * mode buttons should be cleared. This puts the editor in a neutral state
+         * where no special editing mode is active.
+         */
+        private void _testUntogglingButtonUntogglesOtherButtons()
+        {
+            var handler = _fixture();
+            _otherButtons[0].IsChecked = true;
+            _otherButtons[1].IsChecked = false;
+            _otherButtons[2].IsChecked = true;
+            _addFrameButton.IsChecked = false;
+            _addFrameButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            Debug.Assert(_otherButtons[0].IsChecked == false);
+            Debug.Assert(_otherButtons[1].IsChecked == false);
+            Debug.Assert(_otherButtons[2].IsChecked == false);
+        }
+
+        /**
+         * @brief Verifies that Add Frame button activates frame creation mode
+         * 
+         * When users click the Add Frame button, the editor should enter frame
+         * creation mode. This tells the system that subsequent canvas clicks
+         * should create new frames instead of selecting existing ones.
+         */
+        private void _testTogglingButtonSetsMenuStateToAdd()
+        {
+            var handler = _fixture();
+            _menuState.SetState((int)WindowMapEditMenuStateTypes.Select);
+            _addFrameButton.IsChecked = true;
+            _addFrameButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            Debug.Assert(_menuState.GetState() == (int)WindowMapEditFrameMenuStateTypes.AddFrame);
+        }
+
+        /**
+         * @brief Verifies that turning off Add Frame exits creation mode
+         * 
+         * When users click the Add Frame button to turn it off, the editor should
+         * return to normal selection mode. This prevents accidental frame creation
+         * when users just want to click on existing frames.
+         */
+        private void _testUntogglingButtonSetsMenuStateToSelect()
+        {
+            var handler = _fixture();
+            _addFrameButton.UpdateLayout();
+            _menuState.SetState((int)WindowMapEditMenuStateTypes.Add);
+            _addFrameButton.IsChecked = false;
+            _addFrameButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            Debug.Assert(_menuState.GetState() == (int)WindowMapEditFrameMenuStateTypes.SelectFrame);
+        }
+
+        public void Run()
+        {
+            _testTogglingButtonUntogglesOtherButtons();
+            _testUntogglingButtonUntogglesOtherButtons();
+            _testTogglingButtonSetsMenuStateToAdd();
+            _testUntogglingButtonSetsMenuStateToSelect();
+        }
+    }
+
+
+    public class MapCanvasRemoveFrameButtonActionHandlerTests
+    {
+        private ToggleButton _removeFrameButton = new ToggleButton();
+
+        private List<ToggleButton> _otherButtons = [];
+
+        private WindowMapEditMenuState _menuState = new WindowMapEditMenuState();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _removeFrameButton = new ToggleButton();
+            _otherButtons = [new ToggleButton(), new ToggleButton(), new ToggleButton()];
+            _menuState = new WindowMapEditMenuState();
+            return new WindowMapRemoveFrameButtonActionHandlerFacade(
+                _removeFrameButton, _otherButtons, _menuState
+            );
+        }
+
+        /**
+         * @brief Verifies that clicking the Remove Frame button turns off other mode buttons
+         * 
+         * When users click the Remove Frame button, any other editing mode buttons
+         * (like Add Frame or Select) should automatically turn off. This ensures
+         * only one editing mode is active at a time
+         */
+        private void _testTogglingButtonUntogglesOtherButtons()
+        {
+            var handler = _fixture();
+            _otherButtons[0].IsChecked = true;
+            _otherButtons[1].IsChecked = false;
+            _otherButtons[2].IsChecked = true;
+            _removeFrameButton.IsChecked = true;
+            _removeFrameButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            Debug.Assert(_otherButtons[0].IsChecked == false);
+            Debug.Assert(_otherButtons[1].IsChecked == false);
+            Debug.Assert(_otherButtons[2].IsChecked == false);
+        }
+
+        /**
+         * @brief Verifies that turning off Remove Frame clears all active modes
+         * 
+         * When users click the Remove Frame button again to turn it off, all editing
+         * mode buttons should be cleared. This returns the editor to a neutral state.
+         */
+        private void _testUntogglingButtonUntogglesOtherButtons()
+        {
+            var handler = _fixture();
+            _otherButtons[0].IsChecked = true;
+            _otherButtons[1].IsChecked = false;
+            _otherButtons[2].IsChecked = true;
+            _removeFrameButton.IsChecked = false;
+            _removeFrameButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            Debug.Assert(_otherButtons[0].IsChecked == false);
+            Debug.Assert(_otherButtons[1].IsChecked == false);
+            Debug.Assert(_otherButtons[2].IsChecked == false);
+        }
+
+        /**
+         * @brief Verifies that Remove Frame button activates deletion mode
+         * 
+         * When users click the Remove Frame button, the editor should enter frame
+         * deletion mode. This tells the system that subsequent canvas clicks should
+         * remove frames instead of selecting or creating them.
+         */
+        private void _testTogglingButtonSetsMenuStateToRemove()
+        {
+            var handler = _fixture();
+            _menuState.SetState((int)WindowMapEditMenuStateTypes.Select);
+            _removeFrameButton.IsChecked = true;
+            _removeFrameButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            Debug.Assert(_menuState.GetState() == (int)WindowMapEditFrameMenuStateTypes.RemoveFrame);
+        }
+
+        /**
+         * @brief Verifies that turning off Remove Frame exits deletion mode
+         * 
+         * When users click the Remove Frame button to turn it off, the editor should
+         * return to normal selection mode. This prevents accidental deletions when
+         * users just want to select or inspect frames.
+         */
+        private void _testUntogglingButtonSetsMenuStateToSelect()
+        {
+            var handler = _fixture();
+            _removeFrameButton.UpdateLayout();
+            _menuState.SetState((int)WindowMapEditMenuStateTypes.Add);
+            _removeFrameButton.IsChecked = false;
+            _removeFrameButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            Debug.Assert(_menuState.GetState() == (int)WindowMapEditFrameMenuStateTypes.SelectFrame);
+        }
+
+        public void Run()
+        {
+            _testTogglingButtonUntogglesOtherButtons();
+            _testUntogglingButtonUntogglesOtherButtons();
+            _testTogglingButtonSetsMenuStateToRemove();
+            _testUntogglingButtonSetsMenuStateToSelect();
         }
     }
 
@@ -119,7 +332,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _addPointButton = new ToggleButton();
             _otherButtons = [new ToggleButton(), new ToggleButton(), new ToggleButton()];
             _menuState = new WindowMapEditMenuState();
-            return new WindowMapAddFrameButtonActionHandlerFacade(
+            return new WindowMapAddFramePointButtonActionHandlerFacade(
                 _addPointButton, _otherButtons, _menuState
             );
         }
@@ -177,7 +390,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _menuState.SetState((int)WindowMapEditMenuStateTypes.Select);
             _addPointButton.IsChecked = true;
             _addPointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
-            Debug.Assert(_menuState.GetState() == (int)WindowMapEditFrameMenuStateTypes.AddFrame);
+            Debug.Assert(_menuState.GetState() == (int)WindowMapEditFrameMenuStateTypes.AddPoint);
         }
 
         /**
@@ -209,7 +422,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
     public class MapCanvasRemoveFramePointButtonActionHandlerTests
     {
-        private ToggleButton _addPointButton = new ToggleButton();
+        private ToggleButton _removePointButton = new ToggleButton();
 
         private List<ToggleButton> _otherButtons = [];
 
@@ -217,11 +430,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private AbstractWindowActionHandler _fixture()
         {
-            _addPointButton = new ToggleButton();
+            _removePointButton = new ToggleButton();
             _otherButtons = [new ToggleButton(), new ToggleButton(), new ToggleButton()];
             _menuState = new WindowMapEditMenuState();
-            return new WindowMapRemoveFrameButtonActionHandlerFacade(
-                _addPointButton, _otherButtons, _menuState
+            return new WindowMapRemoveFramePointButtonActionHandlerFacade(
+                _removePointButton, _otherButtons, _menuState
             );
         }
 
@@ -238,8 +451,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _otherButtons[0].IsChecked = true;
             _otherButtons[1].IsChecked = false;
             _otherButtons[2].IsChecked = true;
-            _addPointButton.IsChecked = true;
-            _addPointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            _removePointButton.IsChecked = true;
+            _removePointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
             Debug.Assert(_otherButtons[0].IsChecked == false);
             Debug.Assert(_otherButtons[1].IsChecked == false);
             Debug.Assert(_otherButtons[2].IsChecked == false);
@@ -257,8 +470,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _otherButtons[0].IsChecked = true;
             _otherButtons[1].IsChecked = false;
             _otherButtons[2].IsChecked = true;
-            _addPointButton.IsChecked = false;
-            _addPointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            _removePointButton.IsChecked = false;
+            _removePointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
             Debug.Assert(_otherButtons[0].IsChecked == false);
             Debug.Assert(_otherButtons[1].IsChecked == false);
             Debug.Assert(_otherButtons[2].IsChecked == false);
@@ -275,9 +488,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var handler = _fixture();
             _menuState.SetState((int)WindowMapEditMenuStateTypes.Select);
-            _addPointButton.IsChecked = true;
-            _addPointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
-            Debug.Assert(_menuState.GetState() == (int)WindowMapEditFrameMenuStateTypes.RemoveFrame);
+            _removePointButton.IsChecked = true;
+            _removePointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            Debug.Assert(_menuState.GetState() == (int)WindowMapEditFrameMenuStateTypes.RemovePoint);
         }
 
         /**
@@ -290,10 +503,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testUntogglingButtonSetsMenuStateToSelect()
         {
             var handler = _fixture();
-            _addPointButton.UpdateLayout();
+            _removePointButton.UpdateLayout();
             _menuState.SetState((int)WindowMapEditMenuStateTypes.Add);
-            _addPointButton.IsChecked = false;
-            _addPointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
+            _removePointButton.IsChecked = false;
+            _removePointButton.RaiseEvent(new RoutedEventArgs(ToggleButton.ClickEvent));
             Debug.Assert(_menuState.GetState() == (int)WindowMapEditFrameMenuStateTypes.SelectFrame);
         }
 
@@ -343,7 +556,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var mapCanvasFrameDrawerActionHandler = _fixture();
             var mouseButtonEventArgs = ButtonClickFixture.Event(_mapCanvas);
-            _editMenuState.SetState((int)WindowMapEditMenuStateTypes.Add);
+            _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.AddFrame);
             _mapCanvas.RaiseEvent(mouseButtonEventArgs);
             Debug.Assert(_mapCanvas.Children.Count == 1);
             Debug.Assert(_mapCanvas.Children[0] is Canvas);
@@ -364,17 +577,61 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
+         * @brief Verifies that newly created frames have correct visual styling and dimensions
+         *
+         * When users create a new frame, all visual elements must have consistent and
+         * appropriate styling.
+         */
+        private void _testFrameCreatedWithCorrectAttributes()
+        {
+            var mapCanvasFrameDrawerActionHandler = _fixture();
+            var mouseButtonEventArgs = ButtonClickFixture.Event(_mapCanvas);
+            _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.AddFrame);
+            _mapCanvas.RaiseEvent(mouseButtonEventArgs);
+            var frameCanvas = (Canvas)_mapCanvas.Children[0];
+            var ellipses = frameCanvas.Children.OfType<Ellipse>().ToList();
+            var rectangle = frameCanvas.Children.OfType<Rectangle>().ToList();
+            var textBlock = frameCanvas.Children.OfType<TextBlock>().ToList();
+            for (int i = 0; i < ellipses.Count; i++)
+            {
+                Debug.Assert(ellipses[i].Fill == Brushes.GhostWhite);
+                Debug.Assert(ellipses[i].Stroke == Brushes.GhostWhite);
+                Debug.Assert(ellipses[i].StrokeThickness == 1);
+                Debug.Assert(ellipses[i].Height == 8.0);
+                Debug.Assert(ellipses[i].Width == 8.0);
+            }
+            if (rectangle[0].Fill is SolidColorBrush rectangleFill)
+            {
+                Debug.Assert(rectangleFill.Color.A == 40);
+                Debug.Assert(rectangleFill.Color.R == 0);
+                Debug.Assert(rectangleFill.Color.G == 0);
+                Debug.Assert(rectangleFill.Color.B == 255);
+                Debug.Assert(rectangle[0].Stroke == Brushes.GhostWhite);
+                Debug.Assert(rectangle[0].StrokeThickness == 1);
+                Debug.Assert(rectangle[0].Width == 0);
+                Debug.Assert(rectangle[0].Height == 0);
+                Debug.Assert(rectangle[0].Opacity == 1.0);
+            }
+            Debug.Assert(textBlock[0].Foreground == Brushes.GhostWhite);
+            Debug.Assert(textBlock[0].Background == Brushes.Transparent);
+            Debug.Assert(textBlock[0].FontFamily.ToString() == "Courier New");
+            Debug.Assert(textBlock[0].FontSize == 10.0);
+            Debug.Assert(textBlock[0].RenderTransform.Value.OffsetX == 0.0);
+            Debug.Assert(textBlock[0].RenderTransform.Value.OffsetY == -16.0);
+        }
+
+        /**
          * @brief Verifies that after creating a frame, the system enters dragging mode
          * 
          * When users click to create a new frame, the system should automatically
          * enter a dragging state so they can immediately adjust the frame's position
          * or size without clicking again.
          */
-        private void _testDragStateAfterAdding()
+        private void _testFrameDragStateAfterAdding()
         {
             var mapCanvasFrameDrawerActionHandler = _fixture();
             var mouseButtonEventArgs = ButtonClickFixture.Event(_mapCanvas);
-            _editMenuState.SetState((int)WindowMapEditMenuStateTypes.Add);
+            _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.AddFrame);
             Debug.Assert(!_editMenuState.Dragging());
             _mapCanvas.RaiseEvent(mouseButtonEventArgs);
             Debug.Assert(_editMenuState.Dragging());
@@ -387,16 +644,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * object in the editor. This allows immediate manipulation without having to
          * click on the frame again to select it.
          */
-        private void _testSelectedAfterAdding()
+        private void _testFrameSelectedAfterAdding()
         {
             var mapCanvasFrameDrawerActionHandler = _fixture();
             var mouseButtonEventArgs = ButtonClickFixture.Event(_mapCanvas);
-            _editMenuState.SetState((int)WindowMapEditMenuStateTypes.Add);
+            _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.AddFrame);
             Debug.Assert(_editMenuState.Selected() == null);
             _mapCanvas.RaiseEvent(mouseButtonEventArgs);
             Debug.Assert(_editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject);
             var selected = (WindowMapEditMenuFrameSelectedObject)_editMenuState.Selected()!;
-            Debug.Assert(selected.DragObject == _mapCanvas.Children[0]);
+            Debug.Assert(selected.FrameObject == _mapCanvas.Children[0]);
             Debug.Assert(selected.DragPoint!.Item1 == 123);
             Debug.Assert(selected.DragPoint.Item2 == 234);
         }
@@ -412,7 +669,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var mapCanvasFrameDrawerActionHandler = _fixture();
             var mouseButtonEventArgs = ButtonClickFixture.Event(_mapCanvas);
-            _editMenuState.SetState((int)WindowMapEditMenuStateTypes.Select);
+            _editMenuState.SetState((int)123);
             _mapCanvas.RaiseEvent(mouseButtonEventArgs);
             Debug.Assert(_mapCanvas.Children.Count == 0);
             Debug.Assert(!_editMenuState.Dragging());
@@ -422,8 +679,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         public void Run()
         {
             _testFrameCreatedAtClickedPoint();
-            _testDragStateAfterAdding();
-            _testSelectedAfterAdding();
+            _testFrameCreatedWithCorrectAttributes();
+            _testFrameDragStateAfterAdding();
+            _testFrameSelectedAfterAdding();
             _testFrameNotCreatedOnWrongMenuState();
         }
     }
@@ -450,30 +708,52 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             );
         }
 
-        /**
-         * @brief Verifies that clicking the center of a frame selects it
-         * 
-         * When users click on the interior (non-grip area) of a frame, the frame
-         * should become selected. Unlike grip clicks which enable resizing, center
-         * clicks simply select the frame without entering drag mode.
-         */
-        private void _testSelectingCenterOfFrameSelectsFrame()
+        private List<int> _menuStates()
         {
-            var _frameSelectStateActionHandler = _fixture(250, 250, MouseButtonState.Pressed);
-            var frame = FrameFixture.GenerateFrame(100, 100, 300, 300, _mapCanvas);
-            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
-            Debug.Assert(_editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject);
-            var selected = (WindowMapEditMenuFrameSelectedObject) _editMenuState.Selected()!;
-            Debug.Assert(selected.DragObject == frame);
-            Debug.Assert(selected.DragPoint == null);
+            return [(int) WindowMapEditFrameMenuStateTypes.SelectFrame, 123];
         }
 
         /**
-         * @brief Verifies that clicking a corner grip selects the frame for resizing
-         * 
-         * When users click on any of the four corner grips (TL, TR, BL, BR),
-         * the frame should become selected with the opposite grip identified
-         * as the anchor point for resizing operations.
+         * @brief Verifies center-clicking a frame selects it only in SelectFrame state,
+         * with null DragPoint for selection-only mode
+         *
+         * When users click the interior of a frame, the frame becomes selected without
+         * entering drag mode.
+         * Expected result: The frame is highlighted and ready for operations like
+         * deletion or property editing, but not actively being dragged.
+         */
+        private void _testSelectingCenterOfFrameSelectsFrame()
+        {
+            var menuStates = _menuStates();
+            for (int i = 0; i < menuStates.Count; i++)
+            {
+                var frameSelectStateActionHandler = _fixture(250, 250, MouseButtonState.Pressed);
+                var frame = FrameFixture.GenerateFrame(100, 100, 300, 300, _mapCanvas);
+                _editMenuState.SetState(menuStates[i]);
+                _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+                if (i == 0)
+                {
+                    Debug.Assert(_editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject);
+                    var selected = (WindowMapEditMenuFrameSelectedObject)_editMenuState.Selected()!;
+                    Debug.Assert(selected.FrameObject == frame);
+                    Debug.Assert(selected.DragPoint == null);
+                    Debug.Assert(selected.PointObject == null);
+                }
+                else
+                {
+                    Debug.Assert(_editMenuState.Selected() == null);
+                }
+            }
+        }
+
+        /**
+         * @brief Verifies clicking a corner grip selects frame with opposite grip as
+         * resize anchor, only works in selection-only mode
+         *
+         * When users click and drag a corner grip of a selected frame, the opposite
+         * corner remains fixed while the frame resizes.
+         * Expected result: The frame is in resize mode with the opposite grip
+         * identified as the anchor point.
          */
         private void _testSelectingGripOfFrameSetsDragState()
         {
@@ -491,25 +771,66 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 new Point(100, 400),
                 new Point(100, 100),
             };
+            var menuStates = _menuStates();
+            for (int i = 0; i < menuStates.Count; i++)
             foreach (var point in clickPoints)
             {
-                var _frameSelectStateActionHandler = _fixture(point.X, point.Y, MouseButtonState.Pressed);
+                var frameSelectStateActionHandler = _fixture(point.X, point.Y, MouseButtonState.Pressed);
                 var frame = FrameFixture.GenerateFrame(100, 100, 300, 300, _mapCanvas);
+                _editMenuState.SetState(menuStates[i]);
                 _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
-                Debug.Assert(_editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject);
-                var selected = (WindowMapEditMenuFrameSelectedObject)_editMenuState.Selected()!;
-                Debug.Assert(selected.DragObject == frame);
-                Debug.Assert(selected.DragPoint!.Item1 == oppositePoints[clickPoints.IndexOf(point)].X);
-                Debug.Assert(selected.DragPoint!.Item2 == oppositePoints[clickPoints.IndexOf(point)].Y);
+                if (i == 0)
+                {
+                    Debug.Assert(_editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject);
+                    var selected = (WindowMapEditMenuFrameSelectedObject)_editMenuState.Selected()!;
+                    Debug.Assert(selected.FrameObject == (i == 0 ? frame : null));
+                    Debug.Assert(selected.DragPoint!.Item1 == oppositePoints[clickPoints.IndexOf(point)].X);
+                    Debug.Assert(selected.DragPoint!.Item2 == oppositePoints[clickPoints.IndexOf(point)].Y);
+                    Debug.Assert(selected.PointObject == null);
+                }
+                else
+                {
+                    Debug.Assert(_editMenuState.Selected() == null);
+                }
             }
         }
 
         /**
-         * @brief Verifies that overlapping frames correctly select the topmost frame
-         * 
-         * When multiple frames overlap and users click on a grip that belongs to
-         * a lower frame but is visually overlapped by a higher frame, the system
-         * should select the topmost frame that contains the grip.
+         * @brief Verifies that clicking on a point marker within a frame enters drag mode,
+         * only in SelectFrame state
+         *
+         * When users click on a circular point marker that belongs to a frame, the system
+         * should automatically enter dragging mode to allow immediate repositioning of
+         * the point. Unlike clicking on a frame center (which only selects without dragging)
+         * or clicking a grip (which enables resize dragging), clicking a point enables
+         * drag mode for moving that specific point within its parent frame.
+         */
+        private void _testSelectingFramePointSetsDragState()
+        {
+            var menuStates = _menuStates();
+            for (int i = 0; i < menuStates.Count; i++)
+            {
+                var frameSelectStateActionHandler = _fixture(200, 200, MouseButtonState.Pressed);
+                var frame = FrameFixture.GenerateFrame(150, 150, 200, 200, _mapCanvas);
+                var framePoint = new WindowMapCanvasFramePointFactoryFacade().Create();
+                frame.Children.Add(framePoint);
+                Canvas.SetLeft(framePoint, 48);
+                Canvas.SetTop(framePoint, 48);
+                FrameFixture.UpdateFrameworkElement(framePoint);
+                _editMenuState.SetState(menuStates[i]);
+                _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+                Debug.Assert((i == 0) ? _editMenuState.Dragging() : !_editMenuState.Dragging());
+            }
+        }
+
+        /**
+         * @brief Verifies overlapping frames select the topmost frame containing the
+         * clicked grip, only works in selection-only mode
+         *
+         * When users click on an area where multiple frames overlap, the topmost frame
+         * that contains that point is selected.
+         * Expected result: The front-most frame receives the selection rather than a
+         * lower frame that may also claim that point.
          */
         private void _testSelectingGripUnderFrameSetsDragState()
         {
@@ -527,46 +848,114 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 new Point(150, 350),
                 new Point(350, 150),
             };
+            var menuStates = _menuStates();
+            for (int i = 0; i < menuStates.Count; i++)
             foreach (var point in clickPoints)
             {
-                var _frameSelectStateActionHandler = _fixture(point.X, point.Y, MouseButtonState.Pressed);
+                var frameSelectStateActionHandler = _fixture(point.X, point.Y, MouseButtonState.Pressed);
                 var frame1 = FrameFixture.GenerateFrame(150, 150, 200, 200, _mapCanvas);
                 var frame2 = FrameFixture.GenerateFrame(100, 100, 300, 300, _mapCanvas);
+                _editMenuState.SetState(menuStates[i]);
                 _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
-                Debug.Assert(_editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject);
-                var selected = (WindowMapEditMenuFrameSelectedObject)_editMenuState.Selected()!;
-                Debug.Assert(selected.DragObject == frame1);
-                Debug.Assert(selected.DragPoint!.Item1 == oppositePoints[clickPoints.IndexOf(point)].X);
-                Debug.Assert(selected.DragPoint!.Item2 == oppositePoints[clickPoints.IndexOf(point)].Y);
+                if (i == 0)
+                {
+                    Debug.Assert(_editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject);
+                    var selected = (WindowMapEditMenuFrameSelectedObject)_editMenuState.Selected()!;
+                    Debug.Assert(selected.FrameObject == frame1);
+                    Debug.Assert(selected.DragPoint!.Item1 == oppositePoints[clickPoints.IndexOf(point)].X);
+                    Debug.Assert(selected.DragPoint!.Item2 == oppositePoints[clickPoints.IndexOf(point)].Y);
+                    Debug.Assert(selected.PointObject == null);
+                }
+                else
+                {
+                    Debug.Assert(_editMenuState.Selected() == null);
+                }
             }
         }
 
         /**
-         * @brief Verifies that clicking outside a frame deselects it
-         * 
-         * When users click on empty canvas space (not on any frame or grip),
-         * the currently selected frame should become deselected.
+         * @brief Verifies clicking empty canvas space deselects current frame,
+         * only works in selection-only mode
+         *
+         * When users click on blank canvas area away from any frame or grip, the
+         * currently selected frame becomes deselected.
+         * Expected result: No frame remains selected, allowing the user to start a
+         * new selection.
          */
         private void _testSelectingOutsideOfFrameDeselectsFrame()
         {
-            var _frameSelectStateActionHandler = _fixture(50, 50, MouseButtonState.Pressed);
-            var frame = FrameFixture.GenerateFrame(100, 100, 300, 300, _mapCanvas);
-            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject());
-            _editMenuState.SetDragging(false);
-            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
-            Debug.Assert(_editMenuState.Selected() == null);
-            Debug.Assert(!_editMenuState.Dragging());
+            var menuStates = _menuStates();
+            for (int i = 0; i < menuStates.Count; i++)
+            {
+                var frameSelectStateActionHandler = _fixture(50, 50, MouseButtonState.Pressed);
+                var frame = FrameFixture.GenerateFrame(100, 100, 300, 300, _mapCanvas);
+                var selectedObject = new WindowMapEditMenuFrameSelectedObject();
+                _editMenuState.SetState(menuStates[i]);
+                _editMenuState.Select(selectedObject);
+                _editMenuState.SetDragging(false);
+                _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+                if (i == 0)
+                {
+                    Debug.Assert(_editMenuState.Selected() == null);
+                    Debug.Assert(!_editMenuState.Dragging());
+                }
+                else
+                {
+                    Debug.Assert(_editMenuState.Selected() == selectedObject);
+                }
+            }
         }
 
         /**
-         * @brief Verifies that releasing the mouse button exits drag mode
-         * 
-         * When users release the left mouse button after dragging a frame or grip,
-         * the system should exit drag mode while keeping the frame selected.
+         * @brief Verifies that clicking on a point marker within a frame selects the frame
+         * with the specific point identified, only in SelectFrame state
+         *
+         * When users click on a circular point marker that belongs to a frame, the system
+         * should select the parent frame and also record which specific point was clicked.
+         * The selection includes both the frame object and the point object,
+         * but no drag point since point selection is for editing rather than resizing.
+         */
+        private void _testSelectingFramePointWhenClicked()
+        {
+            var menuStates = _menuStates();
+            for (int i = 0; i < menuStates.Count; i++)
+            {
+                var frameSelectStateActionHandler = _fixture(200, 200, MouseButtonState.Pressed);
+                var frame = FrameFixture.GenerateFrame(150, 150, 200, 200, _mapCanvas);
+                var framePoint = new WindowMapCanvasFramePointFactoryFacade().Create();
+                frame.Children.Add(framePoint);
+                Canvas.SetLeft(framePoint, 48);
+                Canvas.SetTop(framePoint, 48);
+                FrameFixture.UpdateFrameworkElement(framePoint);
+                _editMenuState.SetState(menuStates[i]);
+                _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+                if (i == 0)
+                {
+                    Debug.Assert(_editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject);
+                    var selected = (WindowMapEditMenuFrameSelectedObject)_editMenuState.Selected()!;
+                    Debug.Assert(selected.FrameObject == frame);
+                    Debug.Assert(selected.PointObject == framePoint);
+                    Debug.Assert(selected.DragPoint == null);
+                }
+                else
+                {
+                    Debug.Assert(_editMenuState.Selected() == null);
+                }
+            }
+        }
+
+        /**
+         * @brief Verifies releasing mouse button exits drag mode while keeping frame
+         * selected
+         *
+         * When users release the mouse button after dragging or resizing a frame, the
+         * drag operation ends.
+         * Expected result: The frame remains selected but is no longer in drag mode,
+         * ready for the next user action.
          */
         private void _testReleasingMouseUnsetsDragState()
         {
-            var _frameSelectStateActionHandler = _fixture(50, 50, MouseButtonState.Released);
+            var frameSelectStateActionHandler = _fixture(50, 50, MouseButtonState.Released);
             var frame = FrameFixture.GenerateFrame(100, 100, 300, 300, _mapCanvas);
             var selectedObject = new WindowMapEditMenuFrameSelectedObject();
             _editMenuState.Select(selectedObject);
@@ -578,10 +967,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         public void Run()
         {
+
             _testSelectingCenterOfFrameSelectsFrame();
             _testSelectingGripOfFrameSetsDragState();
+            _testSelectingFramePointSetsDragState();
             _testSelectingGripUnderFrameSetsDragState();
             _testSelectingOutsideOfFrameDeselectsFrame();
+            _testSelectingFramePointWhenClicked();
             _testReleasingMouseUnsetsDragState();
         }
     }
@@ -654,7 +1046,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _editMenuState.Select(
                     new WindowMapEditMenuFrameSelectedObject
                     {
-                        DragObject = frame,
+                        FrameObject = frame,
                         DragPoint = new Tuple<double, double>(anchorPoint.X, anchorPoint.Y)
                     }
                 );
@@ -697,7 +1089,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _editMenuState.Select(
                     new WindowMapEditMenuFrameSelectedObject
                     {
-                        DragObject = frame,
+                        FrameObject = frame,
                         DragPoint = new Tuple<double, double>(anchorPoint.X, anchorPoint.Y)
                     }
                 );
@@ -736,7 +1128,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _editMenuState.Select(
                     new WindowMapEditMenuFrameSelectedObject
                     {
-                        DragObject = frame,
+                        FrameObject = frame,
                         DragPoint = new Tuple<double, double>(anchorPoint.X, anchorPoint.Y)
                     }
                 );
@@ -784,7 +1176,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _editMenuState.Select(
                     new WindowMapEditMenuFrameSelectedObject
                     {
-                        DragObject = frame,
+                        FrameObject = frame,
                         DragPoint = new Tuple<double, double>(anchorPoint.X, anchorPoint.Y)
                     }
                 );
@@ -847,7 +1239,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 for (int k = 0; k < i; k++)
                 {
                     var frame = FrameFixture.GenerateFrame(0, 0, 100, 100, _mapCanvas);
-                    _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { DragObject = frame });
+                    _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { FrameObject = frame });
                     _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
                     Debug.Assert(frame.Tag is MapCanvasRuneFrameDataTag);
                     var tag = (MapCanvasRuneFrameDataTag)frame.Tag;
@@ -876,7 +1268,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.AddFrame);
             _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
             var frame = FrameFixture.GenerateFrame(0, 0, 100, 100, _mapCanvas);
-            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { DragObject = frame });
+            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { FrameObject = frame });
             _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
             var textBlock = frame.Children.OfType<TextBlock>().ToList()[0];
             var tag = (MapCanvasRuneFrameDataTag)frame.Tag;
@@ -901,7 +1293,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.AddFrame);
             _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
             var frame = FrameFixture.GenerateFrame(123, 234, 100, 100, _mapCanvas);
-            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { DragObject = frame });
+            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { FrameObject = frame });
             _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
             var textBlock = frame.Children.OfType<TextBlock>().ToList()[0];
             var tag = (MapCanvasRuneFrameDataTag)frame.Tag;
@@ -926,7 +1318,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.SelectFrame);
             _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
             var frame = FrameFixture.GenerateFrame(123, 234, 100, 100, _mapCanvas);
-            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { DragObject = frame });
+            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { FrameObject = frame });
             _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
             Debug.Assert(frame.Tag is null);
             Debug.Assert(_bottingModel.GetRuneModel().RuneFrames().Count == 0);
@@ -990,7 +1382,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var _frameSelectedTextActionHandler = _fixture();
             var frame = FrameFixture.GenerateFrame(123, 234, 345, 456, _mapCanvas);
             frame.Tag = new MapCanvasRuneFrameDataTag{ FrameName = "F0" };
-            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject{ DragObject = frame });
+            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject{ FrameObject = frame });
             _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
             Debug.Assert(_selectedTextLabel.Text == "F0");
             Debug.Assert(_selectedTextLeft.Text == "123");
@@ -1014,7 +1406,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 var _frameSelectedTextActionHandler = _fixture();
                 var frame = FrameFixture.GenerateFrame(123, 234, 345, 456, _mapCanvas);
                 frame.Tag = new MapCanvasRuneFrameDataTag { FrameName = "F0" };
-                _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { DragObject = frame });
+                _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { FrameObject = frame });
                 _editMenuState.SetDragging(i == 1);
                 _selectedTextLabel.Text = "1";
                 _selectedTextLeft.Text = "2";
@@ -1098,16 +1490,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 var frame = FrameFixture.GenerateFrame(12, 23, 34, 45, _mapCanvas);
                 frame.Tag = new MapCanvasRuneFrameDataTag { ElementLabel = "FT0" };
                 var runeFrameData = new RuneFrameData { ElementLabel = "FT0" };
-                var runeFrame = new RuneFrame
-                {
-                    X = 1,
-                    Y = 1,
-                    Width = 1,
-                    Height = 1,
-                    FrameData = runeFrameData
-                };
+                var runeFrame = new RuneFrame { X = 1, Y = 1, Width = 1, Height = 1, FrameData = runeFrameData };
                 _bottingModel.GetRuneModel().AddRuneFrame(runeFrame);
-                _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { DragObject = frame });
+                _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { FrameObject = frame });
                 _editMenuState.SetDragging(i == 1);
                 _mapCanvas.RaiseEvent(MouseMoveFixture.Event(_mapCanvas));
                 Debug.Assert(runeFrame.X == (i == 1 ? 12 : 1));
@@ -1124,11 +1509,574 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    public class WindowMapCanvasFrameRemoveActionHandlerTests
+    {
+        private Canvas _mapCanvas = new Canvas();
+
+        private AbstractWindowMapEditMenuState _editMenuState = new WindowMapEditMenuState();
+
+        private MockMouseEventDataExtractor _mousePositionExtractor = new MockMouseEventDataExtractor();
+
+        private BottingModel _bottingModel = new BottingModel();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _mapCanvas = new Canvas();
+            _editMenuState = new WindowMapEditMenuState();
+            _mousePositionExtractor = new MockMouseEventDataExtractor();
+            _bottingModel = new BottingModel();
+            return new WindowMapCanvasFrameRemoveActionHandlerFacade(
+                _mapCanvas,
+                _editMenuState,
+                _mousePositionExtractor
+            );
+        }
+
+        private List<Point> _removeClickPositions()
+        {
+            return [
+                new Point(150, 150),
+                new Point(100, 100),
+                new Point(300, 100),
+                new Point(100, 300),
+                new Point(300, 300),
+            ];
+        }
+
+        /**
+         * @brief Verifies clicking on a frame removes both the visual frame from canvas
+         * and its corresponding data model when in RemoveFrame state, while preserving
+         * the current selection state
+         *
+         * When users click on any area of a frame (center, edges) while the edit menu is
+         * in RemoveFrame state, the frame is deleted from the canvas and its associated
+         * RuneFrame is removed from the botting model. The currently selected frame
+         * remains selected and unchanged, as removal of a different frame should not
+         * affect the existing selection.
+         */
+        private void _testClickingFrameRemovesClickedFrame()
+        {
+            var clickPositions = _removeClickPositions();
+            foreach (var clickPosition in clickPositions)
+            {
+                var frameRemoveActionHandler = _fixture();
+                frameRemoveActionHandler.Inject(SystemInjectType.BottingModel, _bottingModel);
+                var frame = FrameFixture.GenerateFrame(100, 100, 200, 200, _mapCanvas);
+                var selectedFrame = FrameFixture.GenerateFrame(0, 0, 10, 10, _mapCanvas);
+                var selectedObject = new WindowMapEditMenuFrameSelectedObject { FrameObject = selectedFrame };
+                frame.Tag = new MapCanvasRuneFrameDataTag { ElementLabel = "FT0" };
+                var runeFrame = new RuneFrame { FrameData = new RuneFrameData { ElementLabel = "FT0" } };
+                _bottingModel.GetRuneModel().AddRuneFrame(runeFrame);
+                _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.RemoveFrame);
+                _editMenuState.Select(selectedObject);
+                _mousePositionExtractor.GetPositionReturn.Add(clickPosition);
+                _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+                Debug.Assert(_mapCanvas.Children.Count == 1);
+                Debug.Assert(_mapCanvas.Children[0] == selectedFrame);
+                Debug.Assert(_bottingModel.GetRuneModel().RuneFrames().Count == 0);
+                Debug.Assert(_editMenuState.Selected() == selectedObject);
+                Debug.Assert(selectedObject.FrameObject == selectedFrame);
+            }
+        }
+
+        /**
+         * @brief Verifies that when a frame is removed, it is automatically deselected
+         * from the edit menu state
+         *
+         * When users click on a frame to remove it while the edit menu is in RemoveFrame
+         * state, and that frame is currently selected, the system clears the selection
+         * after removal since the selected frame no longer exists on the canvas.
+         */
+        private void _testClickingFrameDeselectsRemovedFrame()
+        {
+            var frameRemoveActionHandler = _fixture();
+            frameRemoveActionHandler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            var frame = FrameFixture.GenerateFrame(100, 100, 100, 100, _mapCanvas);
+            frame.Tag = new MapCanvasRuneFrameDataTag { ElementLabel = "FT0" };
+            var runeFrame = new RuneFrame { FrameData = new RuneFrameData { ElementLabel = "FT0" } };
+            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { FrameObject = frame });
+            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame);
+            _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.RemoveFrame);
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(150, 150));
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            Debug.Assert(_editMenuState.Selected() == null);
+        }
+
+        /**
+         * @brief Verifies that removing a frame also clears all references to that frame
+         * from other frames' macros
+         *
+         * When users remove a frame that is referenced by another frame's NextRuneFrame
+         * macro, those references are set to null to prevent orphaned references.
+         * Expected result: Any macro that previously pointed to the removed frame now
+         * contains a null reference instead of a dangling reference.
+         */
+        private void _testClickingFrameRemovesFrameReferences()
+        {
+            var frameRemoveActionHandler = _fixture();
+            frameRemoveActionHandler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            var frame1 = FrameFixture.GenerateFrame(100, 100, 100, 100, _mapCanvas);
+            var frame2 = FrameFixture.GenerateFrame(200, 100, 100, 100, _mapCanvas);
+            frame1.Tag = new MapCanvasRuneFrameDataTag { ElementLabel = "FT0" };
+            frame2.Tag = new MapCanvasRuneFrameDataTag { ElementLabel = "FT1" };
+            var runeFrame1 = new RuneFrame
+            {
+                FrameData = new RuneFrameData { ElementLabel = "FT0" }
+            };
+            var runeFrame2 = new RuneFrame
+            {
+                FrameData = new RuneFrameData
+                {
+                    ElementLabel = "FT0",
+                    RuneFrameMacros = [new RuneFrameMacros{NextRuneFrame = runeFrame1}]
+                }
+            };
+            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame1);
+            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame2);
+            _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.RemoveFrame);
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(150, 150));
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            Debug.Assert(runeFrame2.FrameData.RuneFrameMacros[0].NextRuneFrame == null);
+        }
+
+        /**
+         * @brief Verifies that when multiple frames overlap at the click position,
+         * only the topmost frame is removed
+         *
+         * When users click on an area where multiple frames overlap in RemoveFrame mode,
+         * the system removes the topmost frame (lowest Z-order) at that position.
+         * Expected result: The top frame remains on the canvas and in the data model,
+         * while only the bottom frame is deleted.
+         */
+        private void _testClickingFrameRemovesTopFrame()
+        {
+            var frameRemoveActionHandler = _fixture();
+            frameRemoveActionHandler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            var frame1 = FrameFixture.GenerateFrame(100, 100, 100, 100, _mapCanvas);
+            var frame2 = FrameFixture.GenerateFrame(100, 100, 100, 100, _mapCanvas);
+            Panel.SetZIndex(frame1, 0);
+            Panel.SetZIndex(frame2, 1);
+            frame1.Tag = new MapCanvasRuneFrameDataTag { ElementLabel = "FT0" };
+            frame2.Tag = new MapCanvasRuneFrameDataTag { ElementLabel = "FT1" };
+            var runeFrame1 = new RuneFrame { FrameData = new RuneFrameData { ElementLabel = "FT0" } };
+            var runeFrame2 = new RuneFrame { FrameData = new RuneFrameData { ElementLabel = "FT1" } };
+            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame1);
+            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame2);
+            _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.RemoveFrame);
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(150, 150));
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            Debug.Assert(_mapCanvas.Children.Count == 1);
+            Debug.Assert(_mapCanvas.Children[0] == frame2);
+            Debug.Assert(_bottingModel.GetRuneModel().RuneFrames().Count == 1);
+            Debug.Assert(_bottingModel.GetRuneModel().RuneFrames()[0].FrameData.ElementLabel == "FT1");
+        }
+
+        /**
+         * @brief Verifies that frame removal only occurs when edit menu is in
+         * RemoveFrame state
+         *
+         * When users click on a frame while the edit menu is in any state other than
+         * RemoveFrame, the frame remains on the canvas and the data model is unchanged.
+         * Expected result: The frame persists in both the canvas children collection
+         * and the rune model after clicking.
+         */
+        private void _testClickingFrameDoesntRemoveWhenNotRemoving()
+        {
+            var frameRemoveActionHandler = _fixture();
+            frameRemoveActionHandler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            var frame = FrameFixture.GenerateFrame(100, 100, 100, 100, _mapCanvas);
+            frame.Tag = new MapCanvasRuneFrameDataTag { ElementLabel = "FT0" };
+            var runeFrame = new RuneFrame { FrameData = new RuneFrameData { ElementLabel = "FT0" } };
+            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame);
+            _editMenuState.SetState(123);
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(150, 150));
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            Debug.Assert(_mapCanvas.Children.Count == 1);
+            Debug.Assert(_mapCanvas.Children[0] == frame);
+            Debug.Assert(_bottingModel.GetRuneModel().RuneFrames().Count == 1);
+            Debug.Assert(_bottingModel.GetRuneModel().RuneFrames()[0].FrameData.ElementLabel == "FT0");
+        }
+
+        /**
+         * @brief Verifies that clicking on empty canvas space does not remove any frame
+         * when in RemoveFrame state
+         *
+         * When users click on an area of the canvas that is not occupied by any frame
+         * while the edit menu is in RemoveFrame state, no deletion occurs and all
+         * frames remain intact on the canvas and in the data model.
+         */
+        private void _testClickingFrameOutsideDoesntRemoveFrame()
+        {
+            var frameRemoveActionHandler = _fixture();
+            frameRemoveActionHandler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            var frame = FrameFixture.GenerateFrame(100, 100, 100, 100, _mapCanvas);
+            frame.Tag = new MapCanvasRuneFrameDataTag { ElementLabel = "FT0" };
+            var runeFrame = new RuneFrame { FrameData = new RuneFrameData { ElementLabel = "FT0" } };
+            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame);
+            _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.RemoveFrame);
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(300, 300));
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            Debug.Assert(_mapCanvas.Children.Count == 1);
+            Debug.Assert(_mapCanvas.Children[0] == frame);
+            Debug.Assert(_bottingModel.GetRuneModel().RuneFrames().Count == 1);
+            Debug.Assert(_bottingModel.GetRuneModel().RuneFrames()[0].FrameData.ElementLabel == "FT0");
+        }
+
+        public void Run()
+        {
+            _testClickingFrameRemovesClickedFrame();
+            _testClickingFrameDeselectsRemovedFrame();
+            _testClickingFrameRemovesFrameReferences();
+            _testClickingFrameRemovesTopFrame();
+            _testClickingFrameDoesntRemoveWhenNotRemoving();
+            _testClickingFrameOutsideDoesntRemoveFrame();
+        }
+    }
+
+
+    public class WindowMapCanvasFrameButtonAccessActionHandlerTests
+    {
+        private Canvas _mapCanvas = new Canvas();
+
+        private List<ButtonBase> _accessButtons = [];
+
+        private AbstractWindowMapEditMenuState _editMenuState = new WindowMapEditMenuState();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _mapCanvas = new Canvas();
+            _accessButtons = [new Button(), new Button(), new Button()];
+            _editMenuState = new WindowMapEditMenuState();
+            return new WindowMapCanvasFrameButtonAccessActionHandlerFacade(
+                _mapCanvas, _accessButtons, _editMenuState
+            );
+        }
+
+        /**
+         * @brief Verifies that access buttons become enabled when a frame is selected
+         *
+         * When a user selects a frame on the canvas, any associated action buttons
+         * (such as edit, delete, or properties buttons) should become enabled to allow
+         * operations on the selected frame. The buttons remain disabled until a frame
+         * is selected.
+         */
+        private void _testAccessButtonsEnabledOnSelect()
+        {
+            var frameButtonAccessActionHandler = _fixture();
+            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject());
+            foreach (var button in _accessButtons)
+            {
+                button.IsEnabled = false;
+            }
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            foreach (var button in _accessButtons)
+            {
+                Debug.Assert(button.IsEnabled);
+            }
+        }
+
+        /**
+         * @brief Verifies that access buttons become disabled when no frame is selected
+         *
+         * When a user deselects a frame (by clicking empty canvas space or removing
+         * the selected frame), any associated action buttons should become disabled
+         * since there is no active frame to operate on. This prevents invalid actions
+         * on non-existent selections.
+         */
+        private void _testAccessButtonsDisabledOnDeselect()
+        {
+            var frameButtonAccessActionHandler = _fixture();
+            foreach (var button in _accessButtons)
+            {
+                button.IsEnabled = true;
+            }
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            foreach (var button in _accessButtons)
+            {
+                Debug.Assert(!button.IsEnabled);
+            }
+        }
+
+        public void Run()
+        {
+            _testAccessButtonsEnabledOnSelect();
+            _testAccessButtonsDisabledOnDeselect();
+        }
+    }
+
+
+    public class WindowMapCanvasFramePointDrawerActionHandlerTests
+    {
+        private Canvas _mapCanvas = new Canvas();
+
+        private AbstractWindowMapEditMenuState _editMenuState = new WindowMapEditMenuState();
+
+        private MockMouseEventDataExtractor _mousePositionExtractor = new MockMouseEventDataExtractor();
+
+        private AbstractBottingModel _bottingModel = new BottingModel();
+
+        private AbstractWindowActionHandler _fixture(double x, double y)
+        {
+            _mapCanvas = new Canvas { Width = 300, Height = 300 };
+            _editMenuState = new WindowMapEditMenuState();
+            _mousePositionExtractor = new MockMouseEventDataExtractor();
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(x, y));
+            _bottingModel = new BottingModel();
+            var handler = new WindowMapCanvasFramePointDrawerActionHandlerFacade(
+                _mapCanvas,
+                _editMenuState,
+                _mousePositionExtractor
+            );
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            return handler;
+        }
+
+        private RuneFrame _addFrameFixture(
+            Rect frameRect,
+            FrameworkElement frame,
+            string elementLabel,
+            string frameName
+        )
+        {
+            frame.Tag = new MapCanvasRuneFrameDataTag
+            {
+                ElementLabel = elementLabel,
+                FrameName = frameName
+            };
+            var runeFrame = new RuneFrame
+            {
+                X = frameRect.X,
+                Y = frameRect.Y,
+                Width = frameRect.Width,
+                Height = frameRect.Height,
+                FrameData = new RuneFrameData
+                {
+                    ElementTexts = [],
+                    ElementLabel = elementLabel,
+                    FrameName = frameName,
+                    RuneFrameMacros = []
+                }
+            };
+            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame);
+            return runeFrame;
+        }
+
+        private List<int> _editMenuStates()
+        {
+            return [
+                (int) WindowMapEditFrameMenuStateTypes.AddPoint, 123
+            ];
+        }
+
+        /**
+         * @brief Verifies that clicking inside a selected frame while in AddPoint mode
+         * creates a point marker at the relative click location within the frame
+         *
+         * When users click inside a selected frame while the edit menu is in AddPoint
+         * state, the system creates a visual point marker (Canvas) positioned relative
+         * to the frame's top-left corner. The point's coordinates are local.
+         */
+        private void _testClickingSelectedFrameAddsPointAtClickedLocation()
+        {
+            var editMenuStates = _editMenuStates();
+            foreach (var state in editMenuStates)
+            {
+                var frameRect = new Rect(100, 100, 123, 234);
+                var framePointDrawerActionHandler = _fixture(150, 150);
+                var frame = FrameFixture.GenerateFrame(frameRect, _mapCanvas);
+                var runeFrame = _addFrameFixture(frameRect, frame, "FT0", "F0");
+                _editMenuState.SetState(state);
+                _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { FrameObject = frame });
+                _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+                var frameCanvases = frame.Children.OfType<Canvas>();
+                if (state == (int) WindowMapEditFrameMenuStateTypes.AddPoint)
+                {
+                    Debug.Assert(frameCanvases.Count() == 1);
+                    if (frameCanvases.First() is Canvas framePoint)
+                    {
+                        Debug.Assert(framePoint.Name is WindowMapCanvasFrameTypes.POINT);
+                        Debug.Assert(Canvas.GetLeft(framePoint) == 50);
+                        Debug.Assert(Canvas.GetTop(framePoint) == 50);
+                        var macros = runeFrame.FrameData.RuneFrameMacros;
+                        Debug.Assert(macros.Count == 1);
+                        Debug.Assert(macros[0].X == 50);
+                        Debug.Assert(macros[0].Y == 50);
+                        Debug.Assert(macros[0].ScaleX == 123);
+                        Debug.Assert(macros[0].ScaleY == 234);
+                    }
+                }
+                else
+                {
+                    Debug.Assert(frameCanvases.Count() == 0);
+                }
+            }
+        }
+
+        /**
+         * @brief Verifies that point markers created in AddPoint mode have the correct
+         * visual appearance for their grip (center circle)
+         *
+         * When users add a point to a selected frame, the point marker's circular grip
+         * (center dot) must have consistent styling.
+         */
+        private void _testClickingSelectedFrameAddsCorrectPointGrip()
+        {
+            var frameRect = new Rect(100, 100, 100, 100);
+            var framePointDrawerActionHandler = _fixture(150, 150);
+            var frame = FrameFixture.GenerateFrame(frameRect, _mapCanvas);
+            _addFrameFixture(frameRect, frame, "FT0", "F0");
+            _editMenuState.SetState((int) WindowMapEditFrameMenuStateTypes.AddPoint);
+            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { FrameObject = frame });
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            var frameCanvases = frame.Children.OfType<Canvas>();
+            var pointEllipses = frameCanvases.First().Children.OfType<Ellipse>();
+            Debug.Assert(pointEllipses.Count() == 1);
+            if (
+                pointEllipses.First() is Ellipse pointEllipse
+                && pointEllipse.Fill is SolidColorBrush pointEllipseFill
+            )
+            {
+                Debug.Assert(pointEllipseFill.Color.A == 255);
+                Debug.Assert(pointEllipseFill.Color.R == 0);
+                Debug.Assert(pointEllipseFill.Color.G == 255);
+                Debug.Assert(pointEllipseFill.Color.B == 0);
+                Debug.Assert(pointEllipse.Stroke == Brushes.Transparent);
+                Debug.Assert(pointEllipse.StrokeThickness == 1);
+                Debug.Assert(pointEllipse.Width == 10);
+                Debug.Assert(pointEllipse.Height == 10);
+            }
+        }
+
+        /**
+         * @brief Verifies that point markers created in AddPoint mode have the correct
+         * visual appearance for their label
+         *
+         * When users add a point to a selected frame, the point marker's text label
+         * must have consistent styling.
+         */
+        private void _testClickingSelectedFrameAddsCorrectPointLabel()
+        {
+            var frameRect = new Rect(100, 100, 100, 100);
+            var framePointDrawerActionHandler = _fixture(150, 150);
+            var frame = FrameFixture.GenerateFrame(frameRect, _mapCanvas);
+            _addFrameFixture(frameRect, frame, "FT0", "F0");
+            _editMenuState.SetState((int) WindowMapEditFrameMenuStateTypes.AddPoint);
+            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { FrameObject = frame });
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            var frameCanvases = frame.Children.OfType<Canvas>();
+            var pointLabels = frameCanvases.First().Children.OfType<TextBlock>();
+            Debug.Assert(pointLabels.Count() == 1);
+            if (pointLabels.First() is TextBlock pointLabel)
+            {
+                Debug.Assert(pointLabel.FontFamily.ToString() == "Courier New");
+                Debug.Assert(pointLabel.FontSize == 10);
+                Debug.Assert(pointLabel.RenderTransform.Value.OffsetX == 0);
+                Debug.Assert(pointLabel.RenderTransform.Value.OffsetY == -16);
+                Debug.Assert(pointLabel.Foreground == Brushes.GhostWhite);
+                Debug.Assert(pointLabel.Background == Brushes.Transparent);
+            }
+        }
+
+        /**
+         * @brief Verifies that clicking inside an unselected frame does not create a point
+         * marker, even when in AddPoint mode
+         *
+         * When users click inside a frame that is not currently selected while the edit
+         * menu is in AddPoint state, the system should not add a point to that frame.
+         * Points should only be added to the frame that is actively selected, preventing
+         * accidental point creation in non-target frames.
+         */
+        private void _testClickingUnselectedFrameDoesntAddPointAtClickedLocation()
+        {
+            var framePointDrawerActionHandler = _fixture(100, 100);
+            var frame1 = FrameFixture.GenerateFrame(new Rect(50, 50, 100, 100), _mapCanvas);
+            var frame2 = FrameFixture.GenerateFrame(new Rect(150, 150, 100, 100), _mapCanvas);
+            _addFrameFixture(new Rect(50, 50, 100, 100), frame1, "FT0", "F0");
+            _addFrameFixture(new Rect(150, 150, 100, 100), frame2, "FT1", "F1");
+            _editMenuState.SetState((int) WindowMapEditFrameMenuStateTypes.AddPoint);
+            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { FrameObject = frame2 });
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            Debug.Assert(_mapCanvas.Children.OfType<Canvas>().Count() == 2);
+            Debug.Assert(frame1.Children.OfType<Canvas>().Count() == 0);
+            Debug.Assert(frame2.Children.OfType<Canvas>().Count() == 0);
+        }
+
+        /**
+         * @brief Verifies that clicking on empty canvas space does not create a point
+         * marker, even when a frame is selected and in AddPoint mode
+         *
+         * When users click on blank canvas area away from any frame while the edit menu
+         * is in AddPoint state and a frame is selected, the system should not create
+         * a point marker. Points must be created exclusively within the bounds of the
+         * selected frame to maintain valid point-frame associations.
+         */
+        private void _testClickingEmptyCanvasDoesntAddPointAtClickedLocation()
+        {
+            var framePointDrawerActionHandler = _fixture(100, 100);
+            var frame = FrameFixture.GenerateFrame(new Rect(150, 150, 100, 100), _mapCanvas);
+            _addFrameFixture(new Rect(150, 150, 100, 100), frame, "FT0", "F0");
+            _editMenuState.SetState((int) WindowMapEditFrameMenuStateTypes.AddPoint);
+            _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { FrameObject = frame });
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            Debug.Assert(_mapCanvas.Children.OfType<Canvas>().Count() == 1);
+            Debug.Assert(frame.Children.OfType<Canvas>().Count() == 0);
+        }
+
+        /**
+         * @brief Verifies that multiple points added to the same frame receive unique
+         * sequential macro names (M0, M1, M2, etc.)
+         *
+         * When users add multiple points to a selected frame in AddPoint mode, each
+         * point should be assigned a unique macro name following a sequential pattern
+         * (M0 for the first point, M1 for the second, etc.). This ensures each point
+         * can be uniquely identified and referenced.
+         */
+        private void _testClickingSelectedFrameAddsUniqueFramePointMacroNames()
+        {
+            for (int i = 1; i <= 10; i++)
+            {
+                var framePointDrawerActionHandler = _fixture(100, 100);
+                var frame = FrameFixture.GenerateFrame(new Rect(50, 50, 100, 100), _mapCanvas);
+                var runeFrame = _addFrameFixture(new Rect(150, 150, 100, 100), frame, "FT0", "F0");
+                _editMenuState.SetState((int) WindowMapEditFrameMenuStateTypes.AddPoint);
+                _editMenuState.Select(new WindowMapEditMenuFrameSelectedObject { FrameObject = frame });
+                for (int j = 0; j < i; j++)
+                {
+                    _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+                    _mousePositionExtractor.GetPositionReturn.Add(new Point(100, 100));
+                }
+                var framePoints = frame.Children.OfType<Canvas>();
+                Debug.Assert(framePoints.Count() == i);
+                for (int j = 0; j < i; j++)
+                {
+                    var point = framePoints.ElementAt(j);
+                    var textBlock = point.Children.OfType<TextBlock>().ToList()[0];
+                    var macros = runeFrame.FrameData.RuneFrameMacros;
+                    Debug.Assert(textBlock.Text == "M" + j.ToString());
+                    Debug.Assert(macros.Find((m) => m.MacroName == "M" + j.ToString()) != null);
+                }
+            }
+        }
+
+        public void Run()
+        {
+            _testClickingSelectedFrameAddsPointAtClickedLocation();
+            _testClickingSelectedFrameAddsCorrectPointGrip();
+            _testClickingSelectedFrameAddsCorrectPointLabel();
+            _testClickingUnselectedFrameDoesntAddPointAtClickedLocation();
+            _testClickingEmptyCanvasDoesntAddPointAtClickedLocation();
+            _testClickingSelectedFrameAddsUniqueFramePointMacroNames();
+        }
+    }
+
+
     public class WindowMapEditorRuneHandlersTestSuite
     {
         public void Run()
         {
+            new MapCanvasAddFrameButtonActionHandlerTests().Run();
             new MapCanvasAddFramePointButtonActionHandlerTests().Run();
+            new MapCanvasRemoveFrameButtonActionHandlerTests().Run();
             new MapCanvasRemoveFramePointButtonActionHandlerTests().Run();
             new WindowMapCanvasFrameDrawerActionHandlerTests().Run();
             new WindowMapCanvasFrameSelectStateActionHandlerTests().Run();
@@ -1136,7 +2084,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMapCanvasFrameDataActionHandlerTests().Run();
             new WindowMapCanvasFrameSelectedTextActionHandlerTests().Run();
             new WindowMapCanvasFrameSelectedDragDataActionHandlerTests().Run();
+            new WindowMapCanvasFrameRemoveActionHandlerTests().Run();
+            new WindowMapCanvasFrameButtonAccessActionHandlerTests().Run();
+            new WindowMapCanvasFramePointDrawerActionHandlerTests().Run();
         }
     }
 }
-

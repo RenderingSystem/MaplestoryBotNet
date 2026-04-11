@@ -541,7 +541,7 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
 
         private ToggleButton _removePointButton;
 
-        private Button _editBUtton;
+        private Button _editButton;
 
         private TextBox _frameTextBoxLeft;
 
@@ -600,7 +600,7 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             _removeButton = removeButton;
             _addPointButton = addPointButton;
             _removePointButton = removePointButton;
-            _editBUtton = editButton;
+            _editButton = editButton;
             _frameTextBoxLeft = frameTextBoxLeft;
             _frameTextBoxTop = frameTextBoxTop;
             _frameTextBoxRight = frameTextBoxRight;
@@ -722,6 +722,51 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
+        private AbstractWindowActionHandler _instantiateFrameRemoveActionHandler()
+        {
+            return new WindowMapCanvasFrameRemoveActionHandlerFacade(
+                _mapCanvas,
+                _editMenuState,
+                new MouseEventDataExtractor()
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateFrameButtonAccessActionHandler()
+        {
+            return new WindowMapCanvasFrameButtonAccessActionHandlerFacade(
+                _mapCanvas,
+                [_addPointButton, _removePointButton, _editButton],
+                _editMenuState
+            );
+        }
+
+        public AbstractWindowActionHandler _instantiateAddFramePointButtonActionHandler()
+        {
+            return new WindowMapAddFramePointButtonActionHandlerFacade(
+                _addPointButton,
+                [_addButton, _removeButton, _addPointButton, _removePointButton],
+                _editMenuState
+            );
+        }
+
+        public AbstractWindowActionHandler _instantiateRemoveFramePointButtonActionHandler()
+        {
+            return new WindowMapRemoveFramePointButtonActionHandlerFacade(
+                _removePointButton,
+                [_addButton, _removeButton, _addPointButton, _removePointButton],
+                _editMenuState
+            );
+        }
+
+        public AbstractWindowActionHandler _instantiateFramePointDrawerActionHandler()
+        {
+            return new WindowMapCanvasFramePointDrawerActionHandlerFacade(
+                _mapCanvas,
+                _editMenuState,
+                new MouseEventDataExtractor()
+            );
+        }
+
         public List<AbstractWindowActionHandler> Instantiate()
         {
             return [
@@ -741,12 +786,17 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
                 _instantiateRuneThresholdHandler(),
                 _instantiateAddFrameButtonActionHandler(),
                 _instantiateRemoveFrameButtonActionHandler(),
+                _instantiateAddFramePointButtonActionHandler(),
+                _instantiateRemoveFramePointButtonActionHandler(),
+                _instantiateFrameRemoveActionHandler(),
                 _instantiateFrameDrawerActionHandler(),
                 _instantiateFrameSelectStateActionHandler(),
                 _instantiateFrameDragActionHandler(),
                 _instantiateFrameDataActionHandler(),
                 _instantiateFrameSelectedTextActionHandler(),
-                _instantiateFrameSelectedDragDataActionHandler()
+                _instantiateFrameSelectedDragDataActionHandler(),
+                _instantiateFrameButtonAccessActionHandler(),
+                _instantiateFramePointDrawerActionHandler()
             ];
         }
     }
