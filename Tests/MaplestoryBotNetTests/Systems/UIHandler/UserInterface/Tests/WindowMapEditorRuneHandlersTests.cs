@@ -1942,8 +1942,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 Debug.Assert(pointEllipseFill.Color.B == 0);
                 Debug.Assert(pointEllipse.Stroke == Brushes.Transparent);
                 Debug.Assert(pointEllipse.StrokeThickness == 1);
-                Debug.Assert(pointEllipse.Width == 10);
-                Debug.Assert(pointEllipse.Height == 10);
+                Debug.Assert(pointEllipse.Width == 8);
+                Debug.Assert(pointEllipse.Height == 8);
             }
         }
 

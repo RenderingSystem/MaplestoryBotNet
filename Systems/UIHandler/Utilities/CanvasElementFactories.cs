@@ -362,7 +362,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                     new SolidColorBrush(Color.FromRgb(0, 255, 0)),
                     Brushes.Transparent,
                     1,
-                    5
+                    4
                 ),
                 new WindowMapCanvasLabelFactory(
                     "Lorem Ipsum",
