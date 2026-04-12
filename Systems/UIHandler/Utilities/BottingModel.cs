@@ -146,7 +146,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public abstract RuneFrame? SelectClosest(Point position);
 
-        public abstract RuneFrameMacros? SelectNext(RuneFrame currentFrame, RuneFrame destinationFrame);
+        public abstract RuneFrameMacro? SelectNext(RuneFrame currentFrame, RuneFrame destinationFrame);
 
         public abstract AbstractRuneModel Copy();
     }
@@ -464,9 +464,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
     }
 
 
-    public class RuneFrameMacros
+    public class RuneFrameMacro
     {
         public string MacroName = "";
+
+        public string ElementLabel = "";
 
         public double X = 0.0;
 
@@ -486,11 +488,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public List<string> RuneFrameCommands = [];
 
-        public RuneFrameMacros Copy()
+        public RuneFrameMacro Copy()
         {
-            return new RuneFrameMacros
+            return new RuneFrameMacro
             {
                 MacroName = MacroName,
+                ElementLabel = ElementLabel,
                 X = X,
                 Y = Y,
                 ScaleX = ScaleX,
@@ -513,7 +516,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public string FrameName = "";
 
-        public List<RuneFrameMacros> RuneFrameMacros = [];
+        public List<RuneFrameMacro> RuneFrameMacros = [];
 
         public RuneFrameData Copy()
         {
@@ -781,7 +784,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             return closestFrame;
         }
 
-        public override RuneFrameMacros? SelectNext(
+        public override RuneFrameMacro? SelectNext(
             RuneFrame currentFrame, RuneFrame destinationFrame
         )
         {

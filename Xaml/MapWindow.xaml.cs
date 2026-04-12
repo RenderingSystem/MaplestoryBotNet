@@ -767,6 +767,23 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
+        public AbstractWindowActionHandler _instantiateFramePointDragActionHandler()
+        {
+            return new WindowMapCanvasFramePointDragActionHandlerFacade(
+                _mapCanvas,
+                _editMenuState,
+                new MouseEventDataExtractor()
+            );
+        }
+
+        public AbstractWindowActionHandler _instantiateFramePointScaleActionHandler()
+        {
+            return new WindowMapCanvasFramePointScaleActionHandlerFacade(
+                _mapCanvas,
+                _editMenuState
+            );
+        }
+
         public List<AbstractWindowActionHandler> Instantiate()
         {
             return [
@@ -790,13 +807,15 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
                 _instantiateRemoveFramePointButtonActionHandler(),
                 _instantiateFrameRemoveActionHandler(),
                 _instantiateFrameDrawerActionHandler(),
+                _instantiateFramePointDrawerActionHandler(),
                 _instantiateFrameSelectStateActionHandler(),
                 _instantiateFrameDragActionHandler(),
                 _instantiateFrameDataActionHandler(),
                 _instantiateFrameSelectedTextActionHandler(),
                 _instantiateFrameSelectedDragDataActionHandler(),
                 _instantiateFrameButtonAccessActionHandler(),
-                _instantiateFramePointDrawerActionHandler()
+                _instantiateFramePointDragActionHandler(),
+                _instantiateFramePointScaleActionHandler()
             ];
         }
     }

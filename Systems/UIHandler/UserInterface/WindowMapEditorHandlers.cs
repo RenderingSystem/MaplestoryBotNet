@@ -891,8 +891,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private Canvas _canvas;
 
-        private AbstractWindowMapEditMenuState _menuState;
-
         private AbstractWindowStateModifier _mapCanvasSelectModifier;
 
         private AbstractMouseEventDataExtractor _mousePositionExtractor;
@@ -901,13 +899,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public WindowMapCanvasSelectActionHandler(
             Canvas canvas,
-            AbstractWindowMapEditMenuState menuState,
             AbstractWindowStateModifier mapCanvasSelectModifier,
             AbstractMouseEventDataExtractor mousePositionExtractor
         )
         {
             _canvas = canvas;
-            _menuState = menuState;
             _mapCanvasSelectModifier = mapCanvasSelectModifier;
             _mousePositionExtractor = mousePositionExtractor;
             _bottingModel = null;
@@ -916,14 +912,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (
-                _menuState.GetState() is int selectState
-                && (
-                    selectState == (int) WindowMapEditMenuStateTypes.Add
-                    || selectState == (int) WindowMapEditMenuStateTypes.Select
-                )
-                && _bottingModel != null
-            )
+            if (_bottingModel != null)
             {
                 _mapCanvasSelectModifier.Modify(
                     new WindowMapCanvasSelectModifierParameters
@@ -965,7 +954,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         {
             _mapCanvasSelectActionHandler = new WindowMapCanvasSelectActionHandler(
                 canvas,
-                menuState,
                 new WindowMapCanvasSelectModifier(
                     new WindowMapCanvasPointLocator(canvas),
                     selectedTextX,
@@ -1150,29 +1138,27 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            if (_menuState.GetState() != (int) WindowMapEditMenuStateTypes.Select)
+            if (
+                (
+                    _menuState.GetState() == (int)WindowMapEditMenuStateTypes.Add
+                    || _menuState.GetState() == (int)WindowMapEditMenuStateTypes.Select
+                )
+                && _bottingModel is AbstractBottingModel
+                && e is RoutedEventArgs rea
+            )
             {
-                return;
-            }
-            if (_bottingModel == null)
-            {
-                return;
-            }
-            if (e is not RoutedEventArgs rea)
-            {
-                return;
-            }
-            if (rea.RoutedEvent == UIElement.MouseLeftButtonDownEvent)
-            {
-                _handleMouseLeftButtonDown((MouseButtonEventArgs) e);
-            }
-            if (rea.RoutedEvent == UIElement.MouseLeftButtonUpEvent)
-            {
-                _handleMouseLeftButtonUp((MouseButtonEventArgs) e);
-            }
-            if (rea.RoutedEvent == UIElement.MouseMoveEvent)
-            {
-                _handleMouseMove((MouseEventArgs) e);
+                if (rea.RoutedEvent == UIElement.MouseLeftButtonDownEvent)
+                {
+                    _handleMouseLeftButtonDown((MouseButtonEventArgs)e);
+                }
+                if (rea.RoutedEvent == UIElement.MouseLeftButtonUpEvent)
+                {
+                    _handleMouseLeftButtonUp((MouseButtonEventArgs)e);
+                }
+                if (rea.RoutedEvent == UIElement.MouseMoveEvent)
+                {
+                    _handleMouseMove((MouseEventArgs)e);
+                }
             }
         }
     }

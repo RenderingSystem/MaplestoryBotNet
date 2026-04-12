@@ -1043,29 +1043,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Validates that point selection is properly disabled when not in selection mode.
-         * 
-         * Tests the mode-awareness of the selection system by attempting point selection while in
-         * "Add" mode instead of "Select" mode. This ensures the interface prevents conflicting
-         * operations and maintains clear separation between different editing functions.
-         */
-        private void _testClickingOnValidPointDoesNotSelectWhenInRemoveState()
-        {
-            var handler = _fixture();
-            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
-            _menuState.SetState((int) WindowMapEditMenuStateTypes.Remove);
-            new MapCanvasPointAdder().AddPoint(
-                _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
-            );
-            _mousePositionExtractor.GetPositionReturn.Add(new Point(123, 234));
-            _canvas.RaiseEvent(_mouseButtonEvent);
-            Debug.Assert(_menuState.Selected() == null);
-            Debug.Assert(_textBoxName.Text == "");
-            Debug.Assert(_textBoxX.Text == "");
-            Debug.Assert(_textBoxY.Text == "");
-        }
-
-        /**
          * @brief Validates that the selection system fails gracefully without proper data model
          * initialization.
          * 
@@ -1103,7 +1080,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _testClickingOnValidPointSelects();
             _testClickingOnValidPointSetsTextBoxValues();
             _testClickingOnEmptyPointDoesNotSelect();
-            _testClickingOnValidPointDoesNotSelectWhenInRemoveState();
             _testClickingOnValidPointDoesNotSelectWhenModelNotInjected();
         }
     }
@@ -1325,7 +1301,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * @brief Validates that point dragging is properly disabled when not in selection mode.
          * 
          * Tests the mode-awareness of the dragging system by attempting point dragging while in
-         * "Add" mode instead of "Select" mode. This ensures the interface prevents conflicting
+         * "Remove" mode instead of "Select" mode. This ensures the interface prevents conflicting
          * operations and maintains clear separation between point creation and point manipulation
          * functions, avoiding mode confusion.
          */
@@ -1333,7 +1309,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var handler = _fixture();
             handler.Inject(SystemInjectType.BottingModel, _bottingModel);
-            _menuState.SetState((int) WindowMapEditMenuStateTypes.Add);
+            _menuState.SetState((int) WindowMapEditMenuStateTypes.Remove);
             new MapCanvasPointAdder().AddPoint(
                 _canvas, _bottingModel.GetMacroModel(), 123, 234, 10, 10, "lol1", "lol2"
             );

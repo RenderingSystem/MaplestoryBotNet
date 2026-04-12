@@ -75,7 +75,7 @@
                             Content="Point selected:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="402,123,0,0"
+                            Margin="402,112,0,0"
                             VerticalAlignment="Top"
                             Width="193"
                             Foreground="White"
@@ -85,7 +85,7 @@
                             Content="Point location:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,167,0,0"
+                            Margin="404,156,0,0"
                             VerticalAlignment="Top"
                             Width="128"
                             Foreground="White"
@@ -94,7 +94,7 @@
                         />
                         <TextBox
                             x:Name="BottingLocationTextBoxX"
-                            Margin="468,190,10,318"
+                            Margin="468,179,10,329"
                             Background="Black"
                             Foreground="Lime"
                             FontFamily="Courier New"
@@ -104,7 +104,7 @@
                             Content="X:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,191,0,0"
+                            Margin="404,180,0,0"
                             VerticalAlignment="Top"
                             Width="25"
                             FontSize="10"
@@ -112,7 +112,7 @@
                         />
                         <TextBox
                             x:Name="BottingLocationTextBoxY"
-                            Margin="468,212,10,298"
+                            Margin="468,201,10,309"
                             Background="Black"
                             Foreground="Lime"
                             FontFamily="Courier New"
@@ -122,7 +122,7 @@
                             Content="Y:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,212,0,0"
+                            Margin="404,201,0,0"
                             VerticalAlignment="Top"
                             Width="25"
                             FontSize="10"
@@ -130,7 +130,7 @@
                         />
                         <TextBox
                             x:Name="BottingLabelTextBox"
-                            Margin="468,145,10,364"
+                            Margin="468,134,10,375"
                             Background="Black"
                             Foreground="LightYellow"
                             FontFamily="Courier New"
@@ -141,7 +141,7 @@
                             Content="Label:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,145,0,0"
+                            Margin="404,134,0,0"
                             VerticalAlignment="Top"
                             Width="48"
                             FontSize="10"
@@ -151,7 +151,7 @@
                             Content="Character:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,231,0,0"
+                            Margin="404,220,0,0"
                             VerticalAlignment="Top"
                             Width="73"
                             Foreground="White"
@@ -159,7 +159,7 @@
                         />
                         <TextBox
                             x:Name="BottingCharacterTextBoxX"
-                            Margin="468,253,10,256"
+                            Margin="468,242,10,267"
                             Background="Black"
                             Foreground="LightYellow"
                             FontFamily="Courier New"
@@ -170,15 +170,14 @@
                             Content="X:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,0,0,0"
-                            VerticalAlignment="Center"
+                            Margin="404,242,0,268"
                             Width="25"
                             FontSize="10"
                             Foreground="White"
                         />
                         <TextBox
                             x:Name="BottingCharacterTextBoxY"
-                            Margin="468,274,10,235"
+                            Margin="468,263,10,246"
                             Background="Black"
                             Foreground="LightYellow"
                             FontFamily="Courier New"
@@ -189,7 +188,7 @@
                             Content="Y:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,274,0,0"
+                            Margin="404,263,0,0"
                             VerticalAlignment="Top"
                             Width="25"
                             FontSize="10"
@@ -199,7 +198,7 @@
                             Content="Limit:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,295,0,0"
+                            Margin="404,284,0,0"
                             VerticalAlignment="Top"
                             Width="48"
                             FontSize="10"
@@ -207,7 +206,7 @@
                         />
                         <TextBox
                             x:Name="BottingCharacterThreshold"
-                            Margin="468,295,10,214"
+                            Margin="468,284,10,225"
                             Background="Black"
                             Foreground="Lime"
                             FontFamily="Courier New"
@@ -288,7 +287,7 @@
                             Content="Rune:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,279,0,0"
+                            Margin="404,268,0,0"
                             VerticalAlignment="Top"
                             Width="73"
                             Foreground="White"
@@ -297,7 +296,7 @@
                         />
                         <TextBox
                             x:Name="RuneingRuneTextBoxX"
-                            Margin="468,300,10,209"
+                            Margin="468,289,10,220"
                             Background="Black"
                             Foreground="Violet"
                             FontFamily="Courier New"
@@ -308,7 +307,7 @@
                             Content="X:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,301,0,0"
+                            Margin="404,290,0,0"
                             VerticalAlignment="Top"
                             Width="25"
                             FontSize="10"
@@ -316,7 +315,7 @@
                         />
                         <TextBox
                             x:Name="RuneingRuneTextBoxY"
-                            Margin="468,322,10,187"
+                            Margin="468,311,10,198"
                             Background="Black"
                             Foreground="Violet"
                             FontFamily="Courier New"
@@ -327,7 +326,7 @@
                             Content="Y:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,321,0,0"
+                            Margin="404,310,0,0"
                             VerticalAlignment="Top"
                             Width="25"
                             FontSize="10"
@@ -337,7 +336,7 @@
                             Content="Limit:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,343,0,0"
+                            Margin="404,332,0,0"
                             VerticalAlignment="Top"
                             Width="48"
                             FontSize="10"
@@ -345,7 +344,7 @@
                         />
                         <TextBox
                             x:Name="RuneingRuneThreshold"
-                            Margin="468,343,10,167"
+                            Margin="468,332,10,178"
                             Background="Black"
                             Foreground="Lime"
                             FontFamily="Courier New"
@@ -355,7 +354,7 @@
                             Content="Frame selected:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="402,123,0,0"
+                            Margin="402,112,0,0"
                             VerticalAlignment="Top"
                             Width="193"
                             Foreground="White"
@@ -363,7 +362,7 @@
                         />
                         <TextBox
                             x:Name="RuneingLabelTextBox"
-                            Margin="468,145,10,364"
+                            Margin="468,134,10,375"
                             Background="Black"
                             Foreground="LightYellow"
                             FontFamily="Courier New"
@@ -374,7 +373,7 @@
                             Content="Label:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,145,0,0"
+                            Margin="404,134,0,0"
                             VerticalAlignment="Top"
                             Width="48"
                             FontSize="10"
@@ -382,7 +381,7 @@
                         />
                         <TextBox
                             x:Name="RuneingFrameLeftTextBox"
-                            Margin="468,190,10,318"
+                            Margin="468,179,10,329"
                             Background="Black"
                             Foreground="Lime"
                             FontFamily="Courier New"
@@ -392,7 +391,7 @@
                             Content="Left:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,191,0,0"
+                            Margin="404,180,0,0"
                             VerticalAlignment="Top"
                             Width="48"
                             FontSize="10"
@@ -400,7 +399,7 @@
                         />
                         <TextBox
                             x:Name="RuneingFrameTopTextBox"
-                            Margin="468,212,10,297"
+                            Margin="468,201,10,308"
                             Background="Black"
                             Foreground="Lime"
                             FontFamily="Courier New"
@@ -410,7 +409,7 @@
                             Content="Top:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,212,0,0"
+                            Margin="404,201,0,0"
                             VerticalAlignment="Top"
                             Width="48"
                             FontSize="10"
@@ -420,7 +419,7 @@
                             Content="Frame area:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,167,0,0"
+                            Margin="404,156,0,0"
                             VerticalAlignment="Top"
                             Width="128"
                             Foreground="White"
@@ -428,7 +427,7 @@
                         />
                         <TextBox
                             x:Name="RuneingFrameRightTextBox"
-                            Margin="468,235,10,273"
+                            Margin="468,224,10,284"
                             Background="Black"
                             Foreground="Lime"
                             FontFamily="Courier New"
@@ -438,7 +437,7 @@
                             Content="Right:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,236,0,0"
+                            Margin="404,225,0,0"
                             VerticalAlignment="Top"
                             Width="48"
                             FontSize="10"
@@ -446,7 +445,7 @@
                         />
                         <TextBox
                             x:Name="RuneingFrameBottomTextBox"
-                            Margin="468,259,10,251"
+                            Margin="468,248,10,262"
                             Background="Black"
                             Foreground="Lime"
                             FontFamily="Courier New"
@@ -456,8 +455,7 @@
                             Content="Bottom:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,259,0,0"
-                            VerticalAlignment="Top"
+                            Margin="404,248,0,262"
                             Width="59"
                             FontSize="10"
                             Foreground="White"
@@ -466,7 +464,7 @@
                             Content="Activation:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,366,0,0"
+                            Margin="404,355,0,0"
                             VerticalAlignment="Top"
                             Width="120"
                             Foreground="White"
@@ -477,7 +475,7 @@
                             Content="Seconds:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,389,0,0"
+                            Margin="404,378,0,0"
                             VerticalAlignment="Top"
                             Width="61"
                             FontSize="10"
@@ -485,7 +483,26 @@
                         />
                         <TextBox
                             x:Name="RuneingRuneActivation"
-                            Margin="468,389,10,120"
+                            Margin="468,378,10,131"
+                            Background="Black"
+                            Foreground="Violet"
+                            FontFamily="Courier New"
+                            TabIndex="12"
+                            IsReadOnly="True"
+                        />
+                        <Label
+                            Content="Radius:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,401,0,0"
+                            VerticalAlignment="Top"
+                            Width="61"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <TextBox
+                            x:Name="RuneingRuneRadius"
+                            Margin="468,401,10,108"
                             Background="Black"
                             Foreground="Violet"
                             FontFamily="Courier New"
@@ -548,7 +565,7 @@
                 Content="Map Area:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="404,42,0,0"
+                Margin="404,31,0,0"
                 VerticalAlignment="Top"
                 Width="73"
                 FontSize="11"
@@ -559,7 +576,7 @@
                 Content="Left:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="405,67,0,0"
+                Margin="405,56,0,0"
                 VerticalAlignment="Top"
                 Width="43"
                 FontSize="10"
@@ -569,7 +586,7 @@
                 Content="Top:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="405,88,0,0"
+                Margin="405,77,0,0"
                 VerticalAlignment="Top"
                 Width="43"
                 FontSize="10"
@@ -579,7 +596,7 @@
                 Content="Right:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="405,109,0,0"
+                Margin="405,98,0,0"
                 VerticalAlignment="Top"
                 Width="50"
                 FontSize="10"
@@ -589,7 +606,7 @@
                 Content="Bottom:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="405,130,0,0"
+                Margin="405,119,0,0"
                 VerticalAlignment="Top"
                 Width="55"
                 FontSize="10"
@@ -598,7 +615,7 @@
             />
             <TextBox
                 x:Name="MapAreaBottomTextBox"
-                Margin="468,130,10,381"
+                Margin="468,119,10,392"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -606,7 +623,7 @@
             />
             <TextBox
                 x:Name="MapAreaRightTextBox"
-                Margin="468,109,10,402"
+                Margin="468,98,10,413"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -614,7 +631,7 @@
             />
             <TextBox
                 x:Name="MapAreaTopTextBox"
-                Margin="468,87,10,424"
+                Margin="468,76,10,435"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -622,7 +639,7 @@
             />
             <TextBox
                 x:Name="MapAreaLeftTextBox"
-                Margin="468,65,10,446"
+                Margin="468,54,10,457"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
