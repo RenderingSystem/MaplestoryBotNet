@@ -2727,12 +2727,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.RemovePoint);
             _editMenuState.Select(selectedObject);
             _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
-            var runeFrameMacros1 = runeFrame2.FrameData.RuneFrameMacros;
+            var runeFrameMacros1 = runeFrame1.FrameData.RuneFrameMacros;
             var runeFrameMacros2 = runeFrame2.FrameData.RuneFrameMacros;
-            var framePoints1 = frameCanvas2.Children.OfType<Canvas>().ToList();
+            var framePoints1 = frameCanvas1.Children.OfType<Canvas>().ToList();
             var framePoints2 = frameCanvas2.Children.OfType<Canvas>().ToList();
             Debug.Assert(framePoints1.Count == 1);
-            Debug.Assert(framePoints1.IndexOf(framePoint2) != -1);
+            Debug.Assert(framePoints1.IndexOf(framePoint1) != -1);
             Debug.Assert(runeFrameMacros1.Find((m) => m.ElementLabel == "MT0") != null);
             Debug.Assert(framePoints2.Count == 1);
             Debug.Assert(framePoints2.IndexOf(framePoint2) != -1);
