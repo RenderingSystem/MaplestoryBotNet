@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 using System.Xml.Linq;
 
@@ -196,6 +197,36 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 Radius = 0.0,
                 RuneFrameCommands = []
             };
+        }
+
+        public static Canvas FramePointFixture(
+            Point currPoint,
+            Point prevPoint,
+            Point scale,
+            Canvas frameCanvas,
+            RuneFrame runeFrame,
+            string elementLabel,
+            string macroName
+        )
+        {
+            var framePoint = FrameFixture.GenerateFramePoint(
+                currPoint.X,
+                currPoint.Y,
+                frameCanvas
+            );
+            framePoint.Tag = elementLabel;
+            var runeFrameMacro = GenerateRuneFrameMacro(
+                frameCanvas,
+                framePoint,
+                elementLabel,
+                macroName
+            );
+            runeFrameMacro.X = prevPoint.X;
+            runeFrameMacro.Y = prevPoint.Y;
+            runeFrameMacro.ScaleX = scale.X;
+            runeFrameMacro.ScaleY = scale.Y;
+            runeFrame.FrameData.RuneFrameMacros.Add(runeFrameMacro);
+            return framePoint;
         }
     }
 
@@ -2328,14 +2359,36 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private AbstractBottingModel _bottingModel = new BottingModel();
 
-        private AbstractWindowActionHandler _fixture()
+        private Canvas _frameCanvas = new Canvas();
+
+        private RuneFrame _runeFrame = new RuneFrame();
+
+        private Canvas _framePoint1 = new Canvas();
+
+        private Canvas _framePoint2 = new Canvas();
+
+        private AbstractWindowActionHandler _fixture(
+            double x, double y, double width, double height
+        )
         {
+            var frameRect = new Rect(x, y, width, height);
             _mapCanvas = new Canvas();
             _editMenuState = new WindowMapEditMenuState();
             _bottingModel = new BottingModel();
+            _frameCanvas = FrameFixture.GenerateFrame(frameRect, _mapCanvas);
+            _runeFrame = RuneFrameFixture.GenerateRuneFrame(frameRect, _frameCanvas, "FT0", "F0");
+            _framePoint1 = RuneFrameFixture.FramePointFixture(
+                new Point(123, 234), new Point(12, 34), new Point(56, 78),
+                _frameCanvas, _runeFrame, "MT0", "M0"
+            );
+            _framePoint2 = RuneFrameFixture.FramePointFixture(
+                new Point(123, 234), new Point(23, 45), new Point(67, 89),
+                _frameCanvas, _runeFrame, "MT1", "M1"
+            );
             var handler = new WindowMapCanvasFramePointScaleActionHandlerFacade(
                 _mapCanvas, _editMenuState
             );
+            _bottingModel.GetRuneModel().AddRuneFrame(_runeFrame);
             handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             return handler;
         }
@@ -2352,30 +2405,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             };
         }
 
-        private Canvas _framePointFixture(
-            double x,
-            double y,
-            double scaleX,
-            double scaleY,
-            Canvas frameCanvas,
-            RuneFrame runeFrame,
-            string elementLabel,
-            string macroName
-        )
-        {
-            var framePoint = FrameFixture.GenerateFramePoint(123, 234, frameCanvas);
-            framePoint.Tag = elementLabel;
-            var runeFrameMacro = RuneFrameFixture.GenerateRuneFrameMacro(
-                frameCanvas, framePoint, elementLabel, macroName
-            );
-            runeFrameMacro.X = x;
-            runeFrameMacro.Y = y;
-            runeFrameMacro.ScaleX = scaleX;
-            runeFrameMacro.ScaleY = scaleY;
-            runeFrame.FrameData.RuneFrameMacros.Add(runeFrameMacro);
-            return framePoint;
-        }
-
         /**
          * @brief Verifies that when a frame is resized (scaled), all point markers within
          * the frame have their positions proportionally scaled and their scale factors reset
@@ -2388,23 +2417,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          */
         private void _testScalingFrameScalesFramePointPosition()
         {
-            var frameRect = new Rect(100, 100, 100, 100);
-            var framePointScaleActionHandler = _fixture();
-            var frameCanvas = FrameFixture.GenerateFrame(frameRect, _mapCanvas);
-            var runeFrame = RuneFrameFixture.GenerateRuneFrame(frameRect, frameCanvas, "FT0", "F0");
-            var framePoint1 = _framePointFixture(12, 34, 56, 78, frameCanvas, runeFrame, "MT0", "M0");
-            var framePoint2 = _framePointFixture(23, 45, 67, 89, frameCanvas, runeFrame, "MT1", "M1");
-            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame);
-            var selectedObject = _selectedObject(frameCanvas, new Tuple<double, double>(0, 0));
+            var framePointScaleActionHandler = _fixture(100, 100, 100, 100);
+            var selectedObject = _selectedObject(_frameCanvas, new Tuple<double, double>(0, 0));
             _editMenuState.Select(selectedObject);
             _editMenuState.SetDragging(true);
             _mapCanvas.RaiseEvent(MouseMoveFixture.Event(_mapCanvas));
-            var runeFrameMacro1 = runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT0")!;
-            var runeFrameMacro2 = runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT1")!;
-            Debug.Assert(Math.Abs(Canvas.GetLeft(framePoint1) - 21.428571428571427) < 0.00001);
-            Debug.Assert(Math.Abs(Canvas.GetTop(framePoint1) - 43.58974358974359) < 0.00001);
-            Debug.Assert(Math.Abs(Canvas.GetLeft(framePoint2) - 34.32835820895522) < 0.00001);
-            Debug.Assert(Math.Abs(Canvas.GetTop(framePoint2) - 50.56179775280899) < 0.00001);
+            var runeFrameMacro1 = _runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT0")!;
+            var runeFrameMacro2 = _runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT1")!;
+            Debug.Assert(Math.Abs(Canvas.GetLeft(_framePoint1) - 21.428571428571427) < 0.00001);
+            Debug.Assert(Math.Abs(Canvas.GetTop(_framePoint1) - 43.58974358974359) < 0.00001);
+            Debug.Assert(Math.Abs(Canvas.GetLeft(_framePoint2) - 34.32835820895522) < 0.00001);
+            Debug.Assert(Math.Abs(Canvas.GetTop(_framePoint2) - 50.56179775280899) < 0.00001);
             Debug.Assert(Math.Abs(runeFrameMacro1.X - 21.428571428571427) < 0.00001);
             Debug.Assert(Math.Abs(runeFrameMacro1.Y - 43.589743589743591) < 0.00001);
             Debug.Assert(Math.Abs(runeFrameMacro2.X - 34.328358208955223) < 0.00001);
@@ -2426,23 +2449,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          */
         private void _testScalingFrameDoesntScaleOnZeroWidth()
         {
-            var frameRect = new Rect(100, 100, 0, 100);
-            var framePointScaleActionHandler = _fixture();
-            var frameCanvas = FrameFixture.GenerateFrame(frameRect, _mapCanvas);
-            var runeFrame = RuneFrameFixture.GenerateRuneFrame(frameRect, frameCanvas, "FT0", "F0");
-            var framePoint1 = _framePointFixture(12, 34, 56, 78, frameCanvas, runeFrame, "MT0", "M0");
-            var framePoint2 = _framePointFixture(23, 45, 67, 89, frameCanvas, runeFrame, "MT1", "M1");
-            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame);
-            var selectedObject = _selectedObject(frameCanvas, new Tuple<double, double>(0, 0));
+            var framePointScaleActionHandler = _fixture(100, 100, 0, 100);
+            var selectedObject = _selectedObject(_frameCanvas, new Tuple<double, double>(0, 0));
             _editMenuState.Select(selectedObject);
             _editMenuState.SetDragging(true);
             _mapCanvas.RaiseEvent(MouseMoveFixture.Event(_mapCanvas));
-            var runeFrameMacro1 = runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT0")!;
-            var runeFrameMacro2 = runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT1")!;
-            Debug.Assert(Canvas.GetLeft(framePoint1) == 123);
-            Debug.Assert(Math.Abs(Canvas.GetTop(framePoint1) - 43.58974358974359) < 0.00001);
-            Debug.Assert(Canvas.GetLeft(framePoint2) == 123);
-            Debug.Assert(Math.Abs(Canvas.GetTop(framePoint2) - 50.56179775280899) < 0.00001);
+            var runeFrameMacro1 = _runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT0")!;
+            var runeFrameMacro2 = _runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT1")!;
+            Debug.Assert(Canvas.GetLeft(_framePoint1) == 123);
+            Debug.Assert(Math.Abs(Canvas.GetTop(_framePoint1) - 43.58974358974359) < 0.00001);
+            Debug.Assert(Canvas.GetLeft(_framePoint2) == 123);
+            Debug.Assert(Math.Abs(Canvas.GetTop(_framePoint2) - 50.56179775280899) < 0.00001);
             Debug.Assert(runeFrameMacro1.X == 12);
             Debug.Assert(Math.Abs(runeFrameMacro1.Y - 43.589743589743591) < 0.00001);
             Debug.Assert(runeFrameMacro2.X == 23);
@@ -2464,23 +2481,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          */
         private void _testScalingFrameDoesntScaleOnZeroHeight()
         {
-            var frameRect = new Rect(100, 100, 100, 0);
-            var framePointScaleActionHandler = _fixture();
-            var frameCanvas = FrameFixture.GenerateFrame(frameRect, _mapCanvas);
-            var runeFrame = RuneFrameFixture.GenerateRuneFrame(frameRect, frameCanvas, "FT0", "F0");
-            var framePoint1 = _framePointFixture(12, 34, 56, 78, frameCanvas, runeFrame, "MT0", "M0");
-            var framePoint2 = _framePointFixture(23, 45, 67, 89, frameCanvas, runeFrame, "MT1", "M1");
-            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame);
-            var selectedObject = _selectedObject(frameCanvas, new Tuple<double, double>(0, 0));
+            var framePointScaleActionHandler = _fixture(100, 100, 100, 0);
+            var selectedObject = _selectedObject(_frameCanvas, new Tuple<double, double>(0, 0));
             _editMenuState.Select(selectedObject);
             _editMenuState.SetDragging(true);
             _mapCanvas.RaiseEvent(MouseMoveFixture.Event(_mapCanvas));
-            var runeFrameMacro1 = runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT0")!;
-            var runeFrameMacro2 = runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT1")!;
-            Debug.Assert(Math.Abs(Canvas.GetLeft(framePoint1) - 21.428571428571427) < 0.00001);
-            Debug.Assert(Canvas.GetTop(framePoint1) == 234);
-            Debug.Assert(Math.Abs(Canvas.GetLeft(framePoint2) - 34.32835820895522) < 0.00001);
-            Debug.Assert(Canvas.GetTop(framePoint1) == 234);
+            var runeFrameMacro1 = _runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT0")!;
+            var runeFrameMacro2 = _runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT1")!;
+            Debug.Assert(Math.Abs(Canvas.GetLeft(_framePoint1) - 21.428571428571427) < 0.00001);
+            Debug.Assert(Canvas.GetTop(_framePoint1) == 234);
+            Debug.Assert(Math.Abs(Canvas.GetLeft(_framePoint2) - 34.32835820895522) < 0.00001);
+            Debug.Assert(Canvas.GetTop(_framePoint1) == 234);
             Debug.Assert(Math.Abs(runeFrameMacro1.X - 21.428571428571427) < 0.00001);
             Debug.Assert(runeFrameMacro1.Y == 34);
             Debug.Assert(Math.Abs(runeFrameMacro2.X - 34.328358208955223) < 0.00001);
@@ -2503,22 +2514,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testScalingFrameDoesntScaleWhenNotDragging()
         {
             var frameRect = new Rect(100, 100, 100, 100);
-            var framePointScaleActionHandler = _fixture();
-            var frameCanvas = FrameFixture.GenerateFrame(frameRect, _mapCanvas);
-            var runeFrame = RuneFrameFixture.GenerateRuneFrame(frameRect, frameCanvas, "FT0", "F0");
-            var framePoint1 = _framePointFixture(12, 34, 56, 78, frameCanvas, runeFrame, "MT0", "M0");
-            var framePoint2 = _framePointFixture(23, 45, 67, 89, frameCanvas, runeFrame, "MT1", "M1");
-            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame);
-            var selectedObject = _selectedObject(frameCanvas, null);
+            var framePointScaleActionHandler = _fixture(100, 100, 100, 100);
+            var selectedObject = _selectedObject(_frameCanvas, null);
             _editMenuState.Select(selectedObject);
             _editMenuState.SetDragging(false);
             _mapCanvas.RaiseEvent(MouseMoveFixture.Event(_mapCanvas));
-            var runeFrameMacro1 = runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT0")!;
-            var runeFrameMacro2 = runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT1")!;
-            Debug.Assert(Canvas.GetLeft(framePoint1) == 123);
-            Debug.Assert(Canvas.GetTop(framePoint1) == 234);
-            Debug.Assert(Canvas.GetLeft(framePoint2) == 123);
-            Debug.Assert(Canvas.GetTop(framePoint2) == 234);
+            var runeFrameMacro1 = _runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT0")!;
+            var runeFrameMacro2 = _runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT1")!;
+            Debug.Assert(Canvas.GetLeft(_framePoint1) == 123);
+            Debug.Assert(Canvas.GetTop(_framePoint1) == 234);
+            Debug.Assert(Canvas.GetLeft(_framePoint2) == 123);
+            Debug.Assert(Canvas.GetTop(_framePoint2) == 234);
             Debug.Assert(runeFrameMacro1.X == 12);
             Debug.Assert(runeFrameMacro1.Y == 34);
             Debug.Assert(runeFrameMacro2.X == 23);
@@ -2540,21 +2546,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testScalingFrameDoesntScaleWhenNotSelected()
         {
             var frameRect = new Rect(100, 100, 100, 100);
-            var framePointScaleActionHandler = _fixture();
-            var frameCanvas = FrameFixture.GenerateFrame(frameRect, _mapCanvas);
-            var runeFrame = RuneFrameFixture.GenerateRuneFrame(frameRect, frameCanvas, "FT0", "F0");
-            var framePoint1 = _framePointFixture(12, 34, 56, 78, frameCanvas, runeFrame, "MT0", "M0");
-            var framePoint2 = _framePointFixture(23, 45, 67, 89, frameCanvas, runeFrame, "MT1", "M1");
-            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame);
+            var framePointScaleActionHandler = _fixture(100, 100, 100, 100);
             _editMenuState.Select(null);
             _editMenuState.SetDragging(false);
             _mapCanvas.RaiseEvent(MouseMoveFixture.Event(_mapCanvas));
-            var runeFrameMacro1 = runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT0")!;
-            var runeFrameMacro2 = runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT1")!;
-            Debug.Assert(Canvas.GetLeft(framePoint1) == 123);
-            Debug.Assert(Canvas.GetTop(framePoint1) == 234);
-            Debug.Assert(Canvas.GetLeft(framePoint2) == 123);
-            Debug.Assert(Canvas.GetTop(framePoint2) == 234);
+            var runeFrameMacro1 = _runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT0")!;
+            var runeFrameMacro2 = _runeFrame.FrameData.RuneFrameMacros.Find((m) => m.ElementLabel == "MT1")!;
+            Debug.Assert(Canvas.GetLeft(_framePoint1) == 123);
+            Debug.Assert(Canvas.GetTop(_framePoint1) == 234);
+            Debug.Assert(Canvas.GetLeft(_framePoint2) == 123);
+            Debug.Assert(Canvas.GetTop(_framePoint2) == 234);
             Debug.Assert(runeFrameMacro1.X == 12);
             Debug.Assert(runeFrameMacro1.Y == 34);
             Debug.Assert(runeFrameMacro2.X == 23);
@@ -2573,6 +2574,204 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _testScalingFrameDoesntScaleOnZeroHeight();
             _testScalingFrameDoesntScaleWhenNotDragging();
             _testScalingFrameDoesntScaleWhenNotSelected();
+        }
+    }
+
+
+    public class WindowMapCanvasFramePointRemoveActionHandlerTests
+    {
+        private Canvas _mapCanvas = new Canvas();
+
+        private AbstractWindowMapEditMenuState _editMenuState = new WindowMapEditMenuState();
+
+        private MockMouseEventDataExtractor _mousePositionExtractor = new MockMouseEventDataExtractor();
+
+        private AbstractBottingModel _bottingModel = new BottingModel();
+
+        private Canvas _frameCanvas = new Canvas();
+
+        private RuneFrame _runeFrame = new RuneFrame();
+
+        private Canvas _framePoint1 = new Canvas();
+
+        private Canvas _framePoint2 = new Canvas();
+
+        private AbstractWindowActionHandler _fixture(Point clickPoint)
+        {
+            var frameRect = new Rect(100, 100, 100, 100);
+            _mapCanvas = new Canvas { Width = 1000, Height = 1000 };
+            _editMenuState = new WindowMapEditMenuState();
+            _mousePositionExtractor = new MockMouseEventDataExtractor();
+            _bottingModel = new BottingModel();
+            _frameCanvas = FrameFixture.GenerateFrame(frameRect, _mapCanvas);
+            _runeFrame = RuneFrameFixture.GenerateRuneFrame(frameRect, _frameCanvas, "FT0", "F0");
+            _framePoint1 = RuneFrameFixture.FramePointFixture(
+                new Point(146, 156), new Point(12, 34), new Point(56, 78),
+                _frameCanvas, _runeFrame, "MT0", "M0"
+            );
+            _framePoint2 = RuneFrameFixture.FramePointFixture(
+                new Point(123, 132), new Point(23, 45), new Point(67, 89),
+                _frameCanvas, _runeFrame, "MT1", "M1"
+            );
+            var handler = new WindowMapCanvasFramePointRemoveActionHandlerFacade(
+                _mapCanvas,
+                _editMenuState,
+                _mousePositionExtractor
+            );
+            _bottingModel.GetRuneModel().AddRuneFrame(_runeFrame);
+            _mousePositionExtractor.GetPositionReturn.Add(clickPoint);
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            return handler;
+        }
+
+        private WindowMapEditMenuFrameSelectedObject _selectedObject(
+            Canvas frameCanvas, Canvas? framePoint
+        )
+        {
+            return new WindowMapEditMenuFrameSelectedObject
+            {
+                FrameObject = frameCanvas,
+                DragPoint = null,
+                PointObject = framePoint
+            };
+        }
+
+        /**
+         * @brief Verifies that clicking on a selected point while in RemovePoint mode
+         * removes both the visual point marker and its corresponding macro data
+         *
+         * When users click on a point marker that is currently selected while the edit
+         * menu is in RemovePoint state, the system should delete the point from the
+         * canvas and remove its associated macro from the rune frame's macro list.
+         */
+        private void _testClickingRemovesFrameButton()
+        {
+            var framePointRemoveActionHandler = _fixture(new Point(146, 156));
+            var selectedObject = _selectedObject(_frameCanvas, _framePoint1);
+            _editMenuState.SetState((int) WindowMapEditFrameMenuStateTypes.RemovePoint);
+            _editMenuState.Select(selectedObject);
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            var runeFrameMacros = _runeFrame.FrameData.RuneFrameMacros;
+            var framePoints = _frameCanvas.Children.OfType<Canvas>().ToList();
+            Debug.Assert(framePoints.Count == 1);
+            Debug.Assert(framePoints[0] == _framePoint2);
+            Debug.Assert(runeFrameMacros.Find((m) => m.ElementLabel == "MT0") == null);
+            Debug.Assert(runeFrameMacros.Find((m) => m.ElementLabel == "MT1") != null);
+            Debug.Assert(selectedObject.PointObject == null);
+        }
+
+        /**
+         * @brief Verifies that point removal only occurs when the edit menu is in
+         * RemovePoint state
+         *
+         * When users click on a selected point while the edit menu is in any state other
+         * than RemovePoint (e.g., an invalid state like 123), the system should not
+         * remove the point. The visual point marker, its macro data, and the current
+         * selection should all remain unchanged.
+         */
+        private void _testClickingWhenNotRemovingFrameDoesNotRemove()
+        {
+            var framePointRemoveActionHandler = _fixture(new Point(146, 156));
+            var selectedObject = _selectedObject(_frameCanvas, _framePoint1);
+            _editMenuState.SetState(123);
+            _editMenuState.Select(selectedObject);
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            var runeFrameMacros = _runeFrame.FrameData.RuneFrameMacros;
+            var framePoints = _frameCanvas.Children.OfType<Canvas>().ToList();
+            Debug.Assert(framePoints.Count == 2);
+            Debug.Assert(framePoints.IndexOf(_framePoint1) != -1);
+            Debug.Assert(framePoints.IndexOf(_framePoint2) != -1);
+            Debug.Assert(runeFrameMacros.Find((m) => m.ElementLabel == "MT0") != null);
+            Debug.Assert(runeFrameMacros.Find((m) => m.ElementLabel == "MT1") != null);
+            Debug.Assert(selectedObject.PointObject == _framePoint1);
+        }
+
+        /**
+         * @brief Verifies that clicking on a point in an unselected frame does not remove
+         * the point, even when in RemovePoint mode
+         *
+         * When users click on a point marker that belongs to a frame that is not currently
+         * selected, the system should not remove that point. Point removal should only
+         * affect points within the actively selected frame, preventing accidental
+         * deletion from non-target frames.
+         */
+        private void _testClickingUnselectedFrameDoesNotRemove()
+        {
+            _mapCanvas = new Canvas { Width = 1000, Height = 1000 };
+            _editMenuState = new WindowMapEditMenuState();
+            _mousePositionExtractor = new MockMouseEventDataExtractor();
+            _bottingModel = new BottingModel();
+            var frameRect1 = new Rect(100, 100, 100, 100);
+            var frameRect2 = new Rect(200, 100, 100, 100);
+            var frameCanvas1 = FrameFixture.GenerateFrame(frameRect1, _mapCanvas);
+            var frameCanvas2 = FrameFixture.GenerateFrame(frameRect2, _mapCanvas);
+            var runeFrame1 = RuneFrameFixture.GenerateRuneFrame(frameRect1, frameCanvas1, "FT0", "F0");
+            var runeFrame2 = RuneFrameFixture.GenerateRuneFrame(frameRect2, frameCanvas2, "FT1", "F1");
+            var framePoint1 = RuneFrameFixture.FramePointFixture(
+                new Point(150, 150), new Point(12, 34), new Point(56, 78),
+                frameCanvas1, runeFrame1, "MT0", "M0"
+            );
+            var framePoint2 = RuneFrameFixture.FramePointFixture(
+                new Point(250, 250), new Point(23, 45), new Point(67, 89),
+                frameCanvas2, runeFrame2, "MT1", "M1"
+            );
+            var handler = new WindowMapCanvasFramePointRemoveActionHandlerFacade(
+                _mapCanvas,
+                _editMenuState,
+                _mousePositionExtractor
+            );
+            var selectedObject = _selectedObject(frameCanvas1, framePoint1);
+            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame1);
+            _bottingModel.GetRuneModel().AddRuneFrame(runeFrame2);
+            _mousePositionExtractor.GetPositionReturn.Add(new Point(250, 250));
+            _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.RemovePoint);
+            _editMenuState.Select(selectedObject);
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            var runeFrameMacros1 = runeFrame2.FrameData.RuneFrameMacros;
+            var runeFrameMacros2 = runeFrame2.FrameData.RuneFrameMacros;
+            var framePoints1 = frameCanvas2.Children.OfType<Canvas>().ToList();
+            var framePoints2 = frameCanvas2.Children.OfType<Canvas>().ToList();
+            Debug.Assert(framePoints1.Count == 1);
+            Debug.Assert(framePoints1.IndexOf(framePoint2) != -1);
+            Debug.Assert(runeFrameMacros1.Find((m) => m.ElementLabel == "MT0") != null);
+            Debug.Assert(framePoints2.Count == 1);
+            Debug.Assert(framePoints2.IndexOf(framePoint2) != -1);
+            Debug.Assert(runeFrameMacros2.Find((m) => m.ElementLabel == "MT1") != null);
+            Debug.Assert(selectedObject.PointObject == framePoint1);
+        }
+
+        /**
+         * @brief Verifies that clicking on empty canvas space does not remove any point,
+         * even when a point is selected and in RemovePoint mode
+         *
+         * When users click on blank canvas area away from any point marker while the
+         * edit menu is in RemovePoint state and a point is selected, the system should
+         * not remove any point. Removal should only occur when clicking directly on a
+         * point marker, preventing unintended deletions from misclicks on empty space.
+         */
+        private void _testClickingEmptyCanvasDoesNotRemovePoint()
+        {
+            var framePointRemoveActionHandler = _fixture(new Point(999, 999));
+            var selectedObject = _selectedObject(_frameCanvas, _framePoint1);
+            _editMenuState.SetState((int)WindowMapEditFrameMenuStateTypes.RemovePoint);
+            _editMenuState.Select(selectedObject);
+            _mapCanvas.RaiseEvent(ButtonClickFixture.Event(_mapCanvas));
+            var runeFrameMacros = _runeFrame.FrameData.RuneFrameMacros;
+            var framePoints = _frameCanvas.Children.OfType<Canvas>().ToList();
+            Debug.Assert(framePoints.Count == 2);
+            Debug.Assert(framePoints.IndexOf(_framePoint1) != -1);
+            Debug.Assert(framePoints.IndexOf(_framePoint2) != -1);
+            Debug.Assert(runeFrameMacros.Find((m) => m.ElementLabel == "MT0") != null);
+            Debug.Assert(runeFrameMacros.Find((m) => m.ElementLabel == "MT1") != null);
+            Debug.Assert(selectedObject.PointObject == _framePoint1);
+        }
+
+        public void Run()
+        {
+            _testClickingRemovesFrameButton();
+            _testClickingWhenNotRemovingFrameDoesNotRemove();
+            _testClickingUnselectedFrameDoesNotRemove();
+            _testClickingEmptyCanvasDoesNotRemovePoint();
         }
     }
 
@@ -2596,6 +2795,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMapCanvasFramePointDrawerActionHandlerTests().Run();
             new WindowMapCanvasFramePointDragActionHandlerTests().Run();
             new WindowMapCanvasFramePointScaleActionHandlerTests().Run();
+            new WindowMapCanvasFramePointRemoveActionHandlerTests().Run();
         }
     }
 }

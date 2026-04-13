@@ -1583,15 +1583,15 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         }
 
         private void _assignMacroTags(
-            FrameworkElement createdFrame,
+            FrameworkElement createdFramePoint,
             string macroName,
             string elementLabel
         )
         {
-            if (_frameworkElementInfo.Label(createdFrame) is TextBlock textBlock)
+            if (_frameworkElementInfo.Label(createdFramePoint) is TextBlock textBlock)
             {
                 textBlock.Text = macroName;
-                createdFrame.Tag = elementLabel;
+                createdFramePoint.Tag = elementLabel;
             }
         }
 
@@ -1644,14 +1644,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 );
                 if (left > 0 && left < selectedFrame.Width && top > 0 && top < selectedFrame.Height)
                 {
-                    var createdFrame = (Canvas) _framePointFactory.Create();
-                    selectedFrame.Children.Add(createdFrame);
-                    Canvas.SetLeft(createdFrame, left);
-                    Canvas.SetTop(createdFrame, top);
+                    var createdFramePoint = (Canvas) _framePointFactory.Create();
+                    selectedFrame.Children.Add(createdFramePoint);
+                    Canvas.SetLeft(createdFramePoint, left);
+                    Canvas.SetTop(createdFramePoint, top);
                     var macroName = _generateMacroName(runeFrame);
                     var elementLabel = _generateElementName(runeFrame);
                     _assignMacroTags(
-                        createdFrame,
+                        createdFramePoint,
                         macroName,
                         elementLabel
                     );
@@ -1669,7 +1669,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                         {
                             FrameObject = selectedFrame,
                             DragPoint = null,
-                            PointObject = createdFrame
+                            PointObject = createdFramePoint
                         }
                     );
                     _editMenuState.SetDragging(true);
@@ -2038,6 +2038,175 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override void Inject(object dataType, object? data)
         {
             _framePointScaleActionHandler.Inject(dataType, data);
+        }
+    }
+
+
+    public class WindowMapCanvasFramePointRemoveModifierParameters
+    {
+        public Point RemovePoint = new Point(0, 0);
+
+        public AbstractBottingModel BottingModel = new BottingModel();
+    }
+
+
+    public class WindowMapCanvasFramePointRemoveModifier : AbstractWindowStateModifier
+    {
+        private Canvas _mapCanvas;
+
+        private AbstractWindowMapEditMenuState _editMenuState;
+
+        public WindowMapCanvasFramePointRemoveModifier(
+            Canvas mapCanvas,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _mapCanvas = mapCanvas;
+            _editMenuState = editMenuState;
+        }
+
+        private Canvas? _findFramePointAtPosition(Point position)
+        {
+            Canvas? foundFramePoint = null;
+            VisualTreeHelper.HitTest(
+                _mapCanvas,
+                null,
+                new HitTestResultCallback(
+                    result =>
+                    {
+                        var current = result.VisualHit;
+                        while (current != null && current != _mapCanvas)
+                        {
+                            if (
+                                current is Canvas currentCanvas
+                                && _editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject selectedObject
+                                && currentCanvas.Parent == selectedObject.FrameObject
+                                && currentCanvas.Name == WindowMapCanvasFrameTypes.POINT
+                            )
+                            {
+                                foundFramePoint = currentCanvas;
+                                return HitTestResultBehavior.Stop;
+                            }
+                            current = VisualTreeHelper.GetParent(current);
+                        }
+                        return HitTestResultBehavior.Continue;
+                    }
+                ),
+                new PointHitTestParameters(position)
+            );
+            return foundFramePoint;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (
+                value is WindowMapCanvasFramePointRemoveModifierParameters parameters
+                && _editMenuState.GetState() is (int) WindowMapEditFrameMenuStateTypes.RemovePoint
+                && _findFramePointAtPosition(parameters.RemovePoint) is Canvas removeFramePoint
+                && _editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject selectedObject
+                && removeFramePoint.Parent is Canvas removeFrame
+                && removeFrame.Tag is MapCanvasRuneFrameDataTag runeFrameDataTag
+                && parameters.BottingModel.GetRuneModel() is AbstractRuneModel runeModel
+                && runeModel.FindRuneFrameByName(runeFrameDataTag.ElementLabel) is RuneFrame runeFrame
+                && runeFrame.FrameData.RuneFrameMacros is List<RuneFrameMacro> runeFrameMacros
+                && removeFramePoint.Tag is string pointElementLabel
+                && runeFrameMacros.Find((m) => m.ElementLabel == pointElementLabel) is RuneFrameMacro runeFrameMacro
+            )
+            {
+                removeFrame.Children.Remove(removeFramePoint);
+                if (selectedObject.PointObject == removeFramePoint)
+                {
+                    selectedObject.PointObject = null;
+                }
+                runeFrameMacros.Remove(runeFrameMacro);
+                runeModel.EditRuneFrame(runeFrame);
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasFramePointRemoveActionHandler : AbstractWindowActionHandler
+    {
+        private Canvas _mapCanvas;
+
+        private AbstractWindowStateModifier _framePointRemoveModifier;
+
+        private AbstractMouseEventDataExtractor _mousePositionExtractor;
+
+        private AbstractBottingModel? _bottingModel;
+
+        public WindowMapCanvasFramePointRemoveActionHandler(
+            Canvas mapCanvas,
+            AbstractWindowStateModifier framePointRemoveModifier,
+            AbstractMouseEventDataExtractor mousePositionExtractor
+        )
+        {
+            _mapCanvas = mapCanvas;
+            _mapCanvas.MouseLeftButtonDown += OnEvent;
+            _framePointRemoveModifier = framePointRemoveModifier;
+            _mousePositionExtractor = mousePositionExtractor;
+            _bottingModel = null;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _framePointRemoveModifier;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
+            {
+                _bottingModel = bottingModel;
+            }
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (e is MouseButtonEventArgs mouseButtonEventArgs)
+            {
+                _framePointRemoveModifier.Modify(
+                    new WindowMapCanvasFramePointRemoveModifierParameters
+                    {
+                        RemovePoint = _mousePositionExtractor.GetPosition(mouseButtonEventArgs, _mapCanvas),
+                        BottingModel = _bottingModel!
+                    }
+                );
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasFramePointRemoveActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _framePointRemoveActionHandler;
+
+        public WindowMapCanvasFramePointRemoveActionHandlerFacade(
+            Canvas mapCanvas,
+            AbstractWindowMapEditMenuState editMenuState,
+            AbstractMouseEventDataExtractor mousePositionExtractor
+        )
+        {
+            _framePointRemoveActionHandler = new WindowMapCanvasFramePointRemoveActionHandler(
+                mapCanvas,
+                new WindowMapCanvasFramePointRemoveModifier(mapCanvas, editMenuState),
+                mousePositionExtractor
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _framePointRemoveActionHandler.Modifier();
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _framePointRemoveActionHandler.Inject(dataType, data);
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _framePointRemoveActionHandler.OnEvent(sender, e);
         }
     }
 }

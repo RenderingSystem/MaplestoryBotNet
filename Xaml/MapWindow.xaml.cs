@@ -784,6 +784,13 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
+        public AbstractWindowActionHandler _instantiateFramePointRemoveActionHandler()
+        {
+            return new WindowMapCanvasFramePointRemoveActionHandlerFacade(
+                _mapCanvas, _editMenuState, new MouseEventDataExtractor()
+            );
+        }
+
         public List<AbstractWindowActionHandler> Instantiate()
         {
             return [
@@ -815,7 +822,8 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
                 _instantiateFrameSelectedDragDataActionHandler(),
                 _instantiateFrameButtonAccessActionHandler(),
                 _instantiateFramePointDragActionHandler(),
-                _instantiateFramePointScaleActionHandler()
+                _instantiateFramePointScaleActionHandler(),
+                _instantiateFramePointRemoveActionHandler()
             ];
         }
     }
