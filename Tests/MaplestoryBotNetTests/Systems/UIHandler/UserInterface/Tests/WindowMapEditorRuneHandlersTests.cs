@@ -2644,7 +2644,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * menu is in RemovePoint state, the system should delete the point from the
          * canvas and remove its associated macro from the rune frame's macro list.
          */
-        private void _testClickingRemovesFrameButton()
+        private void _testClickingRemovesClickedFramePoint()
         {
             var framePointRemoveActionHandler = _fixture(new Point(146, 156));
             var selectedObject = _selectedObject(_frameCanvas, _framePoint1);
@@ -2768,7 +2768,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         public void Run()
         {
-            _testClickingRemovesFrameButton();
+            _testClickingRemovesClickedFramePoint();
             _testClickingWhenNotRemovingFrameDoesNotRemove();
             _testClickingUnselectedFrameDoesNotRemove();
             _testClickingEmptyCanvasDoesNotRemovePoint();
