@@ -18,7 +18,9 @@ namespace MaplestoryBotNet
 
         MapWindow? _mapWindow = null;
 
-        MacroBottingWindow? _windowMacroPopup = null;
+        MacroBottingWindow? _windowMacroBottingPopup = null;
+
+        MacroRuneingWindow? _windowMacroRuneingPopup = null;
 
         List<AbstractWindowActionHandler> _uiHandlers = [];
 
@@ -30,8 +32,10 @@ namespace MaplestoryBotNet
         {
             base.OnStartup(e);
             _bottingEditMenuState = new WindowMapEditMenuState();
+            _runeingEditMenuState = new WindowMapEditMenuState();
             _mainWindow = new MainWindow();
-            _windowMacroPopup = new MacroBottingWindow(_bottingEditMenuState);
+            _windowMacroBottingPopup = new MacroBottingWindow(_bottingEditMenuState);
+            _windowMacroRuneingPopup = new MacroRuneingWindow(_runeingEditMenuState);
             _mainApplication = new MainApplicationFacade();
             _mapWindow = new MapWindow(_bottingEditMenuState, _runeingEditMenuState);
             _splashScreen = new SplashScreen(_mainApplication.System());
@@ -57,10 +61,14 @@ namespace MaplestoryBotNet
         protected List<AbstractWindowActionHandler> InstantiateActionHandlers()
         {
             return [
-                .. _windowMacroPopup!.InstantiateActionHandlers(),
+                .. _windowMacroBottingPopup!.InstantiateActionHandlers(),
+                .. _windowMacroRuneingPopup!.InstantiateActionHandlers(),
                 .. _splashScreen!.InstantiateActionHandlers(_mainWindow!.GetSystemWindow()),
                 .. _mainWindow!.InstantiateActionHandlers(_mapWindow!.GetSystemWindow()),
-                .. _mapWindow!.InstantiateActionHandlers(_windowMacroPopup.GetSystemWindow()),
+                .. _mapWindow!.InstantiateActionHandlers(
+                    _windowMacroBottingPopup.GetSystemWindow(),
+                    _windowMacroRuneingPopup.GetSystemWindow()
+                ),
                 InstantiateApplicationClosingActionHandler()
             ];
         }
@@ -68,7 +76,8 @@ namespace MaplestoryBotNet
         protected List<AbstractSystemWindow> GetPopupWindows()
         {
             return [
-                _windowMacroPopup!.GetSystemWindow(),
+                _windowMacroBottingPopup!.GetSystemWindow(),
+                _windowMacroRuneingPopup!.GetSystemWindow(),
                 _mapWindow!.GetSystemWindow()
             ];
         }

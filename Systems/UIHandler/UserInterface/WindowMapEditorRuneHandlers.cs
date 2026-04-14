@@ -811,7 +811,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 },
                 FrameName = frameName,
                 ElementLabel = elementLabel,
-                RuneFrameMacros = []
+                RuneFrameMacros = [],
+                RuneFrameDirections = [],
             };
         }
 
@@ -1615,10 +1616,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     ScaleX = selectedFrame.Width,
                     ScaleY = selectedFrame.Height,
                     NextRuneFrame = null,
-                    NextX = 0.0,
-                    NextY = 0.0,
                     Radius = 0.0,
-                    RuneFrameCommands = []
+                    RuneFrameCommands = [],
                 }
             );
             runeModel.EditRuneFrame(runeFrame);

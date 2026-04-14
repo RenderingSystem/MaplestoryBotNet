@@ -480,10 +480,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public RuneFrame? NextRuneFrame = null;
 
-        public double NextX = 0.0;
-
-        public double NextY = 0.0;
-
         public double Radius = 0.0;
 
         public List<string> RuneFrameCommands = [];
@@ -499,10 +495,36 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 ScaleX = ScaleX,
                 ScaleY = ScaleY,
                 NextRuneFrame = NextRuneFrame,
-                NextX = NextX,
-                NextY = NextY,
                 Radius = Radius,
                 RuneFrameCommands = [.. RuneFrameCommands],
+            };
+        }
+    }
+
+
+    public enum RuneFrameDirectionTypes
+    {
+        Left = 0,
+        Right,
+        MaxNum
+    }
+
+
+    public class RuneFrameDirection
+    {
+        public RuneFrameDirectionTypes Direction = RuneFrameDirectionTypes.Left;
+
+        public int Distance;
+
+        public List<string> DirectionCommands = [];
+
+        public RuneFrameDirection Copy()
+        {
+            return new RuneFrameDirection
+            {
+                Direction = Direction,
+                Distance = Distance,
+                DirectionCommands = [.. DirectionCommands]
             };
         }
     }
@@ -518,6 +540,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public List<RuneFrameMacro> RuneFrameMacros = [];
 
+        public List<RuneFrameDirection> RuneFrameDirections = [];
+
         public RuneFrameData Copy()
         {
             return new RuneFrameData
@@ -526,6 +550,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 ElementLabel = ElementLabel,
                 FrameName = FrameName,
                 RuneFrameMacros = RuneFrameMacros.Select(cmd => cmd.Copy()).ToList(),
+                RuneFrameDirections = RuneFrameDirections.Select(cmd => cmd.Copy()).ToList(),
             };
         }
     }

@@ -5,6 +5,9 @@
     <Compile Update="Xaml\MacroBottingWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Xaml\MacroRuneingWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Xaml\MapWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

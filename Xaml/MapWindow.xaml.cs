@@ -37,7 +37,8 @@ namespace MaplestoryBotNet.Xaml
         }
 
         public List<AbstractWindowActionHandler> InstantiateActionHandlers(
-            AbstractSystemWindow editWindow
+            AbstractSystemWindow bottingWindow,
+            AbstractSystemWindow runeingWindow
         )
         {
             return [
@@ -66,7 +67,7 @@ namespace MaplestoryBotNet.Xaml
                     _loadFileDialog,
                     _bottingEditMenuState,
                     GetSystemWindow()
-                ).Instantiate(editWindow),
+                ).Instantiate(bottingWindow),
 
                 .. new RuneingTabHandlersContainer(
                     RuneingAddButton,
@@ -88,8 +89,9 @@ namespace MaplestoryBotNet.Xaml
                     MapTabControl,
                     Dispatcher,
                     _runeingEditMenuState,
-                    _loadFileDialog
-                ).Instantiate(),
+                    _loadFileDialog,
+                    GetSystemWindow()
+                ).Instantiate(runeingWindow),
 
                 .. new MapAreaHandlersContainer(
                     MapAreaLeftTextBox,
@@ -145,6 +147,24 @@ public abstract class AbstractMapWindowHandlersContainer
     {
         return new WindowMapEditorTabControlCanvasActionHandlerFacade(
             tabControl, tabItem, mapCanvas
+        );
+    }
+
+    protected AbstractWindowActionHandler _instantiateWindowMenuItemHideActionHandler(
+        AbstractSystemWindow mapWindow
+    )
+    {
+        return new WindowMenuItemHideHandlerBuilder()
+            .WithArgs(mapWindow)
+            .Build();
+    }
+
+    protected AbstractWindowActionHandler _instantiateEditMenuActionHandler(
+        Button editButton, AbstractSystemWindow mapWindow, AbstractSystemWindow editWindow
+    )
+    {
+        return new WindowMapEditMenuActionHandlerFacade(
+            editButton, mapWindow, editWindow
         );
     }
 }
@@ -338,24 +358,6 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
         _systemWindow = systemWindow;
     }
 
-    private AbstractWindowActionHandler _instantiateWindowMenuItemHideActionHandler()
-    {
-        return new WindowMenuItemHideHandlerBuilder()
-            .WithArgs(_systemWindow)
-            .Build();
-    }
-
-    private AbstractWindowActionHandler _instantiateEditMenuActionHandler(
-        AbstractSystemWindow editWindow
-    )
-    {
-        return new WindowMapEditMenuActionHandlerFacade(
-            _editButton,
-            _systemWindow,
-            editWindow
-        );
-    }
-
     private AbstractWindowActionHandler _instantiateAddPointButtonActionHandler()
     {
         return new WindowMapAddButtonActionHandlerFacade(
@@ -510,8 +512,8 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             _instantiateNumericTextBoxPropertyPasteActionHandler(_locationTextBoxY, Convert.ToInt32(_mapCanvas.Height)),
             _instantiateNumericTextBoxPropertyPasteActionHandler(_characterThreshold, 999),
             _instantiateTabControlCanvasActionHandler(_tabControl, _tabItem, _mapCanvas),
-            _instantiateWindowMenuItemHideActionHandler(),
-            _instantiateEditMenuActionHandler(editWindow),
+            _instantiateWindowMenuItemHideActionHandler(_systemWindow),
+            _instantiateEditMenuActionHandler(_editButton, _systemWindow, editWindow),
             _instantiateAddPointButtonActionHandler(),
             _instantiatePointDrawingActionHandler(),
             _instantiateRemovePointButtonActionHandler(),
@@ -573,6 +575,8 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
 
         private AbstractLoadFileDialog _loadFileDialog;
 
+        private AbstractSystemWindow _systemWindow;
+
         public RuneingTabHandlersContainer(
             ToggleButton addButton,
             ToggleButton removeButton,
@@ -593,7 +597,8 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             TabControl tabControl,
             Dispatcher dispatcher,
             AbstractWindowMapEditMenuState editMenuState,
-            AbstractLoadFileDialog loadFileDialog
+            AbstractLoadFileDialog loadFileDialog,
+            AbstractSystemWindow systemWindow
         )
         {
             _addButton = addButton;
@@ -616,6 +621,7 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             _dispatcher = dispatcher;
             _editMenuState = editMenuState;
             _loadFileDialog = loadFileDialog;
+            _systemWindow = systemWindow;
         }
 
         private AbstractWindowActionHandler _instantiateRunePositionActionHandler()
@@ -791,20 +797,14 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
-        public List<AbstractWindowActionHandler> Instantiate()
+        public List<AbstractWindowActionHandler> Instantiate(
+            AbstractSystemWindow editWindow
+        )
         {
             return [
-                _instantiateNumericTextBoxPropertyActionHandler(_runeThreshold, 999),
-                _instantiateNumericTextBoxPropertyActionHandler(_frameTextBoxLeft, Convert.ToInt32(_mapCanvas.Width)),
-                _instantiateNumericTextBoxPropertyActionHandler(_frameTextBoxTop, Convert.ToInt32(_mapCanvas.Height)),
-                _instantiateNumericTextBoxPropertyActionHandler(_frameTextBoxRight, Convert.ToInt32(_mapCanvas.Width)),
-                _instantiateNumericTextBoxPropertyActionHandler(_frameTextBoxBottom, Convert.ToInt32(_mapCanvas.Height)),
-                _instantiateNumericTextBoxPropertyPasteActionHandler(_runeThreshold, 999),
-                _instantiateNumericTextBoxPropertyPasteActionHandler(_frameTextBoxLeft, Convert.ToInt32(_mapCanvas.Width)),
-                _instantiateNumericTextBoxPropertyPasteActionHandler(_frameTextBoxTop, Convert.ToInt32(_mapCanvas.Height)),
-                _instantiateNumericTextBoxPropertyPasteActionHandler(_frameTextBoxRight, Convert.ToInt32(_mapCanvas.Width)),
-                _instantiateNumericTextBoxPropertyPasteActionHandler(_frameTextBoxBottom, Convert.ToInt32(_mapCanvas.Height)),
                 _instantiateTabControlCanvasActionHandler(_tabControl, _tabItem, _mapCanvas),
+                _instantiateWindowMenuItemHideActionHandler(_systemWindow),
+                _instantiateEditMenuActionHandler(_editButton, _systemWindow, editWindow),
                 _instantiateRunePositionActionHandler(),
                 _instantiateLoadRuneThresholdActionHandler(),
                 _instantiateRuneThresholdHandler(),

@@ -192,8 +192,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 ScaleX = framePoint.Width,
                 ScaleY = framePoint.Height,
                 NextRuneFrame = null,
-                NextX = 0.0,
-                NextY = 0.0,
                 Radius = 0.0,
                 RuneFrameCommands = []
             };
