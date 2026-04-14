@@ -10,11 +10,16 @@ namespace MaplestoryBotNet.Xaml
         private AbstractWindowMapEditMenuState _editMenuState;
 
         private AbstractSystemWindow? _systemWindow;
+
         public MacroRuneingWindow(AbstractWindowMapEditMenuState editMenuState)
         {
+            InitializeComponent();
+            RuneingPointsListBox.Items.Clear();
+            RuneingPointsMacroListBox.Items.Clear();
+            RuneingMovementsListBox.Items.Clear();
+            RuneingMovementsMacroListBox.Items.Clear();
             _editMenuState = editMenuState;
             _systemWindow = null;
-            InitializeComponent();
         }
 
         public AbstractSystemWindow GetSystemWindow()

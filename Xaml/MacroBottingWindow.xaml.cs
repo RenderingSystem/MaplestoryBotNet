@@ -17,6 +17,8 @@ namespace MaplestoryBotNet.Xaml
 
         private WindowLoadFileDialog _loadFileDialog;
 
+        private WindowSaveFileDialog _saveFileDialog;
+
         public MacroBottingWindow(
             AbstractWindowMapEditMenuState editMenuState
         )
@@ -26,6 +28,7 @@ namespace MaplestoryBotNet.Xaml
             PointMacroListBox.Items.Clear();
             _comboBoxScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
             _loadFileDialog = new WindowLoadFileDialog("Load Macro", "JSON files (*.json)|*.json");
+            _saveFileDialog = new WindowSaveFileDialog("Save Macro", "JSON files (*.json)|*.json", ".json");
             _editMenuState = editMenuState;
         }
 
@@ -86,7 +89,8 @@ namespace MaplestoryBotNet.Xaml
         {
             return new WindowSaveMenuActionHandlerFacade(
                 SaveButton,
-                MacroListBox
+                MacroListBox,
+                _saveFileDialog
             );
         }
 

@@ -39,8 +39,8 @@
                 SelectedIndex="0"
             >
                 <ComboBox
-                    x:Name="PointMacroComboBoxTemplate"
-                    Width="295"
+                    x:Name="RuneingPointMacroComboBoxTemplate"
+                    Width="275"
                     IsEditable="True"
                     FontSize="10"
                 >
@@ -83,7 +83,7 @@
                 <ListBoxItem>
                     <Grid>
                         <TextBox
-                            x:Name="SelectedPointTextBox"
+                            x:Name="RuneingSelectedPointTextBoxTemplate"
                             Margin="0,0,-113,0"
                             Background="Black"
                             Foreground="Lime"
@@ -98,7 +98,7 @@
                 Content="Point configuration:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="5,8,0,0"
+                Margin="5,9,0,0"
                 VerticalAlignment="Top"
                 Width="159"
                 Foreground="White"
@@ -155,7 +155,7 @@
                 Content="Next frame:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="16,193,0,0"
+                Margin="14,193,0,0"
                 VerticalAlignment="Top"
                 Width="108"
                 Foreground="White"
@@ -202,7 +202,7 @@
                 <ListBoxItem>
                     <Grid>
                         <TextBox
-                            x:Name="SelectedMovementTextBox"
+                            x:Name="RuneingSelectedMovementTextBoxTemplate"
                             Margin="0,0,-113,0"
                             Background="Black"
                             Foreground="Lime"
@@ -228,7 +228,7 @@
             <Label
                 Content="Direction:"
                 FontFamily="Courier New"
-                Margin="16,435,451,72"
+                Margin="14,437,453,73"
                 Width="108"
                 Foreground="White"
                 FontSize="11"
@@ -237,7 +237,7 @@
             <Label
                 Content="Distance:"
                 FontFamily="Courier New"
-                Margin="140,435,366,72"
+                Margin="140,437,366,73"
                 Foreground="White"
                 FontSize="11"
                 FontWeight="Bold"
@@ -252,7 +252,7 @@
                 Height="22"
             />
             <ListBox
-                x:Name="MovementMacroListBox"
+                x:Name="RuneingMovementsMacroListBox"
                 Margin="214,297,15,86"
                 Background="Black"
                 Foreground="White"
@@ -260,8 +260,8 @@
                 SelectedIndex="0"
             >
                 <ComboBox
-                    x:Name="MovementComboBoxTemplate"
-                    Width="295"
+                    x:Name="RuneingMovementComboBoxTemplate"
+                    Width="275"
                     IsEditable="True"
                     FontSize="10"
                 >
@@ -348,11 +348,14 @@
                 FontFamily="Courier New"
             />
             <TextBox
-                x:Name="SelectedFrameTextBox"
-                Margin="483,4,6,504"
+                x:Name="RuneingSelectedFrameTextBox"
+                Margin="446,4,5,504"
+                VerticalContentAlignment="Center"
                 Background="Black"
-                Foreground="Lime"
+                Foreground="Wheat"
+                Width="124"
                 FontFamily="Courier New"
+                TextAlignment="Center"
                 TabIndex="5"
                 Height="22"
             />
@@ -360,7 +363,7 @@
                 Content="Selected frame:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="373,3,0,0"
+                Margin="336,3,0,0"
                 VerticalAlignment="Top"
                 Width="109"
                 Foreground="White"

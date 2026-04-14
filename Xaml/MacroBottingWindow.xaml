@@ -276,7 +276,8 @@
                 Width="124"
                 FontFamily="Courier New"
                 Height="23"
-                Grid.Column="1" TextAlignment="Center"
+                Grid.Column="1"
+                TextAlignment="Center"
             />
             <Label
                 Content="Label:"

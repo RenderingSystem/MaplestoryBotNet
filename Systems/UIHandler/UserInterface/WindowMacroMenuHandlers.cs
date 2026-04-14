@@ -85,20 +85,15 @@ namespace MaplestoryBotNet.Systems.UIHandler
         private WindowSaveMenuActionHandler _saveMenuActionHandler;
         public WindowSaveMenuActionHandlerFacade(
             Button saveButton,
-            ListBox macroCommandsListBox
+            ListBox macroCommandsListBox,
+            AbstractSaveFileDialog saveFileDialog
         )
         {
             _saveMenuActionHandler = new WindowSaveMenuActionHandler(
                 saveButton,
                 macroCommandsListBox,
                 new MacroDataSerializer(),
-                new WindowSaveMenuModifier(
-                    new WindowSaveFileDialog(
-                        "Save Macro",
-                        "JSON files (*.json)|*.json",
-                        ".json"
-                    )
-                )
+                new WindowSaveMenuModifier(saveFileDialog)
             );
         }
         public override void OnEvent(object? sender, EventArgs e)
