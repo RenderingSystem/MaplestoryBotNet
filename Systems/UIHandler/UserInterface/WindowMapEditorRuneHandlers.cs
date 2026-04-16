@@ -2378,6 +2378,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowMapCanvasLoadedRuneFrameDeselectModifier : AbstractWindowStateModifier
     {
+        private List<ToggleButton> _uncheckButtons;
+
         private List<ButtonBase> _disableButtons;
 
         private List<TextBox> _clearTexts;
@@ -2385,14 +2387,24 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         private AbstractWindowMapEditMenuState _editMenuState;
 
         public WindowMapCanvasLoadedRuneFrameDeselectModifier(
+            List<ToggleButton> uncheckButtons,
             List<ButtonBase> disableButtons,
             List<TextBox> clearTexts,
             AbstractWindowMapEditMenuState editMenuState
         )
         {
+            _uncheckButtons = uncheckButtons;
             _disableButtons = disableButtons;
             _clearTexts = clearTexts;
             _editMenuState = editMenuState;
+        }
+
+        private void _uncheckSelectedButtons()
+        {
+            foreach (var button in _uncheckButtons)
+            {
+                button.IsChecked = false;
+            }
         }
 
         private void _disableSelectedButtons()
@@ -2400,10 +2412,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             foreach (var button in _disableButtons)
             {
                 button.IsEnabled = false;
-                if (button is ToggleButton toggleButton)
-                {
-                    toggleButton.IsChecked = false; 
-                }
             }
         }
 
@@ -2432,6 +2440,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void Modify(object? value)
         {
+            _uncheckSelectedButtons();
             _disableSelectedButtons();
             _clearSelectedTexts();
             _deselectSelectedState();
@@ -2473,6 +2482,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         private AbstractWindowActionHandler _loadedRuneFrameButtonAccessActionHandler;
 
         public WindowMapCanvasLoadedRuneFrameDeselectActionHandlerFacade(
+            List<ToggleButton> uncheckButtons,
             List<ButtonBase> disableButtons,
             List<TextBox> clearTexts,
             AbstractWindowMapEditMenuState editMenuState,
@@ -2483,6 +2493,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _loadedRuneFrameButtonAccessActionHandler = new WindowMapCanvasLoadedRuneFrameDeselectActionHandler(
                 loadFileDialog,
                 new WindowMapCanvasLoadedRuneFrameDeselectModifier(
+                    uncheckButtons,
                     disableButtons,
                     clearTexts,
                     editMenuState

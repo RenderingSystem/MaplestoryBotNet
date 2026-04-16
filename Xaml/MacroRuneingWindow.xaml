@@ -230,6 +230,7 @@
                             FontSize="10"
                             FontFamily="Courier New"
                             Margin="16,236,436,64"
+                            Width="120"
                             Height="22"
                         >
                             <ComboBoxItem Content="Left"/>

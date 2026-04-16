@@ -809,6 +809,12 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
         {
             return new WindowMapCanvasLoadedRuneFrameDeselectActionHandlerFacade(
                 [
+                    _addButton,
+                    _removeButton,
+                    _addPointButton,
+                    _removePointButton
+                ],
+                [
                     _addPointButton,
                     _removePointButton,
                     _editButton

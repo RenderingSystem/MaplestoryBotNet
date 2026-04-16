@@ -3016,6 +3016,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
     public class WindowMapCanvasLoadedRuneFrameDeselectActionHandlerTests
     {
+        private List<ToggleButton> _uncheckButtons = [];
+
         private List<ButtonBase> _disableButtons = [];
 
         private List<TextBox> _clearTextBoxes = [];
@@ -3026,17 +3028,18 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private AbstractWindowActionHandler _fixture()
         {
-            _disableButtons = [new Button(), new ToggleButton(), new Button()];
+            _uncheckButtons = [new ToggleButton(), new ToggleButton(), new ToggleButton()];
+            _disableButtons = [new Button(), new Button(), new Button()];
             _clearTextBoxes = [new TextBox(), new TextBox(), new TextBox()];
             _editMenuState = new WindowMapEditMenuState();
             _loadFileDialog = new WindowLoadFileDialog("", "");
+            for (int i = 0; i < _uncheckButtons.Count; i++)
+            {
+                _uncheckButtons[i].IsChecked = true;
+            }
             for (int i = 0; i < _disableButtons.Count; i++)
             {
                 _disableButtons[i].IsEnabled = true;
-                if (_disableButtons[i] is ToggleButton toggleButton)
-                {
-                    toggleButton.IsChecked = true;
-                }
             }
             for (int i = 0; i < _clearTextBoxes.Count; i++)
             {
@@ -3046,11 +3049,29 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _editMenuState.SetDragging(true);
             _editMenuState.SetState(123);
             return new WindowMapCanvasLoadedRuneFrameDeselectActionHandlerFacade(
+                _uncheckButtons,
                 _disableButtons,
                 _clearTextBoxes,
                 _editMenuState,
                 _loadFileDialog
             );
+        }
+
+        /**
+         * @brief Ensures toggle buttons are unchecked after loading a new configuration file
+         * 
+         * When users load a new rune frame configuration, any toggle buttons
+         * are automatically unchecked. This resets all optional settings to their
+         * default off state.
+         */
+        private void _testLoadingRuneFramesUnchecksButtons()
+        {
+            var loadedRuneFrameDeselectActionHandler = _fixture();
+            _loadFileDialog.InvokeFileLoaded("", "");
+            for (int i = 0; i < _uncheckButtons.Count; i++)
+            {
+                Debug.Assert(!_uncheckButtons[i].IsEnabled);
+            }
         }
 
         /**
@@ -3068,11 +3089,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             for (int i = 0; i < _disableButtons.Count; i++)
             {
                 Debug.Assert(!_disableButtons[i].IsEnabled);
-                if (_disableButtons[i] is ToggleButton toggleButton)
-                {
-                    Debug.Assert(toggleButton.IsChecked != null);
-                    Debug.Assert(toggleButton.IsChecked == false);
-                }
             }
         }
 
@@ -3133,6 +3149,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         public void Run()
         {
+            _testLoadingRuneFramesUnchecksButtons();
             _testLoadingRuneFramesDisablesButtons();
             _testLoadingRuneFramesClearsTextBoxes();
             _testLoadingRuneFramesDeselects();

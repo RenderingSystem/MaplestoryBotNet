@@ -38,10 +38,16 @@ namespace MaplestoryBotNet.Xaml
                 .Build();
         }
 
+        private AbstractWindowActionHandler _instantiateComboBoxScaleActionHandler()
+        {
+            return new WindowComboBoxScaleActionHandlerFacade(DirectionComboBox);
+        }
+
         public List<AbstractWindowActionHandler> InstantiateActionHandlers()
         {
             return [
-                _instantiateWindowMenuItemHideActionHandler()
+                _instantiateWindowMenuItemHideActionHandler(),
+                _instantiateComboBoxScaleActionHandler()
             ];
         }
     }
