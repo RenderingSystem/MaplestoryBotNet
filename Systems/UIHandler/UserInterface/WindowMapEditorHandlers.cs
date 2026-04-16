@@ -1591,7 +1591,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private Button _saveButton;
 
-        private AbstractMapModelSerializer _mapModelSerializer;
+        private AbstractBottingModelSerializer _mapModelSerializer;
 
         private AbstractJsonDataModelConverter _mapModelConverter;
 
@@ -1603,7 +1603,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public WindowMapEditorSaveConfigurationActionHandler(
             Button saveButton,
-            AbstractMapModelSerializer mapModelSerializer,
+            AbstractBottingModelSerializer mapModelSerializer,
             AbstractJsonDataModelConverter mapModelConverter,
             AbstractWindowStateModifier windowSaveDialogModifier
         )
@@ -1627,7 +1627,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 return;
             }
             var configuration = (
-                (ConfigurationMapModel)
+                (ConfigurationBottingModel)
                 _mapModelConverter.ToConfiguration(_bottingModel)!
             );
             var serialized = (
@@ -1788,12 +1788,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowMapEditorLoadModelModifier : AbstractWindowStateModifier
     {
-        private AbstractMapModelDeserializer _mapModelDeserializer;
+        private AbstractBottingModelDeserializer _mapModelDeserializer;
 
         private AbstractJsonDataModelConverter _mapModelConverter;
 
         public WindowMapEditorLoadModelModifier(
-            AbstractMapModelDeserializer mapModelDeserializer,
+            AbstractBottingModelDeserializer mapModelDeserializer,
             AbstractJsonDataModelConverter mapModelConverter
         )
         {
@@ -1880,7 +1880,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _mapEditorLoadModelActionHandler = new WindowMapEditorLoadModelActionHandler(
                 loadFileDialog,
                 new WindowMapEditorLoadModelModifier(
-                    new ConfigurationMapModelDeserializer(),
+                    new ConfigurationBottingModelDeserializer(),
                     new BottingModelConverterFacade()
                 )
             );

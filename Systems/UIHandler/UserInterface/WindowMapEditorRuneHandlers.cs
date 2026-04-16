@@ -1617,7 +1617,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     ScaleY = selectedFrame.Height,
                     NextRuneFrame = null,
                     Radius = 0.0,
-                    RuneFrameCommands = [],
+                    PointCommands = [],
                 }
             );
             runeModel.EditRuneFrame(runeFrame);

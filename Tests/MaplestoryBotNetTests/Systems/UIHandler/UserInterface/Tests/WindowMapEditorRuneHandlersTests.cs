@@ -193,7 +193,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 ScaleY = framePoint.Height,
                 NextRuneFrame = null,
                 Radius = 0.0,
-                RuneFrameCommands = []
+                PointCommands = []
             };
         }
 

@@ -126,6 +126,12 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("macro_directory")]
         public string MacroDirectory { get; set; } = "";
 
+        [JsonPropertyName("frame_points_directory")]
+        public string FramePointsDirectory { get; set; } = "";
+
+        [JsonPropertyName("frame_movements_directory")]
+        public string FrameMovementsDirectory { get; set; } = "";
+
         [JsonPropertyName("map_directory")]
         public string MapDirectory { get; set; } = "";
 
@@ -141,6 +147,8 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
             foreach (var item in MapIcons)
                 configuration.MapIcons.Add(new string(item.Key), (MapIcon)item.Value.Copy());
             configuration.MacroDirectory = new string(MacroDirectory);
+            configuration.FramePointsDirectory = new string(FramePointsDirectory);
+            configuration.FrameMovementsDirectory = new string(FrameMovementsDirectory);
             configuration.MapDirectory = new string(MapDirectory);
             return configuration;
         }

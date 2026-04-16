@@ -102,6 +102,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     }
                 },
                 "macro_directory": "cool_macros",
+                "frame_points_directory": "cool_frame_points",
+                "frame_movements_directory": "cool_frame_movements",
                 "map_directory": "cool_maps"
             }
             """;
@@ -213,6 +215,35 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         }
 
         /**
+         * @brief Tests correct parsing of the frame points directory location
+         * 
+         * Validates that the bot will look for frame point configuration files in the
+         * correct folder. Frame points define specific coordinate positions within a
+         * frame where the bot should perform actions (e.g., looting, attacking, or
+         * interacting with objects).
+         */
+        private void _testDeserializeFramePointsDirectory()
+        {
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
+            Debug.Assert(output.FramePointsDirectory == "cool_frame_points");
+        }
+
+        /**
+         * @brief Tests correct parsing of the frame movements directory location
+         * 
+         * Validates that the bot will look for frame movement configuration files in the
+         * correct folder. Frame movements define how the bot should navigate within
+         * different frames or regions within a map.
+         */
+        private void _testDeserializeFrameMovementsDirectory()
+        {
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
+            Debug.Assert(output.FrameMovementsDirectory == "cool_frame_movements");
+        }
+
+        /**
          * @brief Tests correct parsing of the map directory location
          * 
          * This test validates that the bot will look for map configuration files
@@ -242,6 +273,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             _testDeserializeAilments();
             _testDeserializeMapIcons();
             _testDeserializeMacroDirectory();
+            _testDeserializeFramePointsDirectory();
+            _testDeserializeFrameMovementsDirectory();
             _testDeserializeMapDirectory();
         }
     }
@@ -323,6 +356,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     }
                 },
                 MacroDirectory="cool_macros",
+                FramePointsDirectory="cool_frame_points",
+                FrameMovementsDirectory="cool_frame_movements",
                 MapDirectory="cool_maps"
 
             };
@@ -431,6 +466,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     }
                 },
                 "macro_directory": "cool_macros",
+                "frame_points_directory": "cool_frame_points",
+                "frame_movements_directory": "cool_frame_movements",
                 "map_directory": "cool_maps"
             }
             """;

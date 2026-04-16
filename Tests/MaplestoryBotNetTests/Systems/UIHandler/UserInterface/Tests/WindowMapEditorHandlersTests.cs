@@ -70,6 +70,393 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    public class DataFixtures
+    {
+        public static AbstractBottingModel BottingModelFixture()
+        {
+            var bottingModel = new BottingModel();
+            bottingModel.GetMapModel().SetMapArea(12, 23, 34, 45);
+            bottingModel.GetMacroModel().AddMacroPoint(
+                new MinimapPoint
+                {
+                    X = 12,
+                    Y = 23,
+                    XRange = 34,
+                    YRange = 45,
+                    PointData = new MinimapPointData
+                    {
+                        ElementName = "E1",
+                        PointName = "P1",
+                        Commands = [
+                            new MinimapPointMacros
+                            {
+                                MacroChance = 56,
+                                MacroCommands = ["C12", "C23", "C34"],
+                                MacroName = "M1"
+                            },
+                            new MinimapPointMacros
+                            {
+                                MacroChance = 67,
+                                MacroCommands = ["C23", "C34", "C45"],
+                                MacroName = "M2"
+                            }
+                        ],
+                    }
+                }
+            );
+            bottingModel.GetMacroModel().AddMacroPoint(
+                new MinimapPoint
+                {
+                    X = 23,
+                    Y = 34,
+                    XRange = 45,
+                    YRange = 56,
+                    PointData = new MinimapPointData
+                    {
+                        ElementName = "E2",
+                        PointName = "P2",
+                        Commands = [
+                            new MinimapPointMacros
+                            {
+                                MacroChance = 78,
+                                MacroCommands = ["C34", "C45", "C56"],
+                                MacroName = "M3"
+                            },
+                            new MinimapPointMacros
+                            {
+                                MacroChance = 89,
+                                MacroCommands = ["C45", "C56", "C67"],
+                                MacroName = "M4"
+                            }
+                        ],
+                    }
+                }
+            );
+            var runeFrame0 = new RuneFrame
+            {
+                X = 12,
+                Y = 23,
+                Width = 34,
+                Height = 45,
+                FrameData = new RuneFrameData
+                {
+                    FrameName = "F0",
+                    ElementLabel = "FT0",
+                    RuneFrameMacros = [
+                        new RuneFrameMacro
+                        {
+                            ElementLabel = "MT0",
+                            MacroName = "M0",
+                            X = 23,
+                            Y = 34,
+                            ScaleX = 45,
+                            ScaleY = 56,
+                            Radius = 67,
+                            NextRuneFrame = null,
+                            PointCommands = ["C345", "C456", "C567"]
+                        },
+                        new RuneFrameMacro
+                        {
+                            ElementLabel = "MT1",
+                            MacroName = "M1",
+                            X = 34,
+                            Y = 45,
+                            ScaleX = 56,
+                            ScaleY = 67,
+                            Radius = 78,
+                            NextRuneFrame = null,
+                            PointCommands = ["C456", "C567", "C678"]
+                        }
+                    ],
+                    RuneFrameDirections = [
+                        new RuneFrameDirection
+                        {
+                            DirectionName = "D0",
+                            Distance = 123,
+                            Direction = (RuneFrameDirectionTypes) 234,
+                            DirectionCommands = ["C123", "C234", "C345"]
+                        },
+                        new RuneFrameDirection
+                        {
+                            DirectionName = "D1",
+                            Distance = 234,
+                            Direction = (RuneFrameDirectionTypes) 345,
+                            DirectionCommands = ["C234", "C345", "C456"]
+                        }
+                    ]
+                }
+            };
+            var runeFrame1 = new RuneFrame
+            {
+                X = 34,
+                Y = 45,
+                Width = 56,
+                Height = 67,
+                FrameData = new RuneFrameData
+                {
+                    FrameName = "F1",
+                    ElementLabel = "FT1",
+                    RuneFrameMacros = [
+                        new RuneFrameMacro
+                        {
+                            ElementLabel = "MT2",
+                            MacroName = "M2",
+                            X = 45,
+                            Y = 56,
+                            ScaleX = 67,
+                            ScaleY = 78,
+                            Radius = 89,
+                            NextRuneFrame = null,
+                            PointCommands = ["C456", "C567", "C678"]
+                        },
+                        new RuneFrameMacro
+                        {
+                            ElementLabel = "MT3",
+                            MacroName = "M3",
+                            X = 56,
+                            Y = 67,
+                            ScaleX = 78,
+                            ScaleY = 89,
+                            Radius = 90,
+                            NextRuneFrame = null,
+                            PointCommands = ["C567", "C678", "C789"]
+                        }
+                    ],
+                    RuneFrameDirections = [
+                        new RuneFrameDirection
+                        {
+                            DirectionName = "D2",
+                            Distance = 345,
+                            Direction = (RuneFrameDirectionTypes) 456,
+                            DirectionCommands = ["C234", "C345", "C456"]
+                        },
+                        new RuneFrameDirection
+                        {
+                            DirectionName = "D3",
+                            Distance = 456,
+                            Direction = (RuneFrameDirectionTypes) 567,
+                            DirectionCommands = ["C345", "C456", "C567"]
+                        }
+                    ]
+                }
+            };
+            runeFrame0.FrameData.RuneFrameMacros[0].NextRuneFrame = runeFrame1;
+            runeFrame1.FrameData.RuneFrameMacros[1].NextRuneFrame = runeFrame0;
+            bottingModel.GetRuneModel().AddRuneFrame(runeFrame0);
+            bottingModel.GetRuneModel().AddRuneFrame(runeFrame1);
+            bottingModel.GetMapModel().SetTemplateThreshold(MapIconInfo.Character, 0.234f);
+            bottingModel.GetMapModel().SetTemplateThreshold(MapIconInfo.Rune, 0.123f);
+            return bottingModel;
+        }
+
+        public static string JsonFixture()
+        {
+            return """
+            {
+                "map_area_left": 12,
+                "map_area_top": 23,
+                "map_area_right": 34,
+                "map_area_bottom": 45,
+                "map_points": [
+                    {
+                        "x": 12,
+                        "y": 23,
+                        "x_range": 34,
+                        "y_range": 45,
+                        "point_data": {
+                            "element_name": "E1",
+                            "point_name": "P1",
+                            "commands": [
+                                {
+                                    "macro_name": "M1",
+                                    "macro_chance": 56,
+                                    "macro_commands": [
+                                        "C12",
+                                        "C23",
+                                        "C34"
+                                    ]
+                                },
+                                {
+                                    "macro_name": "M2",
+                                    "macro_chance": 67,
+                                    "macro_commands": [
+                                        "C23",
+                                        "C34",
+                                        "C45"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "x": 23,
+                        "y": 34,
+                        "x_range": 45,
+                        "y_range": 56,
+                        "point_data": {
+                            "element_name": "E2",
+                            "point_name": "P2",
+                            "commands": [
+                                {
+                                    "macro_name": "M3",
+                                    "macro_chance": 78,
+                                    "macro_commands": [
+                                        "C34",
+                                        "C45",
+                                        "C56"
+                                    ]
+                                },
+                                {
+                                    "macro_name": "M4",
+                                    "macro_chance": 89,
+                                    "macro_commands": [
+                                        "C45",
+                                        "C56",
+                                        "C67"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "rune_frames": [
+                    {
+                        "x": 12,
+                        "y": 23,
+                        "width": 34,
+                        "height": 45,
+                        "rune_frame_data": {
+                            "element_name": "FT0",
+                            "frame_name": "F0",
+                            "frame_macros": [
+                                {
+                                    "macro_name": "M0",
+                                    "element_name": "MT0",
+                                    "x": 23,
+                                    "y": 34,
+                                    "scale_x": 45,
+                                    "scale_y": 56,
+                                    "next_rune_frame": "FT1",
+                                    "radius": 67,
+                                    "commands": [
+                                        "C345",
+                                        "C456",
+                                        "C567"
+                                    ]
+                                },
+                                {
+                                    "macro_name": "M1",
+                                    "element_name": "MT1",
+                                    "x": 34,
+                                    "y": 45,
+                                    "scale_x": 56,
+                                    "scale_y": 67,
+                                    "next_rune_frame": "",
+                                    "radius": 78,
+                                    "commands": [
+                                        "C456",
+                                        "C567",
+                                        "C678"
+                                    ]
+                                }
+                            ],
+                            "frame_directions": [
+                                {
+                                    "direction_name": "D0",
+                                    "direction": 234,
+                                    "distance": 123,
+                                    "commands": [
+                                        "C123",
+                                        "C234",
+                                        "C345"
+                                    ]
+                                },
+                                {
+                                    "direction_name": "D1",
+                                    "direction": 345,
+                                    "distance": 234,
+                                    "commands": [
+                                        "C234",
+                                        "C345",
+                                        "C456"
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "x": 34,
+                        "y": 45,
+                        "width": 56,
+                        "height": 67,
+                        "rune_frame_data": {
+                            "element_name": "FT1",
+                            "frame_name": "F1",
+                            "frame_macros": [
+                                {
+                                    "macro_name": "M2",
+                                    "element_name": "MT2",
+                                    "x": 45,
+                                    "y": 56,
+                                    "scale_x": 67,
+                                    "scale_y": 78,
+                                    "next_rune_frame": "",
+                                    "radius": 89,
+                                    "commands": [
+                                        "C456",
+                                        "C567",
+                                        "C678"
+                                    ]
+                                },
+                                {
+                                    "macro_name": "M3",
+                                    "element_name": "MT3",
+                                    "x": 56,
+                                    "y": 67,
+                                    "scale_x": 78,
+                                    "scale_y": 89,
+                                    "next_rune_frame": "FT0",
+                                    "radius": 90,
+                                    "commands": [
+                                        "C567",
+                                        "C678",
+                                        "C789"
+                                    ]
+                                }
+                            ],
+                            "frame_directions": [
+                                {
+                                    "direction_name": "D2",
+                                    "direction": 456,
+                                    "distance": 345,
+                                    "commands": [
+                                        "C234",
+                                        "C345",
+                                        "C456"
+                                    ]
+                                },
+                                {
+                                    "direction_name": "D3",
+                                    "direction": 567,
+                                    "distance": 456,
+                                    "commands": [
+                                        "C345",
+                                        "C456",
+                                        "C567"
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "character_threshold": 0.234,
+                "rune_threshold": 0.123
+            }
+            """;
+        }
+    }
+
+
     /**
      * @class WindowMapEditMenuActionHandlerTests
      * 
@@ -1972,7 +2359,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     {
         private Button _saveButton;
 
-        private BottingModel _bottingModel;
+        private AbstractBottingModel _bottingModel;
 
         private MockWindowStateModifier _windowSaveMenumodifier;
 
@@ -1999,169 +2386,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Creates a comprehensive botting model for testing
-         * 
-         * @test
-         * Builds a realistic map configuration with boundaries, waypoints, and automation commands.
-         * 
-         * @details
-         * The generated botting model represents a typical user configuration where multiple
-         * points of interest are defined with specific automation behaviors, allowing for
-         * thorough testing of the serialization and saving processes.
-         */
-        private BottingModel _generateBottingModel()
-        {
-            var bottingModel = new BottingModel();
-            bottingModel.GetMapModel().SetMapArea(12, 23, 34, 45);
-            bottingModel.GetMacroModel().AddMacroPoint(
-                new MinimapPoint
-                {
-                    X = 12,
-                    Y = 23,
-                    XRange = 34,
-                    YRange = 45,
-                    PointData = new MinimapPointData
-                    {
-                        ElementName = "E1",
-                        PointName = "P1",
-                        Commands = [
-                            new MinimapPointMacros
-                            {
-                                MacroChance = 56,
-                                MacroCommands = ["C12", "C23", "C34"],
-                                MacroName = "M1"
-                            },
-                            new MinimapPointMacros
-                            {
-                                MacroChance = 67,
-                                MacroCommands = ["C23", "C34", "C45"],
-                                MacroName = "M2"
-                            }
-                        ],
-                    }
-                }
-            );
-            bottingModel.GetMacroModel().AddMacroPoint(
-                new MinimapPoint
-                {
-                    X = 23,
-                    Y = 34,
-                    XRange = 45,
-                    YRange = 56,
-                    PointData = new MinimapPointData
-                    {
-                        ElementName = "E2",
-                        PointName = "P2",
-                        Commands = [
-                            new MinimapPointMacros
-                            {
-                                MacroChance = 78,
-                                MacroCommands = ["C34", "C45", "C56"],
-                                MacroName = "M3"
-                            },
-                            new MinimapPointMacros
-                            {
-                                MacroChance = 89,
-                                MacroCommands = ["C45", "C56", "C67"],
-                                MacroName = "M4"
-                            }
-                        ],
-                    }
-                }
-            );
-            bottingModel.GetMapModel().SetTemplateThreshold(MapIconInfo.Character, 0.234f);
-            bottingModel.GetMapModel().SetTemplateThreshold(MapIconInfo.Rune, 0.123f);
-            return bottingModel;
-        }
-
-        /**
-         * @brief Defines the expected JSON output for saved map configurations
-         * 
-         * @test
-         * Provides the canonical JSON structure that should result from saving the test map.
-         * 
-         * @details
-         * This method contains the exact JSON format that the save handler should produce,
-         * including proper snake_case naming conventions, correct nesting of map points,
-         * and exact formatting of all automation commands and probabilities.
-         */
-        private string _expected()
-        {
-            return """
-            {
-                "map_area_left": 12,
-                "map_area_top": 23,
-                "map_area_right": 34,
-                "map_area_bottom": 45,
-                "map_points": [
-                    {
-                        "x": 12,
-                        "y": 23,
-                        "x_range": 34,
-                        "y_range": 45,
-                        "point_data": {
-                            "element_name": "E1",
-                            "point_name": "P1",
-                            "commands": [
-                                {
-                                    "macro_name": "M1",
-                                    "macro_chance": 56,
-                                    "macro_commands": [
-                                        "C12",
-                                        "C23",
-                                        "C34"
-                                    ]
-                                },
-                                {
-                                    "macro_name": "M2",
-                                    "macro_chance": 67,
-                                    "macro_commands": [
-                                        "C23",
-                                        "C34",
-                                        "C45"
-                                    ]
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "x": 23,
-                        "y": 34,
-                        "x_range": 45,
-                        "y_range": 56,
-                        "point_data": {
-                            "element_name": "E2",
-                            "point_name": "P2",
-                            "commands": [
-                                {
-                                    "macro_name": "M3",
-                                    "macro_chance": 78,
-                                    "macro_commands": [
-                                        "C34",
-                                        "C45",
-                                        "C56"
-                                    ]
-                                },
-                                {
-                                    "macro_name": "M4",
-                                    "macro_chance": 89,
-                                    "macro_commands": [
-                                        "C45",
-                                        "C56",
-                                        "C67"
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                ],
-                "character_threshold": 0.234,
-                "rune_threshold": 0.123
-            }
-            """;
-        }
-
-        /**
          * @brief Creates a fresh test fixture for isolated testing
          * 
          * @test
@@ -2174,7 +2398,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private AbstractWindowActionHandler _fixture()
         {
             _saveButton = new Button();
-            _bottingModel = _generateBottingModel();
+            _bottingModel = DataFixtures.BottingModelFixture();
             _windowSaveMenumodifier = new MockWindowStateModifier();
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration
             {
@@ -2198,7 +2422,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * Successful execution ensures users can reliably save their map configurations
          * and reuse them across multiple gameplay sessions.
          */
-        private void _testClickingSaveButtonSavesMapModelToFile()
+        private void _testClickingSaveButtonSavesBottingModelToFile()
         {
             var handler = _fixture();
             handler.Inject(SystemInjectType.BottingModel, _bottingModel);
@@ -2212,7 +2436,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             Debug.Assert(modifierParameters.InitialDirectory == "cool_maps");
             Debug.Assert(
                 normalizer.Normalize(modifierParameters.SaveContent)
-                == normalizer.Normalize(_expected())
+                == normalizer.Normalize(DataFixtures.JsonFixture())
             );
         }
 
@@ -2230,7 +2454,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * and ensures that save operations only occur when there's meaningful data
          * to preserve.
          */
-        private void _testClickingSaveButtonDoesntSaveWhenMapModelNotInjected()
+        private void _testClickingSaveButtonDoesntSaveWhenBottingModelNotInjected()
         {
             var handler = _fixture();
             handler.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);
@@ -2273,8 +2497,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          */
         public void Run()
         {
-            _testClickingSaveButtonSavesMapModelToFile();
-            _testClickingSaveButtonDoesntSaveWhenMapModelNotInjected();
+            _testClickingSaveButtonSavesBottingModelToFile();
+            _testClickingSaveButtonDoesntSaveWhenBottingModelNotInjected();
             _testClickingSaveButtonDoesntSaveWhenInitialDirectoryNotInjected();
         }
     }
@@ -2399,57 +2623,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
-    public class WindowMapEditorFileLoadData
-    {
-        /**
-         * @brief Provides sample JSON configuration data for testing botting model loading
-         * 
-         * @tests Data structure for file loading and deserialization tests
-         * 
-         * @details
-         * Returns a predefined JSON string representing a complete map configuration
-         * This sample data serves as the input for testing the complete deserialization
-         * and model reconstruction pipeline.
-         * 
-         * @returns JSON string representing a complete map configuration for testing
-         */
-        public string FileLoadData()
-        {
-            return """
-            {
-                "map_area_left": 123,
-                "map_area_top": 234,
-                "map_area_right": 345,
-                "map_area_bottom": 456,
-                "map_points": [
-                    {
-                        "x": 12,
-                        "y": 23,
-                        "x_range": 34,
-                        "y_range": 45,
-                        "point_data": {
-                            "element_name": "E1",
-                            "point_name": "P1",
-                            "commands": [
-                                {
-                                    "macro_name": "M1",
-                                    "macro_chance": 12,
-                                    "macro_commands": [
-                                        "C10",
-                                        "C11",
-                                        "C12"
-                                    ]
-                                }
-                            ]
-                        }
-                    }
-                ]
-            }
-            """;
-        }
-    }
-
-
     /**
      * @class WindowMapEditorLoadModelActionHandlerTests
      * 
@@ -2515,14 +2688,14 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testLoadingFileSetsMapArea()
         {
             var handler = _fixture();
-            var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
+            var fileLoadData = DataFixtures.JsonFixture();
             handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
             var mapArea = _bottingModel.GetMapModel().GetMapArea();
-            Debug.Assert(mapArea.Left == 123);
-            Debug.Assert(mapArea.Top == 234);
-            Debug.Assert(mapArea.Right == 345);
-            Debug.Assert(mapArea.Bottom == 456);
+            Debug.Assert(mapArea.Left == 12);
+            Debug.Assert(mapArea.Top == 23);
+            Debug.Assert(mapArea.Right == 34);
+            Debug.Assert(mapArea.Bottom == 45);
         }
 
         /**
@@ -2534,18 +2707,22 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * Validates that map point coordinates (X, Y, XRange, YRange) are correctly
          * extracted from the file and applied to the botting model.
          */
-        private void _testLoadingFileSetsMapPoints()
+        private void _testLoadingFileSetsBottingPoints()
         {
             var handler = _fixture();
-            var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
+            var fileLoadData = DataFixtures.JsonFixture();
             handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
             var mapPoints = _bottingModel.GetMacroModel().MacroPoints();
-            Debug.Assert(mapPoints.Count == 1);
+            Debug.Assert(mapPoints.Count == 2);
             Debug.Assert(mapPoints[0].X == 12);
             Debug.Assert(mapPoints[0].Y == 23);
             Debug.Assert(mapPoints[0].XRange == 34);
             Debug.Assert(mapPoints[0].YRange == 45);
+            Debug.Assert(mapPoints[1].X == 23);
+            Debug.Assert(mapPoints[1].Y == 34);
+            Debug.Assert(mapPoints[1].XRange == 45);
+            Debug.Assert(mapPoints[1].YRange == 56);
         }
 
 
@@ -2558,15 +2735,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * Validates that point metadata (element name, point name) are correctly
          * extracted from the file and applied to the botting model.
          */
-        private void _testLoadingFileSetsPointData()
+        private void _testLoadingFileSetsBottingPointData()
         {
             var handler = _fixture();
-            var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
+            var fileLoadData = DataFixtures.JsonFixture();
             handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
             var mapPoints = _bottingModel.GetMacroModel().MacroPoints();
             Debug.Assert(mapPoints[0].PointData.ElementName == "E1");
             Debug.Assert(mapPoints[0].PointData.PointName == "P1");
+            Debug.Assert(mapPoints[1].PointData.ElementName == "E2");
+            Debug.Assert(mapPoints[1].PointData.PointName == "P2");
         }
 
         /**
@@ -2578,16 +2757,23 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * Validates that point command data (macro names, chances) are correctly
          * extracted from the file and applied to the botting model.
          */
-        private void _testLoadingFileSetsPointDataCommands()
+        private void _testLoadingFileSetsBottingPointDataCommands()
         {
             var handler = _fixture();
-            var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
+            var fileLoadData = DataFixtures.JsonFixture();
             handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
             var mapPoints = _bottingModel.GetMacroModel().MacroPoints();
-            Debug.Assert(mapPoints[0].PointData.Commands.Count == 1);
+            Debug.Assert(mapPoints[0].PointData.Commands.Count == 2);
             Debug.Assert(mapPoints[0].PointData.Commands[0].MacroName == "M1");
-            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroChance == 12);
+            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroChance == 56);
+            Debug.Assert(mapPoints[0].PointData.Commands[1].MacroName == "M2");
+            Debug.Assert(mapPoints[0].PointData.Commands[1].MacroChance == 67);
+            Debug.Assert(mapPoints[1].PointData.Commands.Count == 2);
+            Debug.Assert(mapPoints[1].PointData.Commands[0].MacroName == "M3");
+            Debug.Assert(mapPoints[1].PointData.Commands[0].MacroChance == 78);
+            Debug.Assert(mapPoints[1].PointData.Commands[1].MacroName == "M4");
+            Debug.Assert(mapPoints[1].PointData.Commands[1].MacroChance == 89);
         }
 
         /**
@@ -2599,17 +2785,29 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * Validates that command macro sequences are correctly extracted from
          * the file and applied to the botting model in the proper order.
          */
-        private void _testLoadingFileSetsPointDataCommandMacros()
+        private void _testLoadingFileSetsBottingPointDataCommandMacros()
         {
             var handler = _fixture();
-            var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
+            var fileLoadData = DataFixtures.JsonFixture();
             handler.Inject(SystemInjectType.BottingModel, _bottingModel);
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
             var mapPoints = _bottingModel.GetMacroModel().MacroPoints();
             Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands.Count == 3);
-            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands[0] == "C10");
-            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands[1] == "C11");
-            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands[2] == "C12");
+            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands[0] == "C12");
+            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands[1] == "C23");
+            Debug.Assert(mapPoints[0].PointData.Commands[0].MacroCommands[2] == "C34");
+            Debug.Assert(mapPoints[0].PointData.Commands[1].MacroCommands.Count == 3);
+            Debug.Assert(mapPoints[0].PointData.Commands[1].MacroCommands[0] == "C23");
+            Debug.Assert(mapPoints[0].PointData.Commands[1].MacroCommands[1] == "C34");
+            Debug.Assert(mapPoints[0].PointData.Commands[1].MacroCommands[2] == "C45");
+            Debug.Assert(mapPoints[1].PointData.Commands[0].MacroCommands.Count == 3);
+            Debug.Assert(mapPoints[1].PointData.Commands[0].MacroCommands[0] == "C34");
+            Debug.Assert(mapPoints[1].PointData.Commands[0].MacroCommands[1] == "C45");
+            Debug.Assert(mapPoints[1].PointData.Commands[0].MacroCommands[2] == "C56");
+            Debug.Assert(mapPoints[1].PointData.Commands[1].MacroCommands.Count == 3);
+            Debug.Assert(mapPoints[1].PointData.Commands[1].MacroCommands[0] == "C45");
+            Debug.Assert(mapPoints[1].PointData.Commands[1].MacroCommands[1] == "C56");
+            Debug.Assert(mapPoints[1].PointData.Commands[1].MacroCommands[2] == "C67");
         }
 
         /**
@@ -2625,10 +2823,244 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testLoadingFileWithoutInjectingMapModelDoesntLoad()
         {
             var handler = _fixture();
-            var fileLoadData = new WindowMapEditorFileLoadData().FileLoadData();
+            var fileLoadData = DataFixtures.JsonFixture();
             _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
-            var mapPoints = _bottingModel.GetMacroModel().MacroPoints();
-            Debug.Assert(mapPoints.Count == 0);
+            var runeFrames = _bottingModel.GetRuneModel().RuneFrames();
+            var macroPoints = _bottingModel.GetMacroModel().MacroPoints();
+            Debug.Assert(runeFrames.Count == 0);
+            Debug.Assert(macroPoints.Count == 0);
+        }
+
+        /**
+         * @brief Tests that loading a file correctly reconstructs rune frame geometry
+         * 
+         * @tests Rune frame boundary and dimension reconstruction from file data
+         * 
+         * @details
+         * Validates that rune frame geometric properties (X, Y coordinates, Width, Height)
+         * are correctly extracted from the file and applied to the botting model.
+         * These frames define screen regions where runes can appear on the map.
+         */
+        private void _testLoadingFileSetsRuneingFrames()
+        {
+            var handler = _fixture();
+            var fileLoadData = DataFixtures.JsonFixture();
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
+            var runeFrames = _bottingModel.GetRuneModel().RuneFrames();
+            Debug.Assert(runeFrames.Count == 2);
+            Debug.Assert(runeFrames[0].X == 12);
+            Debug.Assert(runeFrames[0].Y == 23);
+            Debug.Assert(runeFrames[0].Width == 34);
+            Debug.Assert(runeFrames[0].Height == 45);
+            Debug.Assert(runeFrames[1].X == 34);
+            Debug.Assert(runeFrames[1].Y == 45);
+            Debug.Assert(runeFrames[1].Width == 56);
+            Debug.Assert(runeFrames[1].Height == 67);
+        }
+
+        /**
+         * @brief Tests that loading a file correctly reconstructs rune frame metadata
+         * 
+         * @tests Rune frame name and element label reconstruction from file data
+         * 
+         * @details
+         * Validates that rune frame identification data (FrameName, ElementLabel) are
+         * correctly extracted from the file and applied to the botting model.
+         * These identifiers help users recognize which frame they are editing.
+         */
+        private void _testLoadingFileSetsRuneingFrameData()
+        {
+            var handler = _fixture();
+            var fileLoadData = DataFixtures.JsonFixture();
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
+            var runeFrames = _bottingModel.GetRuneModel().RuneFrames();
+            Debug.Assert(runeFrames[0].FrameData.FrameName == "F0");
+            Debug.Assert(runeFrames[0].FrameData.ElementLabel == "FT0");
+            Debug.Assert(runeFrames[1].FrameData.FrameName == "F1");
+            Debug.Assert(runeFrames[1].FrameData.ElementLabel == "FT1");
+        }
+
+        /**
+         * @brief Tests that loading a file correctly reconstructs point macros within rune frames
+         * 
+         * @tests Rune frame macro reconstruction from file data
+         * 
+         * @details
+         * Validates that point macros (movement sequences) attached to rune frames are
+         * correctly extracted with their coordinates, scale factors, radius, and frame
+         * transition references. Macros define how the bot moves from point to point
+         * within a frame. The NextRuneFrame property enables chaining between frames.
+         */
+        private void _testLoadingFileSetsRuneingFrameMacros()
+        {
+            var handler = _fixture();
+            var fileLoadData = DataFixtures.JsonFixture();
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
+            var runeFrames = _bottingModel.GetRuneModel().RuneFrames();
+
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros.Count == 2);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros.Count == 2);
+
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].ElementLabel == "MT0");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].MacroName == "M0");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].X == 23);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].Y == 34);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].ScaleX == 45);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].ScaleY == 56);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].Radius == 67);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].NextRuneFrame == runeFrames[1]);
+
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].ElementLabel == "MT1");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].MacroName == "M1");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].X == 34);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].Y == 45);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].ScaleX == 56);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].ScaleY == 67);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].Radius == 78);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].NextRuneFrame == null);
+
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].ElementLabel == "MT2");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].MacroName == "M2");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].X == 45);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].Y == 56);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].ScaleX == 67);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].ScaleY == 78);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].Radius == 89);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].NextRuneFrame == null);
+
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].ElementLabel == "MT3");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].MacroName == "M3");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].X == 56);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].Y == 67);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].ScaleX == 78);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].ScaleY == 89);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].Radius == 90);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].NextRuneFrame == runeFrames[0]);
+        }
+
+        /**
+         * @brief Tests that loading a file correctly reconstructs command sequences
+         * within rune frame macros
+         * 
+         * @tests Rune frame macro command sequence reconstruction from file data
+         * 
+         * @details
+         * Validates that the actual automation commands (key presses, movement actions,
+         * delays) attached to each frame macro are correctly loaded in execution order.
+         * These commands execute sequentially when the bot reaches a point within the frame.
+         */
+        private void _testLoadingFileSetsRuneingFrameMacroCommands()
+        {
+            var handler = _fixture();
+            var fileLoadData = DataFixtures.JsonFixture();
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
+            var runeFrames = _bottingModel.GetRuneModel().RuneFrames();
+
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].PointCommands.Count == 3);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].PointCommands[0] == "C123");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].PointCommands[1] == "C234");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].PointCommands[2] == "C345");
+
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].PointCommands.Count == 3);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].PointCommands[0] == "C234");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].PointCommands[1] == "C345");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].PointCommands[2] == "C456");
+
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].PointCommands.Count == 3);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].PointCommands[0] == "C234");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].PointCommands[1] == "C345");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].PointCommands[2] == "C456");
+
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].PointCommands.Count == 3);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].PointCommands[0] == "C345");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].PointCommands[1] == "C456");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].PointCommands[2] == "C567");
+        }
+
+        /**
+         * @brief Tests that loading a file correctly reconstructs directional movement
+         * definitions within rune frames
+         * 
+         * @tests Rune frame direction reconstruction from file data
+         * 
+         * @details
+         * Validates that directional movement definitions (DirectionName, Distance,
+         * Direction type) are correctly extracted for navigating between points within
+         * a frame. The Distance value specifies the maximum safe movement distance to
+         * prevent falling off platforms. Direction types indicate which way to move
+         * (left, right, up, down, etc.).
+         */
+        private void _testLoadingFileSetsRuneingFrameDirections()
+        {
+            var handler = _fixture();
+            var fileLoadData = DataFixtures.JsonFixture();
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
+            var runeFrames = _bottingModel.GetRuneModel().RuneFrames();
+
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections.Count == 2);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections.Count == 2);
+
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[0].DirectionName == "D0");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[0].Distance == 123);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[0].Direction == (RuneFrameDirectionTypes) 234);
+
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[1].DirectionName == "D1");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[1].Distance == 234);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[1].Direction == (RuneFrameDirectionTypes) 345);
+
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[0].DirectionName == "D2");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[0].Distance == 345);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[0].Direction == (RuneFrameDirectionTypes) 456);
+
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[1].DirectionName == "D3");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[1].Distance == 456);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[1].Direction == (RuneFrameDirectionTypes) 567);
+        }
+
+        /**
+         * @brief Tests that loading a file correctly reconstructs command sequences
+         * for directional movement within rune frames
+         * 
+         * @tests Rune frame direction command sequence reconstruction from file data
+         * 
+         * @details
+         * Validates that movement automation commands attached to each directional
+         * definition are correctly loaded in execution order. These commands execute
+         * when the bot moves in a specific direction, handling actions like walking,
+         * jumping, or climbing while respecting the Distance safety constraint.
+         */
+        private void _testLoadingFileSetsRuneingFrameDirectionCommands()
+        {
+            var handler = _fixture();
+            var fileLoadData = DataFixtures.JsonFixture();
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _loadFileDialog.InvokeFileLoaded("lol", fileLoadData);
+            var runeFrames = _bottingModel.GetRuneModel().RuneFrames();
+
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[0].DirectionCommands.Count == 3);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[0].DirectionCommands[0] == "C123");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[0].DirectionCommands[1] == "C234");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[0].DirectionCommands[2] == "C345");
+
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[1].DirectionCommands.Count == 3);
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[1].DirectionCommands[0] == "C234");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[1].DirectionCommands[1] == "C345");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameDirections[1].DirectionCommands[2] == "C456");
+
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[0].DirectionCommands.Count == 3);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[0].DirectionCommands[0] == "C234");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[0].DirectionCommands[1] == "C345");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[0].DirectionCommands[2] == "C456");
+
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[1].DirectionCommands.Count == 3);
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[1].DirectionCommands[0] == "C345");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[1].DirectionCommands[1] == "C456");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameDirections[1].DirectionCommands[2] == "C567");
         }
 
         /**
@@ -2644,10 +3076,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         public void Run()
         {
             _testLoadingFileSetsMapArea();
-            _testLoadingFileSetsMapPoints();
-            _testLoadingFileSetsPointData();
-            _testLoadingFileSetsPointDataCommands();
-            _testLoadingFileSetsPointDataCommandMacros();
+            _testLoadingFileSetsBottingPoints();
+            _testLoadingFileSetsBottingPointData();
+            _testLoadingFileSetsBottingPointDataCommands();
+            _testLoadingFileSetsBottingPointDataCommandMacros();
+            _testLoadingFileSetsRuneingFrames();
+            _testLoadingFileSetsRuneingFrameData();
+            _testLoadingFileSetsRuneingFrameMacros();
+            _testLoadingFileSetsRuneingFrameMacroCommands();
+            _testLoadingFileSetsRuneingFrameDirections();
+            _testLoadingFileSetsRuneingFrameDirectionCommands();
             _testLoadingFileWithoutInjectingMapModelDoesntLoad();
         }
     }
