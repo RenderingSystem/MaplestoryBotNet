@@ -1,6 +1,4 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
-using System.Windows.Navigation;
-using Vortice.Direct3D11;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.Utilities

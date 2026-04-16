@@ -1,7 +1,6 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using System.Collections.Concurrent;
 using System.Windows;
-using System.Windows.Controls;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.Utilities
@@ -864,35 +863,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public override AbstractRuneModel Copy()
         {
-            var runeModel = new RuneModel();
             try
             {
-                _runeFrameLock.EnterReadLock();
-                for (int i = 0; i < _runeFrames.Count; i++)
-                {
-                    runeModel._runeFrames.Add(new RuneFrame());
-                    runeModel._runeFrames[i].Assign(_runeFrames[i]);
-                }
-                for (int i = 0; i < _runeFrames.Count; i++)
-                {
-                    var originalCommands = _runeFrames[i].FrameData.RuneFrameMacros;
-                    var clonedCommands = runeModel._runeFrames[i].FrameData.RuneFrameMacros;
-                    for (int j = 0; j < originalCommands.Count; j++)
-                    {
-                        var nextRuneFrame = originalCommands[j].NextRuneFrame;
-                        if (nextRuneFrame != null)
-                        {
-                            int index = _runeFrames.IndexOf(nextRuneFrame);
-                            clonedCommands[j].NextRuneFrame = runeModel._runeFrames[index];
-                        }
-                    }
-                }
+                return new RuneModel { _runeFrames = RuneFrames() };
             }
             finally
             {
-                _runeFrameLock.ExitReadLock();
             }
-            return runeModel;
         }
     }
 }

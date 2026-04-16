@@ -46,8 +46,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     menuState,
                     addFrameButton,
                     radioButtons,
-                    (int) WindowMapEditFrameMenuStateTypes.AddFrame,
-                    (int) WindowMapEditFrameMenuStateTypes.SelectFrame
+                    (int)WindowMapEditFrameMenuStateTypes.AddFrame,
+                    (int)WindowMapEditFrameMenuStateTypes.SelectFrame
                 )
             );
         }
@@ -428,7 +428,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 return;
             }
             if (
-                _editMenuState.GetState() == (int) WindowMapEditFrameMenuStateTypes.SelectFrame
+                _editMenuState.GetState() == (int)WindowMapEditFrameMenuStateTypes.SelectFrame
                 && parameters.LeftMouseDown
                 && !_editMenuState.Dragging()
             )
@@ -527,7 +527,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class MapCanvasFrameFormatterData
+    public class WindowMapCanvasFrameFormatterData
     {
         public Canvas DragObject = new Canvas();
 
@@ -537,10 +537,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class MapCanvasFrameDragFormatter : AbstractMapCanvasFormatter
+    public class WindowMapCanvasFrameDragFormatter : AbstractMapCanvasFormatter
     {
         private Tuple<double, double, double, double> _calculateRectangle(
-            Canvas mapCanvas, MapCanvasFrameFormatterData formatterData
+            Canvas mapCanvas, WindowMapCanvasFrameFormatterData formatterData
         )
         {
             var currPoint = formatterData.CurrentPoint;
@@ -581,11 +581,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     var hRadius = ellipse.Height / 2;
                     ellipse.RenderTransform = (
                         ellipse.Name == WindowMapCanvasFrameTypes.TL ?
-                            new TranslateTransform(- wRadius, - hRadius) :
+                            new TranslateTransform(-wRadius, -hRadius) :
                         ellipse.Name == WindowMapCanvasFrameTypes.TR ?
-                            new TranslateTransform(rectangle.Item3 - wRadius, - hRadius) :
+                            new TranslateTransform(rectangle.Item3 - wRadius, -hRadius) :
                         ellipse.Name == WindowMapCanvasFrameTypes.BL ?
-                            new TranslateTransform(- wRadius, rectangle.Item4 - hRadius) :
+                            new TranslateTransform(-wRadius, rectangle.Item4 - hRadius) :
                         ellipse.Name == WindowMapCanvasFrameTypes.BR ?
                             new TranslateTransform(rectangle.Item3 - wRadius, rectangle.Item4 - hRadius) :
                         ellipse.RenderTransform
@@ -593,6 +593,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 }
                 else if (child is TextBlock textBlock)
                 {
+                    textBlock.UpdateLayout();
                     Canvas.SetLeft(textBlock, 5);
                     Canvas.SetTop(textBlock, textBlock.ActualHeight + 5);
                     textBlock.Visibility = Visibility.Visible;
@@ -608,7 +609,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         {
             if (
                 canvas is Canvas mapCanvas
-                && formatData is MapCanvasFrameFormatterData frameFormatterData
+                && formatData is WindowMapCanvasFrameFormatterData frameFormatterData
             )
             {
                 var rectangle = _calculateRectangle(mapCanvas, frameFormatterData);
@@ -651,7 +652,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 _mapCanvasFrameFormatter.Format(
                     _mapCanvas,
                     [],
-                    new MapCanvasFrameFormatterData
+                    new WindowMapCanvasFrameFormatterData
                     {
                         DragObject = dragObject,
                         DragPoint = new Point(dragPoint.Item1, dragPoint.Item2),
@@ -712,7 +713,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _frameDragActionHandler = new WindowMapCanvasFrameDragActionHandler(
                 mapCanvas,
                 new WindowMapCanvasFrameDragModifier(
-                    mapCanvas, editMenuState, new MapCanvasFrameDragFormatter()
+                    mapCanvas, editMenuState, new WindowMapCanvasFrameDragFormatter()
                 ),
                 mousePositionExtractor
             );
@@ -1429,7 +1430,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 value is WindowMapCanvasFrameRemoveParameters parameters
                 && parameters.RemovePosition is Point removePosition
                 && parameters.BottingModel is AbstractBottingModel bottingModel
-                && _editMenuState.GetState() == (int) WindowMapEditFrameMenuStateTypes.RemoveFrame
+                && _editMenuState.GetState() == (int)WindowMapEditFrameMenuStateTypes.RemoveFrame
                 && _findFrameAtPosition(removePosition) is Canvas removeFrame
                 && removeFrame.Tag is MapCanvasRuneFrameDataTag tag
             )
@@ -1643,7 +1644,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 );
                 if (left > 0 && left < selectedFrame.Width && top > 0 && top < selectedFrame.Height)
                 {
-                    var createdFramePoint = (Canvas) _framePointFactory.Create();
+                    var createdFramePoint = (Canvas)_framePointFactory.Create();
                     selectedFrame.Children.Add(createdFramePoint);
                     Canvas.SetLeft(createdFramePoint, left);
                     Canvas.SetTop(createdFramePoint, top);
@@ -1717,7 +1718,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     mouseButtonEventArgs, _mapCanvas
                 );
                 _framePointDrawerModifier.Modify(
-                    new WindowMapCanvasFramePointDrawerParameters {
+                    new WindowMapCanvasFramePointDrawerParameters
+                    {
                         ElementModel = bottingModel,
                         ElementPoint = new Tuple<double, double>(position.X, position.Y)
                     }
@@ -2100,7 +2102,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         {
             if (
                 value is WindowMapCanvasFramePointRemoveModifierParameters parameters
-                && _editMenuState.GetState() is (int) WindowMapEditFrameMenuStateTypes.RemovePoint
+                && _editMenuState.GetState() is (int)WindowMapEditFrameMenuStateTypes.RemovePoint
                 && _findFramePointAtPosition(parameters.RemovePoint) is Canvas removeFramePoint
                 && _editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject selectedObject
                 && removeFramePoint.Parent is Canvas removeFrame
@@ -2206,6 +2208,284 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override void OnEvent(object? sender, EventArgs e)
         {
             _framePointRemoveActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowMapCanvasLoadedRuneFrameDrawerModifier : AbstractWindowStateModifier
+    {
+        private Canvas _mapCanvas;
+
+        private AbstractMapCanvasElementFactory _runeFrameFactory;
+
+        private AbstractMapCanvasElementFactory _runeFramePointFactory;
+
+        private AbstractMapCanvasFormatter _runeFrameDragFormatter;
+
+        public WindowMapCanvasLoadedRuneFrameDrawerModifier(
+            Canvas mapCanvas,
+            AbstractMapCanvasElementFactory runeFrameFactory,
+            AbstractMapCanvasElementFactory runeFramePointFactory,
+            AbstractMapCanvasFormatter runeFrameDragFormatter
+        )
+        {
+            _mapCanvas = mapCanvas;
+            _runeFrameFactory = runeFrameFactory;
+            _runeFramePointFactory = runeFramePointFactory;
+            _runeFrameDragFormatter = runeFrameDragFormatter;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is not AbstractBottingModel bottingModel)
+            {
+                return;
+            }
+
+            _mapCanvas.Children.Clear();
+
+            foreach (var runeModelFrame in bottingModel.GetRuneModel().RuneFrames())
+            {
+                var xi = runeModelFrame.X;
+                var yi = runeModelFrame.Y;
+                var xf = runeModelFrame.X + runeModelFrame.Width;
+                var yf = runeModelFrame.Y + runeModelFrame.Height;
+                var frameName = runeModelFrame.FrameData.FrameName;
+                var elementLabel = runeModelFrame.FrameData.ElementLabel;
+                var runeFrame = (Canvas)_runeFrameFactory.Create();
+                var runeFrameText = runeFrame.Children.OfType<TextBlock>().First();
+
+                runeFrame.Width = _mapCanvas.Width;
+                runeFrame.Height = _mapCanvas.Height;
+                runeFrameText.Text = frameName;
+                runeFrame.Tag = new MapCanvasRuneFrameDataTag
+                {
+                    FrameName = frameName,
+                    ElementLabel = elementLabel,
+                };
+
+                _mapCanvas.Children.Add(runeFrame);
+                _runeFrameDragFormatter.Format(
+                    _mapCanvas,
+                    [],
+                    new WindowMapCanvasFrameFormatterData
+                    {
+                        DragObject = runeFrame,
+                        CurrentPoint = new Point(xi, yi),
+                        DragPoint = new Point(xf, yf)
+                    }
+                );
+
+                foreach (var runeFrameMacro in runeModelFrame.FrameData.RuneFrameMacros)
+                {
+                    var x = runeFrameMacro.X;
+                    var y = runeFrameMacro.Y;
+                    var scaleX = runeFrameMacro.ScaleX;
+                    var scaleY = runeFrameMacro.ScaleY;
+
+                    if (scaleX > 0.0 && scaleY > 0.0)
+                    {
+                        var runeFramePoint = (Canvas)_runeFramePointFactory.Create();
+                        var runeFramePointText = runeFramePoint.Children.OfType<TextBlock>().First();
+
+                        runeFrame.Children.Add(runeFramePoint);
+                        Canvas.SetLeft(runeFramePoint, (xf - xi) * (x / scaleX));
+                        Canvas.SetTop(runeFramePoint, (yf - yi) * (y / scaleY));
+                        runeFramePointText.Text = runeFrameMacro.MacroName;
+                        runeFramePoint.Tag = runeFrameMacro.ElementLabel;
+                    }
+                }
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasLoadedRuneFrameDrawerActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractLoadFileDialog _loadFileDialog;
+
+        private AbstractWindowStateModifier _loadedRuneFrameDrawerModifier;
+
+        private AbstractBottingModel? _bottingModel;
+
+        public WindowMapCanvasLoadedRuneFrameDrawerActionHandler(
+            AbstractLoadFileDialog loadFileDialog,
+            AbstractWindowStateModifier loadedRuneFrameDrawerModifier
+        )
+        {
+            _loadFileDialog = loadFileDialog;
+            _loadedRuneFrameDrawerModifier = loadedRuneFrameDrawerModifier;
+            _loadFileDialog.FileLoaded += OnEvent;
+            _bottingModel = null;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _loadedRuneFrameDrawerModifier;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
+            {
+                _bottingModel = bottingModel;
+            }
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _loadedRuneFrameDrawerModifier.Modify(_bottingModel);
+        }
+    }
+
+
+    public class WindowMapCanvasLoadedRuneFrameDrawerActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _loadedRuneFrameDrawerActionHandler;
+
+        public WindowMapCanvasLoadedRuneFrameDrawerActionHandlerFacade(
+            Canvas mapCanvas,
+            AbstractLoadFileDialog loadFileDialog
+        )
+        {
+            _loadedRuneFrameDrawerActionHandler = new WindowMapCanvasLoadedRuneFrameDrawerActionHandler(
+                loadFileDialog,
+                new WindowMapCanvasLoadedRuneFrameDrawerModifier(
+                    mapCanvas,
+                    new WindowMapCanvasFrameFactoryFacade(),
+                    new WindowMapCanvasFramePointFactoryFacade(),
+                    new WindowMapCanvasFrameDragFormatter()
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _loadedRuneFrameDrawerActionHandler.Modifier();
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _loadedRuneFrameDrawerActionHandler.Inject(dataType, data);
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _loadedRuneFrameDrawerActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowMapCanvasLoadedRuneFrameDeselectModifier : AbstractWindowStateModifier
+    {
+        private List<ButtonBase> _disableButtons;
+
+        private List<TextBox> _clearTexts;
+
+        private AbstractWindowMapEditMenuState _editMenuState;
+
+        public WindowMapCanvasLoadedRuneFrameDeselectModifier(
+            List<ButtonBase> disableButtons,
+            List<TextBox> clearTexts,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _disableButtons = disableButtons;
+            _clearTexts = clearTexts;
+            _editMenuState = editMenuState;
+        }
+
+        private void _disableSelectedButtons()
+        {
+            foreach (var button in _disableButtons)
+            {
+                button.IsEnabled = false;
+            }
+        }
+
+        private void _clearSelectedTexts()
+        {
+            _editMenuState.SetEditingText(true);
+            foreach (var clearText in _clearTexts)
+            {
+                clearText.Text = "";
+            }
+            _editMenuState.SetEditingText(false);
+        }
+
+        private void _deselectSelectedState()
+        {
+            _editMenuState.Select(null);
+            _editMenuState.SetDragging(false);
+        }
+
+        public override void Modify(object? value)
+        {
+            _disableSelectedButtons();
+            _clearSelectedTexts();
+            _deselectSelectedState();
+        }
+    }
+
+
+    public class WindowMapCanvasLoadedRuneFrameDeselectActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractLoadFileDialog _loadFileDialog;
+
+        private AbstractWindowStateModifier _loadedRuneFrameButtonAccessModifier;
+
+        public WindowMapCanvasLoadedRuneFrameDeselectActionHandler(
+            AbstractLoadFileDialog loadFileDialog,
+            AbstractWindowStateModifier loadedRuneFrameButtonAccessModifier
+        )
+        {
+            _loadFileDialog = loadFileDialog;
+            _loadedRuneFrameButtonAccessModifier = loadedRuneFrameButtonAccessModifier;
+            _loadFileDialog.FileLoaded += OnEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _loadedRuneFrameButtonAccessModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _loadedRuneFrameButtonAccessModifier.Modify(null);
+        }
+    }
+
+
+    public class WindowMapCanvasLoadedRuneFrameDeselectActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _loadedRuneFrameButtonAccessActionHandler;
+
+        public WindowMapCanvasLoadedRuneFrameDeselectActionHandlerFacade(
+            List<ButtonBase> disableButtons,
+            List<TextBox> clearTexts,
+            AbstractWindowMapEditMenuState editMenuState,
+            AbstractLoadFileDialog loadFileDialog
+
+        )
+        {
+            _loadedRuneFrameButtonAccessActionHandler = new WindowMapCanvasLoadedRuneFrameDeselectActionHandler(
+                loadFileDialog,
+                new WindowMapCanvasLoadedRuneFrameDeselectModifier(
+                    disableButtons,
+                    clearTexts,
+                    editMenuState
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _loadedRuneFrameButtonAccessActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _loadedRuneFrameButtonAccessActionHandler.OnEvent(sender, e);
         }
     }
 }

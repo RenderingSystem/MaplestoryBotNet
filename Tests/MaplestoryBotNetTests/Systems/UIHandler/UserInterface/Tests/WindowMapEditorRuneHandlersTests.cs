@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.UIHandler.Utilities.Mocks;
 using System.Diagnostics;
 using System.Windows;
@@ -8,9 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
-using System.Xml.Linq;
 
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
@@ -2774,6 +2773,345 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    public class WindowMapCanvasLoadedRuneFrameDrawerActionHandlerTests
+    {
+        private Canvas _mapCanvas = new Canvas();
+
+        private AbstractLoadFileDialog _loadFileDialog = new WindowLoadFileDialog("", "");
+
+        private AbstractBottingModel _bottingModel = new BottingModel();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _mapCanvas = new Canvas { Width = 9999, Height = 9999 };
+            _loadFileDialog = new WindowLoadFileDialog("", "");
+            _bottingModel = DataFixtures.BottingModelFixture();
+            return new WindowMapCanvasLoadedRuneFrameDrawerActionHandlerFacade(
+                _mapCanvas,
+                _loadFileDialog
+            );
+        }
+
+        /**
+         * @brief Ensures the canvas is completely cleared before drawing new rune frames
+         * 
+         * When users load a new configuration file, any existing rune frames and points
+         * from previous sessions are automatically removed from the canvas. This prevents
+         * visual clutter and ensures only the newly loaded frames are displayed.
+         */
+        private void _testMapCanvasClearedOnFileLoaded()
+        {
+            for (int i = 1; i < 10; i++)
+            {
+                var loadedRuneFrameDrawerActionHandler = _fixture();
+                for (int j = 0; j < i; j++)
+                {
+                    _mapCanvas.Children.Add(new Canvas());
+                }
+                loadedRuneFrameDrawerActionHandler.Inject(SystemInjectType.BottingModel, new BottingModel());
+                _loadFileDialog.InvokeFileLoaded("", "");
+                Debug.Assert(_mapCanvas.Children.Count == 0);
+            }
+        }
+
+        /**
+         * @brief Verifies that rune frames are correctly drawn on the canvas when loading a file
+         * 
+         * When users load a saved configuration, each rune frame appears on the canvas
+         * with the correct dimensions (width, height) and displays its frame name as a
+         * text label. The frame's identification data is stored for later referencing.
+         */
+        private void _testMapCanvasRuneFrameAddedOnFileLoaded()
+        {
+            var loadedRuneFrameDrawerActionHandler = _fixture();
+            loadedRuneFrameDrawerActionHandler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _loadFileDialog.InvokeFileLoaded("", "");
+
+            var runeFrames = _mapCanvas.Children.OfType<Canvas>().ToList();
+            var runeFrame0 = runeFrames.Find((rf) => ((MapCanvasRuneFrameDataTag)rf.Tag).ElementLabel == "FT0")!;
+            var runeFrame0Tag = (MapCanvasRuneFrameDataTag)runeFrame0.Tag;
+            var runeFrame0Text = runeFrame0.Children.OfType<TextBlock>().First();
+            var runeFrame1 = runeFrames.Find((rf) => ((MapCanvasRuneFrameDataTag)rf.Tag).ElementLabel == "FT1")!;
+            var runeFrame1Tag = (MapCanvasRuneFrameDataTag)runeFrame1.Tag;
+            var runeFrame1Text = runeFrame1.Children.OfType<TextBlock>().First();
+
+            Debug.Assert(runeFrames.Count == 2);
+
+            Debug.Assert(runeFrame0.Width == 34);
+            Debug.Assert(runeFrame0.Height == 45);
+            Debug.Assert(runeFrame0Text.Text == "F0");
+            Debug.Assert(runeFrame0Tag.FrameName == "F0");
+            Debug.Assert(runeFrame0Tag.ElementLabel == "FT0");
+
+            Debug.Assert(runeFrame1.Width == 56);
+            Debug.Assert(runeFrame1.Height == 67);
+            Debug.Assert(runeFrame1Text.Text == "F1");
+            Debug.Assert(runeFrame1Tag.FrameName == "F1");
+            Debug.Assert(runeFrame1Tag.ElementLabel == "FT1");
+        }
+
+        /**
+         * @brief Verifies that corner resize grips are properly positioned on each frame
+         * 
+         * When users load a configuration, each rune frame displays four corner grips
+         * (TL, TR, BL, BR) that allow resizing the frame. These grips are positioned
+         * exactly at the four corners of the frame, offset by half their width/height
+         * so they center precisely on the corners for easy clicking.
+         */
+        private void _testMapCanvasRuneFrameGripsOnFileLoaded()
+        {
+            var loadedRuneFrameDrawerActionHandler = _fixture();
+            loadedRuneFrameDrawerActionHandler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _loadFileDialog.InvokeFileLoaded("", "");
+
+            var runeFrames = _mapCanvas.Children.OfType<Canvas>().ToList();
+
+            var runeFrame0 = runeFrames.Find((rf) => ((MapCanvasRuneFrameDataTag)rf.Tag).ElementLabel == "FT0")!;
+            var runeFrame0Grips = runeFrame0.Children.OfType<Ellipse>().ToList();
+            var runeFrame0GripTL = runeFrame0Grips.Find((grip) => grip.Name == WindowMapCanvasFrameTypes.TL)!;
+            var runeFrame0GripTR = runeFrame0Grips.Find((grip) => grip.Name == WindowMapCanvasFrameTypes.TR)!;
+            var runeFrame0GripBL = runeFrame0Grips.Find((grip) => grip.Name == WindowMapCanvasFrameTypes.BL)!;
+            var runeFrame0GripBR = runeFrame0Grips.Find((grip) => grip.Name == WindowMapCanvasFrameTypes.BR)!;
+
+            var runeFrame1 = runeFrames.Find((rf) => ((MapCanvasRuneFrameDataTag)rf.Tag).ElementLabel == "FT1")!;
+            var runeFrame1Grips = runeFrame1.Children.OfType<Ellipse>().ToList();
+            var runeFrame1GripTL = runeFrame1Grips.Find((grip) => grip.Name == WindowMapCanvasFrameTypes.TL)!;
+            var runeFrame1GripTR = runeFrame1Grips.Find((grip) => grip.Name == WindowMapCanvasFrameTypes.TR)!;
+            var runeFrame1GripBL = runeFrame1Grips.Find((grip) => grip.Name == WindowMapCanvasFrameTypes.BL)!;
+            var runeFrame1GripBR = runeFrame1Grips.Find((grip) => grip.Name == WindowMapCanvasFrameTypes.BR)!;
+
+            Debug.Assert(runeFrame0GripTL.RenderTransform.Value.OffsetX == -(runeFrame0GripTL.Width / 2));
+            Debug.Assert(runeFrame0GripTL.RenderTransform.Value.OffsetY == -(runeFrame0GripTL.Height / 2));
+            Debug.Assert(runeFrame0GripTR.RenderTransform.Value.OffsetX == runeFrame0.Width - (runeFrame0GripTR.Width / 2));
+            Debug.Assert(runeFrame0GripTR.RenderTransform.Value.OffsetY == -(runeFrame0GripTR.Height / 2));
+            Debug.Assert(runeFrame0GripBL.RenderTransform.Value.OffsetX == -(runeFrame0GripBL.Width / 2));
+            Debug.Assert(runeFrame0GripBL.RenderTransform.Value.OffsetY == runeFrame0.Height - (runeFrame0GripBL.Height / 2));
+            Debug.Assert(runeFrame0GripBR.RenderTransform.Value.OffsetX == runeFrame0.Width - (runeFrame0GripBR.Width / 2));
+            Debug.Assert(runeFrame0GripBR.RenderTransform.Value.OffsetY == runeFrame0.Height - (runeFrame0GripBR.Height / 2));
+
+            Debug.Assert(runeFrame1GripTL.RenderTransform.Value.OffsetX == -(runeFrame1GripTL.Width / 2));
+            Debug.Assert(runeFrame1GripTL.RenderTransform.Value.OffsetY == -(runeFrame1GripTL.Height / 2));
+            Debug.Assert(runeFrame1GripTR.RenderTransform.Value.OffsetX == runeFrame1.Width - (runeFrame1GripTR.Width / 2));
+            Debug.Assert(runeFrame1GripTR.RenderTransform.Value.OffsetY == -(runeFrame1GripTR.Height / 2));
+            Debug.Assert(runeFrame1GripBL.RenderTransform.Value.OffsetX == -(runeFrame1GripBL.Width / 2));
+            Debug.Assert(runeFrame1GripBL.RenderTransform.Value.OffsetY == runeFrame1.Height - (runeFrame1GripBL.Height / 2));
+            Debug.Assert(runeFrame1GripBR.RenderTransform.Value.OffsetX == runeFrame1.Width - (runeFrame1GripBR.Width / 2));
+            Debug.Assert(runeFrame1GripBR.RenderTransform.Value.OffsetY == runeFrame1.Height - (runeFrame1GripBR.Height / 2));
+        }
+
+        /**
+         * @brief Verifies that frame name labels are positioned correctly within each frame
+         * 
+         * When users load a configuration, each rune frame displays its name label
+         * positioned near the top-left corner of the frame (5 pixels from left edge,
+         * 5 pixels below the text's actual height). This placement keeps labels
+         * visible and non-overlapping with frame content.
+         */
+        private void _testMapCanvasRuneFrameTextPositionOnFileLoaded()
+        {
+            var loadedRuneFrameDrawerActionHandler = _fixture();
+            loadedRuneFrameDrawerActionHandler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _loadFileDialog.InvokeFileLoaded("", "");
+
+            var runeFrames = _mapCanvas.Children.OfType<Canvas>().ToList();
+
+            var runeFrame0 = runeFrames.Find((rf) => ((MapCanvasRuneFrameDataTag)rf.Tag).ElementLabel == "FT0")!;
+            var runeFrame1 = runeFrames.Find((rf) => ((MapCanvasRuneFrameDataTag)rf.Tag).ElementLabel == "FT1")!;
+            var runeFrame0Text = runeFrame0.Children.OfType<TextBlock>().First();
+            var runeFrame1Text = runeFrame1.Children.OfType<TextBlock>().First();
+
+            Debug.Assert(Canvas.GetLeft(runeFrame0Text) == 5);
+            Debug.Assert(Canvas.GetTop(runeFrame0Text) == runeFrame0Text.ActualHeight + 5);
+            Debug.Assert(Canvas.GetLeft(runeFrame1Text) == 5);
+            Debug.Assert(Canvas.GetTop(runeFrame1Text) == runeFrame1Text.ActualHeight + 5);
+        }
+
+        /**
+         * @brief Verifies that navigation points within each frame are correctly drawn
+         * 
+         * When users load a configuration, each rune frame displays its navigation
+         * points as circular markers. Each point shows its macro name label (e.g., "M0")
+         * and stores its element tag for identification during referencing operations.
+         */
+        private void _testMapCanvasRuneFramePointOnFileLoaded()
+        {
+            var loadedRuneFrameDrawerActionHandler = _fixture();
+            loadedRuneFrameDrawerActionHandler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _loadFileDialog.InvokeFileLoaded("", "");
+
+            var runeFrames = _mapCanvas.Children.OfType<Canvas>().ToList();
+
+            var runeFrame0 = runeFrames.Find((rf) => ((MapCanvasRuneFrameDataTag)rf.Tag).ElementLabel == "FT0")!;
+            var runeFrame1 = runeFrames.Find((rf) => ((MapCanvasRuneFrameDataTag)rf.Tag).ElementLabel == "FT1")!;
+
+            var runeFrame0Points = runeFrame0.Children.OfType<Canvas>().ToList();
+            var runeFrame0Point0Tag = (string)runeFrame0Points[0].Tag;
+            var runeFrame0Point1Tag = (string)runeFrame0Points[1].Tag;
+            var runeFrame0Point0Text = runeFrame0Points[0].Children.OfType<TextBlock>().First()!;
+            var runeFrame0Point1Text = runeFrame0Points[1].Children.OfType<TextBlock>().First()!;
+
+            var runeFrame1Points = runeFrame1.Children.OfType<Canvas>().ToList();
+            var runeFrame1Point0Tag = (string)runeFrame1Points[0].Tag;
+            var runeFrame1Point1Tag = (string)runeFrame1Points[1].Tag;
+            var runeFrame1Point0Text = runeFrame1Points[0].Children.OfType<TextBlock>().First()!;
+            var runeFrame1Point1Text = runeFrame1Points[1].Children.OfType<TextBlock>().First()!;
+
+            Debug.Assert(runeFrame0Point0Tag == "MT0");
+            Debug.Assert(runeFrame0Point0Text.Text == "M0");
+            Debug.Assert(runeFrame0Point1Tag == "MT1");
+            Debug.Assert(runeFrame0Point1Text.Text == "M1");
+
+            Debug.Assert(runeFrame1Point0Tag == "MT2");
+            Debug.Assert(runeFrame1Point0Text.Text == "M2");
+            Debug.Assert(runeFrame1Point1Tag == "MT3");
+            Debug.Assert(runeFrame1Point1Text.Text == "M3");
+        }
+
+        /**
+         * @brief Verifies that navigation points are positioned at the correct coordinates
+         * within their frames
+         * 
+         * When users load a configuration, each navigation point appears at the exact
+         * relative position within its frame as defined in the configuration file.
+         * These positions are calculated proportionally to the frame's dimensions,
+         * ensuring points stay in the correct location even if the frame is resized.
+         */
+        private void _testMapCanvasRuneFramePointPositionOnFileLoaded()
+        {
+            var loadedRuneFrameDrawerActionHandler = _fixture();
+            loadedRuneFrameDrawerActionHandler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _loadFileDialog.InvokeFileLoaded("", "");
+
+            var runeFrames = _mapCanvas.Children.OfType<Canvas>().ToList();
+
+            var runeFrame0 = runeFrames.Find((rf) => ((MapCanvasRuneFrameDataTag)rf.Tag).ElementLabel == "FT0")!;
+            var runeFrame1 = runeFrames.Find((rf) => ((MapCanvasRuneFrameDataTag)rf.Tag).ElementLabel == "FT1")!;
+            var runeFrame0Points = runeFrame0.Children.OfType<Canvas>().ToList();
+            var runeFrame1Points = runeFrame1.Children.OfType<Canvas>().ToList();
+
+            Debug.Assert(runeFrame0Points.Count == 2);
+            Debug.Assert(Math.Abs(Canvas.GetLeft(runeFrame0Points[0]) - 17.377777777777776) < 0.00001);
+            Debug.Assert(Math.Abs(Canvas.GetTop(runeFrame0Points[0]) - 27.321428571428569) < 0.00001);
+            Debug.Assert(Math.Abs(Canvas.GetLeft(runeFrame0Points[1]) - 20.642857142857142) < 0.00001);
+            Debug.Assert(Math.Abs(Canvas.GetTop(runeFrame0Points[1]) - 30.223880597014929) < 0.00001);
+
+            Debug.Assert(runeFrame1Points.Count == 2);
+            Debug.Assert(Math.Abs(Canvas.GetLeft(runeFrame1Points[0]) - 37.611940298507463) < 0.00001);
+            Debug.Assert(Math.Abs(Canvas.GetTop(runeFrame1Points[0]) - 48.1025641025641) < 0.00001);
+            Debug.Assert(Math.Abs(Canvas.GetLeft(runeFrame1Points[1]) - 40.205128205128204) < 0.00001);
+            Debug.Assert(Math.Abs(Canvas.GetTop(runeFrame1Points[1]) - 50.438202247191008) < 0.00001);
+        }
+
+        public void Run()
+        {
+            _testMapCanvasClearedOnFileLoaded();
+            _testMapCanvasRuneFrameAddedOnFileLoaded();
+            _testMapCanvasRuneFrameGripsOnFileLoaded();
+            _testMapCanvasRuneFrameTextPositionOnFileLoaded();
+            _testMapCanvasRuneFramePointOnFileLoaded();
+            _testMapCanvasRuneFramePointPositionOnFileLoaded();
+        }
+    }
+
+
+    public class WindowMapCanvasLoadedRuneFrameDeselectActionHandlerTests
+    {
+        private List<ButtonBase> _disableButtons = [];
+
+        private List<TextBox> _clearTextBoxes = [];
+
+        private AbstractWindowMapEditMenuState _editMenuState = new WindowMapEditMenuState();
+
+        private AbstractLoadFileDialog _loadFileDialog = new WindowLoadFileDialog("", "");
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _disableButtons = [new Button(), new Button(), new Button()];
+            _clearTextBoxes = [new TextBox(), new TextBox(), new TextBox()];
+            _editMenuState = new WindowMapEditMenuState();
+            _loadFileDialog = new WindowLoadFileDialog("", "");
+            for (int i = 0; i < _disableButtons.Count; i++)
+            {
+                _disableButtons[i].IsEnabled = true;
+            }
+            for (int i = 0; i < _clearTextBoxes.Count; i++)
+            {
+                _clearTextBoxes[i].Text = "meow";
+            }
+            _editMenuState.Select(new object());
+            _editMenuState.SetDragging(true);
+            return new WindowMapCanvasLoadedRuneFrameDeselectActionHandlerFacade(
+                _disableButtons,
+                _clearTextBoxes,
+                _editMenuState,
+                _loadFileDialog
+            );
+        }
+
+        /**
+         * @brief Ensures action buttons are disabled after loading a new configuration file
+         * 
+         * When users load a new rune frame configuration, all action buttons (such as
+         * Add Point, Remove Point, Edit Properties) become disabled because no frame
+         * is currently selected. This prevents users from attempting operations before
+         * selecting a frame.
+         */
+        private void _testLoadingRuneFramesDisablesButtons()
+        {
+            var loadedRuneFrameDeselectActionHandler = _fixture();
+            _loadFileDialog.InvokeFileLoaded("", "");
+            for (int i = 0; i < _disableButtons.Count; i++)
+            {
+                Debug.Assert(!_disableButtons[i].IsEnabled);
+            }
+        }
+
+        /**
+         * @brief Ensures text input fields are cleared after loading a new configuration file
+         * 
+         * When users load a new rune frame configuration, all text boxes (such as frame
+         * name, element label, or macro command inputs) are automatically cleared.
+         * This removes any leftover text from previous editing sessions and provides
+         * a clean slate for working with the newly loaded frames.
+         */
+        private void _testLoadingRuneFramesClearsTextBoxes()
+        {
+            var loadedRuneFrameDeselectActionHandler = _fixture();
+            _loadFileDialog.InvokeFileLoaded("", "");
+            for (int i = 0; i < _clearTextBoxes.Count; i++)
+            {
+                Debug.Assert(_clearTextBoxes[i].Text == "");
+            }
+        }
+
+        /**
+         * @brief Ensures any existing frame selection is cleared after loading a new file
+         * 
+         * When users load a new rune frame configuration, the editor automatically
+         * deselects any previously selected frame and exits any active drag mode.
+         * This ensures users start fresh with the newly loaded frames and prevents
+         * accidental modifications to frames that no longer exist.
+         */
+        private void _testLoadingRuneFramesDeselects()
+        {
+            var loadedRuneFrameDeselectActionHandler = _fixture();
+            _loadFileDialog.InvokeFileLoaded("", "");
+            for (int i = 0; i < _clearTextBoxes.Count; i++)
+            {
+                Debug.Assert(_editMenuState.Selected() == null);
+                Debug.Assert(!_editMenuState.Dragging());
+            }
+        }
+
+        public void Run()
+        {
+            _testLoadingRuneFramesDisablesButtons();
+            _testLoadingRuneFramesClearsTextBoxes();
+            _testLoadingRuneFramesDeselects();
+        }
+    }
+
+
     public class WindowMapEditorRuneHandlersTestSuite
     {
         public void Run()
@@ -2794,6 +3132,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMapCanvasFramePointDragActionHandlerTests().Run();
             new WindowMapCanvasFramePointScaleActionHandlerTests().Run();
             new WindowMapCanvasFramePointRemoveActionHandlerTests().Run();
+            new WindowMapCanvasLoadedRuneFrameDrawerActionHandlerTests().Run();
+            new WindowMapCanvasLoadedRuneFrameDeselectActionHandlerTests().Run();
         }
     }
 }

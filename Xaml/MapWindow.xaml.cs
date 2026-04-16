@@ -797,6 +797,34 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
+        public AbstractWindowActionHandler _instantiateLoadedRuneFrameDrawerActionHandler()
+        {
+            return new WindowMapCanvasLoadedRuneFrameDrawerActionHandlerFacade(
+                _mapCanvas,
+                _loadFileDialog
+            );
+        }
+
+        public AbstractWindowActionHandler _instantiateLoadedRuneFrameDeselectActionHandler()
+        {
+            return new WindowMapCanvasLoadedRuneFrameDeselectActionHandlerFacade(
+                [
+                    _addPointButton,
+                    _removePointButton,
+                    _editButton
+                ],
+                [
+                    _labelTextBox,
+                    _frameTextBoxLeft,
+                    _frameTextBoxTop,
+                    _frameTextBoxRight,
+                    _frameTextBoxBottom
+                ],
+                _editMenuState,
+                _loadFileDialog
+            );
+        }
+
         public List<AbstractWindowActionHandler> Instantiate(
             AbstractSystemWindow editWindow
         )
@@ -823,7 +851,9 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
                 _instantiateFrameButtonAccessActionHandler(),
                 _instantiateFramePointDragActionHandler(),
                 _instantiateFramePointScaleActionHandler(),
-                _instantiateFramePointRemoveActionHandler()
+                _instantiateFramePointRemoveActionHandler(),
+                _instantiateLoadedRuneFrameDrawerActionHandler(),
+                _instantiateLoadedRuneFrameDeselectActionHandler()
             ];
         }
     }

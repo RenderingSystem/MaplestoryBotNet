@@ -1788,17 +1788,17 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowMapEditorLoadModelModifier : AbstractWindowStateModifier
     {
-        private AbstractBottingModelDeserializer _mapModelDeserializer;
+        private AbstractBottingModelDeserializer _bottingModelDeserializer;
 
-        private AbstractJsonDataModelConverter _mapModelConverter;
+        private AbstractJsonDataModelConverter _bottingModelConverter;
 
         public WindowMapEditorLoadModelModifier(
             AbstractBottingModelDeserializer mapModelDeserializer,
             AbstractJsonDataModelConverter mapModelConverter
         )
         {
-            _mapModelDeserializer = mapModelDeserializer;
-            _mapModelConverter = mapModelConverter;
+            _bottingModelDeserializer = mapModelDeserializer;
+            _bottingModelConverter = mapModelConverter;
         }
 
         public override void Modify(object? value)
@@ -1807,10 +1807,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 return;
             }
-            var deserialized = _mapModelDeserializer.Deserialize(
+            var deserialized = _bottingModelDeserializer.Deserialize(
                 parameters.LoadedConfiguration
             );
-            var bottingModel = (BottingModel)_mapModelConverter.ToDataModel(deserialized)!;
+            var bottingModel = (BottingModel)_bottingModelConverter.ToDataModel(deserialized)!;
             parameters.ElementModel.SetBottingModel(bottingModel);
         }
     }

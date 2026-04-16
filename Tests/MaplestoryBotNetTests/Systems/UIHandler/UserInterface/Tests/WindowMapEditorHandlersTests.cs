@@ -2961,24 +2961,24 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var runeFrames = _bottingModel.GetRuneModel().RuneFrames();
 
             Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].PointCommands.Count == 3);
-            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].PointCommands[0] == "C123");
-            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].PointCommands[1] == "C234");
-            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].PointCommands[2] == "C345");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].PointCommands[0] == "C345");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].PointCommands[1] == "C456");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[0].PointCommands[2] == "C567");
 
             Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].PointCommands.Count == 3);
-            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].PointCommands[0] == "C234");
-            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].PointCommands[1] == "C345");
-            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].PointCommands[2] == "C456");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].PointCommands[0] == "C456");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].PointCommands[1] == "C567");
+            Debug.Assert(runeFrames[0].FrameData.RuneFrameMacros[1].PointCommands[2] == "C678");
 
             Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].PointCommands.Count == 3);
-            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].PointCommands[0] == "C234");
-            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].PointCommands[1] == "C345");
-            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].PointCommands[2] == "C456");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].PointCommands[0] == "C456");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].PointCommands[1] == "C567");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[0].PointCommands[2] == "C678");
 
             Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].PointCommands.Count == 3);
-            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].PointCommands[0] == "C345");
-            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].PointCommands[1] == "C456");
-            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].PointCommands[2] == "C567");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].PointCommands[0] == "C567");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].PointCommands[1] == "C678");
+            Debug.Assert(runeFrames[1].FrameData.RuneFrameMacros[1].PointCommands[2] == "C789");
         }
 
         /**
