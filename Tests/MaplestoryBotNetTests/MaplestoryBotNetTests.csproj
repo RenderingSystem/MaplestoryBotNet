@@ -52,12 +52,12 @@
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\BottingModel.cs" Link="Systems\UIHandler\Utilities\BottingModel.cs" />
+    <Compile Include="..\..\Systems\UIHandler\Utilities\BottingModelConverter.cs" Link="Systems\UIHandler\Utilities\BottingModelConverter.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\CanvasElementFactories.cs" Link="Systems\UIHandler\Utilities\CanvasElementFactories.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\ComboBoxes.cs" Link="Systems\UIHandler\Utilities\ComboBoxes.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\Dpi.cs" Link="Systems\UIHandler\Utilities\Dpi.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\ImageUtilities.cs" Link="Systems\UIHandler\Utilities\ImageUtilities.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\MacroListBoxItems.cs" Link="Systems\UIHandler\Utilities\MacroListBoxItems.cs" />
-    <Compile Include="..\..\Systems\UIHandler\Utilities\MapModelConverter.cs" Link="Systems\UIHandler\Utilities\MapModelConverter.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\MouseEvents.cs" Link="Systems\UIHandler\Utilities\MouseEvents.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\SaveLoadDialogs.cs" Link="Systems\UIHandler\Utilities\SaveLoadDialogs.cs" />
     <Compile Include="..\..\ThreadingUtils\ThreadingUtils.cs" Link="ThreadingUtils\ThreadingUtils.cs" />
