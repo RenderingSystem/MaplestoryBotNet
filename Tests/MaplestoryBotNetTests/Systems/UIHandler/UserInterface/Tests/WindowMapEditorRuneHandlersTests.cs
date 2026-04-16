@@ -3026,13 +3026,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private AbstractWindowActionHandler _fixture()
         {
-            _disableButtons = [new Button(), new Button(), new Button()];
+            _disableButtons = [new Button(), new ToggleButton(), new Button()];
             _clearTextBoxes = [new TextBox(), new TextBox(), new TextBox()];
             _editMenuState = new WindowMapEditMenuState();
             _loadFileDialog = new WindowLoadFileDialog("", "");
             for (int i = 0; i < _disableButtons.Count; i++)
             {
                 _disableButtons[i].IsEnabled = true;
+                if (_disableButtons[i] is ToggleButton toggleButton)
+                {
+                    toggleButton.IsChecked = true;
+                }
             }
             for (int i = 0; i < _clearTextBoxes.Count; i++)
             {
@@ -3040,6 +3044,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             }
             _editMenuState.Select(new object());
             _editMenuState.SetDragging(true);
+            _editMenuState.SetState(123);
             return new WindowMapCanvasLoadedRuneFrameDeselectActionHandlerFacade(
                 _disableButtons,
                 _clearTextBoxes,
@@ -3063,8 +3068,14 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             for (int i = 0; i < _disableButtons.Count; i++)
             {
                 Debug.Assert(!_disableButtons[i].IsEnabled);
+                if (_disableButtons[i] is ToggleButton toggleButton)
+                {
+                    Debug.Assert(toggleButton.IsChecked != null);
+                    Debug.Assert(toggleButton.IsChecked == false);
+                }
             }
         }
+
 
         /**
          * @brief Ensures text input fields are cleared after loading a new configuration file
@@ -3103,11 +3114,29 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             }
         }
 
+        /**
+         * @brief Ensures the menu state resets to SelectFrame mode after loading a new file
+         * 
+         * When users load a new rune frame configuration, the editor automatically resets
+         * the active menu state to SelectFrame mode. This provides a safe default state
+         * where users can click on frames to select them before performing other
+         * operations like adding points or removing frames.
+         */
+        private void _testLoadingRuneFrameClearsMenuState()
+        {
+            var loadedRuneFrameDeselectActionHandler = _fixture();
+            _loadFileDialog.InvokeFileLoaded("", "");
+            Debug.Assert(
+                _editMenuState.GetState() == (int)WindowMapEditFrameMenuStateTypes.SelectFrame
+            );
+        }
+
         public void Run()
         {
             _testLoadingRuneFramesDisablesButtons();
             _testLoadingRuneFramesClearsTextBoxes();
             _testLoadingRuneFramesDeselects();
+            _testLoadingRuneFrameClearsMenuState();
         }
     }
 

@@ -2400,6 +2400,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             foreach (var button in _disableButtons)
             {
                 button.IsEnabled = false;
+                if (button is ToggleButton toggleButton)
+                {
+                    toggleButton.IsChecked = false; 
+                }
             }
         }
 
@@ -2419,11 +2423,19 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _editMenuState.SetDragging(false);
         }
 
+        private void _clearMenuState()
+        {
+            _editMenuState.SetState(
+                (int) WindowMapEditFrameMenuStateTypes.SelectFrame
+            );
+        }
+
         public override void Modify(object? value)
         {
             _disableSelectedButtons();
             _clearSelectedTexts();
             _deselectSelectedState();
+            _clearMenuState();
         }
     }
 
