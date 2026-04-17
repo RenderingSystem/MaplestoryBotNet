@@ -1,10 +1,7 @@
-﻿using MaplestoryBotNet.Systems;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+﻿using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using MaplestoryBotNet.ThreadingUtils;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Windows.Controls;
-using System.Windows.Threading;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.UserInterface

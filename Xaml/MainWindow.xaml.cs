@@ -7,18 +7,9 @@ using System.Windows.Threading;
 
 namespace MaplestoryBotNet
 {
-
     public partial class MainWindow : Window
     {
         private AbstractSystemWindow? _systemWindow = null;
-
-        protected List<MenuItem> ViewMenuItems
-        {
-            get
-            {
-                return [SnapshotsMenuItem, MinimapMenuItem, NCCMenuItem];
-            }
-        }
 
         private AbstractWindowActionHandler _instantiateWindowExiterActionHandler()
         {
@@ -31,16 +22,8 @@ namespace MaplestoryBotNet
         private AbstractWindowActionHandler _instantiateWindowViewUpdaterActionHandler()
         {
             return new WindowViewUpdaterActionHandlerBuilder()
-                .WithArgs(ViewMenuItems)
                 .WithArgs(ImageView)
                 .WithArgs(new SystemAsyncDispatcher(Dispatcher, DispatcherPriority.Background))
-                .Build();
-        }
-
-        private AbstractWindowActionHandler _instantiateWindowViewCheckboxActionHandler()
-        {
-            return new WindowViewCheckboxActionHandlerBuilder()
-                .WithArgs(ViewMenuItems)
                 .Build();
         }
 
@@ -74,7 +57,6 @@ namespace MaplestoryBotNet
             return [
                 _instantiateWindowExiterActionHandler(),
                 _instantiateWindowViewUpdaterActionHandler(),
-                _instantiateWindowViewCheckboxActionHandler(),
                 _instantiateMacroWindowMenuItemPopupActionHandler(systemWindow),
                 _instantiateWindowMenuItemTextActionHandler(),
                 _instantiateWindowMenuItemStartActionHandler()

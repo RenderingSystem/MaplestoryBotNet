@@ -29,17 +29,9 @@
                 <MenuItem Header="Petfood"/>
                 <MenuItem Header="Skills"/>
             </MenuItem>
-            <MenuItem Header="View">
-                <MenuItem x:Name="SnapshotsMenuItem" Header="Snapshots" IsCheckable="True"/>
-                <MenuItem x:Name="MinimapMenuItem" Header="Minimap" IsCheckable="True"/>
-                <MenuItem x:Name="NCCMenuItem" Header="NCC" IsCheckable="True"/>
-            </MenuItem>
-            <MenuItem Header="Botting">
-                <MenuItem x:Name="MacroMenuItem" Header="Map"/>
-                <MenuItem x:Name="RuneMenuItem" Header="Rune"/>
-                <Separator />
-                <MenuItem x:Name="StartMenuItem" Header="Start!"/>
-            </MenuItem>
+            <MenuItem x:Name="MacroMenuItem" Header="Botting"/>
+            <Separator />
+            <MenuItem x:Name="StartMenuItem" Header="Start!"/>
         </Menu>
         <Image
             x:Name="ImageView"

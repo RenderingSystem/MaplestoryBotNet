@@ -531,8 +531,6 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
 
         MockScreenCapturePublisher _publisher = new MockScreenCapturePublisher();
 
-        AbstractWindowActionHandler _viewCheckbox = new MockWindowActionHandler();
-
         MockWindowStateModifier _modifier = new MockWindowStateModifier();
 
         /**
@@ -569,7 +567,6 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             _runningState = new MockRunningState();
             _store = new MockScreenCaptureStore();
             _modifier = new MockWindowStateModifier();
-            _viewCheckbox = new WindowViewCheckboxActionHandler([], _modifier);
             return new GameScreenCapturePublisherThread(
                 _store, _publisher, _runningState
             );
@@ -592,10 +589,6 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             _store.GetLatestReturn.Add(oldImage);
             _store.GetLatestReturn.Add(newImage);
             _store.GetLatestReturn.Add(null);
-            _modifier.StateReturn.Add(ViewTypes.Snapshots);
-            _modifier.StateReturn.Add(ViewTypes.Snapshots);
-            _modifier.StateReturn.Add(ViewTypes.Snapshots);
-            publisherThread.Inject(SystemInjectType.ActionHandler, _viewCheckbox);
             publisherThread.Start();
             publisherThread.Join(10000);
             Debug.Assert(_publisher.PublishCalls == 3);
@@ -624,9 +617,6 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             _store.GetLatestReturn.Add(oldImage);
             _store.GetLatestReturn.Add(newImage);
             _store.GetLatestReturn.Add(null);
-            _modifier.StateReturn.Add(ViewTypes.Snapshots);
-            _modifier.StateReturn.Add(ViewTypes.Snapshots);
-            _modifier.StateReturn.Add(ViewTypes.Snapshots);
             publisherThread.Start();
             publisherThread.Join(10000);
             Debug.Assert(_publisher.PublishCalls == 0);
@@ -646,8 +636,6 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             var newImage = new Image<Bgra32>(2, 2);
             _store.GetLatestReturn.Add(null);
             _store.GetLatestReturn.Add(newImage);
-            _modifier.StateReturn.Add(ViewTypes.Snapshots);
-            publisherThread.Inject(SystemInjectType.ActionHandler, _viewCheckbox);
             publisherThread.Start();
             publisherThread.Join(10000);
             Debug.Assert(_publisher.PublishCalls == 1);
@@ -671,8 +659,6 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             var newImage = new Image<Bgra32>(1, 1);
             _store.GetLatestReturn.Add(null);
             _store.GetLatestReturn.Add(newImage);
-            _modifier.StateReturn.Add(ViewTypes.Snapshots);
-            publisherThread.Inject(SystemInjectType.ActionHandler, _viewCheckbox);
             publisherThread.Start();
             publisherThread.Join(10000);
             Debug.Assert(_publisher.PublishCalls == 0);

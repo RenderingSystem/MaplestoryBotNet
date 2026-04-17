@@ -88,7 +88,7 @@
                             SelectedIndex="0"
                         >
                             <ListBoxItem>
-                                <Grid>
+                                <Grid x:Name="RuneingPointMacroTemplate">
                                     <TextBox
                                         x:Name="RuneingSelectedPointTextBoxTemplate"
                                         Margin="0,0,-113,0"
@@ -410,7 +410,7 @@
                 FontFamily="Courier New"
                 TextAlignment="Center"
                 Height="22"
-                BorderBrush="#FFABADB3"
+                BorderBrush="#FFABADB3" Text="-Macro Name-"
             />
             <Label
                 Content="Selected frame:"

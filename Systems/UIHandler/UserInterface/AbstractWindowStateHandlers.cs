@@ -1,19 +1,8 @@
-﻿
-using MaplestoryBotNet.Systems;
-using System.Windows;
+﻿using System.Windows;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 {
-    public enum ViewTypes
-    {
-        Snapshots = 0,
-        Minimap,
-        NCC,
-        ViewTypesMaxNum
-    }
-
-
     public abstract class AbstractWindowStateModifier
     {
         public virtual void Initialize()

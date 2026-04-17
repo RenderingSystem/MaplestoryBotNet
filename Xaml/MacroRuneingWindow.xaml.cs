@@ -43,11 +43,22 @@ namespace MaplestoryBotNet.Xaml
             return new WindowComboBoxScaleActionHandlerFacade(DirectionComboBox);
         }
 
+        private AbstractWindowActionHandler _instantiateFramePointMacrosLoadingActionHandler()
+        {
+            return new WindowRuneingEditorFramePointMacrosLoadingActionHandlerFacade(
+                RuneingPointsListBox,
+                RuneingPointMacroTemplate,
+                GetSystemWindow(),
+                _editMenuState
+            );
+        }
+
         public List<AbstractWindowActionHandler> InstantiateActionHandlers()
         {
             return [
                 _instantiateWindowMenuItemHideActionHandler(),
-                _instantiateComboBoxScaleActionHandler()
+                _instantiateComboBoxScaleActionHandler(),
+                _instantiateFramePointMacrosLoadingActionHandler()
             ];
         }
     }

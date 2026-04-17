@@ -203,14 +203,6 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
 
         private bool _imageChanged;
 
-        private volatile AbstractWindowStateModifier? _windowViewCheckbox;
-
-        private AbstractWindowStateModifier? WindowViewCheckbox
-        {
-            get => _windowViewCheckbox;
-
-            set => _windowViewCheckbox = value;
-        }
 
         public GameScreenCapturePublisherThread(
             AbstractScreenCaptureStore store,
@@ -222,7 +214,6 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             _publisher = publisher;
             _latestImage = null;
             _imageChanged = false;
-            _windowViewCheckbox = null;
         }
 
         private void _update()
@@ -245,11 +236,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         {
             if (_latestImage != null)
             {
-                var viewCheckbox = WindowViewCheckbox;
-                if (viewCheckbox != null && (ViewTypes?)viewCheckbox.State(0) == ViewTypes.Snapshots)
-                {
-                    _publisher.Publish(_latestImage, _imageChanged);
-                }
+                _publisher.Publish(_latestImage, _imageChanged);
             }
         }
 
@@ -259,17 +246,6 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             {
                 _update();
                 _publish();
-            }
-        }
-
-        public override void Inject(object dataType, object? value)
-        {
-            if (
-                dataType is SystemInjectType.ActionHandler
-                && value is WindowViewCheckboxActionHandler windowViewCheckbox
-            )
-            {
-                WindowViewCheckbox = windowViewCheckbox.Modifier();
             }
         }
     }

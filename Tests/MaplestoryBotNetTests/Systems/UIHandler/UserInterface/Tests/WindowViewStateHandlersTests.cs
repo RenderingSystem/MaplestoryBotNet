@@ -15,111 +15,6 @@ using System.Windows.Controls;
 namespace MaplestoryBotNetTests.UserInterface.Tests
 {
     /**
-     * @class WindowViewCheckboxTests
-     * 
-     * @brief Unit tests for view type selection checkbox management
-     * 
-     * This test class validates that the view checkbox system correctly manages
-     * menu item states and view type selection, ensuring proper visual feedback
-     * and state synchronization between UI controls and application view settings.
-     */
-    public class WindowViewCheckboxTests
-    {
-
-        private List<MenuItem> _menuItems = [];
-
-        /**
-         * @brief Creates test environment with view type menu items
-         * 
-         * @return Configured WindowViewCheckbox instance for testing
-         * 
-         * Prepares a test environment with a complete set of view type menu items
-         * to validate checkbox state management and view type synchronization
-         * across the application's user interface.
-         */
-        private WindowViewCheckbox _fixture()
-        {
-            _menuItems = [];
-            for (int i = 0; i < (int)ViewTypes.ViewTypesMaxNum; i++)
-            {
-                var viewType = (ViewTypes)i;
-                var menuItem = new MenuItem() { Header = viewType.ToString() };
-                _menuItems.Add(menuItem);
-            }
-            return new WindowViewCheckbox(_menuItems);
-        }
-
-        /**
-         * @brief Tests default view type selection on initialization
-         * 
-         * Validates that the view checkbox system correctly initializes with
-         * snapshots as the default selected view type, ensuring consistent
-         * application startup behavior and predictable initial UI state.
-         */
-        private void _testViewCheckboxChecksSnapShotsOnInstantaiation()
-        {
-            _fixture();
-            for (int i = 0; i < _menuItems.Count; i++)
-            {
-                var menuItem = _menuItems[i];
-                var header = menuItem.Header.ToString();
-                var isChecked = menuItem.IsChecked;
-                var result = (
-                    Enum.TryParse<ViewTypes>(header, out var currentViewType)
-                    && currentViewType == ViewTypes.Snapshots
-               );
-                Debug.Assert(isChecked == result);
-            }
-        }
-
-        /**
-         * @brief Tests view type synchronization with menu item states
-         * 
-         * Validates that modifying the view type correctly updates all menu item
-         * check states and maintains proper state synchronization, ensuring
-         * consistent visual feedback and reliable view type switching behavior.
-         */
-        private void _testViewCheckboxSetsCorrectViewTypeOnCheck()
-        {
-            var viewCheckbox = _fixture();
-            for (int i = 0; i < 2; i++)
-            {
-                for (int j = 0; j < (int)ViewTypes.ViewTypesMaxNum; j++)
-                {
-                    var viewType = (ViewTypes)i;
-                    viewCheckbox.Modify(viewType);
-                    Debug.Assert((ViewTypes?)viewCheckbox.State(0) == viewType);
-                    for (int k = 0; k < _menuItems.Count; k++)
-                    {
-                        var menuItem = _menuItems[k];
-                        var header = menuItem.Header.ToString();
-                        var isChecked = menuItem.IsChecked;
-                        var result = (
-                            Enum.TryParse<ViewTypes>(header, out var currentViewType)
-                            && currentViewType == viewType
-                        );
-                        Debug.Assert(isChecked == result);
-                    }
-                }
-            }
-        }
-
-        /**
-         * @brief Executes all view checkbox management validation tests
-         * 
-         * Runs the complete test suite to ensure the view checkbox system
-         * properly manages menu item states and view type synchronization,
-         * providing confidence in reliable view switching functionality.
-         */
-        public void Run()
-        {
-            _testViewCheckboxChecksSnapShotsOnInstantaiation();
-            _testViewCheckboxSetsCorrectViewTypeOnCheck();
-        }
-    }
-
-
-    /**
      * @class WindowViewUpdaterTests
      * 
      * @brief Unit tests for image display coordination and pixel data conversion
@@ -362,97 +257,6 @@ namespace MaplestoryBotNetTests.UserInterface.Tests
 
 
     /**
-     * @class WindowMenuItemClickActionHandlerTests
-     * 
-     * @brief Unit tests for menu item click handling and view type coordination
-     * 
-     * This test class validates that menu item click events are properly translated
-     * into view type modifications, ensuring reliable view switching functionality
-     * and proper coordination between user interface controls and view state management.
-     */
-    public class WindowMenuItemClickActionHandlerTests
-    {
-        private List<MenuItem> _menuItems = [];
-
-        private MockWindowStateModifier _windowStateModifier = new MockWindowStateModifier();
-
-        /**
-         * @brief Creates test environment with view type menu items
-         * 
-         * @return Configured WindowMenuItemClickActionHandler instance for testing
-         * 
-         * Prepares a test environment with a complete set of view type menu items
-         * and state modifier to validate click event handling and view type
-         * coordination without actual UI dependencies.
-         */
-        private AbstractWindowActionHandler _fixture()
-        {
-            _menuItems = [];
-            for (int i = 0; i < (int)ViewTypes.ViewTypesMaxNum; i++)
-            {
-                var viewType = (ViewTypes)i;
-                var menuItem = new MenuItem() { Header = viewType.ToString() };
-                _menuItems.Add(menuItem);
-            }
-            _windowStateModifier = new MockWindowStateModifier();
-            return new WindowMenuItemClickActionHandler(
-                _menuItems,
-                _windowStateModifier
-            );
-        }
-
-        /**
-         * @brief Tests view type mapping for all menu item click events
-         * 
-         * Validates that clicking any menu item correctly triggers the window state
-         * modifier with the corresponding view type, ensuring accurate translation
-         * of user interface interactions into application view state changes.
-         */
-        private void _testClickingMenuItemInvokesModifierWithCorrectViewType()
-        {
-            var windowMenuItemClickActionHandler = _fixture();
-            for (int i = 0; i < _menuItems.Count; i++)
-            {
-                var menuItem = _menuItems[i];
-                menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
-                Debug.Assert(_windowStateModifier.ModifyCalls == i + 1);
-                Debug.Assert(
-                    (ViewTypes?)_windowStateModifier.ModifyCallArg_value[i] == (ViewTypes)i
-                );
-            }
-        }
-
-        /**
-         * @brief Tests modifier access for dependency injection
-         * 
-         * Validates that the action handler provides proper access to its internal
-         * state modifier, enabling dependency injection systems to retrieve and
-         * utilize the modifier for coordinating view state across the application.
-         */
-        private void _testGetModifierObtainsModifierFromHandler()
-        {
-            var windowMenuItemClickActionHandler = _fixture();
-            var modifier = windowMenuItemClickActionHandler.Modifier();
-            Debug.Assert(modifier == _windowStateModifier);
-        }
-
-        /**
-         * @brief Executes all menu item click handling validation tests
-         * 
-         * Runs the complete test suite to ensure menu item click events are properly
-         * processed and coordinated with view state management, providing confidence
-         * in reliable view switching functionality.
-         */
-        public void Run()
-        {
-            _testClickingMenuItemInvokesModifierWithCorrectViewType();
-            _testGetModifierObtainsModifierFromHandler();
-
-        }
-    }
-
-
-    /**
      * @brief Tests for complete application closing behavior
      * 
      * Verifies that when users close the main application window,
@@ -520,11 +324,9 @@ namespace MaplestoryBotNetTests.UserInterface.Tests
     {
         public void Run()
         {
-            new WindowViewCheckboxTests().Run();
             new WindowViewUpdaterTests().Run();
             new WindowExiterTests().Run();
             new WindowExitActionHandlerTests().Run();
-            new WindowMenuItemClickActionHandlerTests().Run();
             new ApplicationClosingActionHandlerTests().Run();
         }
     }

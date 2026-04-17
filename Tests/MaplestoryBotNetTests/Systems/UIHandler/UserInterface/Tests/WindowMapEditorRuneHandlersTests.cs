@@ -3070,7 +3070,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _loadFileDialog.InvokeFileLoaded("", "");
             for (int i = 0; i < _uncheckButtons.Count; i++)
             {
-                Debug.Assert(!_uncheckButtons[i].IsEnabled);
+                Debug.Assert(_uncheckButtons[i].IsChecked != null);
+                Debug.Assert(_uncheckButtons[i].IsChecked == false);
             }
         }
 

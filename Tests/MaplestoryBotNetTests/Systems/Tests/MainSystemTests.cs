@@ -781,10 +781,6 @@ namespace MaplestoryBotNetTests.Systems.Tests
 
         MockSystem _mainSystem = new MockSystem();
 
-        MockWindowStateModifier _windowViewUpdaterModifier = new MockWindowStateModifier();
-
-        MockWindowStateModifier _windowViewCheckboxModifier = new MockWindowStateModifier();
-
         MockWindowStateModifier _splashScreenModifier = new MockWindowStateModifier();
 
         AbstractWindowActionHandler _windowViewUpdaterActionHandler = new MockWindowActionHandler();
@@ -806,9 +802,6 @@ namespace MaplestoryBotNetTests.Systems.Tests
             _mainApplication = new MockApplication();
             _mainSystem = new MockSystem();
             _mainApplication.SystemReturn.Add(_mainSystem);
-            _windowViewCheckboxModifier = new MockWindowStateModifier();
-            _windowViewUpdaterActionHandler = new WindowViewUpdaterActionHandler([], _windowViewCheckboxModifier);
-            _windowViewCheckboxActionHandler = new WindowViewCheckboxActionHandler([], _windowViewCheckboxModifier);
             _splashScreenCompleteActionHandler = new WindowSplashScreenCompleteActionHandler(_splashScreenModifier);
             return new MainApplicationInitializer(
                 _mainApplication,

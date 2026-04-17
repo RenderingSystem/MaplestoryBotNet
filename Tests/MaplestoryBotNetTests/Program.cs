@@ -47,6 +47,7 @@ void UnitTestSuite()
     new NumericTextBoxHandlersTestSuite().Run();
     new WindowMinimapViewStateHandlerTestSuite().Run();
     new WindowMinimapPositionHandlersTestSuite().Run();
+    new WindowRuneingEditorHandlersTestSuite().Run();
 }
 
 

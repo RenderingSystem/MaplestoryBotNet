@@ -67,15 +67,18 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         public override FrameworkElement Create()
         {
             var newGrid = _generateTemplateGrid();
+            var textBoxList = new List<TextBox>();
             for (int i = 0; i < VisualTreeHelper.GetChildrenCount(_pointMacroTemplate); i++)
             {
                 var child = VisualTreeHelper.GetChild(_pointMacroTemplate, i);
                 if (child is TextBox childTextBox)
                 {
-                    var templateName = _generateTemplate(childTextBox);
-                    newGrid.Children.Add(templateName);
+                    var textBox = _generateTemplate(childTextBox);
+                    newGrid.Children.Add(textBox);
+                    textBoxList.Add(textBox);
                 }
             }
+            newGrid.Tag = textBoxList;
             return newGrid;
         }
     }

@@ -8,112 +8,20 @@ using System.Windows.Controls;
 
 namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 {
-    public class WindowViewCheckbox : AbstractWindowStateModifier
-    {
-        private List<MenuItem> _menuItems = [];
-
-        private ViewTypes _selectedViewType;
-
-        private ReaderWriterLockSlim _menuItemsLock;
-
-        public WindowViewCheckbox(
-            List<MenuItem> menuItems
-        )
-        {
-            _menuItems = menuItems;
-            _menuItemsLock = new ReaderWriterLockSlim();
-            _selectedViewType = ViewTypes.ViewTypesMaxNum;
-            Modify(ViewTypes.Snapshots);
-        }
-
-        public override void Modify(object? value)
-        {
-            if (value is not ViewTypes inputViewType)
-            {
-                return;
-            }
-            try
-            {
-                _menuItemsLock.EnterWriteLock();
-                for (int i = 0; i < _menuItems.Count; i++)
-                {
-                    _menuItems[i].IsChecked = false;
-                }
-                for (int i = 0; i < _menuItems.Count; i++)
-                {
-                    var header = _menuItems[i].Header.ToString();
-                    if (
-                        header != null
-                        && Enum.TryParse<ViewTypes>(header, out var currentViewType)
-                        && currentViewType == inputViewType
-                    )
-                    {
-                        _menuItems[i].IsChecked = true;
-                        break;
-                    }
-                }
-                _selectedViewType = inputViewType;
-            }
-            finally
-            {
-                _menuItemsLock.ExitWriteLock();
-            }
-        }
-
-        public override object? State(int stateType)
-        {
-            try
-            {
-                _menuItemsLock.EnterReadLock();
-                return _selectedViewType;
-            }
-            finally
-            {
-                _menuItemsLock.ExitReadLock();
-            }
-        }
-    }
-
-
     public class WindowViewUpdater : AbstractWindowStateModifier
     {
         private AbstractDispatcher _dispatcher;
 
         private System.Windows.Controls.Image _image;
 
-        private bool _settingImage;
-
-        private ReaderWriterLockSlim _settingImageLock;
+        private volatile bool _settingImage;
 
         private AbstractImageSharpConverter _converter;
 
         private bool SettingImage
         {
-            set
-            {
-                try
-                {
-                    _settingImageLock.EnterWriteLock();
-                    _settingImage = value;
-                }
-                finally
-                {
-                    _settingImageLock.ExitWriteLock();
-                }
-            }
-
-            get
-            {
-                try
-                {
-                    _settingImageLock.EnterReadLock();
-                    return _settingImage;
-                }
-                finally
-                {
-                    _settingImageLock.ExitReadLock();
-                }
-            }
+            set { _settingImage = value; }
+            get { return _settingImage; }
         }
 
         public WindowViewUpdater(
@@ -126,7 +34,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _converter = converter;
             _image = image;
             _settingImage = false;
-            _settingImageLock = new ReaderWriterLockSlim();
         }
 
         public override void Modify(object? value)
@@ -201,21 +108,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowMenuItemClickActionHandler : AbstractWindowActionHandler
     {
-        private List<MenuItem> _menuItems;
-
         private AbstractWindowStateModifier _windowStateModifier;
 
         public WindowMenuItemClickActionHandler(
-            List<MenuItem> menuItems,
             AbstractWindowStateModifier windowStateModifier
         )
         {
-            _menuItems = menuItems;
             _windowStateModifier = windowStateModifier;
-            for (int i = 0; i < _menuItems.Count; i++)
-            {
-                _menuItems[i].Click += OnEvent;
-            }
         }
 
         public override AbstractWindowStateModifier Modifier()
@@ -225,12 +124,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void OnEvent(object? sender, EventArgs e)
         {
-            var source = (MenuItem)((RoutedEventArgs)e).OriginalSource;
-            var header = source.Header.ToString();
-            if (header != null && Enum.TryParse<ViewTypes>(header, out var viewType))
-            {
-                _windowStateModifier.Modify(viewType);
-            }
+            _windowStateModifier.Modify(null);
         }
     }
 
@@ -238,18 +132,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     public class WindowViewUpdaterActionHandler : WindowMenuItemClickActionHandler
     {
         public WindowViewUpdaterActionHandler(
-            List<MenuItem> menuItems,
             AbstractWindowStateModifier windowStateModifier
-        ) : base(menuItems, windowStateModifier) {}
-    }
-
-
-    public class WindowViewCheckboxActionHandler : WindowMenuItemClickActionHandler
-    {
-        public WindowViewCheckboxActionHandler(
-            List<MenuItem> menuItems,
-            AbstractWindowStateModifier windowStateModifier
-        ) : base(menuItems, windowStateModifier) {}
+        ) : base(windowStateModifier)
+        {
+        }
     }
 
 
@@ -351,26 +237,21 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class WindowViewUpdaterActionHandlerBuilder : AbstractWindowActionHandlerBuilder
     {
-        private List<MenuItem>? _menuItems;
-
         private AbstractDispatcher? _dispatcher;
 
         private System.Windows.Controls.Image? _image;
 
         public WindowViewUpdaterActionHandlerBuilder()
         {
-            _menuItems = null;
             _dispatcher = null;
             _image = null;
         }
 
         public override AbstractWindowActionHandler Build()
         {
-            Debug.Assert(_menuItems != null);
             Debug.Assert(_dispatcher != null);
             Debug.Assert(_image != null);
             return new WindowViewUpdaterActionHandler(
-                _menuItems,
                 new WindowViewUpdater(
                     _dispatcher,
                     new ImageSharpConverter(),
@@ -381,10 +262,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override WindowViewUpdaterActionHandlerBuilder WithArgs(object? args)
         {
-            if (args is List<MenuItem> menuItems)
-            {
-                _menuItems = menuItems;
-            }
             if (args is AbstractDispatcher dispatcher)
             {
                 _dispatcher = dispatcher;
@@ -392,42 +269,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             if (args is System.Windows.Controls.Image image)
             {
                 _image = image;
-            }
-            return this;
-        }
-    }
-
-
-    public class WindowViewCheckboxActionHandlerBuilder : AbstractWindowActionHandlerBuilder
-    {
-        private List<MenuItem>? _menuItems;
-
-        public WindowViewCheckboxActionHandlerBuilder()
-        {
-            _menuItems = null;
-        }
-
-        private AbstractWindowStateModifier _createModifier()
-        {
-            Debug.Assert(_menuItems != null);
-            var modifier = new WindowViewCheckbox(_menuItems);
-            modifier.Initialize();
-            return modifier;
-        }
-
-        public override AbstractWindowActionHandler Build()
-        {
-            Debug.Assert(_menuItems != null);
-            return new WindowViewCheckboxActionHandler(
-                _menuItems, _createModifier()
-            );
-        }
-
-        public override WindowViewCheckboxActionHandlerBuilder WithArgs(object? args)
-        {
-            if (args is List<MenuItem> menuItems)
-            {
-                _menuItems = menuItems;
             }
             return this;
         }
