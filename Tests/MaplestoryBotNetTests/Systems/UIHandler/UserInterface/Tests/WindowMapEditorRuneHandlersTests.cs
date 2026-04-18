@@ -16,7 +16,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 {
     public class ButtonClickFixture
     {
-        public static MouseButtonEventArgs Event(Canvas canvas)
+        public static MouseButtonEventArgs Event(FrameworkElement canvas)
         {
             return new MouseButtonEventArgs(
                 Mouse.PrimaryDevice,
@@ -33,7 +33,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
     public class MouseMoveFixture
     {
-        public static MouseEventArgs Event(Canvas canvas)
+        public static MouseEventArgs Event(FrameworkElement canvas)
         {
             var mouseDevice = Mouse.PrimaryDevice;
             var mouseEventArgs = new MouseEventArgs(mouseDevice, Environment.TickCount)

@@ -149,7 +149,7 @@
                             FontWeight="Bold"
                         />
                         <TextBox
-                            x:Name="NextFrameTextBox"
+                            x:Name="RuneingNextFrameTextBox"
                             Margin="16,236,468,64"
                             Background="Black"
                             Foreground="Lime"
@@ -168,7 +168,7 @@
                             FontWeight="Bold"
                         />
                         <TextBox
-                            x:Name="RadiusTextBox"
+                            x:Name="RuneingRadiusTextBox"
                             Margin="118,236,371,64"
                             Background="Black"
                             Foreground="Lime"
@@ -176,7 +176,7 @@
                             Height="22"
                         />
                         <Button
-                            x:Name="PointMacroAddCommandButton"
+                            x:Name="RuneingPointMacroAddCommandButton"
                             Style="{StaticResource BottingButtonStyle}"
                             Content="+ Command"
                             HorizontalAlignment="Left"
@@ -187,7 +187,7 @@
                             FontFamily="Courier New"
                         />
                         <Button
-                            x:Name="PointMacroRemoveCommandButton"
+                            x:Name="RuneingPointMacroRemoveCommandButton"
                             Style="{StaticResource BottingButtonStyle}"
                             Content="- Command"
                             HorizontalAlignment="Left"
@@ -198,7 +198,7 @@
                             FontFamily="Courier New"
                         />
                         <Button
-                            x:Name="PointMacroClearCommandsButton"
+                            x:Name="RuneingPointMacroClearCommandsButton"
                             Style="{StaticResource BottingButtonStyle}"
                             Content="X Commands"
                             HorizontalAlignment="Left"
@@ -410,7 +410,8 @@
                 FontFamily="Courier New"
                 TextAlignment="Center"
                 Height="22"
-                BorderBrush="#FFABADB3" Text="-Macro Name-"
+                BorderBrush="#FFABADB3"
+                Text="-Frame Name-"
             />
             <Label
                 Content="Selected frame:"

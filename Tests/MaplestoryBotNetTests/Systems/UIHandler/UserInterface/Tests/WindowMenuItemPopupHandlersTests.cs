@@ -34,9 +34,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _systemWindow = new MockSystemWindow();
             _popupMenuItem = new MenuItem();
             return (WindowMenuItemPopupHandler) new WindowMenuItemPopupHandlerBuilder()
-                    .WithArgs(_systemWindow)
-                    .WithArgs(_popupMenuItem)
-                    .Build();
+                .WithArgs(_systemWindow)
+                .WithArgs(_popupMenuItem)
+                .Build();
         }
 
         /**

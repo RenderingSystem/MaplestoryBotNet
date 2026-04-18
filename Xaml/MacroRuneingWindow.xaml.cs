@@ -9,6 +9,8 @@ namespace MaplestoryBotNet.Xaml
     {
         private AbstractWindowMapEditMenuState _editMenuState;
 
+        private AbstractWindowActionHandlerRegistry _comboBoxScaleRegistry;
+
         private AbstractSystemWindow? _systemWindow;
 
         public MacroRuneingWindow(AbstractWindowMapEditMenuState editMenuState)
@@ -19,6 +21,7 @@ namespace MaplestoryBotNet.Xaml
             RuneingMovementsListBox.Items.Clear();
             RuneingMovementsMacroListBox.Items.Clear();
             _editMenuState = editMenuState;
+            _comboBoxScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
             _systemWindow = null;
         }
 
@@ -53,12 +56,62 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
+        private AbstractWindowActionHandler _instantiateFramePointMacroAccessActionHandler()
+        {
+            return new WindowRuneingEditorFramePointMacroAccessActionHandlerFacade(
+                RuneingPointsListBox,
+                [
+                    RuneingPointMacroAddCommandButton,
+                    RuneingPointMacroRemoveCommandButton,
+                    RuneingPointMacroClearCommandsButton,
+                    RuneingNextFrameTextBox,
+                    RuneingRadiusTextBox
+                ]
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateFramePointMacroSelectionActionHandler()
+        {
+            return new WindowRuneingEditorFramePointMacroSelectionActionHandlerFacade(
+                RuneingPointsListBox,
+                RuneingPointsMacroListBox,
+                RuneingNextFrameTextBox,
+                RuneingRadiusTextBox,
+                RuneingPointMacroComboBoxTemplate,
+                _comboBoxScaleRegistry
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateFramePointMacroDeselectionActionHandler()
+        {
+            return new WindowRuneingEditorFramePointMacroDeselectionActionHandlerFacade(
+                RuneingNextFrameTextBox,
+                RuneingRadiusTextBox,
+                RuneingPointsListBox,
+                RuneingPointsMacroListBox
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateFramePointMacroCommandAddActionHandler()
+        {
+            return new WindowRuneingEditorFramePointMacroCommandAddActionHandlerFacade(
+                RuneingPointMacroAddCommandButton,
+                RuneingPointsMacroListBox,
+                RuneingPointMacroComboBoxTemplate,
+                _comboBoxScaleRegistry
+            );
+        }
+
         public List<AbstractWindowActionHandler> InstantiateActionHandlers()
         {
             return [
                 _instantiateWindowMenuItemHideActionHandler(),
                 _instantiateComboBoxScaleActionHandler(),
-                _instantiateFramePointMacrosLoadingActionHandler()
+                _instantiateFramePointMacrosLoadingActionHandler(),
+                _instantiateFramePointMacroAccessActionHandler(),
+                _instantiateFramePointMacroDeselectionActionHandler(),
+                _instantiateFramePointMacroSelectionActionHandler(),
+                _instantiateFramePointMacroCommandAddActionHandler()
             ];
         }
     }
