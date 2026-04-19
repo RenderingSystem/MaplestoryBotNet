@@ -468,7 +468,6 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             }
         }
 
-
         /**
          * @brief Tests proper synchronization between notification and processing
          * 

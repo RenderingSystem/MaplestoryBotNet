@@ -30,7 +30,9 @@
                 <MenuItem Header="Skills"/>
             </MenuItem>
             <MenuItem x:Name="MacroMenuItem" Header="Botting"/>
-            <MenuItem x:Name="StartMenuItem" Header="Start!" HorizontalAlignment="Right"/>
+            <Separator/>
+            <Separator/>
+            <MenuItem x:Name="StartMenuItem" Header="Start!"/>
         </Menu>
         <Image
             x:Name="ImageView"

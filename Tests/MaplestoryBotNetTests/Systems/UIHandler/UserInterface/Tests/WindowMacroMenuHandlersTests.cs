@@ -8,7 +8,6 @@ using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
 using System.Diagnostics;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -1301,38 +1300,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _minimapPoint = new MinimapPoint();
             _bottingModel = new BottingModel();
         }
-
-
-        /**
-         * @brief Helper method to add a test macro command to the UI and data model.
-         * 
-         * Creates a visual representation of a macro command in the ListBox and
-         * simultaneously adds the corresponding data structure to the minimap point.
-         * This ensures both UI and data model are synchronized for testing purposes.
-         * 
-         * @param name Display name of the macro command
-         * @param probability Probability value as a string (will be converted to integer)
-         * @param commands List of command strings associated with this macro
-         */
-        private void _addLabelsListBoxElement(
-            string name, string probability, List<string> commands
-        )
-        {
-            var listBoxElement = new Grid();
-            listBoxElement.Children.Add(new TextBox { Tag = "MacroNameTag", Text = name });
-            listBoxElement.Children.Add(new TextBox { Tag = "ProbabilityTag", Text = probability });
-            _macroLabelsListBox.Items.Add(listBoxElement);
-            _minimapPoint.PointData.ElementName = "meow";
-            _minimapPoint.PointData.Commands.Add(
-                new MinimapPointMacros
-                {
-                    MacroChance = Convert.ToInt32(probability),
-                    MacroName = name,
-                    MacroCommands = commands
-                }
-            );
-        }
-
 
         /**
          * @brief Creates and configures a test handler instance with all dependencies.

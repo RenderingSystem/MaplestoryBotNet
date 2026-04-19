@@ -1,18 +1,54 @@
 ﻿using MaplestoryBotNet.Systems;
+using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
-using MaplestoryBotNetTests.Systems.Tests;
-using System.Windows.Media;
-using System.Windows;
-using System.Windows.Controls;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
-using System.Diagnostics;
-using System.Windows.Controls.Primitives;
+using MaplestoryBotNetTests.Systems.Configuration.Tests;
+using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
+using System.Diagnostics;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 {
+    public class SelectedFixture
+    {
+        public static WindowMapEditMenuFrameSelectedObject Object(
+            string elementLabel, string frameName
+        )
+        {
+            return new WindowMapEditMenuFrameSelectedObject
+            {
+                FrameObject = new Canvas
+                {
+                    Tag = new MapCanvasRuneFrameDataTag
+                    {
+                        ElementLabel = elementLabel,
+                        FrameName = frameName
+                    }
+                }
+            };
+        }
+
+        public static ListBoxItem ListBoxFixture(string text)
+        {
+            var listTextBox = new TextBox { Text = text };
+            var listBoxGrid = new Grid { Tag = new List<TextBox> { listTextBox } };
+            listBoxGrid.Children.Add(listTextBox);
+            return new ListBoxItem
+            {
+                Content = listBoxGrid,
+                Tag = new WindowRuneingEditorMovementTag()
+            };
+        }
+    }
+
+
     public class WindowRuneingEditorFramePointMacrosLoadingActionHandlerTests
     {
         private ListBox _framePointMacrosListBox = new ListBox();
@@ -58,17 +94,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             return handler;
         }
 
-        private WindowMapEditMenuFrameSelectedObject _selectedObject(string elementLabel)
-        {
-            return new WindowMapEditMenuFrameSelectedObject
-            {
-                FrameObject = new Canvas
-                {
-                    Tag = new MapCanvasRuneFrameDataTag { ElementLabel = elementLabel }
-                }
-            };
-        }
-
         /**
          * @brief Verifies that macro points are populated in the list box when the editor
          * becomes visible
@@ -85,7 +110,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             {
                 var framePointMacrosLoadingActionHandler = _fixture();
                 _windowRuneingEditor.VisibleReturn.Add(i == 1);
-                _editMenuState.Select(_selectedObject("FT0"));
+                _editMenuState.Select(SelectedFixture.Object("FT0", "F0"));
                 framePointMacrosLoadingActionHandler.OnDependencyEvent(
                     framePointMacrosLoadingActionHandler,
                     new DependencyPropertyChangedEventArgs()
@@ -145,7 +170,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     SystemInjectType.BottingModel, new BottingModel()
                 );
                 _windowRuneingEditor.VisibleReturn.Add(j == 1);
-                _editMenuState.Select(_selectedObject("FT0"));
+                _editMenuState.Select(SelectedFixture.Object("FT0", "F0"));
                 for (int k = 0; k < i; k++)
                     _framePointMacrosListBox.Items.Add(new object());
                 framePointMacrosLoadingActionHandler.OnDependencyEvent(
@@ -169,7 +194,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             {
                 var framePointMacrosLoadingActionHandler = _fixture();
                 _windowRuneingEditor.VisibleReturn.Add(i == 1);
-                _editMenuState.Select(_selectedObject("FT0"));
+                _editMenuState.Select(SelectedFixture.Object("FT0", "F0"));
                 framePointMacrosLoadingActionHandler.OnDependencyEvent(
                     framePointMacrosLoadingActionHandler,
                     new DependencyPropertyChangedEventArgs()
@@ -203,7 +228,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var framePointMacrosLoadingActionHandler = _fixture();
             _windowRuneingEditor.VisibleReturn.Add(true);
-            _editMenuState.Select(_selectedObject("FT0"));
+            _editMenuState.Select(SelectedFixture.Object("FT0", "F0"));
             framePointMacrosLoadingActionHandler.OnDependencyEvent(
                 framePointMacrosLoadingActionHandler,
                 new DependencyPropertyChangedEventArgs()
@@ -242,7 +267,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var framePointMacrosLoadingActionHandler = _fixture();
             _windowRuneingEditor.VisibleReturn.Add(true);
-            _editMenuState.Select(_selectedObject("FT0"));
+            _editMenuState.Select(SelectedFixture.Object("FT0", "F0"));
             framePointMacrosLoadingActionHandler.OnDependencyEvent(
                 framePointMacrosLoadingActionHandler,
                 new DependencyPropertyChangedEventArgs()
@@ -276,7 +301,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var framePointMacrosLoadingActionHandler = _fixture();
             _windowRuneingEditor.VisibleReturn.Add(true);
-            _editMenuState.Select(_selectedObject("FT0"));
+            _editMenuState.Select(SelectedFixture.Object("FT0", "F0"));
             framePointMacrosLoadingActionHandler.OnDependencyEvent(
                 framePointMacrosLoadingActionHandler,
                 new DependencyPropertyChangedEventArgs()
@@ -300,7 +325,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var framePointMacrosLoadingActionHandler = _fixture();
             _windowRuneingEditor.VisibleReturn.Add(true);
-            _editMenuState.Select(_selectedObject("FT0"));
+            _editMenuState.Select(SelectedFixture.Object("FT0", "F0"));
             framePointMacrosLoadingActionHandler.OnDependencyEvent(
                 framePointMacrosLoadingActionHandler,
                 new DependencyPropertyChangedEventArgs()
@@ -325,7 +350,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var framePointMacrosLoadingActionHandler = _fixture();
             _windowRuneingEditor.VisibleReturn.Add(true);
-            _editMenuState.Select(_selectedObject("FT0"));
+            _editMenuState.Select(SelectedFixture.Object("FT0", "F0"));
             framePointMacrosLoadingActionHandler.OnDependencyEvent(
                 framePointMacrosLoadingActionHandler,
                 new DependencyPropertyChangedEventArgs()
@@ -349,13 +374,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
     public class WindowRuneingEditorFramePointMacroAccessActionHandlerTests
     {
-        private ListBox _framePointMacrosListBox = new ListBox();
+        private ListBox _accessListBox = new ListBox();
 
         private List<FrameworkElement> _accessElements = [];
 
         private AbstractWindowActionHandler _fixture()
         {
-            _framePointMacrosListBox = new ListBox();
+            _accessListBox = new ListBox();
             _accessElements = new List<FrameworkElement>
             {
                 new Button(),
@@ -363,7 +388,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 new TextBox{ Text = "lol" }
             };
             return new WindowRuneingEditorFramePointMacroAccessActionHandlerFacade(
-                _framePointMacrosListBox,
+                _accessListBox,
                 _accessElements
             );
         }
@@ -379,17 +404,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClearingListBoxItemsModifiesAccessElements()
         {
             var framePointMacroAccessActionHandler = _fixture();
-            _framePointMacrosListBox.Items.Add(new ListBoxItem());
+            _accessListBox.Items.Add(new ListBoxItem());
             foreach (var accessElement in _accessElements)
             {
                 Debug.Assert(accessElement.IsEnabled);
             }
-            _framePointMacrosListBox.Items.RemoveAt(0);
+            _accessListBox.Items.RemoveAt(0);
             foreach (var accessElement in _accessElements)
             {
                 Debug.Assert(!accessElement.IsEnabled);
             }
-            _framePointMacrosListBox.Items.Add(new ListBoxItem());
+            _accessListBox.Items.Add(new ListBoxItem());
             foreach (var accessElement in _accessElements)
             {
                 Debug.Assert(accessElement.IsEnabled);
@@ -406,9 +431,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClearingListBoxItemsClearsTextBoxes()
         {
             var framePointMacroAccessActionHandler = _fixture();
-            _framePointMacrosListBox.Items.Add(new ListBoxItem());
+            _accessListBox.Items.Add(new ListBoxItem());
             Debug.Assert(((TextBox)_accessElements[2]).Text == "lol");
-            _framePointMacrosListBox.Items.RemoveAt(0);
+            _accessListBox.Items.RemoveAt(0);
             Debug.Assert(((TextBox)_accessElements[2]).Text == "");
         }
 
@@ -713,14 +738,22 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testAddingRuneFrameMacroCommandOnSelectedIndex()
         {
             var framePointMacroCommandAddActionHandler = _fixture();
-            _framePointMacroCommandsListBox.Items.Add(new object());
-            _framePointMacroCommandsListBox.Items.Add(new object());
-            _framePointMacroCommandsListBox.Items.Add(new object());
-            _framePointMacroCommandsListBox.Items.Add(new object());
+            var item1 = new object();
+            var item2 = new object();
+            var item3 = new object();
+            var item4 = new object();
+            _framePointMacroCommandsListBox.Items.Add(item1);
+            _framePointMacroCommandsListBox.Items.Add(item2);
+            _framePointMacroCommandsListBox.Items.Add(item3);
+            _framePointMacroCommandsListBox.Items.Add(item4);
             _framePointMacroCommandsListBox.SelectedIndex = 1;
             _macroCommandAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             Debug.Assert(_framePointMacroCommandsListBox.Items.Count == 5);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[0] == item1);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[1] == item2);
             Debug.Assert(_framePointMacroCommandsListBox.Items[2] is ComboBox);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[3] == item3);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[4] == item4);
         }
 
         /**
@@ -733,12 +766,20 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testAddingRuneFrameMacroCommandOnPopulatedListBox()
         {
             var framePointMacroCommandAddActionHandler = _fixture();
-            _framePointMacroCommandsListBox.Items.Add(new object());
-            _framePointMacroCommandsListBox.Items.Add(new object());
-            _framePointMacroCommandsListBox.Items.Add(new object());
-            _framePointMacroCommandsListBox.Items.Add(new object());
+            var item1 = new object();
+            var item2 = new object();
+            var item3 = new object();
+            var item4 = new object();
+            _framePointMacroCommandsListBox.Items.Add(item1);
+            _framePointMacroCommandsListBox.Items.Add(item2);
+            _framePointMacroCommandsListBox.Items.Add(item3);
+            _framePointMacroCommandsListBox.Items.Add(item4);
             _macroCommandAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
             Debug.Assert(_framePointMacroCommandsListBox.Items.Count == 5);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[0] == item1);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[1] == item2);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[2] == item3);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[3] == item4);
             Debug.Assert(_framePointMacroCommandsListBox.Items[4] is ComboBox);
         }
 
@@ -780,15 +821,1223 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    public class WindowRuneingEditorFramePointMacroCommandRemoveActionHandlerTests
+    {
+        private Button _macroCommandRemoveButton = new Button();
+
+        private ListBox _framePointMacroCommandsListBox = new ListBox();
+
+        private MockWindowActionHandlerRegistry _scaleRegistry = new MockWindowActionHandlerRegistry();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _macroCommandRemoveButton = new Button();
+            _framePointMacroCommandsListBox = new ListBox();
+            _scaleRegistry = new MockWindowActionHandlerRegistry();
+            return new WindowRuneingEditorFramePointMacroCommandRemoveActionHandlerFacade(
+                _macroCommandRemoveButton,
+                _framePointMacroCommandsListBox,
+                _scaleRegistry
+            );
+        }
+
+        /**
+         * @brief Verifies that removing the only command from a list box empties the list
+         * 
+         * When users have a macro point with exactly one command and they click the Remove
+         * Command button, the list box should become completely empty. This allows users
+         * to start building a new command sequence from scratch or delete the last command
+         * from a macro point.
+         */
+        private void _testRemovingRuneFrameMacroCommandOnSingleElement()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            _framePointMacroCommandsListBox.Items.Add(new ComboBox());
+            _macroCommandRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_framePointMacroCommandsListBox.Items.Count == 0);
+        }
+
+        /**
+         * @brief Verifies that removing a selected command removes the correct item and
+         * preserves the order of remaining items
+         * 
+         * When users select a specific command in the middle of the command sequence and
+         * click Remove Command, only the selected command should be removed. The remaining
+         * commands should stay in their original relative order, with items after the
+         * removed position shifting to fill the gap.
+         */
+        private void _testRemovingRuneFrameMacroCommandOnSelectedIndex()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            var item0 = new ComboBox();
+            var item1 = new ComboBox();
+            var item3 = new ComboBox();
+            _framePointMacroCommandsListBox.Items.Add(item0);
+            _framePointMacroCommandsListBox.Items.Add(item1);
+            _framePointMacroCommandsListBox.Items.Add(new ComboBox());
+            _framePointMacroCommandsListBox.Items.Add(item3);
+            _framePointMacroCommandsListBox.SelectedIndex = 2;
+            _macroCommandRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_framePointMacroCommandsListBox.Items.Count == 3);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[0] == item0);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[1] == item1);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[2] == item3);
+        }
+
+        /**
+         * @brief Verifies that removing a command with no selection removes the last command
+         * 
+         * When users click Remove Command without any command selected, the system should
+         * remove the last command in the list. This provides a predictable behavior for
+         * users who want to delete commands from the end of their sequence without having
+         * to manually select them first.
+         */
+        private void _testRemovingRuneFrameMacroCommandOnPopulatedListBox()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            var item0 = new ComboBox();
+            var item1 = new ComboBox();
+            var item2 = new ComboBox();
+            var item3 = new ComboBox();
+            _framePointMacroCommandsListBox.Items.Add(item0);
+            _framePointMacroCommandsListBox.Items.Add(item1);
+            _framePointMacroCommandsListBox.Items.Add(item2);
+            _framePointMacroCommandsListBox.Items.Add(item3);
+            _macroCommandRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_framePointMacroCommandsListBox.Items.Count == 3);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[0] == item0);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[1] == item1);
+            Debug.Assert(_framePointMacroCommandsListBox.Items[2] == item2);
+        }
+
+        /**
+         * @brief Verifies that clicking Remove Command on an empty list box does nothing
+         * 
+         * When users click the Remove Command button while the command list is already empty,
+         * the operation should be safely ignored without causing errors or exceptions.
+         */
+        private void _testRemovingRuneFrameMacroCommandOnEmptyListBox()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            var item = new ComboBox();
+            _macroCommandRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_framePointMacroCommandsListBox.Items.Count == 0);
+        }
+
+        /**
+         * @brief Verifies that removed command comboboxes are unregistered from the
+         * scale registry to prevent memory leaks
+         * 
+         * When a command combobox is removed from the macro point's command list, it must
+         * be unregistered from the scale registry. The scale registry holds references to
+         * comboboxes for DPI scaling adjustments, and failing to unregister would keep
+         * those references alive.
+         */
+        private void _testRemovingRuneFrameMacroCommandUnregistersFromRegistry()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            var item = new ComboBox();
+            _framePointMacroCommandsListBox.Items.Add(item);
+            _macroCommandRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_framePointMacroCommandsListBox.Items.Count == 0);
+            Debug.Assert(_scaleRegistry.UnregisterHandlerCalls == 1);
+            Debug.Assert(
+                (
+                    (WindowComboBoxScaleActionHandlerParameters)
+                    _scaleRegistry.UnregisterHandlerCallArg_args[0]!
+                )
+                .ScaleComboBox == item
+            );
+        }
+
+        public void Run()
+        {
+            _testRemovingRuneFrameMacroCommandOnSingleElement();
+            _testRemovingRuneFrameMacroCommandOnSelectedIndex();
+            _testRemovingRuneFrameMacroCommandOnPopulatedListBox();
+            _testRemovingRuneFrameMacroCommandOnEmptyListBox();
+            _testRemovingRuneFrameMacroCommandUnregistersFromRegistry();
+        }
+    }
+
+
+    public class WindowRuneingEditorFramePointMacroCommandClearActionHandlerTests
+    {
+        private Button _macroCommandClearButton = new Button();
+
+        private ListBox _framePointMacroCommandsListBox = new ListBox();
+
+        private MockWindowActionHandlerRegistry _scaleRegistry = new MockWindowActionHandlerRegistry();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _macroCommandClearButton = new Button();
+            _framePointMacroCommandsListBox = new ListBox();
+            _scaleRegistry = new MockWindowActionHandlerRegistry();
+            return new WindowRuneingEditorFramePointMacroCommandClearActionHandlerFacade(
+                _macroCommandClearButton,
+                _framePointMacroCommandsListBox,
+                _scaleRegistry
+            );
+        }
+
+        /**
+         * @brief Verifies that clicking the clear button removes all commands from the list box
+         * 
+         * When users want to start over with a fresh command sequence for a macro point,
+         * clicking the Clear Commands button should remove every command from the list box
+         * in a single operation. This provides a convenient way to wipe the entire command
+         * sequence without having to delete each command individually.
+         */
+        private void _testClearingRuneFrameMacroCommandsClearsListBox()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            var item0 = new ComboBox();
+            var item1 = new ComboBox();
+            var item2 = new ComboBox();
+            var item3 = new ComboBox();
+            _framePointMacroCommandsListBox.Items.Add(item0);
+            _framePointMacroCommandsListBox.Items.Add(item1);
+            _framePointMacroCommandsListBox.Items.Add(item2);
+            _framePointMacroCommandsListBox.Items.Add(item3);
+            _macroCommandClearButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_framePointMacroCommandsListBox.Items.Count == 0);
+        }
+
+        /**
+         * @brief Verifies that every cleared command combobox is unregistered from the
+         * scale registry to prevent memory leaks
+         * 
+         * When the Clear Commands button is clicked and all command comboboxes are removed
+         * from the list box, each combobox must be individually unregistered from the
+         * scale registry. The scale registry holds references to comboboxes for DPI scaling
+         * adjustments, and failing to unregister would keep those references alive.
+         */
+        private void _testClearingRuneFrameMacroCommandsUnregistersFromRegistry()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            var item0 = new ComboBox();
+            var item1 = new ComboBox();
+            var item2 = new ComboBox();
+            var item3 = new ComboBox();
+            _framePointMacroCommandsListBox.Items.Add(item0);
+            _framePointMacroCommandsListBox.Items.Add(item1);
+            _framePointMacroCommandsListBox.Items.Add(item2);
+            _framePointMacroCommandsListBox.Items.Add(item3);
+            _macroCommandClearButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_framePointMacroCommandsListBox.Items.Count == 0);
+            Debug.Assert(_scaleRegistry.UnregisterHandlerCalls == 4);
+            var unregisterItem0 = (
+                (WindowComboBoxScaleActionHandlerParameters)
+                _scaleRegistry.UnregisterHandlerCallArg_args[0]!
+            );
+            var unregisterItem1 = (
+                (WindowComboBoxScaleActionHandlerParameters)
+                _scaleRegistry.UnregisterHandlerCallArg_args[1]!
+            );
+            var unregisterItem2 = (
+                (WindowComboBoxScaleActionHandlerParameters)
+                _scaleRegistry.UnregisterHandlerCallArg_args[2]!
+            );
+            var unregisterItem3 = (
+                (WindowComboBoxScaleActionHandlerParameters)
+                _scaleRegistry.UnregisterHandlerCallArg_args[3]!
+            );
+            Debug.Assert(unregisterItem0.ScaleComboBox == item0);
+            Debug.Assert(unregisterItem1.ScaleComboBox == item1);
+            Debug.Assert(unregisterItem2.ScaleComboBox == item2);
+            Debug.Assert(unregisterItem3.ScaleComboBox == item3);
+        }
+
+        public void Run()
+        {
+            _testClearingRuneFrameMacroCommandsClearsListBox();
+            _testClearingRuneFrameMacroCommandsUnregistersFromRegistry();
+        }
+    }
+
+
+    public class WindowRuneingEditorFrameNameLoadingActionHandlerTests
+    {
+        private TextBox _frameNameTextBox = new TextBox();
+
+        private MockSystemWindow _windowRuneingEditor = new MockSystemWindow();
+
+        private AbstractWindowMapEditMenuState _editMenuState = new WindowMapEditMenuState();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _frameNameTextBox = new TextBox();
+            _windowRuneingEditor = new MockSystemWindow();
+            _editMenuState = new WindowMapEditMenuState();
+            _windowRuneingEditor.GetWindowReturn.Add(new Window());
+            return new WindowRuneingEditorFrameNameLoadingActionHandlerFacade(
+                _frameNameTextBox,
+                _windowRuneingEditor,
+                _editMenuState
+            );
+        }
+
+        /**
+         * @brief Verifies that the frame name text box is populated with the selected
+         * frame's name when the editor becomes visible
+         * 
+         * When users open the Runeing Editor window while a frame is selected on the map
+         * canvas, the frame name text box should automatically display that frame's name.
+         * This provides immediate visual confirmation of which frame is being edited and
+         * allows users to identify the frame they are working on.
+         */
+        private void _testFrameNamePopulatedWhenEditorIsVisible()
+        {
+            for (int i = 0; i < 2; i++)
+            {
+                var framePointMacrosLoadingActionHandler = _fixture();
+                _windowRuneingEditor.VisibleReturn.Add(i == 1);
+                _editMenuState.Select(SelectedFixture.Object("FT0", "F0"));
+                framePointMacrosLoadingActionHandler.OnDependencyEvent(
+                    framePointMacrosLoadingActionHandler,
+                    new DependencyPropertyChangedEventArgs()
+                );
+                var expectedText = (i == 1) ? "F0" : "";
+                Debug.Assert(_frameNameTextBox.Text == expectedText);
+            }
+        }
+
+        public void Run()
+        {
+            _testFrameNamePopulatedWhenEditorIsVisible();
+        }
+    }
+
+
+    public class WindowRuneingEditorFramePointLoadConfigurationActionHandlerTests
+    {
+        private Button _loadButton = new Button();
+
+        private MockLoadFileDialog _loadFileDialog = new MockLoadFileDialog();
+
+        private MaplestoryBotConfiguration _configuration = new MaplestoryBotConfiguration();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _loadButton = new Button();
+            _loadFileDialog = new MockLoadFileDialog();
+            _configuration = new MaplestoryBotConfiguration
+            {
+                FramePointsDirectory = "cool_frame_points"
+            };
+            return new WindowRuneingEditorFramePointLoadConfigurationActionHandlerFacade(
+                _loadButton,
+                _loadFileDialog
+            );
+        }
+
+        /**
+         * @brief Verifies that clicking the load button opens a file dialog with the
+         * correct initial directory from the configuration
+         * 
+         * When users click the Load button in the Runeing Editor, the system should prompt
+         * the user to select a frame point configuration file to load. The file dialog
+         * should start in the directory specified by the FramePointsDirectory configuration
+         * value, making it easy for users to find their saved configuration files without
+         * navigating through the file system each time.
+         */
+        private void _testLoadButtonClickOpensLoadMenu()
+        {
+            var handler = _fixture();
+            handler.Inject(SystemInjectType.ConfigurationUpdate, _configuration);
+            _loadButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_loadFileDialog.PromptCalls == 1);
+            Debug.Assert(_loadFileDialog.PromptCallArg_initialDirectory[0] == "cool_frame_points");
+        }
+
+        public void Run()
+        {
+            _testLoadButtonClickOpensLoadMenu();
+        }
+    }
+
+
+    public class WindowRuneingEditorFramePointLoadActionHandlerTests
+    {
+        private ListBox _listBox = new ListBox();
+
+        private ComboBox _comboBox = new ComboBox();
+
+        private AbstractWindowActionHandlerRegistry _comboBoxPopupScaleRegistry = new MockWindowActionHandlerRegistry();
+
+        private List<string> _expectedContents = [];
+
+        private MockLoadFileDialog _loadFileDialog = new MockLoadFileDialog();
+
+        private AbstractWindowActionHandler _fixture(
+            AbstractWindowActionHandlerRegistry comboBoxPopupScaleRegistry
+        )
+        {
+            _listBox = new ListBox();
+            _comboBox = new ComboBox();
+            _comboBoxPopupScaleRegistry = comboBoxPopupScaleRegistry;
+            _comboBox.Items.Add(new ComboBoxItem { Content = "A" });
+            _comboBox.Items.Add(new ComboBoxItem { Content = "B" });
+            _comboBox.Items.Add(new ComboBoxItem { Content = "C" });
+            _expectedContents = ["a", "b", "c", "d", "e"];
+            return new WindowRuneingEditorFramePointLoadActionHandlerFacade(
+                _loadFileDialog,
+                _listBox,
+                _comboBox,
+                _comboBoxPopupScaleRegistry
+            );
+        }
+
+        /**
+         * @brief Tests complete load menu workflow from user perspective
+         * 
+         * Validates that users can load saved macros and have them
+         * available with all commands properly displayed, ensuring
+         * a seamless transition from storage to active use.
+         */
+        private void _testLoadButtonClickOpensLoadFileDialog()
+        {
+            var registry = new WindowComboBoxScaleActionHandlerRegistry();
+            var handler = _fixture(registry);
+            _loadFileDialog.InvokeFileLoaded(
+                "some_path",
+                "{\"macro\": [\"a\", \"b\", \"c\", \"d\", \"e\"]}"
+            );
+            Debug.Assert(_listBox.Items.Count == 5);
+            for (int i = 0; i < _expectedContents.Count; i++)
+            {
+                Debug.Assert(((ComboBox)_listBox.Items[i]).Text == _expectedContents[i]);
+                for (int j = 0; j < _comboBox.Items.Count; j++)
+                {
+                    Debug.Assert(
+                        ((ComboBoxItem)((ComboBox)_listBox.Items[i]).Items[j]).Content.ToString()
+                        == ((ComboBoxItem)_comboBox.Items[j]).Content.ToString()
+                    );
+                }
+            }
+        }
+
+        /**
+         * @brief Tests that ComboBox scaling handlers are properly registered for loaded macros
+         * 
+         * Validates that when macros are loaded into the UI, each ComboBox instance
+         * automatically registers with the scaling system to ensure proper DPI
+         * handling, maintaining consistent visual appearance across different displays.
+         */
+        private void _testLoadButtonClickRegistersComboBoxPopupScalers()
+        {
+            var mockRegistry = new MockWindowActionHandlerRegistry();
+            var handler = _fixture(mockRegistry);
+            _loadFileDialog.InvokeFileLoaded(
+                "some_path",
+                "{\"macro\": [\"a\", \"b\", \"c\", \"d\", \"e\"]}"
+            );
+            Debug.Assert(mockRegistry.RegisterHandlerCalls == 5);
+            for (int i = 0; i < _expectedContents.Count; i++)
+            {
+                var parameters = (
+                    (WindowComboBoxScaleActionHandlerParameters)
+                    mockRegistry.RegisterHandlerCallArg_args[i]!
+                );
+                Debug.Assert(parameters.ScaleComboBox == (ComboBox)_listBox.Items[i]);
+            }
+        }
+
+
+        /**
+         * @brief Tests proper cleanup and registration order for scaling handlers
+         * 
+         * Ensures that when loading new macros, existing scaling handlers are
+         * cleared before registering new ones, preventing memory leaks and
+         * ensuring only current macro ComboBoxes receive scaling adjustments.
+         */
+        private void _testLoadButtonClickClearsComboBoxPopupScalersBefroreRegisteringNew()
+        {
+            var mockRegistry = new MockWindowActionHandlerRegistry();
+            var handler = _fixture(mockRegistry);
+            _loadFileDialog.InvokeFileLoaded(
+                "some_path",
+                "{\"macro\": [\"a\", \"b\", \"c\", \"d\", \"e\"]}"
+            );
+            var reference = new TestUtilities().Reference(mockRegistry);
+            var clearCallRef = reference + "ClearHandlers";
+            var registerCallRef = reference + "RegisterHandler";
+            Debug.Assert(mockRegistry.CallOrder.Count == 6);
+            Debug.Assert(mockRegistry.CallOrder[0] == clearCallRef);
+            Debug.Assert(mockRegistry.CallOrder[1] == registerCallRef);
+            Debug.Assert(mockRegistry.CallOrder[2] == registerCallRef);
+            Debug.Assert(mockRegistry.CallOrder[3] == registerCallRef);
+            Debug.Assert(mockRegistry.CallOrder[4] == registerCallRef);
+            Debug.Assert(mockRegistry.CallOrder[5] == registerCallRef);
+        }
+
+        public void Run()
+        {
+            _testLoadButtonClickOpensLoadFileDialog();
+            _testLoadButtonClickRegistersComboBoxPopupScalers();
+            _testLoadButtonClickClearsComboBoxPopupScalersBefroreRegisteringNew();
+        }
+    }
+
+
+    public class WindowRuneingEditorFramePointSaveActionHandlerTests
+    {
+        private Button _saveButton = new Button();
+
+        private ListBox _listBox = new ListBox();
+
+        private MockSaveFileDialog _saveFileDialog = new MockSaveFileDialog();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _saveButton = new Button();
+            _listBox = new ListBox();
+            _listBox.Items.Add(new ComboBox { Text = "A" });
+            _listBox.Items.Add(new ComboBox { Text = "B" });
+            _listBox.Items.Add(new ComboBox { Text = "C" });
+            _saveFileDialog = new MockSaveFileDialog();
+            return new WindowRuneingEditorFramePointSaveActionHandlerFacade(
+                _saveButton, _listBox, _saveFileDialog
+            );
+        }
+
+        /**
+         * @brief Tests complete save menu workflow from button click to file dialog
+         * 
+         * @test Validates the entire macro saving process
+         * 
+         * Verifies that clicking the save button triggers the file dialog with
+         * correct macro data serialization and proper directory configuration.
+         * Ensures users can save their macro sequences with the expected format
+         * and in the configured save location.
+         */
+        private void _testSaveButtonClickOpensSaveFileDialog()
+        {
+            var handler = _fixture();
+            handler.Inject(
+                SystemInjectType.ConfigurationUpdate,
+                new MaplestoryBotConfiguration { FramePointsDirectory = "MEOW" }
+            );
+            _saveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_saveFileDialog.PromptCalls == 1);
+            var normalizer = new JsonNormalizer();
+            var saveContent = normalizer.Normalize(_saveFileDialog.PromptCallArg_saveContent[0]);
+            var initialDirectory = _saveFileDialog.PromptCallArg_initialDirectory[0];
+            Debug.Assert(initialDirectory == "MEOW");
+            Debug.Assert(saveContent == normalizer.Normalize("{\"macro\":[\"A\",\"B\",\"C\"]}"));
+        }
+
+        public void Run()
+        {
+            _testSaveButtonClickOpensSaveFileDialog();
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementAddActionHandlerTests
+    {
+        private Button _movementsAddButton = new Button();
+
+        private ListBox _movementsListBox = new ListBox();
+
+        private Grid _listBoxGrid = new Grid();
+
+        private TextBox _listTextBox = new TextBox();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _movementsAddButton = new Button();
+            _movementsListBox = new ListBox();
+            _listBoxGrid = new Grid();
+            _listTextBox = new TextBox();
+            _listBoxGrid.Children.Add(_listTextBox);
+            return new WindowRuneingEditorMovementAddActionHandlerFacade(
+                _movementsAddButton,
+                _movementsListBox,
+                _listBoxGrid
+            );
+        }
+        
+        /**
+         * @brief Verifies that clicking the add button repeatedly creates multiple movement
+         * entries with sequentially numbered names
+         * 
+         * When users click the Add Movement button multiple times, each click should create
+         * a new movement entry in the list box. Each new movement should receive a unique
+         * auto-generated name following the pattern "Move 0", "Move 1", "Move 2", etc.
+         * Every list box item must contain a properly configured Grid with a TextBox that
+         * displays the movement name and a WindowRuneingEditorMovementTag for identification.
+         */
+        private void _testClickingAddButtonAddsListBoxItem()
+        {
+            for (int i = 1; i < 10; i++)
+            {
+                var movementAddActionHandler = _fixture();
+                for (int j = 0; j < i; j++)
+                {
+                    _movementsAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                }
+                Debug.Assert(_movementsListBox.Items.Count == i);
+                for (int j = 0; j < _movementsListBox.Items.Count; j++)
+                {
+                    var listBoxItem = (ListBoxItem)_movementsListBox.Items[j];
+                    Debug.Assert(listBoxItem.Tag is WindowRuneingEditorMovementTag);
+                    Debug.Assert(listBoxItem.Content is Grid);
+                    var listBoxGrid = (Grid)listBoxItem.Content;
+                    Debug.Assert(listBoxGrid.Tag is List<TextBox>);
+                    var listTextBoxes = (List<TextBox>)listBoxGrid.Tag;
+                    var listBoxGridTextBoxes = listBoxGrid.Children.OfType<TextBox>().ToList();
+                    Debug.Assert(listTextBoxes.Count == 1);
+                    Debug.Assert(listBoxGridTextBoxes.Count == 1);
+                    Debug.Assert(listTextBoxes[0].Text == "Move " + j.ToString());
+                    Debug.Assert(listTextBoxes[0] == listBoxGridTextBoxes[0]);
+                }
+            }
+        }
+
+        /**
+         * @brief Verifies that a new movement is inserted below the currently selected item
+         * 
+         * When users have existing movements in the list and select a specific movement,
+         * clicking the Add Movement button should insert the new movement directly below
+         * the selected one.
+         */
+        private void _testClickingAddButtonAddsListBoxItemBelowSelected()
+        {
+            var movementAddActionHandler = _fixture();
+            var item0 = SelectedFixture.ListBoxFixture("Move 0");
+            var item1 = SelectedFixture.ListBoxFixture("Move 1");
+            var item2 = SelectedFixture.ListBoxFixture("Move 2");
+            var item3 = SelectedFixture.ListBoxFixture("Move 3");
+            _movementsListBox.Items.Add(item0);
+            _movementsListBox.Items.Add(item1);
+            _movementsListBox.Items.Add(item2);
+            _movementsListBox.Items.Add(item3);
+            _movementsListBox.SelectedIndex = 1;
+            _movementsAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementsListBox.Items.Count == 5);
+            Debug.Assert(_movementsListBox.Items[0] == item0);
+            Debug.Assert(_movementsListBox.Items[1] == item1);
+            Debug.Assert(_movementsListBox.Items[3] == item2);
+            Debug.Assert(_movementsListBox.Items[4] == item3);
+            var listBoxItem = (ListBoxItem)_movementsListBox.Items[2];
+            Debug.Assert(listBoxItem.Tag is WindowRuneingEditorMovementTag);
+            Debug.Assert(listBoxItem.Content is Grid);
+            var listBoxGrid = (Grid)listBoxItem.Content;
+            Debug.Assert(listBoxGrid.Tag is List<TextBox>);
+            var listTextBoxes = (List<TextBox>)listBoxGrid.Tag;
+            var listBoxGridTextBoxes = listBoxGrid.Children.OfType<TextBox>().ToList();
+            Debug.Assert(listTextBoxes.Count == 1);
+            Debug.Assert(listBoxGridTextBoxes.Count == 1);
+            Debug.Assert(listTextBoxes[0].Text == "Move 4");
+            Debug.Assert(listTextBoxes[0] == listBoxGridTextBoxes[0]);
+        }
+
+        /**
+         * @brief Verifies that after adding a new movement, the newly added item becomes
+         * the selected item in the list box
+         * 
+         * When users click the Add Movement button, the system should automatically select
+         * the newly created movement entry. This provides immediate visual feedback that
+         * the addition was successful and allows users to start editing the new movement.
+         */
+        private void _testClickingAddButtonSelectsAddedListBoxItem()
+        {
+            var movementAddActionHandler = _fixture();
+            for (int j = 0; j < 10; j++)
+            {
+                _movementsAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                Debug.Assert(_movementsListBox.SelectedIndex == j);
+            }
+            _movementsListBox.SelectedIndex = 5;
+            _movementsAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementsListBox.SelectedIndex == 6);
+        }
+
+        public void Run()
+        {
+            _testClickingAddButtonAddsListBoxItem();
+            _testClickingAddButtonAddsListBoxItemBelowSelected();
+            _testClickingAddButtonSelectsAddedListBoxItem();
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementRemoveActionHandlerTests
+    {
+        private Button _movementsRemoveButton = new Button();
+
+        private ListBox _movementsListBox = new ListBox();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _movementsRemoveButton = new Button();
+            _movementsListBox = new ListBox();
+            return new WindowRuneingEditorMovementRemoveActionHandlerFacade(
+                _movementsRemoveButton,
+                _movementsListBox
+            );
+        }
+
+        /**
+         * @brief Verifies that clicking the remove button with no selection removes the
+         * last item from the list box
+         * 
+         * When users click the Remove Movement button without any specific movement
+         * selected, the system should remove the last movement in the list. This provides
+         * a predictable behavior for users who want to delete the most recently added
+         * movement or remove items from the end of their movement sequence.
+         */
+        private void _testClickingRemoveButtonRemovesListBoxItem()
+        {
+            var movementAddActionHandler = _fixture();
+            var item0 = SelectedFixture.ListBoxFixture("Move 0");
+            var item1 = SelectedFixture.ListBoxFixture("Move 1");
+            var item2 = SelectedFixture.ListBoxFixture("Move 2");
+            var item3 = SelectedFixture.ListBoxFixture("Move 3");
+            _movementsListBox.Items.Add(item0);
+            _movementsListBox.Items.Add(item1);
+            _movementsListBox.Items.Add(item2);
+            _movementsListBox.Items.Add(item3);
+            _movementsRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementsListBox.Items.Count == 3);
+            Debug.Assert(_movementsListBox.Items[0] == item0);
+            Debug.Assert(_movementsListBox.Items[1] == item1);
+            Debug.Assert(_movementsListBox.Items[2] == item2);
+        }
+
+        /**
+         * @brief Verifies that clicking the remove button with a selected item removes
+         * only that specific movement from the list
+         * 
+         * When users select a specific movement in the list and click the Remove Movement
+         * button, only the selected movement should be removed. The remaining movements
+         * should stay in their original relative order, with items after the removed
+         * position shifting to fill the gap.
+         */
+        private void _testClickingRemoveButtonRemovesSelectedListBoxItem()
+        {
+            var movementAddActionHandler = _fixture();
+            var item0 = SelectedFixture.ListBoxFixture("Move 0");
+            var item1 = SelectedFixture.ListBoxFixture("Move 1");
+            var item2 = SelectedFixture.ListBoxFixture("Move 2");
+            var item3 = SelectedFixture.ListBoxFixture("Move 3");
+            _movementsListBox.Items.Add(item0);
+            _movementsListBox.Items.Add(item1);
+            _movementsListBox.Items.Add(item2);
+            _movementsListBox.Items.Add(item3);
+            _movementsListBox.SelectedIndex = 2;
+            _movementsRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementsListBox.Items.Count == 3);
+            Debug.Assert(_movementsListBox.Items[0] == item0);
+            Debug.Assert(_movementsListBox.Items[1] == item1);
+            Debug.Assert(_movementsListBox.Items[2] == item3);
+        }
+
+        /**
+         * @brief Verifies that clicking the remove button on an empty list box does nothing
+         * 
+         * When users click the Remove Movement button while the movement list is already
+         * empty, the operation should be safely ignored without causing errors or
+         * exceptions. This prevents crashes and provides a smooth user experience.
+         */
+        private void _testClickingRemoveButtonOnEmptyListBox()
+        {
+            var movementAddActionHandler = _fixture();
+            _movementsRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementsListBox.Items.Count == 0);
+        }
+
+        public void Run()
+        {
+            _testClickingRemoveButtonRemovesListBoxItem();
+            _testClickingRemoveButtonRemovesSelectedListBoxItem();
+            _testClickingRemoveButtonOnEmptyListBox();
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementMacroAccessActionHandlerTests
+    {
+        private ListBox _movementsListBox = new ListBox();
+
+        private List<FrameworkElement> _accessElements = [];
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _accessElements = [
+                new TextBox(),
+                new ComboBox(),
+                new Button(),
+                new ToggleButton()
+            ];
+            _movementsListBox = new ListBox();
+            return new WindowRuneingEditorMovementMacroAccessActionHandlerFacade(
+                _movementsListBox, _accessElements
+            );
+        }
+
+        /**
+         * @brief Verifies that access elements are enabled when a movement is selected
+         * and disabled when no movement is selected
+         * 
+         * When users click on a movement in the movement list box, all action elements
+         * (such as edit fields, command buttons, and toggle options) should become
+         * enabled, allowing users to view and modify the selected movement's properties.
+         * When the selection is cleared (no movement selected), all access elements
+         * should become disabled to prevent users from attempting operations on a
+         * non-existent selection.
+         */
+        private void _testSelectingListBoxItemChangesElementAccess()
+        {
+            var movementMacroAccessActionHandler = _fixture();
+            _movementsListBox.Items.Add(new object());
+            _movementsListBox.Items.Add(new object());
+            _movementsListBox.Items.Add(new object());
+            foreach (var accessElement in _accessElements)
+            {
+                accessElement.IsEnabled = false;
+            }
+            _movementsListBox.SelectedIndex = 1;
+            foreach (var accessElement in _accessElements)
+            {
+                Debug.Assert(accessElement.IsEnabled);
+            }
+            _movementsListBox.SelectedIndex = -1;
+            foreach (var accessElement in _accessElements)
+            {
+                Debug.Assert(!accessElement.IsEnabled);
+            }
+        }
+
+        /**
+         * @brief Verifies that text-based access elements are cleared when no movement
+         * is selected
+         * 
+         * When users deselect a movement, any text boxes and combo boxes that displayed
+         * the previously selected movement's data should be cleared. This prevents the
+         * editor from showing stale information from a movement that is no longer
+         * selected.
+         */
+        private void _testDeselectingListBoxItemClearsElementTexts()
+        {
+            var movementMacroAccessActionHandler = _fixture();
+            _movementsListBox.Items.Add(new object());
+            _movementsListBox.Items.Add(new object());
+            _movementsListBox.Items.Add(new object());
+            _movementsListBox.SelectedIndex = 1;
+            ((TextBox)_accessElements[0]).Text = "lol1";
+            ((ComboBox)_accessElements[1]).Text = "lol2";
+            _movementsListBox.SelectedIndex = -1;
+            Debug.Assert(((TextBox)_accessElements[0]).Text == "");
+            Debug.Assert(((ComboBox)_accessElements[1]).Text == "");
+        }
+
+        public void Run()
+        {
+            _testSelectingListBoxItemChangesElementAccess();
+            _testDeselectingListBoxItemClearsElementTexts();
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsCommandAddActionHandlerTests
+    {
+        private Button _movementAddButton = new Button();
+
+        private ListBox _movementCommandsListBox = new ListBox();
+
+        private ComboBox _comboBoxTemplate = new ComboBox();
+
+        private MockWindowActionHandlerRegistry _scaleRegistry = new MockWindowActionHandlerRegistry();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _movementAddButton = new Button();
+            _movementCommandsListBox = new ListBox();
+            _comboBoxTemplate = new ComboBox();
+            _scaleRegistry = new MockWindowActionHandlerRegistry();
+            return new WindowRuneingEditorMovementsCommandAddActionHandlerFacade(
+                _movementAddButton,
+                _movementCommandsListBox,
+                _comboBoxTemplate,
+                _scaleRegistry
+            );
+        }
+
+
+        /**
+         * @brief Verifies that adding a command to an empty command list inserts at index 0
+         * 
+         * When users select a movement that has no existing commands and click the Add
+         * Command button, the first command combobox should be inserted at the beginning
+         * of the list.
+         */
+        private void _testAddingMovementCommandOnEmptyListBox()
+        {
+            var framePointMacroCommandAddActionHandler = _fixture();
+            _movementAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementCommandsListBox.Items.Count == 1);
+            Debug.Assert(_movementCommandsListBox.Items[0] is ComboBox);
+        }
+
+        /**
+         * @brief Verifies that adding a command inserts below the currently selected command
+         * 
+         * When users have selected a movement with an existing command sequence and want
+         * to insert a new command between two existing commands, they can select the
+         * command that should appear above the new one and click Add Command. The new
+         * command should appear immediately below the selected command.
+         */
+        private void _testAddingMovementCommandOnSelectedIndex()
+        {
+            var framePointMacroCommandAddActionHandler = _fixture();
+            var item1 = new object();
+            var item2 = new object();
+            var item3 = new object();
+            var item4 = new object();
+            _movementCommandsListBox.Items.Add(item1);
+            _movementCommandsListBox.Items.Add(item2);
+            _movementCommandsListBox.Items.Add(item3);
+            _movementCommandsListBox.Items.Add(item4);
+            _movementCommandsListBox.SelectedIndex = 1;
+            _movementAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementCommandsListBox.Items.Count == 5);
+            Debug.Assert(_movementCommandsListBox.Items[0] == item1);
+            Debug.Assert(_movementCommandsListBox.Items[1] == item2);
+            Debug.Assert(_movementCommandsListBox.Items[2] is ComboBox);
+            Debug.Assert(_movementCommandsListBox.Items[3] == item3);
+            Debug.Assert(_movementCommandsListBox.Items[4] == item4);
+        }
+
+        /**
+         * @brief Verifies that adding a command with no command selected appends at the end
+         * 
+         * When users have selected a movement and want to add a command to the end of its
+         * command sequence without caring about the current selection, clicking Add Command
+         * while no command is selected should append the new command at the end of the list.
+         */
+        private void _testAddingMovementCommandOnPopulatedListBox()
+        {
+            var framePointMacroCommandAddActionHandler = _fixture();
+            var item1 = new object();
+            var item2 = new object();
+            var item3 = new object();
+            var item4 = new object();
+            _movementCommandsListBox.Items.Add(item1);
+            _movementCommandsListBox.Items.Add(item2);
+            _movementCommandsListBox.Items.Add(item3);
+            _movementCommandsListBox.Items.Add(item4);
+            _movementAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementCommandsListBox.Items.Count == 5);
+            Debug.Assert(_movementCommandsListBox.Items[0] == item1);
+            Debug.Assert(_movementCommandsListBox.Items[1] == item2);
+            Debug.Assert(_movementCommandsListBox.Items[2] == item3);
+            Debug.Assert(_movementCommandsListBox.Items[3] == item4);
+            Debug.Assert(_movementCommandsListBox.Items[4] is ComboBox);
+        }
+
+        /**
+         * @brief Verifies that newly added command comboboxes are registered with the
+         * scale registry for proper DPI scaling
+         * 
+         * When a new command combobox is added to a selected movement's command list,
+         * it must be registered with the scale registry. The scale registry handles
+         * dropdown sizing adjustments based on the current monitor's DPI settings,
+         * ensuring combobox dropdowns display correctly on high-DPI displays without
+         * being cut off or appearing too small.
+         */
+        private void _testAddingMovementComboBoxToScaleRegistry()
+        {
+            var framePointMacroCommandAddActionHandler = _fixture();
+            _movementAddButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementCommandsListBox.Items.Count == 1);
+            Debug.Assert(_movementCommandsListBox.Items[0] is ComboBox);
+            Debug.Assert(_scaleRegistry.RegisterHandlerCalls == 1);
+            var comboBoxItem = _movementCommandsListBox.Items[0];
+            var scaleBoxItem = (
+                (
+                    (WindowComboBoxScaleActionHandlerParameters)
+                    _scaleRegistry.RegisterHandlerCallArg_args[0]!
+                )
+                .ScaleComboBox
+            );
+            Debug.Assert(comboBoxItem == scaleBoxItem);
+        }
+
+        public void Run()
+        {
+            _testAddingMovementCommandOnEmptyListBox();
+            _testAddingMovementCommandOnSelectedIndex();
+            _testAddingMovementCommandOnPopulatedListBox();
+            _testAddingMovementComboBoxToScaleRegistry();
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsCommandRemoveActionHandlerTests
+    {
+        private Button _movementRemoveButton = new Button();
+
+        private ListBox _movementCommandsListBox = new ListBox();
+
+        private MockWindowActionHandlerRegistry _scaleRegistry = new MockWindowActionHandlerRegistry();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _movementRemoveButton = new Button();
+            _movementCommandsListBox = new ListBox();
+            _scaleRegistry = new MockWindowActionHandlerRegistry();
+            return new WindowRuneingEditorMovementsCommandRemoveActionHandlerFacade(
+                _movementRemoveButton,
+                _movementCommandsListBox,
+                _scaleRegistry
+            );
+        }
+
+        /**
+         * @brief Verifies that removing the only command from a movement's command list
+         * empties the list
+         * 
+         * When users select a movement that has exactly one command and click the Remove
+         * Command button, the command list should become completely empty. This allows
+         * users to delete the last remaining command.
+         */
+        private void _testRemovingMovementCommandOnSingleElement()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            _movementCommandsListBox.Items.Add(new ComboBox());
+            _movementRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementCommandsListBox.Items.Count == 0);
+        }
+
+        /**
+         * @brief Verifies that removing a selected command removes the correct item and
+         * preserves the order of remaining commands for the selected movement
+         * 
+         * When users select a specific command in a movement's command sequence and click
+         * Remove Command, only the selected command should be removed. The remaining
+         * commands should stay in their original relative order, with commands after the
+         * removed position shifting left to fill the gap.
+         */
+        private void _testRemovingMovementCommandOnSelectedIndex()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            var item0 = new ComboBox();
+            var item1 = new ComboBox();
+            var item3 = new ComboBox();
+            _movementCommandsListBox.Items.Add(item0);
+            _movementCommandsListBox.Items.Add(item1);
+            _movementCommandsListBox.Items.Add(new ComboBox());
+            _movementCommandsListBox.Items.Add(item3);
+            _movementCommandsListBox.SelectedIndex = 2;
+            _movementRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementCommandsListBox.Items.Count == 3);
+            Debug.Assert(_movementCommandsListBox.Items[0] == item0);
+            Debug.Assert(_movementCommandsListBox.Items[1] == item1);
+            Debug.Assert(_movementCommandsListBox.Items[2] == item3);
+        }
+
+        /**
+         * @brief Verifies that removing a command with no selection removes the last command
+         * from the selected movement's command list
+         * 
+         * When users click Remove Command without any command selected, the system should
+         * remove the last command in the list. This provides a predictable behavior for
+         * users who want to delete commands from the end of their sequence without having
+         * to manually select them first.
+         */
+        private void _testRemovingMovementCommandOnPopulatedListBox()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            var item0 = new ComboBox();
+            var item1 = new ComboBox();
+            var item2 = new ComboBox();
+            var item3 = new ComboBox();
+            _movementCommandsListBox.Items.Add(item0);
+            _movementCommandsListBox.Items.Add(item1);
+            _movementCommandsListBox.Items.Add(item2);
+            _movementCommandsListBox.Items.Add(item3);
+            _movementRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementCommandsListBox.Items.Count == 3);
+            Debug.Assert(_movementCommandsListBox.Items[0] == item0);
+            Debug.Assert(_movementCommandsListBox.Items[1] == item1);
+            Debug.Assert(_movementCommandsListBox.Items[2] == item2);
+        }
+
+        /**
+         * @brief Verifies that clicking Remove Command on an empty command list does nothing
+         * 
+         * When users click the Remove Command button while the selected movement's command
+         * list is already empty, the operation should be safely ignored without causing
+         * errors or exceptions. This prevents crashes and provides a smooth user experience
+         * even when buttons are clicked in unexpected states.
+         */
+        private void _testRemovingMovementCommandOnEmptyListBox()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            _movementRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementCommandsListBox.Items.Count == 0);
+        }
+
+        /**
+         * @brief Verifies that removed command comboboxes are unregistered from the
+         * scale registry to prevent memory leaks
+         * 
+         * When a command combobox is removed from a selected movement's command list,
+         * it must be unregistered from the scale registry. The scale registry holds
+         * references to comboboxes for DPI scaling adjustments, and failing to unregister
+         * would keep those references alive.
+         */
+        private void _testRemovingMovementCommandUnregistersFromRegistry()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            var item = new ComboBox();
+            _movementCommandsListBox.Items.Add(item);
+            _movementRemoveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementCommandsListBox.Items.Count == 0);
+            Debug.Assert(_scaleRegistry.UnregisterHandlerCalls == 1);
+            Debug.Assert(
+                (
+                    (WindowComboBoxScaleActionHandlerParameters)
+                    _scaleRegistry.UnregisterHandlerCallArg_args[0]!
+                )
+                .ScaleComboBox == item
+            );
+        }
+
+        public void Run()
+        {
+            _testRemovingMovementCommandOnSingleElement();
+            _testRemovingMovementCommandOnSelectedIndex();
+            _testRemovingMovementCommandOnPopulatedListBox();
+            _testRemovingMovementCommandOnEmptyListBox();
+            _testRemovingMovementCommandUnregistersFromRegistry();
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsCommandClearActionHandlerTests
+    {
+        private Button _movementsClearButton = new Button();
+
+        private ListBox _movementCommandsListBox = new ListBox();
+
+        private MockWindowActionHandlerRegistry _scaleRegistry = new MockWindowActionHandlerRegistry();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _movementsClearButton = new Button();
+            _movementCommandsListBox = new ListBox();
+            _scaleRegistry = new MockWindowActionHandlerRegistry();
+            return new WindowRuneingEditorMovementsCommandClearActionHandlerFacade(
+                _movementsClearButton,
+                _movementCommandsListBox,
+                _scaleRegistry
+            );
+        }
+
+        /**
+         * @brief Verifies that clicking the clear button removes all commands from the
+         * selected movement's command list
+         * 
+         * When users select a movement and want to start over with a fresh command sequence,
+         * clicking the Clear Commands button should remove every command from the command
+         * list in a single operation. This provides a convenient way to wipe the entire
+         * command sequence for the selected movement without having to delete each command
+         * individually.
+         */
+        private void _testClearingMovementCommandsClearsListBox()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            var item0 = new ComboBox();
+            var item1 = new ComboBox();
+            var item2 = new ComboBox();
+            var item3 = new ComboBox();
+            _movementCommandsListBox.Items.Add(item0);
+            _movementCommandsListBox.Items.Add(item1);
+            _movementCommandsListBox.Items.Add(item2);
+            _movementCommandsListBox.Items.Add(item3);
+            _movementsClearButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementCommandsListBox.Items.Count == 0);
+        }
+
+        /**
+         * @brief Verifies that every cleared command combobox is unregistered from the
+         * scale registry to prevent memory leaks
+         * 
+         * When the Clear Commands button is clicked and all command comboboxes are removed
+         * from the selected movement's command list, each combobox must be individually
+         * unregistered from the scale registry. The scale registry holds references to
+         * comboboxes for DPI scaling adjustments, and failing to unregister would keep
+         * those references alive.
+         */
+        private void _testClearingMovementCommandsUnregistersFromRegistry()
+        {
+            var framePointMacroCommandRemoveActionHandler = _fixture();
+            var item0 = new ComboBox();
+            var item1 = new ComboBox();
+            var item2 = new ComboBox();
+            var item3 = new ComboBox();
+            _movementCommandsListBox.Items.Add(item0);
+            _movementCommandsListBox.Items.Add(item1);
+            _movementCommandsListBox.Items.Add(item2);
+            _movementCommandsListBox.Items.Add(item3);
+            _movementsClearButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Debug.Assert(_movementCommandsListBox.Items.Count == 0);
+            Debug.Assert(_scaleRegistry.UnregisterHandlerCalls == 4);
+            var unregisterItem0 = (
+                (WindowComboBoxScaleActionHandlerParameters)
+                _scaleRegistry.UnregisterHandlerCallArg_args[0]!
+            );
+            var unregisterItem1 = (
+                (WindowComboBoxScaleActionHandlerParameters)
+                _scaleRegistry.UnregisterHandlerCallArg_args[1]!
+            );
+            var unregisterItem2 = (
+                (WindowComboBoxScaleActionHandlerParameters)
+                _scaleRegistry.UnregisterHandlerCallArg_args[2]!
+            );
+            var unregisterItem3 = (
+                (WindowComboBoxScaleActionHandlerParameters)
+                _scaleRegistry.UnregisterHandlerCallArg_args[3]!
+            );
+            Debug.Assert(unregisterItem0.ScaleComboBox == item0);
+            Debug.Assert(unregisterItem1.ScaleComboBox == item1);
+            Debug.Assert(unregisterItem2.ScaleComboBox == item2);
+            Debug.Assert(unregisterItem3.ScaleComboBox == item3);
+        }
+
+        public void Run()
+        {
+            _testClearingMovementCommandsClearsListBox();
+            _testClearingMovementCommandsUnregistersFromRegistry();
+        }
+    }
+
+
     public class WindowRuneingEditorHandlersTestSuite
     {
         public void Run()
         {
+            new WindowRuneingEditorFrameNameLoadingActionHandlerTests().Run();
             new WindowRuneingEditorFramePointMacrosLoadingActionHandlerTests().Run();
             new WindowRuneingEditorFramePointMacroAccessActionHandlerTests().Run();
             new WindowRuneingEditorFramePointMacroDeselectionActionHandlerTests().Run();
             new WindowRuneingEditorFramePointMacroSelectionActionHandlerTests().Run();
             new WindowRuneingEditorFramePointMacroCommandAddActionHandlerTests().Run();
+            new WindowRuneingEditorFramePointMacroCommandRemoveActionHandlerTests().Run();
+            new WindowRuneingEditorFramePointMacroCommandClearActionHandlerTests().Run();
+            new WindowRuneingEditorFramePointLoadConfigurationActionHandlerTests().Run();
+            new WindowRuneingEditorFramePointLoadActionHandlerTests().Run();
+            new WindowRuneingEditorFramePointSaveActionHandlerTests().Run();
+            new WindowRuneingEditorMovementAddActionHandlerTests().Run();
+            new WindowRuneingEditorMovementRemoveActionHandlerTests().Run();
+            new WindowRuneingEditorMovementMacroAccessActionHandlerTests().Run();
+            new WindowRuneingEditorMovementsCommandAddActionHandlerTests().Run();
+            new WindowRuneingEditorMovementsCommandRemoveActionHandlerTests().Run();
+            new WindowRuneingEditorMovementsCommandClearActionHandlerTests().Run();
         }
     }
 }

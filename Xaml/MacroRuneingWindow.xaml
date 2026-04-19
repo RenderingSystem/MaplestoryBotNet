@@ -90,8 +90,8 @@
                             <ListBoxItem>
                                 <Grid x:Name="RuneingPointMacroTemplate">
                                     <TextBox
-                                        x:Name="RuneingSelectedPointTextBoxTemplate"
                                         Margin="0,0,-113,0"
+                                        Width="113"
                                         Background="Black"
                                         Foreground="Lime"
                                         FontFamily="Courier New"
@@ -122,7 +122,7 @@
                             VerticalAlignment="Top"
                             Width="160"
                             IsTabStop="False"
-                            Height="27"
+                            Height="27" IsEnabled="False"
                         />
                         <Button
                             x:Name="FramePointsLoadButton"
@@ -135,7 +135,7 @@
                             VerticalAlignment="Top"
                             Width="160"
                             IsTabStop="False"
-                            Height="27"
+                            Height="27" IsEnabled="False"
                         />
                         <Label
                             Content="Next frame:"
@@ -154,7 +154,7 @@
                             Background="Black"
                             Foreground="Lime"
                             FontFamily="Courier New"
-                            Height="22"
+                            Height="22" IsEnabled="False"
                         />
                         <Label
                             Content="Radius:"
@@ -173,7 +173,7 @@
                             Background="Black"
                             Foreground="Lime"
                             FontFamily="Courier New"
-                            Height="22"
+                            Height="22" IsEnabled="False"
                         />
                         <Button
                             x:Name="RuneingPointMacroAddCommandButton"
@@ -184,7 +184,7 @@
                             VerticalAlignment="Top"
                             Height="26"
                             Width="101"
-                            FontFamily="Courier New"
+                            FontFamily="Courier New" IsEnabled="False"
                         />
                         <Button
                             x:Name="RuneingPointMacroRemoveCommandButton"
@@ -195,7 +195,7 @@
                             VerticalAlignment="Top"
                             Height="26"
                             Width="101"
-                            FontFamily="Courier New"
+                            FontFamily="Courier New" IsEnabled="False"
                         />
                         <Button
                             x:Name="RuneingPointMacroClearCommandsButton"
@@ -206,7 +206,7 @@
                             VerticalAlignment="Top"
                             Height="26"
                             Width="101"
-                            FontFamily="Courier New"
+                            FontFamily="Courier New" IsEnabled="False"
                         />
                     </Grid>
                 </TabItem>
@@ -231,7 +231,7 @@
                             FontFamily="Courier New"
                             Margin="16,236,436,64"
                             Width="120"
-                            Height="22"
+                            Height="22" IsEnabled="False"
                         >
                             <ComboBoxItem Content="Left"/>
                             <ComboBoxItem Content="Right"/>
@@ -245,10 +245,10 @@
                             SelectedIndex="0"
                         >
                             <ListBoxItem>
-                                <Grid>
+                                <Grid x:Name="RuneingMovementTemplate">
                                     <TextBox
-                                        x:Name="RuneingSelectedMovementTextBoxTemplate"
                                         Margin="0,0,-113,0"
+                                        Width="113"
                                         Background="Black"
                                         Foreground="Lime"
                                         FontFamily="Courier New"
@@ -274,7 +274,7 @@
                             Margin="141,235,371,64"
                             Background="Black"
                             Foreground="Lime"
-                            FontFamily="Courier New"
+                            FontFamily="Courier New" IsEnabled="False"
                         />
                         <ListBox
                             x:Name="RuneingMovementsMacroListBox"
@@ -285,7 +285,7 @@
                             SelectedIndex="0"
                         >
                             <ComboBox
-                                x:Name="RuneingMovementComboBoxTemplate1"
+                                x:Name="RuneingMovementComboBoxTemplate"
                                 Width="275"
                                 IsEditable="True"
                                 FontSize="10"
@@ -315,7 +315,7 @@
                             VerticalAlignment="Top"
                             Height="26"
                             Width="101"
-                            FontFamily="Courier New"
+                            FontFamily="Courier New" IsEnabled="False"
                         />
                         <Button
                             x:Name="MovementRemoveMacroCommandButton"
@@ -326,7 +326,7 @@
                             VerticalAlignment="Top"
                             Height="26"
                             Width="101"
-                            FontFamily="Courier New"
+                            FontFamily="Courier New" IsEnabled="False"
                         />
                         <Button
                             Style="{StaticResource BottingButtonStyle}"
@@ -337,7 +337,7 @@
                             VerticalAlignment="Top"
                             Height="26"
                             Width="101"
-                            FontFamily="Courier New"
+                            FontFamily="Courier New" IsEnabled="False"
                         />
                         <Label
                             Content="Direction:"
@@ -345,7 +345,7 @@
                             Margin="13,214,483,86"
                             Foreground="White"
                             FontSize="11"
-                            FontWeight="Bold" RenderTransformOrigin="0.5,0.5"
+                            FontWeight="Bold"
                         />
                         <Label
                             Content="Distance:"
@@ -382,7 +382,7 @@
                             VerticalAlignment="Top"
                             Width="160"
                             IsTabStop="False"
-                            Height="27"
+                            Height="27" IsEnabled="False"
                         />
                         <Button
                             x:Name="FrameMovementsLoadButton"
@@ -395,7 +395,7 @@
                             VerticalAlignment="Top"
                             Width="160"
                             IsTabStop="False"
-                            Height="27"
+                            Height="27" IsEnabled="False"
                         />
                     </Grid>
                 </TabItem>
