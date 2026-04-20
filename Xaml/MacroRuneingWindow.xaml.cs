@@ -1,8 +1,8 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
-using Microsoft.Win32;
 using System.Windows;
+using System.Windows.Controls;
 
 
 namespace MaplestoryBotNet.Xaml
@@ -11,13 +11,19 @@ namespace MaplestoryBotNet.Xaml
     {
         private AbstractWindowMapEditMenuState _editMenuState;
 
-        private AbstractWindowActionHandlerRegistry _comboBoxScaleRegistry;
+        private AbstractWindowActionHandlerRegistry _framePointMacroCommandsScaleRegistry;
+
+        private AbstractWindowActionHandlerRegistry _movementCommandsScaleRegistry;
 
         private AbstractSystemWindow? _systemWindow;
 
-        private AbstractLoadFileDialog _loadFileDialog;
+        private AbstractLoadFileDialog _loadFramePointsFileDialog;
 
-        private AbstractSaveFileDialog _saveFileDialog;
+        private AbstractSaveFileDialog _saveFramePointsFileDialog;
+
+        private AbstractLoadFileDialog _loadMovementsFileDialog;
+
+        private AbstractSaveFileDialog _saveMovementsFileDialog;
 
         public MacroRuneingWindow(AbstractWindowMapEditMenuState editMenuState)
         {
@@ -27,10 +33,13 @@ namespace MaplestoryBotNet.Xaml
             RuneingMovementsListBox.Items.Clear();
             RuneingMovementsMacroListBox.Items.Clear();
             _editMenuState = editMenuState;
-            _comboBoxScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
+            _framePointMacroCommandsScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
+            _movementCommandsScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
             _systemWindow = null;
-            _loadFileDialog = new WindowLoadFileDialog("Load Macro", "JSON files (*.json)|*.json");
-            _saveFileDialog = new WindowSaveFileDialog("Save Macro", "JSON files (*.json)|*.json", ".json");
+            _loadFramePointsFileDialog = new WindowLoadFileDialog("Load Macro", "JSON files (*.json)|*.json");
+            _saveFramePointsFileDialog = new WindowSaveFileDialog("Save Macro", "JSON files (*.json)|*.json", ".json");
+            _loadMovementsFileDialog = new WindowLoadFileDialog("Load Macro", "JSON files (*.json)|*.json");
+            _saveMovementsFileDialog = new WindowSaveFileDialog("Save Macro", "JSON files (*.json)|*.json", ".json");
         }
 
         public AbstractSystemWindow GetSystemWindow()
@@ -40,6 +49,30 @@ namespace MaplestoryBotNet.Xaml
                 _systemWindow = new SystemWindow(this);
             }
             return _systemWindow;
+        }
+
+        protected AbstractWindowActionHandler _instantiateNumericTextBoxPropertyActionHandler(
+            TextBox numericTextBox, int maxValue
+        )
+        {
+            return (
+                new NumericTextBoxValidationActionHandlerBuilder()
+                    .WithArgs(maxValue)
+                    .WithArgs(numericTextBox)
+                    .Build()
+            );
+        }
+
+        protected AbstractWindowActionHandler _instantiateNumericTextBoxPropertyPasteActionHandler(
+            TextBox numericTextBox, int maxValue
+        )
+        {
+            return (
+                new NumericTextBoxPasteValidationActionHandlerBuilder()
+                    .WithArgs(maxValue)
+                    .WithArgs(numericTextBox)
+                    .Build()
+            );
         }
 
         private AbstractWindowActionHandler _instantiateWindowMenuItemHideActionHandler()
@@ -63,12 +96,30 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
+        public AbstractWindowActionHandler _frameNameSavingActionHandler()
+        {
+            return new WindowRuneingEditorFrameNameSavingActionHandlerFacade(
+                GetSystemWindow(),
+                RuneingSelectedFrameTextBox,
+                _editMenuState
+            );
+        }
+
         private AbstractWindowActionHandler _instantiateFramePointMacrosLoadingActionHandler()
         {
             return new WindowRuneingEditorFramePointMacrosLoadingActionHandlerFacade(
                 RuneingPointsListBox,
                 RuneingPointMacroTemplate,
                 GetSystemWindow(),
+                _editMenuState
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateFramePointMacrosSavingActionHandler()
+        {
+            return new WindowRuneingEditorFramePointMacrosSavingActionHandlerFacade(
+                GetSystemWindow(),
+                RuneingPointsListBox,
                 _editMenuState
             );
         }
@@ -97,7 +148,7 @@ namespace MaplestoryBotNet.Xaml
                 RuneingNextFrameTextBox,
                 RuneingRadiusTextBox,
                 RuneingPointMacroComboBoxTemplate,
-                _comboBoxScaleRegistry
+                _framePointMacroCommandsScaleRegistry
             );
         }
 
@@ -117,7 +168,7 @@ namespace MaplestoryBotNet.Xaml
                 RuneingPointMacroAddCommandButton,
                 RuneingPointsMacroListBox,
                 RuneingPointMacroComboBoxTemplate,
-                _comboBoxScaleRegistry
+                _framePointMacroCommandsScaleRegistry
             );
         }
 
@@ -126,7 +177,7 @@ namespace MaplestoryBotNet.Xaml
             return new WindowRuneingEditorFramePointMacroCommandRemoveActionHandlerFacade(
                 RuneingPointMacroRemoveCommandButton,
                 RuneingPointsMacroListBox,
-                _comboBoxScaleRegistry
+                _framePointMacroCommandsScaleRegistry
             );
         }
 
@@ -135,7 +186,7 @@ namespace MaplestoryBotNet.Xaml
             return new WindowRuneingEditorFramePointMacroCommandClearActionHandlerFacade(
                 RuneingPointMacroClearCommandsButton,
                 RuneingPointsMacroListBox,
-                _comboBoxScaleRegistry
+                _framePointMacroCommandsScaleRegistry
             );
         }
 
@@ -143,17 +194,17 @@ namespace MaplestoryBotNet.Xaml
         {
             return new WindowRuneingEditorFramePointLoadConfigurationActionHandlerFacade(
                 FramePointsLoadButton,
-                _loadFileDialog
+                _loadFramePointsFileDialog
             );
         }
 
         private AbstractWindowActionHandler _instantiateFramePointLoadActionHandler()
         {
             return new WindowRuneingEditorFramePointLoadActionHandlerFacade(
-                _loadFileDialog,
+                _loadFramePointsFileDialog,
                 RuneingPointsMacroListBox,
                 RuneingPointMacroComboBoxTemplate,
-                _comboBoxScaleRegistry
+                _framePointMacroCommandsScaleRegistry
             );
         }
 
@@ -162,7 +213,26 @@ namespace MaplestoryBotNet.Xaml
             return new WindowRuneingEditorFramePointSaveActionHandlerFacade(
                 FramePointsSaveButton,
                 RuneingPointsMacroListBox,
-                _saveFileDialog
+                _saveFramePointsFileDialog
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMovementsLoadingActionHandler()
+        {
+            return new WindowRuneingEditorMovementsLoadingActionHandlerFacade(
+                RuneingMovementsListBox,
+                RuneingPointMacroTemplate,
+                GetSystemWindow(),
+                _editMenuState
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMovementsSavingActionHandler()
+        {
+            return new WindowRuneingEditorMovementsSavingActionHandlerFacade(
+                GetSystemWindow(),
+                RuneingMovementsListBox,
+                _editMenuState
             );
         }
 
@@ -205,7 +275,7 @@ namespace MaplestoryBotNet.Xaml
                 MovementAddMacroCommandButton,
                 RuneingMovementsMacroListBox,
                 RuneingMovementComboBoxTemplate,
-                _comboBoxScaleRegistry
+                _movementCommandsScaleRegistry
             );
         }
 
@@ -214,7 +284,7 @@ namespace MaplestoryBotNet.Xaml
             return new WindowRuneingEditorMovementsCommandRemoveActionHandlerFacade(
                 MovementRemoveMacroCommandButton,
                 RuneingMovementsMacroListBox,
-                _comboBoxScaleRegistry
+                _movementCommandsScaleRegistry
             );
         }
 
@@ -223,18 +293,75 @@ namespace MaplestoryBotNet.Xaml
             return new WindowRuneingEditorMovementsCommandClearActionHandlerFacade(
                 MovementClearMacroCommandsButton,
                 RuneingMovementsMacroListBox,
-                _comboBoxScaleRegistry
+                _movementCommandsScaleRegistry
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMovementsDeselectionActionHandler()
+        {
+            return new WindowRuneingEditorMovementsDeselectionActionHandlerFacade(
+                DirectionComboBox,
+                DistanceTextBox,
+                RuneingMovementsListBox,
+                RuneingMovementsMacroListBox,
+                _movementCommandsScaleRegistry
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMovementsSelectionActionHandler()
+        {
+            return new WindowRuneingEditorMovementsSelectionActionHandlerFacade(
+                DirectionComboBox,
+                DistanceTextBox,
+                RuneingMovementsListBox,
+                RuneingMovementsMacroListBox,
+                RuneingMovementComboBoxTemplate,
+                _movementCommandsScaleRegistry
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMovementsLoadConfigurationActionHandler()
+        {
+            return new WindowRuneingEditorMovementsLoadConfigurationActionHandlerFacade(
+                FrameMovementsLoadButton,
+                _loadMovementsFileDialog
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMovementsLoadActionHandler()
+        {
+            return new WindowRuneingEditorMovementsLoadActionHandlerFacade(
+                _loadMovementsFileDialog,
+                RuneingMovementsMacroListBox,
+                RuneingMovementComboBoxTemplate,
+                _movementCommandsScaleRegistry
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateMovementsSaveActionHandler()
+        {
+            return new WindowRuneingEditorMovementsSaveActionHandlerFacade(
+                FrameMovementsSaveButton,
+                RuneingMovementsMacroListBox,
+                _saveMovementsFileDialog
             );
         }
 
         public List<AbstractWindowActionHandler> InstantiateActionHandlers()
         {
             return [
+                _instantiateNumericTextBoxPropertyActionHandler(RuneingRadiusTextBox, 999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(RuneingRadiusTextBox, 999),
+                _instantiateNumericTextBoxPropertyActionHandler(DistanceTextBox, 999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(DistanceTextBox, 999),
                 _instantiateWindowMenuItemHideActionHandler(),
                 _instantiateMovementDirectionComboBoxScaleActionHandler(),
-                _frameNameLoadingActionHandler(),
                 _instantiateFramePointMacrosLoadingActionHandler(),
-                _instantiateFramePointMacroAccessActionHandler(),
+                _instantiateMovementsLoadingActionHandler(),
+                _frameNameLoadingActionHandler(),
+                _instantiateFramePointMacrosSavingActionHandler(),
+                _instantiateMovementsSavingActionHandler(),
+                _frameNameSavingActionHandler(),
                 _instantiateFramePointMacroDeselectionActionHandler(),
                 _instantiateFramePointMacroSelectionActionHandler(),
                 _instantiateFramePointMacroCommandAddActionHandler(),
@@ -243,12 +370,18 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateFramePointLoadConfigurationActionHandler(),
                 _instantiateFramePointLoadActionHandler(),
                 _instantiateFramePointSaveActionHandler(),
+                _instantiateFramePointMacroAccessActionHandler(),
                 _instantiateMovementAddActionHandler(),
                 _instantiateMovementRemoveActionHandler(),
-                _instantiateMovementMacroAccessActionHandler(),
                 _instantiateMovementsCommandAddActionHandler(),
                 _instantiateMovementsCommandRemoveActionHandler(),
-                _instantiateMovementsCommandClearActionHandler()
+                _instantiateMovementsCommandClearActionHandler(),
+                _instantiateMovementsDeselectionActionHandler(),
+                _instantiateMovementsSelectionActionHandler(),
+                _instantiateMovementsLoadConfigurationActionHandler(),
+                _instantiateMovementsLoadActionHandler(),
+                _instantiateMovementsSaveActionHandler(),
+                _instantiateMovementMacroAccessActionHandler(),
             ];
         }
     }

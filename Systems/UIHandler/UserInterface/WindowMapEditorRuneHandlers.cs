@@ -1584,21 +1584,21 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             return "MT" + elementCount;
         }
 
-        private void _assignMacroTags(
+        private TextBlock _assignMacroTags(
             FrameworkElement createdFramePoint,
             string macroName,
             string elementLabel
         )
         {
-            if (_frameworkElementInfo.Label(createdFramePoint) is TextBlock textBlock)
-            {
-                textBlock.Text = macroName;
-                createdFramePoint.Tag = elementLabel;
-            }
+            var textBlock = _frameworkElementInfo.Label(createdFramePoint)!;
+            textBlock.Text = macroName;
+            createdFramePoint.Tag = elementLabel;
+            return textBlock;
         }
 
         private void _addRuneFrameMacro(
             Canvas selectedFrame,
+            TextBlock textBlock,
             AbstractRuneModel runeModel,
             RuneFrame runeFrame,
             string macroName,
@@ -1619,6 +1619,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     NextRuneFrame = null,
                     Radius = 0.0,
                     PointCommands = [],
+                    TextDependencies = [textBlock]
                 }
             );
             runeModel.EditRuneFrame(runeFrame);
@@ -1650,13 +1651,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     Canvas.SetTop(createdFramePoint, top);
                     var macroName = _generateMacroName(runeFrame);
                     var elementLabel = _generateElementName(runeFrame);
-                    _assignMacroTags(
+                    var textBlock = _assignMacroTags(
                         createdFramePoint,
                         macroName,
                         elementLabel
                     );
                     _addRuneFrameMacro(
                         selectedFrame,
+                        textBlock,
                         runeModel,
                         runeFrame,
                         macroName,

@@ -103,7 +103,7 @@
     },
     "macro_directory": "./Macros",
     "frame_points_directory":  "./FramePoints",
-    "movements_directory": "./FrameMovements",
+    "frame_movements_directory": "./FrameMovements",
     "map_directory": "./Maps",
     "interact_key": " "
 }

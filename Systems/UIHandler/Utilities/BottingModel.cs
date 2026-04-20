@@ -135,7 +135,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public abstract RuneFrame? FindRuneFrameByName(string name);
 
-        public abstract RuneFrame? FindRuneFrameByLabel(string label);
+        public abstract RuneFrame? FindRuneFrameRefByLabel(string label);
 
         public abstract void RemoveRuneFrameByName(string name);
 
@@ -483,6 +483,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public List<string> PointCommands = [];
 
+        public List<FrameworkElement> TextDependencies = [];
+
         public RuneFrameMacro Copy()
         {
             return new RuneFrameMacro
@@ -496,6 +498,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 NextRuneFrame = NextRuneFrame,
                 Radius = Radius,
                 PointCommands = [.. PointCommands],
+                TextDependencies = [.. TextDependencies]
             };
         }
     }
@@ -645,7 +648,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             }
         }
 
-        public override RuneFrame? FindRuneFrameByLabel(string label)
+        public override RuneFrame? FindRuneFrameRefByLabel(string label)
         {
             try
             {
@@ -653,7 +656,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 var foundPoint = _runeFrames.FirstOrDefault(
                     p => p.FrameData.FrameName == label
                 );
-                return foundPoint?.Copy();
+                return foundPoint;
             }
             finally
             {

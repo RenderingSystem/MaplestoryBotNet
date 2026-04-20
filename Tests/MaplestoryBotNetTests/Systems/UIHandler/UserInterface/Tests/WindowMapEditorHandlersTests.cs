@@ -153,7 +153,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                             ScaleY = 56,
                             Radius = 67,
                             NextRuneFrame = null,
-                            PointCommands = ["C345", "C456", "C567"]
+                            PointCommands = ["C345", "C456", "C567"],
+                            TextDependencies = [new TextBlock(), new TextBox()]
                         },
                         new RuneFrameMacro
                         {
@@ -165,7 +166,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                             ScaleY = 67,
                             Radius = 78,
                             NextRuneFrame = null,
-                            PointCommands = ["C456", "C567", "C678"]
+                            PointCommands = ["C456", "C567", "C678"],
+                            TextDependencies = [new TextBlock(), new TextBox()]
                         }
                     ],
                     RuneFrameDirections = [
@@ -183,7 +185,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                             Direction = (RuneFrameDirectionTypes) 345,
                             DirectionCommands = ["C234", "C345", "C456"]
                         }
-                    ]
+                    ],
+                    ElementTexts = [new TextBlock(), new TextBox()],
                 }
             };
             var runeFrame1 = new RuneFrame
@@ -207,7 +210,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                             ScaleY = 78,
                             Radius = 89,
                             NextRuneFrame = null,
-                            PointCommands = ["C456", "C567", "C678"]
+                            PointCommands = ["C456", "C567", "C678"],
+                            TextDependencies = [new TextBlock(), new TextBox()]
                         },
                         new RuneFrameMacro
                         {
@@ -219,7 +223,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                             ScaleY = 89,
                             Radius = 90,
                             NextRuneFrame = null,
-                            PointCommands = ["C567", "C678", "C789"]
+                            PointCommands = ["C567", "C678", "C789"],
+                            TextDependencies = [new TextBlock(), new TextBox()]
                         }
                     ],
                     RuneFrameDirections = [
@@ -237,7 +242,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                             Direction = (RuneFrameDirectionTypes) 567,
                             DirectionCommands = ["C345", "C456", "C567"]
                         }
-                    ]
+                    ],
+                    ElementTexts = [new TextBlock(), new TextBox()],
                 }
             };
             runeFrame0.FrameData.RuneFrameMacros[0].NextRuneFrame = runeFrame1;

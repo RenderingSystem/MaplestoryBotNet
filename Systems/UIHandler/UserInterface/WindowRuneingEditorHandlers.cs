@@ -53,13 +53,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     var listBoxItem = new ListBoxItem();
                     var listBoxGrid = _listBoxItemTemplateFactory.Create();
                     var listTextBoxes = (List<TextBox>)listBoxGrid.Tag;
+                    var nextRuneFrame = runeFrameMacro.NextRuneFrame;
                     listBoxItem.Tag = new WindowRuneingEditorFramePointTag
                     {
                         PointCommands = [.. runeFrameMacro.PointCommands],
                         Radius = (int)runeFrameMacro.Radius,
                         NextFrame = (
-                            runeFrameMacro.NextRuneFrame != null ?
-                            runeFrameMacro.NextRuneFrame.FrameData.FrameName : ""
+                            nextRuneFrame != null ?
+                            nextRuneFrame.FrameData.FrameName : ""
                         )
                     };
                     listBoxItem.Content = listBoxGrid;
@@ -258,6 +259,276 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _frameNameLoadingActionHandler.OnDependencyEvent(sender, e);
         }
     }
+
+
+    public class WindowRuneingEditorFrameNameSavingModifier : AbstractWindowStateModifier
+    {
+        private TextBox _frameNameTextBox;
+
+        private AbstractWindowMapEditMenuState _editMenuState;
+
+        public WindowRuneingEditorFrameNameSavingModifier(
+            TextBox frameNameTextBox,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _frameNameTextBox = frameNameTextBox;
+            _editMenuState = editMenuState;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (
+                value is AbstractBottingModel bottingModel
+                && _frameNameTextBox.Text is string newFrameName
+                && _editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject selectedObject
+                && selectedObject.FrameObject is Canvas runeFrameObject
+                && runeFrameObject.Tag is MapCanvasRuneFrameDataTag runeFrameDataTag
+                && newFrameName != ""
+                && bottingModel.GetRuneModel() is AbstractRuneModel runeModel
+                && runeModel.RuneFrames().Find((rf) => rf.FrameData.FrameName == newFrameName) is null
+                && runeModel.FindRuneFrameByName(runeFrameDataTag.ElementLabel) is RuneFrame runeFrame
+            )
+            {
+                runeFrame.FrameData.FrameName = _frameNameTextBox.Text;
+                runeFrameDataTag.FrameName = _frameNameTextBox.Text;
+                foreach (var textDependency in runeFrame.FrameData.ElementTexts)
+                {
+                    if (textDependency is TextBlock textBlock)
+                    {
+                        textBlock.Text = _frameNameTextBox.Text;
+                    }
+                    if (textDependency is TextBox textBox)
+                    {
+                        textBox.Text = _frameNameTextBox.Text;
+                    }
+                }
+                runeModel.EditRuneFrame(runeFrame);
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorFrameNameSavingActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractSystemWindow _windowRuneingEditor;
+
+        private AbstractWindowStateModifier _frameNameSavingModifier;
+
+        private AbstractBottingModel? _bottingModel;
+
+        public WindowRuneingEditorFrameNameSavingActionHandler(
+            AbstractSystemWindow windowRuneingEditor,
+            AbstractWindowStateModifier frameNameSavingModifier
+        )
+        {
+            _windowRuneingEditor = windowRuneingEditor;
+            _frameNameSavingModifier = frameNameSavingModifier;
+            _bottingModel = null;
+            var window = (Window)_windowRuneingEditor.GetWindow()!;
+            window.IsVisibleChanged += OnDependencyEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _frameNameSavingModifier;
+        }
+
+        public override void OnDependencyEvent(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!_windowRuneingEditor.Visible())
+            {
+                _frameNameSavingModifier.Modify(_bottingModel);
+            }
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
+            {
+                _bottingModel = bottingModel;
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorFrameNameSavingActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _frameNameSavingActionHandler;
+
+        public WindowRuneingEditorFrameNameSavingActionHandlerFacade(
+            AbstractSystemWindow windowRuneingEditor,
+            TextBox frameNameTextBox,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _frameNameSavingActionHandler = new WindowRuneingEditorFrameNameSavingActionHandler(
+                windowRuneingEditor,
+                new WindowRuneingEditorFrameNameSavingModifier(frameNameTextBox, editMenuState)
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _frameNameSavingActionHandler.Modifier();
+        }
+
+        public override void OnDependencyEvent(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            _frameNameSavingActionHandler.OnDependencyEvent(sender, e);
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _frameNameSavingActionHandler.Inject(dataType, data);
+        }
+    }
+
+
+    public class WindowRuneingEditorFramePointMacrosSavingModifier : AbstractWindowStateModifier
+    {
+        private ListBox _framePointMacrosListBox;
+
+        private AbstractWindowMapEditMenuState _editMenuState;
+
+        public WindowRuneingEditorFramePointMacrosSavingModifier(
+            ListBox framePointMacrosListBox,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _framePointMacrosListBox = framePointMacrosListBox;
+            _editMenuState = editMenuState;
+        }
+
+        public override void Modify(object? value)
+        {
+            _framePointMacrosListBox.SelectedIndex = -1;
+
+            if (
+                value is AbstractBottingModel bottingModel
+                && _editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject selectedObject
+                && selectedObject.FrameObject is Canvas runeFrameObject
+                && runeFrameObject.Tag is MapCanvasRuneFrameDataTag runeFrameDataTag
+                && runeFrameDataTag.ElementLabel is string elementLabel
+                && bottingModel.GetRuneModel() is AbstractRuneModel runeModel
+                && runeModel.FindRuneFrameByName(elementLabel) is RuneFrame runeFrame
+                && runeFrame.FrameData.RuneFrameMacros is List<RuneFrameMacro> runeFrameMacros
+            )
+            {
+                for (int i = 0; i < runeFrameMacros.Count; i++)
+                {
+                    var listBoxItem = (ListBoxItem)_framePointMacrosListBox.Items[i];
+                    var listTextBoxes = (List<TextBox>)((Grid)listBoxItem.Content).Tag;
+                    var framePointTag = (WindowRuneingEditorFramePointTag)listBoxItem.Tag;
+                    var runeFrameMacro = runeFrameMacros[i];
+                    var textDependencies = runeFrameMacro.TextDependencies;
+                    runeFrameMacro.NextRuneFrame = (
+                        framePointTag.NextFrame != runeFrameDataTag.FrameName ?
+                        runeModel.FindRuneFrameRefByLabel(framePointTag.NextFrame) : null
+                    );
+                    runeFrameMacro.MacroName = (
+                        (listTextBoxes.Count > 0) ?
+                        listTextBoxes[0].Text : runeFrameMacro.MacroName
+                    );
+                    runeFrameMacro.PointCommands = [
+                        .. framePointTag.PointCommands
+                    ];
+                    runeFrameMacro.Radius = framePointTag.Radius;
+                    foreach (var textDependency in textDependencies)
+                    {
+                        if (textDependency is TextBlock textBlock)
+                        {
+                            textBlock.Text = runeFrameMacro.MacroName;
+                        }
+                        if (textDependency is TextBox textBox)
+                        {
+                            textBox.Text = runeFrameMacro.MacroName;
+                        }
+                    }
+                }
+                runeModel.EditRuneFrame(runeFrame);
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorFramePointMacrosSavingActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractSystemWindow _windowRuneingEditor;
+
+        private AbstractWindowStateModifier _framePointMacrosSavingModifier;
+
+        private AbstractBottingModel? _bottingModel;
+
+        public WindowRuneingEditorFramePointMacrosSavingActionHandler(
+            AbstractSystemWindow windowRuneingEditor,
+            AbstractWindowStateModifier framePointMacrosSavingModifier
+        )
+        {
+            _windowRuneingEditor = windowRuneingEditor;
+            _framePointMacrosSavingModifier = framePointMacrosSavingModifier;
+            _bottingModel = null;
+            var window = (Window)_windowRuneingEditor.GetWindow()!;
+            window.IsVisibleChanged += OnDependencyEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _framePointMacrosSavingModifier;
+        }
+
+        public override void OnDependencyEvent(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!_windowRuneingEditor.Visible())
+            {
+                _framePointMacrosSavingModifier.Modify(_bottingModel);
+            }
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
+            {
+                _bottingModel = bottingModel;
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorFramePointMacrosSavingActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _framePointMacrosSavingActionHandler;
+
+        public WindowRuneingEditorFramePointMacrosSavingActionHandlerFacade(
+            AbstractSystemWindow windowRuneingEditor,
+            ListBox framePointMacrosListBox,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _framePointMacrosSavingActionHandler = new WindowRuneingEditorFramePointMacrosSavingActionHandler(
+                windowRuneingEditor,
+                new WindowRuneingEditorFramePointMacrosSavingModifier(
+                    framePointMacrosListBox, editMenuState
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _framePointMacrosSavingActionHandler.Modifier();
+        }
+
+        public override void OnDependencyEvent(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            _framePointMacrosSavingActionHandler.OnDependencyEvent(sender, e);
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _framePointMacrosSavingActionHandler.Inject(dataType, data);
+        }
+    }
+
 
 
     public class WindowRuneingEditorFramePointMacroAccessModifier : AbstractWindowStateModifier
@@ -507,11 +778,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 {
                     if (_comboBoxTemplateFactory.Create() is ComboBox comboBox)
                     {
+                        var parameters = new WindowComboBoxScaleActionHandlerParameters(comboBox);
                         comboBox.Text = command;
                         _framePointMacroCommandsListBox.Items.Add(comboBox);
-                        _scaleRegistry.RegisterHandler(
-                            new WindowComboBoxScaleActionHandlerParameters(comboBox)
-                        );
+                        _scaleRegistry.RegisterHandler(parameters);
                     }
                 }
                 _nextFrameTextBox.Text = framePointTag.NextFrame;
@@ -624,12 +894,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 selectedIndex + 1 :
                 _elementCommandsListBox.Items.Count
             );
+            var parameters = new WindowComboBoxScaleActionHandlerParameters(comboBox);
             _elementCommandsListBox.Items.Insert(
                 insertIndex, comboBox
             );
-            _scaleRegistry.RegisterHandler(
-                new WindowComboBoxScaleActionHandlerParameters(comboBox)
-            );
+            _scaleRegistry.RegisterHandler(parameters);
         }
     }
 
@@ -1109,6 +1378,283 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
+    public class WindowRuneingEditorMovementsLoadingModifier : AbstractWindowStateModifier
+    {
+        private ListBox _movementsListBox;
+
+        private AbstractMacroListBoxItemTemplateFactory _listBoxItemTemplateFactory;
+
+        private AbstractWindowMapEditMenuState _editMenuState;
+
+        public WindowRuneingEditorMovementsLoadingModifier(
+            ListBox movementsListBox,
+            AbstractMacroListBoxItemTemplateFactory listBoxItemTemplateFactory,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _movementsListBox = movementsListBox;
+            _listBoxItemTemplateFactory = listBoxItemTemplateFactory;
+            _editMenuState = editMenuState;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (
+                value is AbstractBottingModel bottingModel
+                && _editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject selectedObject
+                && selectedObject.FrameObject is Canvas runeFrameObject
+                && runeFrameObject.Tag is MapCanvasRuneFrameDataTag runeFrameDataTag
+                && runeFrameDataTag.ElementLabel is string elementLabel
+                && bottingModel.GetRuneModel().FindRuneFrameByName(elementLabel) is RuneFrame runeFrame
+                && runeFrame.FrameData.RuneFrameDirections is List<RuneFrameDirection> runeFrameDirections
+            )
+            {
+                foreach (var runeFrameDirection in runeFrameDirections)
+                {
+                    var listBoxItem = new ListBoxItem();
+                    var listBoxGrid = _listBoxItemTemplateFactory.Create();
+                    var listTextBoxes = (List<TextBox>)listBoxGrid.Tag;
+                    listBoxItem.Tag = new WindowRuneingEditorMovementTag
+                    {
+                        MovementCommands = [.. runeFrameDirection.DirectionCommands],
+                        Direction = runeFrameDirection.Direction,
+                        Distance = runeFrameDirection.Distance
+                    };
+                    listBoxItem.Content = listBoxGrid;
+                    if (listTextBoxes.Count > 0)
+                    {
+                        listTextBoxes[0].Text = runeFrameDirection.DirectionName;
+                    }
+                    _movementsListBox.Items.Add(listBoxItem);
+                }
+                if (_movementsListBox.Items.Count > 0)
+                {
+                    _movementsListBox.SelectedIndex = 0;
+                }
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsLoadingActionHandler : AbstractWindowActionHandler
+    {
+        private ListBox _movementsListBox;
+
+        private AbstractSystemWindow _windowRuneingEditor;
+
+        private AbstractWindowStateModifier _movementsAddModifier;
+
+        private AbstractBottingModel? _bottingModel;
+
+        public WindowRuneingEditorMovementsLoadingActionHandler(
+            ListBox framePointMacrosListBox,
+            AbstractSystemWindow windowRuneingEditor,
+            AbstractWindowStateModifier framePointMacrosAddModifier
+        )
+        {
+            _movementsListBox = framePointMacrosListBox;
+            _windowRuneingEditor = windowRuneingEditor;
+            _movementsAddModifier = framePointMacrosAddModifier;
+            _bottingModel = null;
+            var window = (Window)_windowRuneingEditor.GetWindow()!;
+            window.IsVisibleChanged += OnDependencyEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _movementsAddModifier;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
+            {
+                _bottingModel = bottingModel;
+            }
+        }
+
+        public override void OnDependencyEvent(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (_windowRuneingEditor.Visible())
+            {
+                _movementsListBox.Items.Clear();
+                _movementsAddModifier.Modify(_bottingModel);
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsLoadingActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _framePointMacrosLoadingActionHandler;
+
+        public WindowRuneingEditorMovementsLoadingActionHandlerFacade(
+            ListBox movementsListBox,
+            FrameworkElement movementsTemplate,
+            AbstractSystemWindow windowRuneingEditor,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _framePointMacrosLoadingActionHandler = (
+                new WindowRuneingEditorMovementsLoadingActionHandler(
+                    movementsListBox,
+                    windowRuneingEditor,
+                    new WindowRuneingEditorMovementsLoadingModifier(
+                        movementsListBox,
+                        new WindowMacroListBoxItemTemplateFactory(movementsTemplate),
+                        editMenuState
+                    )
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _framePointMacrosLoadingActionHandler.Modifier();
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _framePointMacrosLoadingActionHandler.Inject(dataType, data);
+        }
+
+        public override void OnDependencyEvent(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            _framePointMacrosLoadingActionHandler.OnDependencyEvent(sender, e);
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsSavingModifier : AbstractWindowStateModifier
+    {
+        private ListBox _movementsListBox;
+
+        private AbstractWindowMapEditMenuState _editMenuState;
+
+        public WindowRuneingEditorMovementsSavingModifier(
+            ListBox movementsListBox,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _movementsListBox = movementsListBox;
+            _editMenuState = editMenuState;
+        }
+
+        public override void Modify(object? value)
+        {
+            _movementsListBox.SelectedIndex = -1;
+
+            if (
+                value is AbstractBottingModel bottingModel
+                && _editMenuState.Selected() is WindowMapEditMenuFrameSelectedObject selectedObject
+                && selectedObject.FrameObject is Canvas runeFrameObject
+                && runeFrameObject.Tag is MapCanvasRuneFrameDataTag runeFrameDataTag
+                && runeFrameDataTag.ElementLabel is string elementLabel
+                && bottingModel.GetRuneModel() is AbstractRuneModel runeModel
+                && runeModel.FindRuneFrameByName(elementLabel) is RuneFrame runeFrame
+                && runeFrame.FrameData.RuneFrameDirections is List<RuneFrameDirection> runeFrameDirections
+            )
+            {
+                runeFrameDirections.Clear();
+                for (int i = 0; i < _movementsListBox.Items.Count; i++)
+                {
+                    var listBoxItem = (ListBoxItem)_movementsListBox.Items[i];
+                    var listTextBoxes = (List<TextBox>)((Grid)listBoxItem.Content).Tag;
+                    var movementTag = (WindowRuneingEditorMovementTag)listBoxItem.Tag;
+                    runeFrameDirections.Add(
+                        new RuneFrameDirection
+                        {
+                            DirectionName = listTextBoxes.Count > 0 ? listTextBoxes[0].Text : "",
+                            DirectionCommands = [.. movementTag.MovementCommands],
+                            Distance = movementTag.Distance,
+                            Direction = movementTag.Direction
+                        }
+                    );
+                }
+                runeModel.EditRuneFrame(runeFrame);
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsSavingActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractSystemWindow _windowRuneingEditor;
+
+        private AbstractWindowStateModifier _movementsSavingModifier;
+
+        private AbstractBottingModel? _bottingModel;
+
+        public WindowRuneingEditorMovementsSavingActionHandler(
+            AbstractSystemWindow windowRuneingEditor,
+            AbstractWindowStateModifier movementsSavingModifier
+        )
+        {
+            _windowRuneingEditor = windowRuneingEditor;
+            _movementsSavingModifier = movementsSavingModifier;
+            _bottingModel = null;
+            var window = (Window)_windowRuneingEditor.GetWindow()!;
+            window.IsVisibleChanged += OnDependencyEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _movementsSavingModifier;
+        }
+
+        public override void OnDependencyEvent(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!_windowRuneingEditor.Visible())
+            {
+                _movementsSavingModifier.Modify(_bottingModel);
+            }
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
+            {
+                _bottingModel = bottingModel;
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsSavingActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _framePointMacrosSavingActionHandler;
+
+        public WindowRuneingEditorMovementsSavingActionHandlerFacade(
+            AbstractSystemWindow windowRuneingEditor,
+            ListBox movementsListBox,
+            AbstractWindowMapEditMenuState editMenuState
+        )
+        {
+            _framePointMacrosSavingActionHandler = new WindowRuneingEditorMovementsSavingActionHandler(
+                windowRuneingEditor,
+                new WindowRuneingEditorMovementsSavingModifier(
+                    movementsListBox, editMenuState
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _framePointMacrosSavingActionHandler.Modifier();
+        }
+
+        public override void OnDependencyEvent(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            _framePointMacrosSavingActionHandler.OnDependencyEvent(sender, e);
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _framePointMacrosSavingActionHandler.Inject(dataType, data);
+        }
+    }
+
+
     public class WindowRuneingEditorMovementTag
     {
         public List<string> MovementCommands = [];
@@ -1532,6 +2078,474 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override void OnEvent(object? sender, EventArgs e)
         {
             _movementsCommandClearActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsDeselectionModifier : AbstractWindowStateModifier
+    {
+        private ComboBox _directionComboBox;
+
+        private TextBox _distanceTextBox;
+
+        private ListBox _movementCommandsListBox;
+
+        private AbstractWindowActionHandlerRegistry _scaleRegistry;
+
+        public WindowRuneingEditorMovementsDeselectionModifier(
+            ComboBox directionComboBox,
+            TextBox distanceTextBox,
+            ListBox movementCommandsListBox,
+            AbstractWindowActionHandlerRegistry scaleRegistry
+        )
+        {
+            _directionComboBox = directionComboBox;
+            _distanceTextBox = distanceTextBox;
+            _movementCommandsListBox = movementCommandsListBox;
+            _scaleRegistry = scaleRegistry;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (
+                value is ListBoxItem deselectedItem
+                && deselectedItem.Tag is WindowRuneingEditorMovementTag deselectedItemTag
+            )
+            {
+                deselectedItemTag.Direction = (
+                    _directionComboBox.Text == "Left" ?
+                    RuneFrameDirectionTypes.Left :
+                    _directionComboBox.Text == "Right" ?
+                    RuneFrameDirectionTypes.Right :
+                    RuneFrameDirectionTypes.MaxNum
+                );
+                if (int.TryParse(_distanceTextBox.Text, out int distance))
+                {
+                    deselectedItemTag.Distance = distance;
+                }
+                deselectedItemTag.MovementCommands.Clear();
+                foreach (ComboBox comboBox in _movementCommandsListBox.Items)
+                {
+                    deselectedItemTag.MovementCommands.Add(comboBox.Text);
+                }
+                _directionComboBox.Text = "";
+                _distanceTextBox.Text = "";
+                _scaleRegistry.ClearHandlers();
+                _movementCommandsListBox.Items.Clear();
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsDeselectionActionHandler : AbstractWindowActionHandler
+    {
+        private ListBox _movementsListBox;
+
+        private AbstractWindowStateModifier _movementsDeselectionModifier;
+
+        public WindowRuneingEditorMovementsDeselectionActionHandler(
+            ListBox movementsListBox,
+            AbstractWindowStateModifier movementsDeselectionModifier
+        )
+        {
+            _movementsListBox = movementsListBox;
+            _movementsDeselectionModifier = movementsDeselectionModifier;
+            _movementsListBox.SelectionChanged += OnEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _movementsDeselectionModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (
+                e is SelectionChangedEventArgs selectionArgs
+                && selectionArgs.RemovedItems.Count > 0
+                && selectionArgs.RemovedItems[0] is ListBoxItem deselectedItem
+            )
+            {
+                _movementsDeselectionModifier.Modify(deselectedItem);
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsDeselectionActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _movementsDeselectionActionHandler;
+
+        public WindowRuneingEditorMovementsDeselectionActionHandlerFacade(
+            ComboBox directionComboBox,
+            TextBox distanceTextBox,
+            ListBox movementsListBox,
+            ListBox movementCommandsListBox,
+            AbstractWindowActionHandlerRegistry scaleRegistry
+        )
+        {
+            _movementsDeselectionActionHandler = new WindowRuneingEditorMovementsDeselectionActionHandler(
+                movementsListBox,
+                new WindowRuneingEditorMovementsDeselectionModifier(
+                    directionComboBox,
+                    distanceTextBox,
+                    movementCommandsListBox,
+                    scaleRegistry
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _movementsDeselectionActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _movementsDeselectionActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsSelectionModifier : AbstractWindowStateModifier
+    {
+        private ComboBox _directionComboBox;
+
+        private TextBox _distanceTextBox;
+
+        private ListBox _movementCommandsListBox;
+
+        private AbstractComboBoxFactory _comboBoxFactory;
+
+        private AbstractWindowActionHandlerRegistry _scaleRegistry;
+
+        public WindowRuneingEditorMovementsSelectionModifier(
+            ComboBox directionComboBox,
+            TextBox distanceTextBox,
+            ListBox movementCommandsListBox,
+            AbstractComboBoxFactory comboBoxFactory,
+            AbstractWindowActionHandlerRegistry scaleRegistry
+        )
+        {
+            _directionComboBox = directionComboBox;
+            _distanceTextBox = distanceTextBox;
+            _movementCommandsListBox = movementCommandsListBox;
+            _comboBoxFactory = comboBoxFactory;
+            _scaleRegistry = scaleRegistry;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (
+                value is ListBoxItem deselectedItem
+                && deselectedItem.Tag is WindowRuneingEditorMovementTag deselectedItemTag
+            )
+            {
+                _directionComboBox.Text = deselectedItemTag.Direction.ToString();
+                _distanceTextBox.Text = deselectedItemTag.Distance.ToString();
+                foreach (var movementCommand in deselectedItemTag.MovementCommands)
+                {
+                    var comboBox = _comboBoxFactory.Create();
+                    var parameters = new WindowComboBoxScaleActionHandlerParameters(comboBox);
+                    comboBox.Text = movementCommand;
+                    _scaleRegistry.RegisterHandler(parameters);
+                    _movementCommandsListBox.Items.Add(comboBox);
+                }
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsSelectionActionHandler : AbstractWindowActionHandler
+    {
+        private ListBox _movementsListBox;
+
+        private AbstractWindowStateModifier _movementsSelectionModifier;
+
+        public WindowRuneingEditorMovementsSelectionActionHandler(
+            ListBox movementsListBox,
+            AbstractWindowStateModifier movementsSelectionModifier
+        )
+        {
+            _movementsListBox = movementsListBox;
+            _movementsSelectionModifier = movementsSelectionModifier;
+            _movementsListBox.SelectionChanged += OnEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _movementsSelectionModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (
+                e is SelectionChangedEventArgs selectionArgs
+                && selectionArgs.AddedItems.Count > 0
+                && selectionArgs.AddedItems[0] is ListBoxItem selectedItem
+            )
+            {
+                _movementsSelectionModifier.Modify(selectedItem);
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsSelectionActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _movementSelectionActionHandler;
+
+        public WindowRuneingEditorMovementsSelectionActionHandlerFacade(
+            ComboBox directionComboBox,
+            TextBox distanceTextBox,
+            ListBox movementsListBox,
+            ListBox movementCommandsListBox,
+            ComboBox comboBoxTemplate,
+            AbstractWindowActionHandlerRegistry scaleRegistry
+        )
+        {
+            _movementSelectionActionHandler = new WindowRuneingEditorMovementsSelectionActionHandler(
+                movementsListBox,
+                new WindowRuneingEditorMovementsSelectionModifier(
+                    directionComboBox,
+                    distanceTextBox,
+                    movementCommandsListBox,
+                    new ComboBoxTemplateFactory(comboBoxTemplate),
+                    scaleRegistry
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _movementSelectionActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _movementSelectionActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsLoadConfigurationActionHandler : AbstractWindowActionHandler
+    {
+        private Button _loadButton;
+
+        private AbstractWindowStateModifier _windowLoadDialogModifier;
+
+        private string? _initialDirectory;
+
+        public WindowRuneingEditorMovementsLoadConfigurationActionHandler(
+            Button loadButton,
+            AbstractWindowStateModifier windowLoadDialogModifier
+        )
+        {
+            _loadButton = loadButton;
+            _windowLoadDialogModifier = windowLoadDialogModifier;
+            _loadButton.Click += OnEvent;
+            _initialDirectory = null;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (_initialDirectory == null)
+            {
+                return;
+            }
+            _windowLoadDialogModifier.Modify(
+                new WindowLoadMenuModifierParameters
+                {
+                    InitialDirectory = _initialDirectory
+                }
+            );
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (
+                dataType is SystemInjectType.ConfigurationUpdate &&
+                data is MaplestoryBotConfiguration configuration
+            )
+            {
+                _initialDirectory = configuration.FrameMovementsDirectory;
+            }
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _windowLoadDialogModifier;
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsLoadConfigurationActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _mapEditorLoadConfigurationActionHandler;
+
+        public WindowRuneingEditorMovementsLoadConfigurationActionHandlerFacade(
+            Button loadButton, AbstractLoadFileDialog loadFileDialog
+        )
+        {
+            _mapEditorLoadConfigurationActionHandler = (
+                new WindowRuneingEditorMovementsLoadConfigurationActionHandler(
+                    loadButton, new WindowLoadMenuModifier(loadFileDialog)
+                )
+            );
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _mapEditorLoadConfigurationActionHandler.OnEvent(sender, e);
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _mapEditorLoadConfigurationActionHandler.Inject(dataType, data);
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _mapEditorLoadConfigurationActionHandler.Modifier();
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsLoadActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _framePointLoadActionHandler;
+
+        public WindowRuneingEditorMovementsLoadActionHandlerFacade(
+            AbstractLoadFileDialog loadFileDialog,
+            ListBox macroCommandsListBox,
+            ComboBox comboBoxTemplate,
+            AbstractWindowActionHandlerRegistry comboBoxPopupScaleRegistry
+        )
+        {
+            _framePointLoadActionHandler = new WindowLoadMenuElementActionHandler(
+                loadFileDialog,
+                new WindowLoadMenuElementModifier(
+                    macroCommandsListBox,
+                    new ComboBoxTemplateFactory(comboBoxTemplate),
+                    comboBoxPopupScaleRegistry,
+                    new MacroDataDeserializer()
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _framePointLoadActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _framePointLoadActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsSaveActionHandler : AbstractWindowActionHandler
+    {
+        private Button _saveButton;
+
+        private ListBox _movementsListBox;
+
+        private AbstractMacroDataSerializer _macroDataSerializer;
+
+        private AbstractWindowStateModifier _windowSaveMenuModifier;
+
+        private string? _initialDirectory;
+
+        public WindowRuneingEditorMovementsSaveActionHandler(
+            Button saveButton,
+            ListBox listBox,
+            AbstractMacroDataSerializer macroDataSerializer,
+            AbstractWindowStateModifier windowSaveMenuHandler
+        )
+        {
+            _saveButton = saveButton;
+            _movementsListBox = listBox;
+            _macroDataSerializer = macroDataSerializer;
+            _windowSaveMenuModifier = windowSaveMenuHandler;
+            _initialDirectory = null;
+            _saveButton.Click += OnEvent;
+        }
+
+        private ConfigurationMacroData _getListBoxMacroData()
+        {
+            var macroData = new ConfigurationMacroData();
+            var commands = new string[_movementsListBox.Items.Count];
+            for (int i = 0; i < _movementsListBox.Items.Count; i++)
+            {
+                commands[i] = ((ComboBox)_movementsListBox.Items[i]).Text;
+            }
+            macroData.Macro = commands;
+            return macroData;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            var initialDirectory = _initialDirectory ?? "";
+            var macroData = _getListBoxMacroData();
+            var serialized = _macroDataSerializer.SerializeMacroData(macroData);
+            var parameters = new WindowSaveMenuModifierParameters
+            {
+                InitialDirectory = initialDirectory,
+                SaveContent = serialized
+            };
+            _windowSaveMenuModifier.Modify(parameters);
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _windowSaveMenuModifier;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (
+                dataType is SystemInjectType.ConfigurationUpdate
+                && data is MaplestoryBotConfiguration configuration
+            )
+            {
+                _initialDirectory = configuration.FrameMovementsDirectory;
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorMovementsSaveActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _saveMenuActionHandler;
+
+        public WindowRuneingEditorMovementsSaveActionHandlerFacade(
+            Button saveButton,
+            ListBox macroCommandsListBox,
+            AbstractSaveFileDialog saveFileDialog
+        )
+        {
+            _saveMenuActionHandler = new WindowRuneingEditorMovementsSaveActionHandler(
+                saveButton,
+                macroCommandsListBox,
+                new MacroDataSerializer(),
+                new WindowSaveMenuModifier(saveFileDialog)
+            );
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _saveMenuActionHandler.OnEvent(sender, e);
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _saveMenuActionHandler.Modifier();
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _saveMenuActionHandler.Inject(dataType, data);
         }
     }
 }

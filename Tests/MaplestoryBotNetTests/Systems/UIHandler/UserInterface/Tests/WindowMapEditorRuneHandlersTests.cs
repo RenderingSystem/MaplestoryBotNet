@@ -2159,12 +2159,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         /**
          * @brief Verifies that multiple points added to the same frame receive unique
-         * sequential macro names (M0, M1, M2, etc.)
+         * sequential macro names (M0, M1, M2, etc.) and that each macro maintains a
+         * reference to its associated text block for real-time updates
          *
          * When users add multiple points to a selected frame in AddPoint mode, each
          * point should be assigned a unique macro name following a sequential pattern
          * (M0 for the first point, M1 for the second, etc.). This ensures each point
-         * can be uniquely identified and referenced.
+         * can be uniquely identified and referenced by macros. Additionally, each macro
+         * stores a reference to its TextBlock dependency, allowing the system to update
+         * the macro name in when users edit the text block directly in the
+         * editor UI.
          */
         private void _testClickingSelectedFrameAddsUniqueFramePointMacroNames()
         {
@@ -2195,6 +2199,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     Debug.Assert(textBlock.Text == "M" + js);
                     Debug.Assert(pointTag == "MT" + js);
                     Debug.Assert(macro != null);
+                    Debug.Assert(macro.TextDependencies.Count == 1);
+                    Debug.Assert(textBlock == macro.TextDependencies[0]);
                 }
             }
         }
