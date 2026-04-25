@@ -1,4 +1,5 @@
 ﻿using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.ThreadingUtils;
 using System.ComponentModel;
 using System.Windows.Controls;
@@ -192,13 +193,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override void Inject(object dataType, object? data)
         {
             var startText = (
-                (dataType is KeystrokeTransmitterExecutorThreadedUpdate.Starting) ?
+                (dataType is MacroExecutorThreadedUpdate.Starting) ?
                 WindowMenuItemStartTextTypes.Starting :
-                (dataType is KeystrokeTransmitterExecutorThreadedUpdate.Started) ?
+                (dataType is MacroExecutorThreadedUpdate.Started) ?
                 WindowMenuItemStartTextTypes.Stop :
-                (dataType is KeystrokeTransmitterExecutorThreadedUpdate.Stopping) ?
+                (dataType is MacroExecutorThreadedUpdate.Stopping) ?
                 WindowMenuItemStartTextTypes.Stopping :
-                (dataType is KeystrokeTransmitterExecutorThreadedUpdate.Stopped) ?
+                (dataType is MacroExecutorThreadedUpdate.Stopped) ?
                 WindowMenuItemStartTextTypes.Start : ""
             );
             if (startText != "")
@@ -252,12 +253,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             var header = (string)_startMenuItem.Header;
             var injectType = (
                 (header == WindowMenuItemStartTextTypes.Start) ?
-                KeystrokeTransmitterOrchestratorThreadInjectType.Start :
+                MacroOrchestratorThreadInjectType.Start :
                 (header == WindowMenuItemStartTextTypes.Stop) ?
-                KeystrokeTransmitterOrchestratorThreadInjectType.Stop :
-                KeystrokeTransmitterOrchestratorThreadInjectType.MaxNum
+                MacroOrchestratorThreadInjectType.Stop :
+                MacroOrchestratorThreadInjectType.MaxNum
             );
-            if (injectType != KeystrokeTransmitterOrchestratorThreadInjectType.MaxNum)
+            if (injectType != MacroOrchestratorThreadInjectType.MaxNum)
             {
                 orchestratorThread!.Inject(injectType, 0);
             }
@@ -299,7 +300,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             if (
                 dataType is SystemInjectType.ThreadDependency
                 && data is AbstractThread orchestratorThread
-                && orchestratorThread.State() is AbstractKeystrokeTransmitterThreadState
+                && orchestratorThread.State() is AbstractKeystrokeTransmitterThreadState threadState
+                && threadState.Type() is KeystrokeTransmitterThreadType.Macro
             )
             {
                 _orchestratorThread = orchestratorThread;
@@ -312,9 +314,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private AbstractWindowActionHandler _windowMenuItemStartACtionHandler;
 
-        public WindowMenuItemStartActionHandlerFacade(
-            MenuItem startMenuItem
-        )
+        public WindowMenuItemStartActionHandlerFacade(MenuItem startMenuItem)
         {
             _windowMenuItemStartACtionHandler = new WindowMenuItemStartActionHandler(
                 startMenuItem, new WindowMenuItemStartModifier(startMenuItem)

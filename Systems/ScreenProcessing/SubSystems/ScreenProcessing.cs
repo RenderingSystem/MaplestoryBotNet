@@ -361,7 +361,11 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                         new GameMinimapProcessorThreadState(ThreadState)
                         {
                             CurrentBitmap = bitmap,
-                            Threshold = threadState.BottingModel.GetMapModel().GetTemplateThreshold(_imageKey)
+                            Threshold = (
+                                threadState.BottingModel
+                                .GetMapModel()
+                                .GetTemplateThreshold(_imageKey)
+                            )
                         }
                     );
                     _threadLoopCountDown.CountDown();

@@ -34,7 +34,10 @@
     <Compile Include="..\..\Systems\Keyboard\KeyboardSystem.cs" Link="Systems\Keyboard\KeyboardSystem.cs" />
     <Compile Include="..\..\Systems\Keyboard\SubSystems\KeyboardDeviceDetector.cs" Link="Systems\Keyboard\SubSystems\KeyboardDeviceDetector.cs" />
     <Compile Include="..\..\Systems\Keyboard\SubSystems\KeystrokeTransmitter.cs" Link="Systems\Keyboard\SubSystems\KeystrokeTransmitter.cs" />
-    <Compile Include="..\..\Systems\Keyboard\SubSystems\KeystrokeTransmitterCommands.cs" Link="Systems\Keyboard\SubSystems\KeystrokeTransmitterCommands.cs" />
+    <Compile Include="..\..\Systems\Keyboard\SubSystems\Transmitters\BottingTransmitter.cs" Link="Systems\Keyboard\SubSystems\Transmitters\BottingTransmitter.cs" />
+    <Compile Include="..\..\Systems\Keyboard\SubSystems\Transmitters\RuneingTransmitter.cs" Link="Systems\Keyboard\SubSystems\Transmitters\RuneingTransmitter.cs" />
+    <Compile Include="..\..\Systems\Keyboard\SubSystems\Transmitters\SolvingTransmitter.cs" Link="Systems\Keyboard\SubSystems\Transmitters\SolvingTransmitter.cs" />
+    <Compile Include="..\..\Systems\Macro\MacroSystem.cs" Link="Systems\Macro\MacroSystem.cs" />
     <Compile Include="..\..\Systems\MainSystem.cs" Link="Systems\MainSystem.cs" />
     <Compile Include="..\..\Systems\ScreenCapture\ScreenCaptureSystem.cs" Link="Systems\ScreenCapture\ScreenCaptureSystem.cs" />
     <Compile Include="..\..\Systems\ScreenCapture\SubSystems\ScreenCapture.cs" Link="Systems\ScreenCapture\SubSystems\ScreenCapture.cs" />
@@ -154,7 +157,7 @@
     <Folder Include="Images\MapIcons\" />
     <Folder Include="Interception.net\Interception\WinApi\Kernel32\" />
     <Folder Include="Systems\Configuration\SubSystems\" />
-    <Folder Include="Systems\Macro\SubSystems\Tests\Mocks\" />
+    <Folder Include="Systems\Keyboard\SubSystems\Transmitters\" />
     <Folder Include="Systems\ScreenCapture\SubSystems\" />
     <Folder Include="Systems\ScreenProcessing\SubSystems\" />
     <Folder Include="Xaml\Resources\" />

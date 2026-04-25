@@ -143,9 +143,15 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public abstract void SetRuneModel(AbstractRuneModel model);
 
-        public abstract RuneFrame? SelectClosest(Point position);
+        public abstract void SetCooldown(int seconds);
 
-        public abstract RuneFrameMacro? SelectNext(RuneFrame currentFrame, RuneFrame destinationFrame);
+        public abstract int GetCooldown();
+
+        public abstract void SetRadius(int radius);
+
+        public abstract int GetRadius();
+
+        public abstract List<string> NextNavigation(Point initialPoint, Point finalPoint);
 
         public abstract AbstractRuneModel Copy();
     }
@@ -602,6 +608,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         List<RuneFrame> _runeFrames = [];
 
+        private volatile int _runeCooldown = 0;
+
+        private volatile int _runeRadius = 0;
+
         public override void AddRuneFrame(RuneFrame frame)
         {
             try
@@ -710,28 +720,34 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             }
         }
 
+
+        private List<RuneFrame> _getRuneFrames()
+        {
+            var runeFrames = _runeFrames.Select(rf => rf.Copy()).ToList();
+            for (int i = 0; i < runeFrames.Count; i++)
+            {
+                var runeFrameMacros = runeFrames[i].FrameData.RuneFrameMacros;
+                for (int j = 0; j < runeFrameMacros.Count; j++)
+                {
+                    if (runeFrameMacros[j].NextRuneFrame != null)
+                    {
+                        var nextRuneFrame = runeFrameMacros[j].NextRuneFrame;
+                        var nextElementLabel = nextRuneFrame!.FrameData.ElementLabel;
+                        runeFrameMacros[j].NextRuneFrame = runeFrames.Find(
+                            rf => rf.FrameData.ElementLabel == nextElementLabel
+                        );
+                    }
+                }
+            }
+            return runeFrames;
+        }
+
         public override List<RuneFrame> RuneFrames()
         {
             try
             {
                 _runeFrameLock.EnterReadLock();
-                var runeFrames = _runeFrames.Select(rf => rf.Copy()).ToList();
-                for (int i = 0; i < runeFrames.Count; i++)
-                {
-                    var runeFrameMacros = runeFrames[i].FrameData.RuneFrameMacros;
-                    for (int j = 0; j < runeFrameMacros.Count; j++)
-                    {
-                        if (runeFrameMacros[j].NextRuneFrame != null)
-                        {
-                            var nextRuneFrame = runeFrameMacros[j].NextRuneFrame;
-                            var nextElementLabel = nextRuneFrame!.FrameData.ElementLabel;
-                            runeFrameMacros[j].NextRuneFrame = runeFrames.Find(
-                                rf => rf.FrameData.ElementLabel == nextElementLabel
-                            );
-                        }
-                    }
-                }
-                return runeFrames;
+                return _getRuneFrames();
             }
             finally
             {
@@ -747,10 +763,82 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 var newRuneModel = model.Copy();
                 _runeFrames.Clear();
                 _runeFrames.AddRange(newRuneModel.RuneFrames());
+                _runeCooldown = newRuneModel.GetCooldown();
+                _runeRadius = newRuneModel.GetRadius();
             }
             finally
             {
                 _runeFrameLock.ExitWriteLock();
+            }
+        }
+
+        public override AbstractRuneModel Copy()
+        {
+            try
+            {
+                _runeFrameLock.EnterReadLock();
+                return new RuneModel
+                {
+                    _runeCooldown = _runeCooldown,
+                    _runeRadius = _runeRadius,
+                    _runeFrames = _getRuneFrames(),
+                };
+            }
+            finally
+            {
+                _runeFrameLock.ExitReadLock();
+            }
+        }
+
+        public override void SetCooldown(int seconds)
+        {
+            try
+            {
+                _runeFrameLock.EnterWriteLock();
+                _runeCooldown = seconds;
+            }
+            finally
+            {
+                _runeFrameLock.ExitWriteLock();
+            }
+        }
+
+        public override int GetCooldown()
+        {
+            try
+            {
+                _runeFrameLock.EnterReadLock();
+                return _runeCooldown;
+            }
+            finally
+            {
+                _runeFrameLock.ExitReadLock();
+            }
+        }
+
+        public override void SetRadius(int radius)
+        {
+            try
+            {
+                _runeFrameLock.EnterWriteLock();
+                _runeRadius = radius;
+            }
+            finally
+            {
+                _runeFrameLock.ExitWriteLock();
+            }
+        }
+
+        public override int GetRadius()
+        {
+            try
+            {
+                _runeFrameLock.EnterReadLock();
+                return _runeRadius;
+            }
+            finally
+            {
+                _runeFrameLock.ExitReadLock();
             }
         }
 
@@ -785,93 +873,148 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             return null;
         }
 
-        public override RuneFrame? SelectClosest(Point position)
+        private RuneFrameMacro? _selectNextMacro(
+            RuneFrame currentFrame, RuneFrame destinationFrame
+        )
         {
-            try
+            if (currentFrame == destinationFrame)
             {
-                _runeFrameLock.EnterReadLock();
-                var frames = _runeFrames;
-                if (frames == null || frames.Count == 0)
-                {
-                    return null;
-                }
-                RuneFrame? closestFrame = null;
-                var closestDistance = double.MaxValue;
-                foreach (var frame in frames)
-                {
-                    var tl = new Point(frame.X, frame.Y);
-                    var tr = new Point(frame.X + frame.Width, frame.Y);
-                    var bl = new Point(frame.X, frame.Y + frame.Height);
-                    var br = new Point(frame.X + frame.Width, frame.Y + frame.Height);
-                    var currentDistance = double.MaxValue;
-                    if ((position.X >= tl.X && position.X <= tr.X) && (position.Y >= tl.Y && position.Y <= bl.Y))
-                    {
-                        return frame;
-                    }
-                    else if (position.X >= tl.X && position.X <= tr.X)
-                    {
-                        currentDistance = (position.Y < tl.Y) ? tl.Y - position.Y : position.Y - bl.Y;
-                    }
-                    else if (position.Y >= tl.Y && position.Y <= bl.Y)
-                    {
-                        currentDistance = (position.X < tl.X) ? tl.X - position.X : position.X - tr.X;
-                    }
-                    else
-                    {
-                        var distToTL = Math.Sqrt(Math.Pow(position.X - tl.X, 2) + Math.Pow(position.Y - tl.Y, 2));
-                        var distToTR = Math.Sqrt(Math.Pow(position.X - tr.X, 2) + Math.Pow(position.Y - tr.Y, 2));
-                        var distToBL = Math.Sqrt(Math.Pow(position.X - bl.X, 2) + Math.Pow(position.Y - bl.Y, 2));
-                        var distToBR = Math.Sqrt(Math.Pow(position.X - br.X, 2) + Math.Pow(position.Y - br.Y, 2));
-                        currentDistance = Math.Min(Math.Min(distToTL, distToTR), Math.Min(distToBL, distToBR));
-                    }
-                    if (currentDistance < closestDistance)
-                    {
-                        closestDistance = currentDistance;
-                        closestFrame = frame;
-                    }
-                }
-                return closestFrame;
+                return null;
             }
-            finally
+            var framePath = _shortestPath(currentFrame, destinationFrame);
+            if (framePath == null || framePath.Count < 2)
             {
-                _runeFrameLock.ExitReadLock();
+                return null;
             }
+            var currFrameMacro = currentFrame.FrameData.RuneFrameMacros
+                .FirstOrDefault(m => m.NextRuneFrame == framePath[1]);
+            return currFrameMacro;
         }
 
-        public override RuneFrameMacro? SelectNext(
-            RuneFrame currentFrame, RuneFrame destinationFrame
+        private RuneFrame? _selectClosestRuneFrame(Point position)
+        {
+            var frames = _runeFrames;
+            if (frames == null || frames.Count == 0)
+            {
+                return null;
+            }
+            RuneFrame? closestFrame = null;
+            var closestDistance = double.MaxValue;
+            foreach (var frame in frames)
+            {
+                var tl = new Point(frame.X, frame.Y);
+                var tr = new Point(frame.X + frame.Width, frame.Y);
+                var bl = new Point(frame.X, frame.Y + frame.Height);
+                var br = new Point(frame.X + frame.Width, frame.Y + frame.Height);
+                var currentDistance = double.MaxValue;
+                if ((position.X >= tl.X && position.X <= tr.X) && (position.Y >= tl.Y && position.Y <= bl.Y))
+                {
+                    return frame;
+                }
+                else if (position.X >= tl.X && position.X <= tr.X)
+                {
+                    currentDistance = (position.Y < tl.Y) ? tl.Y - position.Y : position.Y - bl.Y;
+                }
+                else if (position.Y >= tl.Y && position.Y <= bl.Y)
+                {
+                    currentDistance = (position.X < tl.X) ? tl.X - position.X : position.X - tr.X;
+                }
+                else
+                {
+                    var distToTL = Math.Sqrt(Math.Pow(position.X - tl.X, 2) + Math.Pow(position.Y - tl.Y, 2));
+                    var distToTR = Math.Sqrt(Math.Pow(position.X - tr.X, 2) + Math.Pow(position.Y - tr.Y, 2));
+                    var distToBL = Math.Sqrt(Math.Pow(position.X - bl.X, 2) + Math.Pow(position.Y - bl.Y, 2));
+                    var distToBR = Math.Sqrt(Math.Pow(position.X - br.X, 2) + Math.Pow(position.Y - br.Y, 2));
+                    currentDistance = Math.Min(Math.Min(distToTL, distToTR), Math.Min(distToBL, distToBR));
+                }
+                if (currentDistance < closestDistance)
+                {
+                    closestDistance = currentDistance;
+                    closestFrame = frame;
+                }
+            }
+            return closestFrame;
+        }
+
+        private RuneFrameDirection? _nextDirection(
+            RuneFrame runeFrame,
+            double proximity,
+            Point initialPoint,
+            Point finalPoint
+        )
+        {
+            var dx = finalPoint.X - initialPoint.X;
+            var directions = runeFrame.FrameData.RuneFrameDirections;
+            if (Math.Abs(dx) <= proximity || directions.Count == 0)
+            {
+                return null;
+            }
+            if (directions.Count == 1)
+            {
+                return directions[0];
+            }
+            RuneFrameDirection? bestMovement = null;
+            double bestDistance = double.MaxValue;
+            for (int i = 0; i < directions.Count; i++)
+            {
+                var movement = directions[i];
+                int directionSign = movement.Direction == RuneFrameDirectionTypes.Left ? -1 : 1;
+                double newX = initialPoint.X + (movement.Distance * directionSign);
+                double distanceToPoint = Math.Abs(finalPoint.X - newX);
+                if (distanceToPoint < bestDistance)
+                {
+                    bestDistance = distanceToPoint;
+                    bestMovement = movement;
+                }
+            }
+            return bestMovement;
+        }
+
+        public override List<string> NextNavigation(
+            Point initialPoint,
+            Point finalPoint
         )
         {
             try
             {
                 _runeFrameLock.EnterReadLock();
-                if (currentFrame == destinationFrame)
+                var initialRuneFrame = _selectClosestRuneFrame(initialPoint);
+                var finalRuneFrame = _selectClosestRuneFrame(finalPoint);
+                if (initialRuneFrame != null && finalRuneFrame != null)
                 {
-                    return null;
+                    var selected = _selectNextMacro(initialRuneFrame, finalRuneFrame);
+
+                    if (selected != null)
+                    {
+                        var localX = initialRuneFrame.Width * (selected.X / selected.ScaleX);
+                        var localY = initialRuneFrame.Height * (selected.Y / selected.ScaleY);
+                        var macroX = initialRuneFrame.X + localX;
+                        var macroY = initialRuneFrame.Y + localY;
+                        var macroPoint = new Point(macroX, macroY);
+                        var nextDirection = _nextDirection(
+                            initialRuneFrame, selected.Radius, initialPoint, macroPoint
+                        );
+                        return (
+                            nextDirection != null ?
+                            nextDirection.DirectionCommands : selected.PointCommands
+                        );
+                    }
+                    else
+                    {
+                        var nextDirection = _nextDirection(
+                            initialRuneFrame, _runeRadius, initialPoint, finalPoint
+                        );
+                        return (
+                            nextDirection != null ?
+                            nextDirection.DirectionCommands : []
+                        );
+                    }
                 }
-                var framePath = _shortestPath(currentFrame, destinationFrame);
-                if (framePath == null || framePath.Count < 2)
-                {
-                    return null;
-                }
-                var currFrameMacro = currentFrame.FrameData.RuneFrameMacros
-                    .FirstOrDefault(m => m.NextRuneFrame == framePath[1]);
-                return currFrameMacro;
+                return [];
             }
             finally
             {
                 _runeFrameLock.ExitReadLock();
-            }
-        }
-
-        public override AbstractRuneModel Copy()
-        {
-            try
-            {
-                return new RuneModel { _runeFrames = RuneFrames() };
-            }
-            finally
-            {
             }
         }
     }

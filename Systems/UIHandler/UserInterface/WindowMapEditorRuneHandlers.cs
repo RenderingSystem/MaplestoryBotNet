@@ -2513,4 +2513,216 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _loadedRuneFrameButtonAccessActionHandler.OnEvent(sender, e);
         }
     }
+
+
+    public class WindowMapCanvasRuneingSaveSettingsModifier : AbstractWindowStateModifier
+    {
+        private TextBox _cooldownTextBox;
+
+        private TextBox _radiusTextBox;
+
+        public WindowMapCanvasRuneingSaveSettingsModifier(
+            TextBox cooldownTextBox,
+            TextBox radiusTextBox
+        )
+        {
+            _cooldownTextBox = cooldownTextBox;
+            _radiusTextBox = radiusTextBox;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is AbstractBottingModel bottingModel)
+            {
+                var runeModel = bottingModel.GetRuneModel();
+                if (int.TryParse(_cooldownTextBox.Text, out int cooldown))
+                {
+                    runeModel.SetCooldown(cooldown);
+                }
+                if (int.TryParse(_radiusTextBox.Text, out int radius))
+                {
+                    runeModel.SetRadius(radius);
+                }
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasRuneingSaveSettingsActionHandler : AbstractWindowActionHandler
+    {
+        private TextBox _cooldownTextBox;
+
+        private TextBox _radiusTextBox;
+
+        private AbstractWindowStateModifier _runeingSaveSettingsModifier;
+
+        private AbstractBottingModel? _bottingModel;
+
+        public WindowMapCanvasRuneingSaveSettingsActionHandler(
+            TextBox cooldownTextBox,
+            TextBox radiusTextBox,
+            AbstractWindowStateModifier runeingSettingsModifier
+        )
+        {
+            _cooldownTextBox = cooldownTextBox;
+            _radiusTextBox = radiusTextBox;
+            _runeingSaveSettingsModifier = runeingSettingsModifier;
+            _cooldownTextBox.TextChanged += OnEvent;
+            _radiusTextBox.TextChanged += OnEvent;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
+            {
+                _bottingModel = bottingModel;
+            }
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _runeingSaveSettingsModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _runeingSaveSettingsModifier.Modify(_bottingModel);
+        }
+    }
+
+
+    public class WindowMapCanvasRuneingSaveSettingsActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _runeingSaveSettingsActionHandler;
+
+        public WindowMapCanvasRuneingSaveSettingsActionHandlerFacade(
+            TextBox cooldownTextBox, TextBox radiusTextBox
+        )
+        {
+            _runeingSaveSettingsActionHandler = (
+                new WindowMapCanvasRuneingSaveSettingsActionHandler(
+                    cooldownTextBox,
+                    radiusTextBox,
+                    new WindowMapCanvasRuneingSaveSettingsModifier(cooldownTextBox, radiusTextBox)
+                )
+            );
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _runeingSaveSettingsActionHandler.Inject(dataType, data);
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _runeingSaveSettingsActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _runeingSaveSettingsActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowMapCanvasRuneingLoadSettingsModifier : AbstractWindowStateModifier
+    {
+        private TextBox _cooldownTextBox;
+
+        private TextBox _radiusTextBox;
+
+        public WindowMapCanvasRuneingLoadSettingsModifier(
+            TextBox cooldownTextBox, TextBox radiusTextBox
+        )
+        {
+            _cooldownTextBox = cooldownTextBox;
+            _radiusTextBox = radiusTextBox;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is AbstractBottingModel bottingModel)
+            {
+                var runeModel = bottingModel.GetRuneModel();
+                _cooldownTextBox.Text = runeModel.GetCooldown().ToString();
+                _radiusTextBox.Text = runeModel.GetRadius().ToString();
+            }
+        }
+    }
+
+
+    public class WindowMapCanvasRuneingLoadSettingsActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractLoadFileDialog _loadFileDialog;
+
+        private AbstractBottingModel? _bottingModel;
+
+        private AbstractWindowStateModifier _runeingLoadSettingsModifier;
+
+        public WindowMapCanvasRuneingLoadSettingsActionHandler(
+            AbstractLoadFileDialog loadFileDialog,
+            AbstractWindowStateModifier runeingLoadSettingsModifier
+        )
+        {
+            _loadFileDialog = loadFileDialog;
+            _loadFileDialog.FileLoaded += OnEvent;
+            _runeingLoadSettingsModifier = runeingLoadSettingsModifier;
+            _bottingModel = null;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
+            {
+                _bottingModel = bottingModel;
+            }
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _runeingLoadSettingsModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _runeingLoadSettingsModifier.Modify(_bottingModel);
+        }
+    }
+
+
+    public class WindowMapCanvasRuneingLoadSettingsActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _runeingLoadSettingsActionHandler;
+        public WindowMapCanvasRuneingLoadSettingsActionHandlerFacade(
+            TextBox cooldownTextBox,
+            TextBox radiusTextBox,
+            AbstractLoadFileDialog loadFileDialog
+        )
+        {
+            _runeingLoadSettingsActionHandler = (
+                new WindowMapCanvasRuneingLoadSettingsActionHandler(
+                    loadFileDialog,
+                    new WindowMapCanvasRuneingLoadSettingsModifier(
+                        cooldownTextBox,
+                        radiusTextBox
+                    )
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _runeingLoadSettingsActionHandler.Modifier();
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _runeingLoadSettingsActionHandler.Inject(dataType, data);
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _runeingLoadSettingsActionHandler.OnEvent(sender, e);
+        }
+    }
 }

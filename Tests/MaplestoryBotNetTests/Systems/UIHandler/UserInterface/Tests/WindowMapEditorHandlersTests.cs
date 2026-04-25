@@ -252,6 +252,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             bottingModel.GetRuneModel().AddRuneFrame(runeFrame1);
             bottingModel.GetMapModel().SetTemplateThreshold(MapIconInfo.Character, 0.234f);
             bottingModel.GetMapModel().SetTemplateThreshold(MapIconInfo.Rune, 0.123f);
+            bottingModel.GetRuneModel().SetCooldown(123);
+            bottingModel.GetRuneModel().SetRadius(234);
             return bottingModel;
         }
 
@@ -456,7 +458,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     }
                 ],
                 "character_threshold": 0.234,
-                "rune_threshold": 0.123
+                "rune_threshold": 0.123,
+                "rune_activation": 123,
+                "rune_radius": 234
             }
             """;
         }
@@ -3731,6 +3735,105 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    public class WindowMapCanvasRuneingSaveSettingsActionHandlerTests
+    {
+        private TextBox _cooldownTextBox = new TextBox();
+
+        private TextBox _radiusTextBox = new TextBox();
+
+        private AbstractBottingModel _bottingModel = new BottingModel();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _cooldownTextBox = new TextBox();
+            _radiusTextBox = new TextBox();
+            _bottingModel = DataFixtures.BottingModelFixture();
+            var handler = new WindowMapCanvasRuneingSaveSettingsActionHandlerFacade(
+                _cooldownTextBox,
+                _radiusTextBox
+            );
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            return handler;
+        }
+
+        /**
+         * @brief Verifies that changing the cooldown and radius text boxes saves the
+         * values to the botting model
+         * 
+         * When users enter new values into the rune cooldown and radius text boxes,
+         * the system should immediately update the botting model's rune model with
+         * these new settings. The cooldown value determines how long the bot waits
+         * after solving a rune before it can activate another rune. The radius value
+         * defines how close the character must be to a rune to detect and interact
+         * with it.
+         */
+        private void _testChangingTextSavesRuneingSettingsToBottingModel()
+        {
+            var runeingSaveSettingsActionHandler = _fixture();
+            _cooldownTextBox.Text = "345";
+            _radiusTextBox.Text = "456";
+            Debug.Assert(_bottingModel.GetRuneModel().GetCooldown() == 345);
+            Debug.Assert(_bottingModel.GetRuneModel().GetRadius() == 456);
+        }
+
+        public void Run()
+        {
+            _testChangingTextSavesRuneingSettingsToBottingModel();
+        }
+    }
+
+
+    public class WindowMapCanvasRuneingLoadSettingsActionHandlerTests
+    {
+        private TextBox _cooldownTextBox = new TextBox();
+
+        private TextBox _radiusTextBox = new TextBox();
+
+        private AbstractLoadFileDialog _loadFileDialog = new WindowLoadFileDialog("", "");
+
+        private AbstractBottingModel _bottingModel = new BottingModel();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _cooldownTextBox = new TextBox();
+            _radiusTextBox = new TextBox();
+            _loadFileDialog = new WindowLoadFileDialog("", "");
+            _bottingModel = DataFixtures.BottingModelFixture();
+            var handler = new WindowMapCanvasRuneingLoadSettingsActionHandlerFacade(
+                _cooldownTextBox,
+                _radiusTextBox,
+                _loadFileDialog
+            );
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            return handler;
+        }
+
+        /**
+         * @brief Verifies that loading a botting model populates the cooldown and radius
+         * text boxes with the saved settings
+         * 
+         * When users load a configuration file (containing rune automation settings),
+         * the system should populate the cooldown and radius text boxes with the values
+         * from the botting model. This allows users to view and edit the existing rune
+         * detection and activation settings. The cooldown value controls the delay
+         * between rune activations, and the radius value controls how close the character
+         * must be to detect a rune.
+         */
+        private void _testLoadingBottingModelPopulatesRuneingSettings()
+        {
+            var runeingLoadSettingsActionHandler = _fixture();
+            _loadFileDialog.InvokeFileLoaded("", "");
+            Debug.Assert(_cooldownTextBox.Text == "123");
+            Debug.Assert(_radiusTextBox.Text == "234");
+        }
+
+        public void Run()
+        {
+            _testLoadingBottingModelPopulatesRuneingSettings();
+        }
+    }
+
+
     public class WindowMapEditorHandlersTestSuite
     {
         public void Run()
@@ -3754,6 +3857,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMapEditorLoadedThresholdHandlerTests().Run();
             new WindowMapEditorThresholdHandlerTests().Run();
             new WindowMapEditorTabControlCanvasActionHandlerTests().Run();
+            new WindowMapCanvasRuneingSaveSettingsActionHandlerTests().Run();
+            new WindowMapCanvasRuneingLoadSettingsActionHandlerTests().Run();
         }
     }
 }

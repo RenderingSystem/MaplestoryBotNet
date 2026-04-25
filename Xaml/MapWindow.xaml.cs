@@ -83,6 +83,8 @@ namespace MaplestoryBotNet.Xaml
                     RuneingRuneTextBoxX,
                     RuneingRuneTextBoxY,
                     RuneingRuneThreshold,
+                    RuneingRuneActivation,
+                    RuneingRuneRadius,
                     RuneingTabItem,
                     RuneingMapCanvas,
                     MapImage,
@@ -561,6 +563,10 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
 
         private TextBox _runeThreshold;
 
+        private TextBox _runeActivation;
+
+        private TextBox _runeRadius;
+
         private TabControl _tabControl;
 
         private TabItem _tabItem;
@@ -591,6 +597,8 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             TextBox runeTextBoxX,
             TextBox runeTextBoxY,
             TextBox runeThreshold,
+            TextBox runeActivation,
+            TextBox runeRadius,
             TabItem tabItem,
             Canvas mapCanvas,
             Image mapImage,
@@ -614,6 +622,8 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             _runeTextBoxX = runeTextBoxX;
             _runeTextBoxY = runeTextBoxY;
             _runeThreshold = runeThreshold;
+            _runeActivation = runeActivation;
+            _runeRadius = runeRadius;
             _tabItem = tabItem;
             _mapCanvas = mapCanvas;
             _mapImage = mapImage;
@@ -746,7 +756,7 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
-        public AbstractWindowActionHandler _instantiateAddFramePointButtonActionHandler()
+        private AbstractWindowActionHandler _instantiateAddFramePointButtonActionHandler()
         {
             return new WindowMapAddFramePointButtonActionHandlerFacade(
                 _addPointButton,
@@ -755,7 +765,7 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
-        public AbstractWindowActionHandler _instantiateRemoveFramePointButtonActionHandler()
+        private AbstractWindowActionHandler _instantiateRemoveFramePointButtonActionHandler()
         {
             return new WindowMapRemoveFramePointButtonActionHandlerFacade(
                 _removePointButton,
@@ -764,7 +774,7 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
-        public AbstractWindowActionHandler _instantiateFramePointDrawerActionHandler()
+        private AbstractWindowActionHandler _instantiateFramePointDrawerActionHandler()
         {
             return new WindowMapCanvasFramePointDrawerActionHandlerFacade(
                 _mapCanvas,
@@ -773,7 +783,7 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
-        public AbstractWindowActionHandler _instantiateFramePointDragActionHandler()
+        private AbstractWindowActionHandler _instantiateFramePointDragActionHandler()
         {
             return new WindowMapCanvasFramePointDragActionHandlerFacade(
                 _mapCanvas,
@@ -782,7 +792,7 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
-        public AbstractWindowActionHandler _instantiateFramePointScaleActionHandler()
+        private AbstractWindowActionHandler _instantiateFramePointScaleActionHandler()
         {
             return new WindowMapCanvasFramePointScaleActionHandlerFacade(
                 _mapCanvas,
@@ -790,14 +800,14 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
-        public AbstractWindowActionHandler _instantiateFramePointRemoveActionHandler()
+        private AbstractWindowActionHandler _instantiateFramePointRemoveActionHandler()
         {
             return new WindowMapCanvasFramePointRemoveActionHandlerFacade(
                 _mapCanvas, _editMenuState, new MouseEventDataExtractor()
             );
         }
 
-        public AbstractWindowActionHandler _instantiateLoadedRuneFrameDrawerActionHandler()
+        private AbstractWindowActionHandler _instantiateLoadedRuneFrameDrawerActionHandler()
         {
             return new WindowMapCanvasLoadedRuneFrameDrawerActionHandlerFacade(
                 _mapCanvas,
@@ -805,7 +815,7 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
-        public AbstractWindowActionHandler _instantiateLoadedRuneFrameDeselectActionHandler()
+        private AbstractWindowActionHandler _instantiateLoadedRuneFrameDeselectActionHandler()
         {
             return new WindowMapCanvasLoadedRuneFrameDeselectActionHandlerFacade(
                 [
@@ -831,6 +841,23 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             );
         }
 
+        private AbstractWindowActionHandler _instantiateRuneingLoadSettingsActionHandler()
+        {
+            return new WindowMapCanvasRuneingLoadSettingsActionHandlerFacade(
+                _runeActivation,
+                _runeRadius,
+                _loadFileDialog
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateRuneingSaveSettingsActionHandler()
+        {
+            return new WindowMapCanvasRuneingSaveSettingsActionHandlerFacade(
+                _runeActivation,
+                _runeRadius
+            );
+        }
+
         public List<AbstractWindowActionHandler> Instantiate(
             AbstractSystemWindow editWindow
         )
@@ -839,6 +866,10 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
                 _instantiateTabControlCanvasActionHandler(_tabControl, _tabItem, _mapCanvas),
                 _instantiateWindowMenuItemHideActionHandler(_systemWindow),
                 _instantiateEditMenuActionHandler(_editButton, _systemWindow, editWindow),
+                _instantiateNumericTextBoxPropertyActionHandler(_runeRadius, 999),
+                _instantiateNumericTextBoxPropertyActionHandler(_runeActivation, 9999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(_runeRadius, 999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(_runeActivation, 9999),
                 _instantiateRunePositionActionHandler(),
                 _instantiateLoadRuneThresholdActionHandler(),
                 _instantiateRuneThresholdHandler(),
@@ -859,7 +890,9 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
                 _instantiateFramePointScaleActionHandler(),
                 _instantiateFramePointRemoveActionHandler(),
                 _instantiateLoadedRuneFrameDrawerActionHandler(),
-                _instantiateLoadedRuneFrameDeselectActionHandler()
+                _instantiateLoadedRuneFrameDeselectActionHandler(),
+                _instantiateRuneingLoadSettingsActionHandler(),
+                _instantiateRuneingSaveSettingsActionHandler()
             ];
         }
     }

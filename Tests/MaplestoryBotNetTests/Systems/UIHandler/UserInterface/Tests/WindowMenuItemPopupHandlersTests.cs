@@ -1,5 +1,7 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
+using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.Tests;
@@ -166,10 +168,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var injectItems = new[]
             {
-                 KeystrokeTransmitterExecutorThreadedUpdate.Starting,
-                 KeystrokeTransmitterExecutorThreadedUpdate.Started,
-                 KeystrokeTransmitterExecutorThreadedUpdate.Stopping,
-                 KeystrokeTransmitterExecutorThreadedUpdate.Stopped
+                 MacroExecutorThreadedUpdate.Starting,
+                 MacroExecutorThreadedUpdate.Started,
+                 MacroExecutorThreadedUpdate.Stopping,
+                 MacroExecutorThreadedUpdate.Stopped
             };
             var expectedText = new[]
             {
@@ -219,14 +221,18 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingMenuItemInjectsStartThread()
         {
             var startActionHandler = _fixture();
-            _mockThread.ThreadStateReturn.Add(new KeystrokeTransmitterThreadState(0));
+            _mockThread.ThreadStateReturn.Add(
+                new KeystrokeTransmitterThreadState(
+                    0, KeystrokeTransmitterThreadType.Macro
+                )
+            );
             startActionHandler.Inject(SystemInjectType.ThreadDependency, _mockThread);
             _menuItem.Header = WindowMenuItemStartTextTypes.Start;
             _menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
             Debug.Assert(_mockThread.InjectCalls == 1);
             Debug.Assert(
                 (int) _mockThread.InjectCallArg_dataType[0]
-                == (int) KeystrokeTransmitterOrchestratorThreadInjectType.Start
+                == (int) MacroOrchestratorThreadInjectType.Start
             );
         }
 
@@ -259,14 +265,18 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingMenuItemInjectsStopThread()
         {
             var startActionHandler = _fixture();
-            _mockThread.ThreadStateReturn.Add(new KeystrokeTransmitterThreadState(0));
+            _mockThread.ThreadStateReturn.Add(
+                new KeystrokeTransmitterThreadState(
+                    0, KeystrokeTransmitterThreadType.Macro
+                )
+            );
             startActionHandler.Inject(SystemInjectType.ThreadDependency, _mockThread);
             _menuItem.Header = WindowMenuItemStartTextTypes.Stop;
             _menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
             Debug.Assert(_mockThread.InjectCalls == 1);
             Debug.Assert(
                 (int)_mockThread.InjectCallArg_dataType[0]
-                == (int)KeystrokeTransmitterOrchestratorThreadInjectType.Stop
+                == (int)MacroOrchestratorThreadInjectType.Stop
             );
         }
 
@@ -299,7 +309,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingMenuItemDoesntInjectWhenWrongText()
         {
             var startActionHandler = _fixture();
-            _mockThread.ThreadStateReturn.Add(new KeystrokeTransmitterThreadState(0));
+            _mockThread.ThreadStateReturn.Add(
+                new KeystrokeTransmitterThreadState(
+                    0, KeystrokeTransmitterThreadType.Macro
+                )
+            );
             startActionHandler.Inject(SystemInjectType.ThreadDependency, _mockThread);
             _menuItem.Header = "meow";
             _menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));

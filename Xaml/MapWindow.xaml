@@ -490,10 +490,9 @@
                             x:Name="RuneingRuneActivation"
                             Margin="468,378,10,131"
                             Background="Black"
-                            Foreground="Violet"
+                            Foreground="Lime"
                             FontFamily="Courier New"
                             TabIndex="12"
-                            IsReadOnly="True"
                         />
                         <Label
                             Content="Radius:"
@@ -509,10 +508,9 @@
                             x:Name="RuneingRuneRadius"
                             Margin="468,401,10,108"
                             Background="Black"
-                            Foreground="Violet"
+                            Foreground="Lime"
                             FontFamily="Courier New"
                             TabIndex="12"
-                            IsReadOnly="True"
                         />
                     </Grid>
                 </TabItem>

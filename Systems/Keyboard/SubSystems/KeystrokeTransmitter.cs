@@ -1,26 +1,100 @@
-﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
-using MaplestoryBotNet.Systems.UIHandler.Utilities;
-using MaplestoryBotNet.ThreadingUtils;
+﻿using Interception;
+using MaplestoryBotNet.LibraryWrappers;
+using MaplestoryBotNet.Systems.Configuration;
+using System.Globalization;
 
 
 namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
 {
-    public enum KeystrokeTransmitterOrchestratorThreadInjectType
+    public abstract class AbstractMacroSleeper
     {
-        None = 0,
-        Stop,
-        Start,
-        MaxNum
+        public abstract void Sleep(int milliseconds);
     }
 
 
-    public enum KeystrokeTransmitterExecutorThreadedUpdate
+    public abstract class AbstractMacroRandom
     {
-        Stopping = 0,
-        Stopped,
-        Starting,
-        Started,
-        KeystrokeTransmitterOrchestratorThreadStateMaxNum
+        public abstract int Next(int minValue, int maxValue);
+    }
+
+
+    public abstract class AbstractMacroCommandsExecutor
+    {
+        public abstract void Execute(List<string> macroCommands);
+    }
+
+
+    public abstract class AbstractMacroCommandsExecutorBuilder
+    {
+        public abstract AbstractMacroCommandsExecutorBuilder WithArg(object arg);
+
+        public abstract AbstractMacroCommandsExecutor Build();
+    }
+
+
+    public abstract class AbstractParsedMacroCommand
+    {
+        public abstract void Run();
+    }
+
+
+    public abstract class AbstractParsedMacroCommandBuilder
+    {
+        public abstract AbstractParsedMacroCommand Build();
+
+        public abstract AbstractParsedMacroCommandBuilder WithArg(object args);
+    }
+
+
+    public abstract class AbstractMacroCommandParser
+    {
+        public abstract AbstractParsedMacroCommand? Parse(string macroCommand);
+    }
+
+
+    public abstract class AbstractBracketContentsParser
+    {
+        public abstract List<string> Parse(string macroCommand);
+    }
+
+
+    public abstract class AbstractKeystrokeTransmitter
+    {
+        public abstract void InjectKeyboardDevice(KeyboardDeviceContext keyboardDevice);
+
+        public abstract void Keydown(string keystroke);
+
+        public abstract void Keyup(string keystroke);
+    }
+
+
+    public abstract class AbstractKeystrokeConverter
+    {
+
+        public abstract InterceptionInterop.KeyStroke ConvertToKeydown(string stroke);
+
+        public abstract InterceptionInterop.KeyStroke ConvertToKeyup(string stroke);
+
+    }
+
+
+    public abstract class AbstractKeystrokeTransmitterBuilder
+    {
+        public abstract AbstractKeystrokeTransmitterBuilder WithKeyboardMapping(
+            KeyboardMapping keyboardMapping
+        );
+
+        public abstract AbstractKeystrokeTransmitter Build();
+    }
+
+
+    public enum KeystrokeTransmitterThreadType
+    {
+        Runeing = 0,
+        Botting,
+        Solving,
+        Macro,
+        MaxNum
     }
 
 
@@ -29,149 +103,72 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
         public abstract int GetState();
 
         public abstract void SetState(int state);
+
+        public abstract KeystrokeTransmitterThreadType Type();
     }
 
 
-    public abstract class AbstractMacroCommandsSelector
-    {
-        public abstract List<string> SelectMacroCommands(
-            List<MinimapPointMacros> macros
-        );
-    }
-
-
-    public abstract class AbstractPointDataSelector
-    {
-        public abstract MinimapPointData? SelectPoint(AbstractBottingModel bottingModel);
-    }
-
-
-    public abstract class AbstractKeystrokeTransmitterExecutorThreadHelper : IDataInjectable
+    public abstract class AbstractKeystrokeTransmitterThreadHelper : IDataInjectable
     {
         public abstract bool Transmit();
+
+        public abstract void Reset();
 
         public abstract void Inject(object dataType, object? data);
     }
 
 
-    public class RandomMacroCommandsSelector : AbstractMacroCommandsSelector
+    public class MacroSleeper : AbstractMacroSleeper
     {
-        AbstractMacroRandom _macroRandom;
-        public RandomMacroCommandsSelector(
-            AbstractMacroRandom macroRandom
-        )
+        public override void Sleep(int milliseconds)
         {
-            _macroRandom = macroRandom;
-        }
-
-        public override List<string> SelectMacroCommands(
-            List<MinimapPointMacros> macros
-        )
-        {
-            var totalChance = 0;
-            for (int i = 0; i < macros.Count; i++)
-            {
-                totalChance += macros[i].MacroChance;
-            }
-            var randomNumber = _macroRandom.Next(0, totalChance - 1);
-            var cumulativeChance = 0;
-            for (int i = 0; i < macros.Count; i++)
-            {
-                cumulativeChance += macros[i].MacroChance;
-                if (randomNumber < cumulativeChance)
-                {
-                    return macros[i].MacroCommands;
-                }
-            }
-            return [];
+            Thread.Sleep(milliseconds);
         }
     }
 
 
-    public class KeystrokeTransmitterPointDataSelector : AbstractPointDataSelector
+    public class MacroRandom : AbstractMacroRandom
     {
-        private string _templateKey;
-        public KeystrokeTransmitterPointDataSelector(string templateKey)
+        public override int Next(int minValue, int maxValue)
         {
-            _templateKey = templateKey;
-        }
-
-        public override MinimapPointData? SelectPoint(AbstractBottingModel bottingModel)
-        {
-            var minimapPoints = bottingModel.GetMacroModel().MacroPoints();
-            var (charX, charY) = bottingModel.GetMapModel().GetTemplatePosition(_templateKey);
-            MinimapPointData? selectedMinimapPoint = null;
-            var minDistanceSquared = double.PositiveInfinity;
-            for (int i = 0; i < minimapPoints.Count; i++)
-            {
-                var currMinimapPoint = minimapPoints[i];
-                var currX = currMinimapPoint.X + (currMinimapPoint.XRange / 2);
-                var currY = currMinimapPoint.Y + (currMinimapPoint.YRange / 2);
-                var (vX, vY) = (charX - currX, charY - currY);
-                var distanceSquared = (vX * vX) + (vY * vY);
-                if (distanceSquared < minDistanceSquared)
-                {
-                    minDistanceSquared = distanceSquared;
-                    selectedMinimapPoint = currMinimapPoint.PointData.Copy();
-                }
-            }
-            return selectedMinimapPoint;
+            return Random.Shared.Next(minValue, maxValue + 1);
         }
     }
 
 
-    public class KeystrokeTransmitterExecutorThreadHelper : AbstractKeystrokeTransmitterExecutorThreadHelper
+    public class KeystrokeConverter : AbstractKeystrokeConverter
     {
-        private AbstractPointDataSelector _pointDataSelector;
-
-        private AbstractMacroCommandsSelector _macroCommandsSelector;
-
-        private AbstractMacroCommandsExecutorBuilder _macroCommandsExecutorBuilder;
-
-        private AbstractMacroCommandsExecutor? _macroCommandsExecutor;
-
-        private AbstractBottingModel? _bottingModel;
-
-        public KeystrokeTransmitterExecutorThreadHelper(
-            AbstractPointDataSelector pointDataSelector,
-            AbstractMacroCommandsSelector macroCommandsSelector,
-            AbstractMacroCommandsExecutorBuilder executorBuilder
-
-        )
+        private InterceptionInterop.KeyStroke _parseStroke(string stroke)
         {
-            _pointDataSelector = pointDataSelector;
-            _macroCommandsSelector = macroCommandsSelector;
-            _macroCommandsExecutorBuilder = executorBuilder;
-            _macroCommandsExecutor = null;
+            var split = stroke.Split(' ');
+            var keystroke = new InterceptionInterop.KeyStroke();
+            for (int i = 0; i < split.Length; i++)
+            {
+                var hex = split[i].ToUpper();
+                if (hex.StartsWith("0X"))
+                    hex = hex.Substring(2);
+                if (hex == "E0")
+                    keystroke.State |= InterceptionInterop.KeyState.E0;
+                else if (hex == "E1")
+                    keystroke.State |= InterceptionInterop.KeyState.E1;
+                else
+                    keystroke.Code = ushort.Parse(hex, NumberStyles.HexNumber);
+            }
+            return keystroke;
         }
 
-        public override bool Transmit()
+        public override InterceptionInterop.KeyStroke ConvertToKeydown(string keystrokeString)
         {
-            var transmitData = _pointDataSelector.SelectPoint(_bottingModel!);
-            if (transmitData != null)
-            {
-                var commands = transmitData.Commands;
-                var macroCommands = _macroCommandsSelector.SelectMacroCommands(commands);
-                _macroCommandsExecutor!.Execute(macroCommands);
-            }
-            return true;
+            var keystroke = _parseStroke(keystrokeString);
+            keystroke.State |= InterceptionInterop.KeyState.Down;
+            return keystroke;
         }
 
-        public override void Inject(object dataType, object? data)
+        public override InterceptionInterop.KeyStroke ConvertToKeyup(string keystrokeString)
         {
-            if (
-                dataType is SystemInjectType.KeystrokeTransmitter
-                && data is AbstractKeystrokeTransmitter keystrokeTransmitter
-            )
-            {
-                _macroCommandsExecutor = _macroCommandsExecutorBuilder
-                    .WithArg(keystrokeTransmitter)
-                    .Build();
-            }
-            else if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
-            {
-                _bottingModel = bottingModel;
-            }
+            var keystroke = _parseStroke(keystrokeString);
+            keystroke.State |= InterceptionInterop.KeyState.Up;
+            return keystroke;
         }
     }
 
@@ -180,9 +177,14 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
     {
         private volatile int _threadState;
 
-        public KeystrokeTransmitterThreadState(int threadState)
+        private KeystrokeTransmitterThreadType _threadType;
+
+        public KeystrokeTransmitterThreadState(
+            int threadState, KeystrokeTransmitterThreadType threadType
+        )
         {
             _threadState = threadState;
+            _threadType = threadType;
         }
 
         public override int GetState()
@@ -194,276 +196,598 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
         {
             _threadState = state;
         }
-    }
 
-
-    public class KeystrokeTransmitterExecutorThread : AbstractThread
-    {
-        private AbstractCountDown _receiveCountDown;
-
-        private AbstractCountDown _transmitCountDown;
-
-        private AbstractKeystrokeTransmitterExecutorThreadHelper _keystrokeTransmitterExecutorThreadHelper;
-
-        private AbstractKeystrokeTransmitterThreadState _threadState;
-
-        private AbstractInjectAction? _threadedInjectAction;
-
-        public KeystrokeTransmitterExecutorThread(
-            AbstractCountDown receiveCountDown,
-            AbstractCountDown transmitCountDown,
-            AbstractKeystrokeTransmitterExecutorThreadHelper keystrokeTransmitterExecutorThreadHelpers,
-            AbstractKeystrokeTransmitterThreadState threadState,
-            AbstractThreadRunningState runningState
-        ) : base(runningState)
+        public override KeystrokeTransmitterThreadType Type()
         {
-            _receiveCountDown = receiveCountDown;
-            _transmitCountDown = transmitCountDown;
-            _keystrokeTransmitterExecutorThreadHelper = keystrokeTransmitterExecutorThreadHelpers;
-            _threadState = threadState;
-            _threadedInjectAction = null;
-        }
-
-        public override void ThreadLoop()
-        {
-            while (_runningState.IsRunning())
-            {
-                _receiveCountDown.WaitCountDown();
-                if (_runningState.IsRunning())
-                {
-                    while (_threadState.GetState() == (int)KeystrokeTransmitterExecutorThreadedUpdate.Started)
-                    {
-                        if (!_keystrokeTransmitterExecutorThreadHelper.Transmit())
-                        {
-                            break;
-                        }
-                    }
-                }
-                _receiveCountDown.SetCountDown(1);
-                _transmitCountDown.CountDown();
-            }
-        }
-
-        public override void Stop()
-        {
-            base.Stop();
-            Inject(KeystrokeTransmitterOrchestratorThreadInjectType.Stop, null);
-        }
-
-        private void _threadedStateUpdate(KeystrokeTransmitterExecutorThreadedUpdate newState)
-        {
-            _threadState.SetState((int) newState);
-            if (_threadedInjectAction != null)
-            {
-                _threadedInjectAction.GetAction()(newState, 0);
-            }
-        }
-
-        public override void Inject(object dataType, object? value)
-        {
-            if (dataType is KeystrokeTransmitterOrchestratorThreadInjectType injectType)
-            {
-                if (injectType == KeystrokeTransmitterOrchestratorThreadInjectType.Start)
-                {
-                    _transmitCountDown.SetCountDown(1);
-                    _threadedStateUpdate(KeystrokeTransmitterExecutorThreadedUpdate.Starting);
-                    _receiveCountDown.CountDown();
-                    _transmitCountDown.WaitCountDown();
-                    _threadedStateUpdate(KeystrokeTransmitterExecutorThreadedUpdate.Started);
-                    _receiveCountDown.CountDown();
-                }
-                else if (injectType == KeystrokeTransmitterOrchestratorThreadInjectType.Stop)
-                {
-                    _transmitCountDown.SetCountDown(1);
-                    _threadedStateUpdate(KeystrokeTransmitterExecutorThreadedUpdate.Stopping);
-                    _receiveCountDown.CountDown();
-                    _transmitCountDown.WaitCountDown();
-                    _threadedStateUpdate(KeystrokeTransmitterExecutorThreadedUpdate.Stopped);
-                }
-            }
-            else
-            {
-                _keystrokeTransmitterExecutorThreadHelper.Inject(dataType, value);
-                if (
-                    dataType is SystemInjectType.InjectAction
-                    && value is AbstractInjectAction injectAction
-                )
-                {
-                    _threadedInjectAction = injectAction;
-                }
-            }
-        }
-
-        public override object? State()
-        {
-            return _threadState;
+            return _threadType;
         }
     }
 
 
-    public class KeystrokeTransmitterOrchestratorThread : AbstractThread
+    public class KeystrokeTransmitter : AbstractKeystrokeTransmitter
     {
-        private AbstractCountDown _receiveCountDown;
+        private AbstractInterceptionLibrary _interceptionLibrary;
 
-        private AbstractThread _keystrokeTransmitterExecutorThread;
+        private KeyboardMapping _keyboardMapping;
 
-        private AbstractKeystrokeTransmitterThreadState _threadState;
+        private AbstractKeystrokeConverter _keystrokeConverter;
 
-        public KeystrokeTransmitterOrchestratorThread(
-            AbstractKeystrokeTransmitterThreadState threadState,
-            AbstractCountDown receiveCountDown,
-            AbstractThread keystrokeTransmitterExecutorThread,
-            AbstractThreadRunningState runningState
-        ) : base(runningState)
+        private volatile KeyboardDeviceContext? _keyboardDeviceValue;
+
+        private object _sendLock;
+
+        private KeyboardDeviceContext? _keyboardDevice
         {
-            _threadState = threadState;
-            _receiveCountDown = receiveCountDown;
-            _keystrokeTransmitterExecutorThread = keystrokeTransmitterExecutorThread;
+            get => _keyboardDeviceValue;
+
+            set => _keyboardDeviceValue = value;
         }
 
-        public override void Start()
+        public KeystrokeTransmitter(
+            AbstractInterceptionLibrary interceptionLibrary,
+            AbstractKeystrokeConverter keystrokeConverter,
+            KeyboardMapping KeyboardMapping
+        )
         {
-            base.Start();
-            _keystrokeTransmitterExecutorThread.Start();
+            _interceptionLibrary = interceptionLibrary;
+            _keyboardMapping = KeyboardMapping;
+            _keystrokeConverter = keystrokeConverter;
+            _keyboardDeviceValue = null;
+            _sendLock = new object();
         }
 
-        public override void Stop()
-        {
-            base.Stop();
-            _keystrokeTransmitterExecutorThread.Stop();
-            _receiveCountDown.CountDown();
-        }
 
-        public override void ThreadLoop()
+        private void _sendKeyStroke(InterceptionInterop.KeyStroke keystroke)
         {
-            while (_runningState.IsRunning())
+            var keyboardDevice = _keyboardDevice;
+            if (keyboardDevice == null)
             {
-                _receiveCountDown.WaitCountDown();
-                if (_runningState.IsRunning())
-                {
-                    _keystrokeTransmitterExecutorThread.Inject(
-                        (KeystrokeTransmitterOrchestratorThreadInjectType) _threadState.GetState(), null
-                    );
-                }
-                _receiveCountDown.SetCountDown(1);
+                return;
             }
-        }
-
-        public override void Inject(object dataType, object? value)
-        {
-            if (dataType is KeystrokeTransmitterOrchestratorThreadInjectType injectType)
+            var context = keyboardDevice.Context;
+            var device = keyboardDevice.Device;
+            unsafe
             {
-                _threadState.SetState((int) injectType);
-                _receiveCountDown.CountDown();
-            }
-            else
-            {
-                _keystrokeTransmitterExecutorThread.Inject(dataType, value);
-                if (
-                    dataType is SystemInjectType.InjectAction
-                    && value is AbstractInjectAction injectAction
-                )
+                var stroke = (InterceptionInterop.Stroke*)&keystroke;
+                lock (_sendLock)
                 {
-                    injectAction.GetAction()(SystemInjectType.ThreadDependency, this);
+                    _interceptionLibrary.Send(context, device, stroke, 1);
                 }
             }
         }
 
-        public override object? State()
+        public override void InjectKeyboardDevice(KeyboardDeviceContext keyboardDevice)
         {
-            return _keystrokeTransmitterExecutorThread.State();
+            _keyboardDevice = keyboardDevice;
+        }
+
+        public override void Keydown(string keystroke)
+        {
+            var byteString = _keyboardMapping.GetMapping(keystroke);
+            if (byteString.Length > 0)
+            {
+                var keydown = _keystrokeConverter.ConvertToKeydown(byteString);
+                _sendKeyStroke(keydown);
+            }
+        }
+
+        public override void Keyup(string keystroke)
+        {
+            var byteString = _keyboardMapping.GetMapping(keystroke);
+            if (byteString.Length > 0)
+            {
+                var keyup = _keystrokeConverter.ConvertToKeyup(byteString);
+                _sendKeyStroke(keyup);
+            }
         }
     }
 
 
-    public class KeystrokeTransmitterOrchestratorThreadFactory : AbstractThreadFactory
+    public class KeystrokeTransmitterBuilder : AbstractKeystrokeTransmitterBuilder
     {
-        private string _templateKey;
+        private KeyboardMapping? _keyboardMapping;
 
-        public KeystrokeTransmitterOrchestratorThreadFactory(string templateKey)
+        public override AbstractKeystrokeTransmitterBuilder WithKeyboardMapping(
+            KeyboardMapping keyboardMapping
+        )
         {
-            _templateKey = templateKey;
+            _keyboardMapping = keyboardMapping;
+            return this;
         }
 
-        public override AbstractThread CreateThread()
+        public override AbstractKeystrokeTransmitter Build()
         {
-            return new KeystrokeTransmitterOrchestratorThread(
-                new KeystrokeTransmitterThreadState(
-                    (int) KeystrokeTransmitterOrchestratorThreadInjectType.None
-                ),
-                new ThreadSafeCountDown(),
-                new KeystrokeTransmitterExecutorThread(
-                    new ThreadSafeCountDown(),
-                    new ThreadSafeCountDown(),
-                    new KeystrokeTransmitterExecutorThreadHelper(
-                        new KeystrokeTransmitterPointDataSelector(_templateKey),
-                        new RandomMacroCommandsSelector(new MacroRandom()),
-                        new MacroCommandsExecutorBuilder()
-                    ),
-                    new KeystrokeTransmitterThreadState(
-                        (int) KeystrokeTransmitterExecutorThreadedUpdate.Stopped
-                    ),
-                    new ThreadRunningState()
-                ),
-                new ThreadRunningState()
+            return new KeystrokeTransmitter(
+                new InterceptionLibrary(),
+                new KeystrokeConverter(),
+                _keyboardMapping ?? new KeyboardMapping()
             );
         }
     }
 
 
-    public class KeystrokeTransmitterOrchestratorSystem : AbstractSystem
+    public class BracketContentsParser : AbstractBracketContentsParser
     {
-        private List<AbstractThreadFactory> _threadFactories;
+        private string _input = "";
 
-        private List<AbstractThread> _threads;
+        private List<string> _contents = [];
 
-        public KeystrokeTransmitterOrchestratorSystem(
-            List<AbstractThreadFactory> threadFactories
+        private int _recursiveParse(int startIndex)
+        {
+            var currIndex = startIndex;
+            while (currIndex < _input.Length)
+            {
+                if (_input[currIndex] == '{')
+                {
+                    var endIndex = _recursiveParse(currIndex + 1);
+                    if (endIndex < _input.Length)
+                    {
+                        var content = _input.Substring(currIndex + 1, endIndex - currIndex - 1);
+                        if (!content.Contains('{') && !content.Contains('}'))
+                        {
+                            _contents.Add(content);
+                        }
+                    }
+                    currIndex = endIndex + 1;
+                }
+                else if (_input[currIndex] == '}')
+                {
+                    return currIndex;
+                }
+                else
+                {
+                    currIndex++;
+                }
+            }
+            return currIndex;
+        }
+
+        public override List<string> Parse(string macroCommand)
+        {
+            _input = macroCommand;
+            _contents = [];
+            _recursiveParse(0);
+            return _contents;
+        }
+    }
+
+
+    public class WaitMacroCommand : AbstractParsedMacroCommand
+    {
+        private int _waitMilliseconds;
+
+        private AbstractMacroSleeper _macroSleeper;
+
+        public WaitMacroCommand(
+            int waitMilliseconds,
+            AbstractMacroSleeper macroSleeper
         )
         {
-            _threadFactories = threadFactories;
-            _threads = [];
+            _waitMilliseconds = waitMilliseconds;
+            _macroSleeper = macroSleeper;
         }
 
-        public override void Initialize()
+        public override void Run()
         {
-            for (int i = 0; i < _threadFactories.Count; i++)
+            _macroSleeper.Sleep(_waitMilliseconds);
+        }
+    }
+
+
+    public class WaitMacroCommandBuilder : AbstractParsedMacroCommandBuilder
+    {
+        private int _waitMilliseconds;
+
+        private AbstractMacroSleeper _macroSleeper;
+
+        public WaitMacroCommandBuilder(AbstractMacroSleeper macroSleeper)
+        {
+            _waitMilliseconds = 0;
+            _macroSleeper = macroSleeper;
+        }
+
+        public override AbstractParsedMacroCommand Build()
+        {
+            return new WaitMacroCommand(_waitMilliseconds, _macroSleeper);
+        }
+
+        public override AbstractParsedMacroCommandBuilder WithArg(object args)
+        {
+            if (args is int waitMilliseconds)
             {
-                _threads.Add(_threadFactories[i].CreateThread());
+                _waitMilliseconds = waitMilliseconds;
             }
+            return this;
+        }
+    }
+
+
+    public class KeyPressMacroCommand : AbstractParsedMacroCommand
+    {
+        private string _key;
+
+        private int _waitMilliseconds;
+
+        private AbstractMacroSleeper _macroSleeper;
+
+        private AbstractKeystrokeTransmitter _keystrokeTransmitter;
+
+        public KeyPressMacroCommand(
+            string key,
+            int waitMilliseconds,
+            AbstractMacroSleeper macroSleeper,
+            AbstractKeystrokeTransmitter keystrokeTransmitter
+        )
+        {
+            _key = key;
+            _waitMilliseconds = waitMilliseconds;
+            _macroSleeper = macroSleeper;
+            _keystrokeTransmitter = keystrokeTransmitter;
         }
 
-        public override void Start()
+        public override void Run()
         {
-            for (int i = 0; i < _threads.Count; i++)
+            _keystrokeTransmitter.Keydown(_key);
+            _macroSleeper.Sleep(_waitMilliseconds);
+            _keystrokeTransmitter.Keyup(_key);
+        }
+    }
+
+
+    public class KeyPressMacroCommandBuilder : AbstractParsedMacroCommandBuilder
+    {
+        private string _key;
+
+        private int _waitMilliseconds;
+
+        private AbstractMacroSleeper _macroSleeper;
+
+        private AbstractKeystrokeTransmitter _keystrokeTransmitter;
+
+        public KeyPressMacroCommandBuilder(
+            AbstractMacroSleeper macroSleeper,
+            AbstractKeystrokeTransmitter keystrokeTransmitter
+        )
+        {
+            _key = "";
+            _waitMilliseconds = 0;
+            _macroSleeper = macroSleeper;
+            _keystrokeTransmitter = keystrokeTransmitter;
+        }
+
+        public override AbstractParsedMacroCommand Build()
+        {
+            return new KeyPressMacroCommand(
+                _key, _waitMilliseconds, _macroSleeper, _keystrokeTransmitter
+            );
+        }
+
+        public override AbstractParsedMacroCommandBuilder WithArg(object args)
+        {
+            if (args is string key)
             {
-                _threads[i].Start();
+                _key = key;
             }
+            else if (args is int waitMilliseconds)
+            {
+                _waitMilliseconds = waitMilliseconds;
+            }
+            return this;
+        }
+    }
+
+
+    public class KeyDownMacroCommand : AbstractParsedMacroCommand
+    {
+        private string _key;
+
+        private AbstractKeystrokeTransmitter _keystrokeTransmitter;
+
+        public KeyDownMacroCommand(
+            string key, AbstractKeystrokeTransmitter keystrokeTransmitter
+        )
+        {
+            _key = key;
+            _keystrokeTransmitter = keystrokeTransmitter;
         }
 
-        public override void Inject(object dataType, object? data)
+        public override void Run()
         {
-            for (int i = 0; i < _threads.Count; i++)
+            _keystrokeTransmitter.Keydown(_key);
+        }
+    }
+
+
+    public class KeyDownMacroCommandBuilder : AbstractParsedMacroCommandBuilder
+    {
+        private string _key;
+
+        private AbstractKeystrokeTransmitter _keystrokeTransmitter;
+
+        public KeyDownMacroCommandBuilder(
+            AbstractKeystrokeTransmitter keystrokeTransmitter
+        )
+        {
+            _key = "";
+            _keystrokeTransmitter = keystrokeTransmitter;
+        }
+
+        public override AbstractParsedMacroCommand Build()
+        {
+            return new KeyDownMacroCommand(_key, _keystrokeTransmitter);
+        }
+
+        public override AbstractParsedMacroCommandBuilder WithArg(object args)
+        {
+            if (args is string key)
             {
-                _threads[i].Inject(dataType, data);
+                _key = key;
+            }
+            return this;
+        }
+    }
+
+
+    public class KeyUpMacroCommand : AbstractParsedMacroCommand
+    {
+        private string _key;
+
+        private AbstractKeystrokeTransmitter _keystrokeTransmitter;
+
+        public KeyUpMacroCommand(
+            string key,
+            AbstractKeystrokeTransmitter keystrokeTransmitter
+        )
+        {
+            _key = key;
+            _keystrokeTransmitter = keystrokeTransmitter;
+        }
+
+        public override void Run()
+        {
+            _keystrokeTransmitter.Keyup(_key);
+        }
+    }
+
+
+    public class KeyUpMacroCommandBuilder : AbstractParsedMacroCommandBuilder
+    {
+        private string _key;
+
+        private AbstractKeystrokeTransmitter _keystrokeTransmitter;
+
+        public KeyUpMacroCommandBuilder(
+            AbstractKeystrokeTransmitter keystrokeTransmitter
+        )
+        {
+            _key = "";
+            _keystrokeTransmitter = keystrokeTransmitter;
+        }
+
+        public override AbstractParsedMacroCommand Build()
+        {
+            return new KeyUpMacroCommand(_key, _keystrokeTransmitter);
+        }
+
+        public override AbstractParsedMacroCommandBuilder WithArg(object args)
+        {
+            if (args is string key)
+            {
+                _key = key;
+            }
+            return this;
+        }
+    }
+
+
+    public class WaitMacroCommandParser : AbstractMacroCommandParser
+    {
+        private AbstractMacroRandom _macroRandom;
+
+        private AbstractBracketContentsParser _bracketContentsParser;
+
+        private AbstractParsedMacroCommandBuilder _macroCommandBuilder;
+
+        public WaitMacroCommandParser(
+            AbstractMacroRandom macroRandom,
+            AbstractBracketContentsParser bracketContentsParser,
+            AbstractParsedMacroCommandBuilder macroCommandBuilder
+        )
+        {
+            _macroRandom = macroRandom;
+            _bracketContentsParser = bracketContentsParser;
+            _macroCommandBuilder = macroCommandBuilder;
+        }
+
+        public override AbstractParsedMacroCommand? Parse(string macroCommand)
+        {
+            if (macroCommand.ToLower().StartsWith("wait"))
+            {
+                var contents = _bracketContentsParser.Parse(macroCommand);
+                if (
+                    contents.Count == 2
+                    && int.TryParse(contents[0], out int interval1)
+                    && int.TryParse(contents[1], out int interval2)
+                )
+                {
+                    var minInterval = Math.Min(interval1, interval2);
+                    var maxInterval = Math.Max(interval1, interval2);
+                    var milliseconds = Math.Max(0, _macroRandom.Next(minInterval, maxInterval));
+                    return _macroCommandBuilder.WithArg(milliseconds).Build();
+                }
+            }
+            return null;
+        }
+    }
+
+    
+    public class KeyPressMacroCommandParser : AbstractMacroCommandParser
+    {
+        private AbstractMacroRandom _macroRandom;
+
+        private AbstractBracketContentsParser _bracketContentsParser;
+
+        private AbstractParsedMacroCommandBuilder _macroCommandBuilder;
+
+        public KeyPressMacroCommandParser(
+            AbstractMacroRandom macroRandom,
+            AbstractBracketContentsParser bracketContentsParser,
+            AbstractParsedMacroCommandBuilder macroCommandBuilder
+        )
+        {
+            _macroRandom = macroRandom;
+            _bracketContentsParser = bracketContentsParser;
+            _macroCommandBuilder = macroCommandBuilder;
+        }
+
+        public override AbstractParsedMacroCommand? Parse(string macroCommand)
+        {
+            if (macroCommand.ToLower().StartsWith("key press"))
+            {
+                var contents = _bracketContentsParser.Parse(macroCommand);
+                if (
+                    contents.Count >= 3
+                    && contents.All((content) => { return content != ""; })
+                    && int.TryParse(contents[contents.Count - 2], out int interval1)
+                    && int.TryParse(contents[contents.Count - 1], out int interval2)
+                )
+                {
+                    var keyIndex = _macroRandom.Next(0, contents.Count - 3);
+                    var key = contents[keyIndex];
+                    var minInterval = Math.Min(interval1, interval2);
+                    var maxInterval = Math.Max(interval1, interval2);
+                    var milliseconds = Math.Max(0, _macroRandom.Next(minInterval, maxInterval));
+                    return _macroCommandBuilder.WithArg(key).WithArg(milliseconds).Build();
+                }
+            }
+            return null;
+        }
+    }
+
+
+    public class KeyDownMacroCommandParser : AbstractMacroCommandParser
+    {
+        private AbstractBracketContentsParser _bracketContentsParser;
+
+        private AbstractParsedMacroCommandBuilder _macroCommandBuilder;
+
+        public KeyDownMacroCommandParser(
+            AbstractBracketContentsParser bracketContentsParser,
+            AbstractParsedMacroCommandBuilder macroCommandBuilder
+        )
+        {
+            _bracketContentsParser = bracketContentsParser;
+            _macroCommandBuilder = macroCommandBuilder;
+        }
+
+        public override AbstractParsedMacroCommand? Parse(string macroCommand)
+        {
+            if (macroCommand.ToLower().StartsWith("key down"))
+            {
+                var contents = _bracketContentsParser.Parse(macroCommand);
+                if (contents.Count == 1 && contents[0] != "")
+                {
+                    return _macroCommandBuilder.WithArg(contents[0]).Build();
+                }
+            }
+            return null;
+        }
+    }
+
+
+    public class KeyUpMacroCommandParser : AbstractMacroCommandParser
+    {
+        private AbstractBracketContentsParser _bracketContentsParser;
+
+        private AbstractParsedMacroCommandBuilder _macroCommandBuilder;
+
+        public KeyUpMacroCommandParser(
+            AbstractBracketContentsParser bracketContentsParser,
+            AbstractParsedMacroCommandBuilder macroCommandBuilder
+        )
+        {
+            _bracketContentsParser = bracketContentsParser;
+            _macroCommandBuilder = macroCommandBuilder;
+        }
+
+        public override AbstractParsedMacroCommand? Parse(string macroCommand)
+        {
+            if (macroCommand.ToLower().StartsWith("key up"))
+            {
+                var contents = _bracketContentsParser.Parse(macroCommand);
+                if (contents.Count == 1 && contents[0] != "")
+                {
+                    return _macroCommandBuilder.WithArg(contents[0]).Build();
+                }
+            }
+            return null;
+        }
+    }
+
+
+    public class MacroCommandsExecutor : AbstractMacroCommandsExecutor
+    {
+        List<AbstractMacroCommandParser> _macroCommandParsers;
+
+        public MacroCommandsExecutor(
+            List<AbstractMacroCommandParser> macroCommandParsers
+        )
+        {
+            _macroCommandParsers = macroCommandParsers;
+        }
+
+        public override void Execute(List<string> macroCommands)
+        {
+            for (int i = 0; i < macroCommands.Count; i++)
+            for (int j = 0; j < _macroCommandParsers.Count; j++)
+            {
+                var parsedMacroCommand = _macroCommandParsers[j].Parse(macroCommands[i]);
+                if (parsedMacroCommand != null)
+                {
+                    parsedMacroCommand.Run();
+                    break;
+                }
             }
         }
     }
 
 
-    public class KeystrokeTransmitterOrchestratorSystemBuilder : AbstractSystemBuilder
+    public class MacroCommandsExecutorBuilder : AbstractMacroCommandsExecutorBuilder
     {
-        public override AbstractSystem Build()
+        private AbstractKeystrokeTransmitter? _keystrokeTransmitter;
+
+        public override AbstractMacroCommandsExecutor Build()
         {
-            return new KeystrokeTransmitterOrchestratorSystem(
+            return new MacroCommandsExecutor(
                 [
-                    new KeystrokeTransmitterOrchestratorThreadFactory(MapIconInfo.Character)
+                    new WaitMacroCommandParser(
+                        new MacroRandom(),
+                        new BracketContentsParser(),
+                        new WaitMacroCommandBuilder(new MacroSleeper())
+                    ),
+                    new KeyPressMacroCommandParser(
+                        new MacroRandom(),
+                        new BracketContentsParser(),
+                        new KeyPressMacroCommandBuilder(new MacroSleeper(), _keystrokeTransmitter!)
+                    ),
+                    new KeyDownMacroCommandParser(
+                        new BracketContentsParser(),
+                        new KeyDownMacroCommandBuilder(_keystrokeTransmitter!)
+                    ),
+                    new KeyUpMacroCommandParser(
+                        new BracketContentsParser(),
+                        new KeyUpMacroCommandBuilder(_keystrokeTransmitter!)
+                    )
                 ]
             );
         }
 
-        public override AbstractSystemBuilder WithArg(object arg)
+        public override AbstractMacroCommandsExecutorBuilder WithArg(object arg)
         {
+            if (arg is AbstractKeystrokeTransmitter keystrokeTransmitter)
+            {
+                _keystrokeTransmitter = keystrokeTransmitter;
+            }
             return this;
         }
     }

@@ -2,6 +2,7 @@
 using MaplestoryBotNetTests.Systems.Configuration.Tests;
 using MaplestoryBotNetTests.Systems.GPUSelector.Tests;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests;
+using MaplestoryBotNetTests.Systems.Macro.Tests;
 using MaplestoryBotNetTests.Systems.ScreenCapture.Tests;
 using MaplestoryBotNetTests.Systems.ScreenProcessing.Tests;
 using MaplestoryBotNetTests.Systems.Tests;
@@ -20,7 +21,7 @@ void UnitTestSuite()
     new ConfigurationKeyboardTestSuite().Run();
     new ConfigurationImagesTestSuite().Run();
     new ConfigurationSystemTestSuite().Run();
-    new ConfigurationMapModelTestSutie().Run();
+    new ConfigurationMapModelTestSuite().Run();
     // Test the screen capture system
     new CaptureModuleTestSuite().Run();
     new ScreenCaptureSystemTestSuite().Run();
@@ -28,11 +29,14 @@ void UnitTestSuite()
     new ScreenProcessingSystemTestSuite().Run();
     // Test the keyboard system
     new KeyboardDeviceDetectorTestSuite().Run();
-    new KeystrokeTransmitterTestSuite().Run();
     new KeystrokeTransmitterCommandsTestSuite().Run();
     new KeyboardSystemTestSuite().Run();
     // Test the macro system
     new MacroDataTestSuite().Run();
+    new BottingTransmitterTestSuite().Run();
+    new RuneingTransmitterTestSuite().Run();
+    new SolvingTransmitterTestSuite().Run();
+    new MacroSystemTestSuite().Run();
     // Test the main system
     new MainSystemTestSuite().Run();
     // Test the user interface

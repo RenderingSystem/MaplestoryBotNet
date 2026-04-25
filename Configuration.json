@@ -105,5 +105,9 @@
     "frame_points_directory":  "./FramePoints",
     "frame_movements_directory": "./FrameMovements",
     "map_directory": "./Maps",
-    "interact_key": " "
+    "macro_check_frequency": {
+      "check_frequency": 2.0,
+      "activation_period": 900,
+      "solve_check_timeout":  3.0
+    }
 }

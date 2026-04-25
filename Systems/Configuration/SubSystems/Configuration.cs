@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -103,6 +102,28 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
     }
 
 
+    public class MacroSettings : AbstractConfiguration
+    {
+        [JsonPropertyName("check_frequency")]
+        public double CheckFrequency { set; get; } = 0.5;
+
+        [JsonPropertyName("activation_period")]
+        public int RuneActivationPeriod { set; get; } = 900;
+
+        [JsonPropertyName("solve_check_timeout")]
+        public double SolveCheckTimeout { set; get; } = 3;
+
+        public override AbstractConfiguration Copy()
+        {
+            var macroSettings = new MacroSettings();
+            macroSettings.RuneActivationPeriod = RuneActivationPeriod;
+            macroSettings.CheckFrequency = CheckFrequency;
+            macroSettings.SolveCheckTimeout = SolveCheckTimeout;
+            return macroSettings;
+        }
+    }
+
+
     public class MaplestoryBotConfiguration : AbstractConfiguration
     {
         [JsonPropertyName("process_name")]
@@ -135,6 +156,9 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("map_directory")]
         public string MapDirectory { get; set; } = "";
 
+        [JsonPropertyName("macro_check_frequency")]
+        public MacroSettings MacroSettings { get; set; } = new MacroSettings();
+
         public override AbstractConfiguration Copy()
         {
             var configuration = new MaplestoryBotConfiguration();
@@ -150,6 +174,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
             configuration.FramePointsDirectory = new string(FramePointsDirectory);
             configuration.FrameMovementsDirectory = new string(FrameMovementsDirectory);
             configuration.MapDirectory = new string(MapDirectory);
+            configuration.MacroSettings = (MacroSettings)MacroSettings.Copy();
             return configuration;
         }
     }

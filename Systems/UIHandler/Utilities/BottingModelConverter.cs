@@ -407,7 +407,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                         (ConfigurationRuneFrame)
                         _runeFrameConverter.ToConfiguration(runeFrame)!
                     )
-                ).ToList()
+                ).ToList(),
+                RuneRadius = runeModel.GetRadius(),
+                RuneActivation = runeModel.GetCooldown()
             };
         }
 
@@ -475,6 +477,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             {
                 bottingModel.GetRuneModel().AddRuneFrame(runeFrames[i]);
             }
+            bottingModel.GetRuneModel().SetRadius(configurationBottingModel.RuneRadius);
+            bottingModel.GetRuneModel().SetCooldown(configurationBottingModel.RuneActivation);
         }
 
         public override object? ToDataModel(object configuration)

@@ -36,7 +36,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks
     }
 
 
-    public class MockKeystrokeTransmitterExecutorThreadHelper : AbstractKeystrokeTransmitterExecutorThreadHelper
+    public class MockKeystrokeTransmitterThreadHelper : AbstractKeystrokeTransmitterThreadHelper
     {
         public List<string> CallOrder = [];
 
@@ -65,6 +65,14 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks
                 return TransmitReturn[TransmitIndex++];
             }
             throw new IndexOutOfRangeException();
+        }
+
+        public int ResetCalls = 0;
+        public override void Reset()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Reset";
+            CallOrder.Add(callReference);
+            ResetCalls++;
         }
     }
 
@@ -96,6 +104,21 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks
             CallOrder.Add(callReference);
             SetStateCalls++;
             SetStateCallArg_state.Add(state);
+        }
+
+        public int TypeCalls = 0;
+        public int TypeIndex = 0;
+        public List<KeystrokeTransmitterThreadType> TypeReturn = [];
+        public override KeystrokeTransmitterThreadType Type()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Type";
+            CallOrder.Add(callReference);
+            TypeCalls++;
+            if (TypeIndex < TypeReturn.Count)
+            {
+                return TypeReturn[TypeIndex++];
+            }
+            throw new IndexOutOfRangeException();
         }
     }
 }

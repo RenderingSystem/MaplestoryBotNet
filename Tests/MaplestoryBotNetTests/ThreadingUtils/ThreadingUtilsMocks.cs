@@ -221,4 +221,26 @@ namespace MaplestoryBotNetTests.ThreadingUtils
             SetTimestampCalls++;
         }
     }
+
+
+    public class MockResetEvent : AbstractResetEvent
+    {
+        public List<string> CallOrder = [];
+
+        public int SetCalls = 0;
+        public override void Set()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Set";
+            CallOrder.Add(callReference);
+            SetCalls++;
+        }
+
+        public int WaitOneCalls = 0;
+        public override void WaitOne()
+        {
+            var callReference = new TestUtilities().Reference(this) + "WaitOne";
+            CallOrder.Add(callReference);
+            WaitOneCalls++;
+        }
+    }
 }

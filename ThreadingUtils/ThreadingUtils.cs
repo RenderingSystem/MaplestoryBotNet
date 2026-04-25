@@ -96,7 +96,7 @@ namespace MaplestoryBotNet.ThreadingUtils
 
         public override void SetCountDown(int countDown)
         {
-            _countDownEvent = new CountdownEvent(countDown);
+            _countDownEvent.Reset(countDown);
         }
 
         public override void WaitCountDown()
@@ -117,6 +117,14 @@ namespace MaplestoryBotNet.ThreadingUtils
                 countDownEvent.Signal();
             }
         }
+    }
+
+
+    public abstract class AbstractResetEvent
+    {
+        public abstract void WaitOne();
+
+        public abstract void Set();
     }
 
 
@@ -274,5 +282,23 @@ namespace MaplestoryBotNet.ThreadingUtils
     public abstract class AbstractThreadFactory
     {
         public abstract AbstractThread CreateThread();
+    }
+
+
+    public class ExecutionEvent : AbstractResetEvent
+    {
+        private AutoResetEvent _autoResetEvent = (
+            new AutoResetEvent(false)
+        );
+
+        public override void Set()
+        {
+            _autoResetEvent.Set();
+        }
+
+        public override void WaitOne()
+        {
+            _autoResetEvent.WaitOne();
+        }
     }
 }

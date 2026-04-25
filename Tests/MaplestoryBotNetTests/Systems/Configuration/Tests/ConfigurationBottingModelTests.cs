@@ -209,7 +209,9 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     }
                 ],
                 "character_threshold": 0.234,
-                "rune_threshold": 0.123
+                "rune_threshold": 0.123,
+                "rune_activation": 123,
+                "rune_radius": 234
             }
             """;
         }
@@ -385,7 +387,9 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     }
                 ],
                 CharacterThreshold = 0.234f,
-                RuneThreshold = 0.123f
+                RuneThreshold = 0.123f,
+                RuneActivation = 123,
+                RuneRadius = 234
             };
         }
     }
@@ -771,6 +775,25 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         }
 
         /**
+         * @brief Tests deserialization of rune activation cooldown and detection radius settings
+         * 
+         * @test Validates that the deserializer correctly extracts rune automation settings
+         * from configuration data.
+         * 
+         * These settings control how the bot interacts with runes (anti-botting mechanisms)
+         * in MapleStory. The RuneActivation value specifies the cooldown time in seconds
+         * that the bot must wait after solving a rune before it can activate another rune.
+         * The RuneRadius value defines the detection radius around the rune.
+         */
+        private void _testDeserializerDeserializesRuneingSettings()
+        {
+            var deserializer = new ConfigurationBottingModelDeserializer();
+            var deserialized = deserializer.DeserializeBottingModel(ConfigurationFixture.StringFixture());
+            Debug.Assert(deserialized.RuneActivation == 123);
+            Debug.Assert(deserialized.RuneRadius == 234);
+        }
+
+        /**
          * @brief Executes the complete configuration deserialization test suite
          * 
          * @test
@@ -795,6 +818,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             _testDeserializerDeserializesRuneingFrameDirections();
             _testDeserializerDeserializesRuneingFrameMacroCommands();
             _testDeserializerDeserializesRuneingFrameDirectionCommands();
+            _testDeserializerDeserializesRuneingSettings();
         }
     }
 
@@ -855,7 +879,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
     }
 
 
-    public class ConfigurationMapModelTestSutie
+    public class ConfigurationMapModelTestSuite
     {
         public void Run()
         {

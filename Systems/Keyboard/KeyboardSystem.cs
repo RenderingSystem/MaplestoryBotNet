@@ -1,6 +1,6 @@
 ﻿using MaplestoryBotNet.Systems.Configuration;
-using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
 
 
 namespace MaplestoryBotNet.Systems.Keyboard
@@ -96,12 +96,18 @@ namespace MaplestoryBotNet.Systems.Keyboard
     {
         private AbstractSystemBuilder _keyboardDeviceDetectorSystemBuilder;
 
-        private AbstractSystemBuilder _keystrokeTransmitterOrchestratorSystemBuilder;
+        private AbstractSystemBuilder _bottingOrchestratorSystemBuilder;
+
+        private AbstractSystemBuilder _runeingOrchestratorSystemBuilder;
+
+        private AbstractSystemBuilder _solvingOrchestratorSystemBuilder;
 
         public KeyboardSystemBuilder()
         {
             _keyboardDeviceDetectorSystemBuilder = new KeyboardDeviceDetectorSystemBuilder();
-            _keystrokeTransmitterOrchestratorSystemBuilder = new KeystrokeTransmitterOrchestratorSystemBuilder();
+            _bottingOrchestratorSystemBuilder = new BottingOrchestratorSystemBuilder();
+            _runeingOrchestratorSystemBuilder = new RuneingOrchestratorSystemBuilder();
+            _solvingOrchestratorSystemBuilder = new SolvingOrchestratorSystemBuilder();
         }
 
         public override AbstractSystem Build()
@@ -109,7 +115,9 @@ namespace MaplestoryBotNet.Systems.Keyboard
             return new KeyboardSystem(
                 [
                     _keyboardDeviceDetectorSystemBuilder.Build(),
-                    _keystrokeTransmitterOrchestratorSystemBuilder.Build()
+                    _bottingOrchestratorSystemBuilder.Build(),
+                    _runeingOrchestratorSystemBuilder.Build(),
+                    _solvingOrchestratorSystemBuilder.Build()
                 ],
                 new KeystrokeTransmitterBuilder()
             );
@@ -118,7 +126,7 @@ namespace MaplestoryBotNet.Systems.Keyboard
         public override AbstractSystemBuilder WithArg(object arg)
         {
             _keyboardDeviceDetectorSystemBuilder.WithArg(arg);
-            _keystrokeTransmitterOrchestratorSystemBuilder.WithArg(arg);
+            _bottingOrchestratorSystemBuilder.WithArg(arg);
             return this;
         }
     }

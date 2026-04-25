@@ -1,25 +1,26 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
-using MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Drawing;
 
 
 namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 {
-    public class RandomMacroCommandsSelectorTests
+    public class RandomBottingMacroCommandsSelectorTests
     {
         private List<MinimapPointMacros> _minimapPointMacros = [];
 
         private MockMacroRandom _macroRandom = new MockMacroRandom();
 
-        private AbstractMacroCommandsSelector _fixture(int macroCount)
+        private AbstractBottingMacroCommandsSelector _fixture(int macroCount)
         {
             _macroRandom = new MockMacroRandom();
             _minimapPointMacros = [];
@@ -34,7 +35,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                     }
                 );
             }
-            return new RandomMacroCommandsSelector(_macroRandom);
+            return new BottingRandomMacroCommandsSelector(_macroRandom);
         }
 
         /**
@@ -65,7 +66,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
     }
 
 
-    public class KeystrokeTransmitterPointDataSelectorTests
+    public class BottingPointDataSelectorTests
     {
         private BottingModel _bottingModel = new BottingModel();
 
@@ -91,7 +92,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             ];
         }
 
-        private AbstractPointDataSelector _fixture()
+        private AbstractBottingPointDataSelector _fixture()
         {
             _bottingModel = new BottingModel();
             var minimapRects = _minimapRects();
@@ -108,7 +109,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                     }
                 );
             }
-            return new KeystrokeTransmitterPointDataSelector("some key");
+            return new BottingPointDataSelector("some key");
         }
 
         /**
@@ -139,7 +140,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
     }
 
 
-    public class KeystrokeTransmitterExecutorThreadHelperTests
+    public class BottingExecutorThreadHelperTests
     {
         private MockMacroCommandsExecutorBuilder _executorBuilder = new MockMacroCommandsExecutorBuilder();
 
@@ -171,7 +172,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             ];
         }
 
-        private AbstractKeystrokeTransmitterExecutorThreadHelper _fixture()
+        private AbstractKeystrokeTransmitterThreadHelper _fixture()
         {
             _executorBuilder = new MockMacroCommandsExecutorBuilder();
             _executor = new MockMacroCommandsExecutor();
@@ -202,9 +203,9 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                 );
             }
             _executorBuilder.BuildReturn.Add(_executor);
-            return new KeystrokeTransmitterExecutorThreadHelper(
-                new KeystrokeTransmitterPointDataSelector("some key"),
-                new RandomMacroCommandsSelector(new MacroRandom()),
+            return new BottingExecutorThreadHelper(
+                new BottingPointDataSelector("some key"),
+                new BottingRandomMacroCommandsSelector(new MacroRandom()),
                 _executorBuilder
             );
         }
@@ -216,7 +217,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
          * an executor that can run macro commands. This test ensures that the
          * executor is properly built once the keystroke transmitter is available.
          */
-        private void _testInjectingKeystrokeTransmitterBuildsExecutor()
+        private void _testInjectingBottingBuildsExecutor()
         {
             var executorThreadHelper = _fixture();
             executorThreadHelper.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
@@ -253,27 +254,28 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 
         public void Run()
         {
-            _testInjectingKeystrokeTransmitterBuildsExecutor();
+            _testInjectingBottingBuildsExecutor();
             _testTransmitExecutesSelectedMacroCommands();
         }
     }
     
 
-    public class KeystrokeTransmitterExecutorThreadTests
+    public class BottingExecutorThreadTests
     {
-        private MockCountDown _receiveCountDown = new MockCountDown();
-
-        private MockCountDown _transmitCountDown = new MockCountDown();
-
-        private MockKeystrokeTransmitterExecutorThreadHelper _executorThreadHelper = (
-            new MockKeystrokeTransmitterExecutorThreadHelper()
+        private MockKeystrokeTransmitterThreadHelper _executorThreadHelper = (
+            new MockKeystrokeTransmitterThreadHelper()
         );
+
+        private MockResetEvent _executionEvent = new MockResetEvent();
+
+        private MockRunningState _transmittingState = new MockRunningState();
 
         private MockRunningState _runningState = new MockRunningState();
 
         private AbstractKeystrokeTransmitterThreadState _threadState = (
             new KeystrokeTransmitterThreadState(
-                (int) KeystrokeTransmitterExecutorThreadedUpdate.Stopped
+                (int)BottingExecutorThreadedUpdate.Stopped,
+                KeystrokeTransmitterThreadType.Botting
             )
         );
 
@@ -281,53 +283,39 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 
         private List<string> _callOrder = [];
 
-        private string _executorThreadHelperRef = "";
-
-        private string _transmitCountDownRef = "";
-
-        private string _receiveCountDownRef = "";
-
         private string _threadStateRef = "";
 
-        private string _injectActionRef = "";
+        private string _transmittingStateRef = "";
+
+        private string _executionEventRef = "";
 
         private void _setupNewFixture(
             AbstractKeystrokeTransmitterThreadState threadState
         )
         {
-            _receiveCountDown = new MockCountDown();
-            _transmitCountDown = new MockCountDown();
-            _executorThreadHelper = new MockKeystrokeTransmitterExecutorThreadHelper();
+            _executorThreadHelper = new MockKeystrokeTransmitterThreadHelper();
+            _executionEvent = new MockResetEvent();
+            _transmittingState = new MockRunningState();
             _runningState = new MockRunningState();
-            _callOrder = [];
-            _injectAction = new MockInjectAction();
             _threadState = threadState;
-        }
-
-        private void _setupReferences()
-        {
-            _transmitCountDownRef = new TestUtilities().Reference(_transmitCountDown);
-            _receiveCountDownRef = new TestUtilities().Reference(_receiveCountDown);
-            _threadStateRef = new TestUtilities().Reference(_threadState);
-            _injectActionRef = new TestUtilities().Reference(_injectAction);
-            _executorThreadHelperRef = new TestUtilities().Reference(_executorThreadHelper);
+            _injectAction = new MockInjectAction();
+            _callOrder = [];
         }
 
         private void _setupCallOrder()
         {
-            _transmitCountDown.CallOrder = _callOrder;
-            _receiveCountDown.CallOrder = _callOrder;
             if (_threadState is MockKeystrokeTransmitterThreadState mockThreadState)
             {
                 mockThreadState.CallOrder = _callOrder;
             }
+            _executionEvent.CallOrder = _callOrder;
             _injectAction.CallOrder = _callOrder;
+            _transmittingState.CallOrder = _callOrder;
         }
 
         private void _setupRunningState()
         {
             _runningState.IsRunningReturn.Add(false);
-            _runningState.IsRunningReturn.Add(true);
             _runningState.IsRunningReturn.Add(true);
             _runningState.IsRunningReturn.Add(false);
         }
@@ -347,7 +335,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                 () =>
                 {
                     abstractThread.Inject(
-                        KeystrokeTransmitterOrchestratorThreadInjectType.Stop, null
+                        BottingOrchestratorThreadInjectType.Stop, null
                     );
                 },
                 () =>
@@ -357,141 +345,62 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             ];
         }
 
+        private void _setupReferences()
+        {
+            _threadStateRef = new TestUtilities().Reference(_threadState);
+            _transmittingStateRef = new TestUtilities().Reference(_transmittingState); ;
+            _executionEventRef = new TestUtilities().Reference(_executionEvent);
+        }
+
         private AbstractThread _fixture(
             int transmitCount, AbstractKeystrokeTransmitterThreadState threadState
         )
         {
             _setupNewFixture(threadState);
-            _setupReferences();
             _setupCallOrder();
             _setupRunningState();
             _setupTransmit(transmitCount);
-            return new KeystrokeTransmitterExecutorThread(
-                _receiveCountDown,
-                _transmitCountDown,
+            _setupReferences();
+            return new BottingExecutorThread(
+                _executionEvent,
                 _executorThreadHelper,
                 _threadState,
+                _transmittingState,
                 _runningState
             );
         }
 
-        private void _setupInjectAction(
-            AbstractThread thread, Action<object, object> injectAction
-        )
-        {
-            _injectAction.GetActionReturn.Add(injectAction);
-            _injectAction.GetActionReturn.Add(injectAction);
-            thread.Inject(
-                SystemInjectType.InjectAction, _injectAction
-            );
-        }
-
         /**
-         * @brief Verifies the startup sequence when automation begins
+         * @brief Verifies the handshake sequence when the botting executor starts its
+         * monster-killing transmission routine
          * 
-         * When users start their automation, the system needs to properly initialize
-         * the macro execution thread. This test ensures the thread performs the
-         * correct startup handshake, including setting up counters, and updating state.
+         * When the macro system determines that the character should begin killing
+         * monsters on the map, the botting orchestrator signals the executor to start
+         * its transmission routine. The executor performs a coordinated startup handshake
+         * with the botting executor to ensure that transmission is ready.
          */
         private void _testExecutorStartingHandshake()
         {
-            var threadState = new MockKeystrokeTransmitterThreadState();
-            var keystrokeTransmitterExecutorThread = _fixture(1, threadState);
-            var injectAction = (object dataType, object data) =>
-            {
-                var callReference = new TestUtilities().Reference(_injectAction) + "ActionCall";
-                _callOrder.Add(callReference);
-            };
-            _setupInjectAction(keystrokeTransmitterExecutorThread, injectAction);
-            Debug.Assert(_callOrder.Count == 0);
-            keystrokeTransmitterExecutorThread.Inject(
-                KeystrokeTransmitterOrchestratorThreadInjectType.Start, 0
-            );
-            Debug.Assert(_callOrder.Count == 10);
-            Debug.Assert(_callOrder[0] == _transmitCountDownRef + "SetCountDown");
-            Debug.Assert(_callOrder[1] == _threadStateRef + "SetState");
-            Debug.Assert(_callOrder[2] == _injectActionRef + "GetAction");
-            Debug.Assert(_callOrder[3] == _injectActionRef + "ActionCall");
-            Debug.Assert(_callOrder[4] == _receiveCountDownRef + "CountDown");
-            Debug.Assert(_callOrder[5] == _transmitCountDownRef + "WaitCountDown");
-            Debug.Assert(_callOrder[6] == _threadStateRef + "SetState");
-            Debug.Assert(_callOrder[7] == _injectActionRef + "GetAction");
-            Debug.Assert(_callOrder[8] == _injectActionRef + "ActionCall");
-            Debug.Assert(_callOrder[9] == _receiveCountDownRef + "CountDown");
-        }
-
-        /**
-         * @brief Verifies the shutdown sequence when automation stops
-         * 
-         * When users stop their automation, the macro execution thread needs to
-         * shut down cleanly. This test ensures the thread properly stops its loop,
-         * updates its state, and releases resources.
-         */
-        private void _testExecutorStoppingHandshake()
-        {
-            for (int i = 0; i < 2; i++)
+            for (int i = 1; i < 10; i++)
             {
                 var threadState = new MockKeystrokeTransmitterThreadState();
                 var keystrokeTransmitterExecutorThread = _fixture(1, threadState);
-                var stopLambdas = _stopLambdas(keystrokeTransmitterExecutorThread);
-                var injectAction = (object dataType, object data) =>
+                for (int j = 0; j < i; j++)
                 {
-                    var callReference = new TestUtilities().Reference(_injectAction) + "ActionCall";
-                    _callOrder.Add(callReference);
-                };
-                _setupInjectAction(keystrokeTransmitterExecutorThread, injectAction);
-                Debug.Assert(_callOrder.Count == 0);
-                stopLambdas[i]();
-                Debug.Assert(_callOrder.Count == 9);
-                Debug.Assert(_callOrder[0] == _transmitCountDownRef + "SetCountDown");
-                Debug.Assert(_callOrder[1] == _threadStateRef + "SetState");
-                Debug.Assert(_callOrder[2] == _injectActionRef + "GetAction");
-                Debug.Assert(_callOrder[3] == _injectActionRef + "ActionCall");
-                Debug.Assert(_callOrder[4] == _receiveCountDownRef + "CountDown");
-                Debug.Assert(_callOrder[5] == _transmitCountDownRef + "WaitCountDown");
-                Debug.Assert(_callOrder[6] == _threadStateRef + "SetState");
-                Debug.Assert(_callOrder[7] == _injectActionRef + "GetAction");
-                Debug.Assert(_callOrder[8] == _injectActionRef + "ActionCall");
+                    _transmittingState.IsRunningReturn.Add(true);
+                }
+                _transmittingState.IsRunningReturn.Add(false);
+                keystrokeTransmitterExecutorThread.Inject(BottingOrchestratorThreadInjectType.Start, 0);
+                Debug.Assert(_callOrder.Count == (i + 4));
+                Debug.Assert(_callOrder[0] == _threadStateRef + "SetState");
+                for (int j = 1; j <= i + 1; j++)
+                {
+                    Debug.Assert(_callOrder[j] == _transmittingStateRef + "IsRunning");
+                }
+                Debug.Assert(_callOrder[i + 2] == _threadStateRef + "SetState");
+                Debug.Assert(_callOrder[i + 3] == _executionEventRef + "Set");
             }
         }
-
-        /**
-         * @brief Confirms the startup handshake uses a single countdown
-         * 
-         * When starting automation, the system uses a countdown mechanism to
-         * coordinate between threads. This test ensures the countdown is correctly
-         * set to 1, meaning the thread will wait for exactly one signal before
-         * beginning macro execution.
-         */
-        private void _testExecutorStartingHandshakeSetsCountDownToOne()
-        {
-            var threadState = new MockKeystrokeTransmitterThreadState();
-            var keystrokeTransmitterExecutorThread = _fixture(1, threadState);
-            keystrokeTransmitterExecutorThread.Inject(
-                KeystrokeTransmitterOrchestratorThreadInjectType.Start, 0
-            );
-            Debug.Assert(_transmitCountDown.SetCountDownCallArg_countDown[0] == 1);
-        }
-
-        /**
-         * @brief Confirms the shutdown handshake uses a single countdown
-         * 
-         * When stopping automation, the system uses a countdown to coordinate the
-         * thread shutdown. This test ensures the countdown is correctly set to 1,
-         * allowing the thread to complete the final operation before stopping.
-         */
-        private void _testExecutorStoppingHandshakeSetsCountDownToOne()
-        {
-            for (int i = 0; i < 2; i++)
-            {
-                var threadState = new MockKeystrokeTransmitterThreadState();
-                var keystrokeTransmitterExecutorThread = _fixture(1, threadState);
-                var stopLambdas = _stopLambdas(keystrokeTransmitterExecutorThread);
-                stopLambdas[i]();
-                Debug.Assert(_transmitCountDown.SetCountDownCallArg_countDown[0] == 1);
-            }
-        }
-
 
         /**
          * @brief Verifies thread state changes correctly during startup
@@ -504,12 +413,46 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         {
             var threadState = new MockKeystrokeTransmitterThreadState();
             var keystrokeTransmitterExecutorThread = _fixture(1, threadState);
+            _transmittingState.IsRunningReturn.Add(false);
             keystrokeTransmitterExecutorThread.Inject(
-                KeystrokeTransmitterOrchestratorThreadInjectType.Start, 0
+                BottingOrchestratorThreadInjectType.Start, 0
             );
-            Debug.Assert(threadState.SetStateCallArg_state[0] == (int)KeystrokeTransmitterExecutorThreadedUpdate.Starting);
-            Debug.Assert(threadState.SetStateCallArg_state[1] == (int)KeystrokeTransmitterExecutorThreadedUpdate.Started);
+            Debug.Assert(threadState.SetStateCallArg_state[0] == (int)BottingExecutorThreadedUpdate.Starting);
+            Debug.Assert(threadState.SetStateCallArg_state[1] == (int)BottingExecutorThreadedUpdate.Started);
         }
+
+        /**
+         * @brief Verifies the handshake sequence when the botting executor stops its
+         * monster-killing transmission routine
+         * 
+         * When the macro system needs to switch to a different transmission routine
+         * (such as navigating to a rune or solving the rune puzzle), the orchestrator
+         * signals the executor to stop its current routine. The executor performs a
+         * coordinated shutdown handshake to ensure keystrokes stop cleanly before
+         * the routine exits.
+         */
+        private void _testExecutorStoppingHandshake()
+        {
+            for (int i = 1; i < 10; i++)
+            {
+                var threadState = new MockKeystrokeTransmitterThreadState();
+                var keystrokeTransmitterExecutorThread = _fixture(1, threadState);
+                for (int j = 0; j < i; j++)
+                {
+                    _transmittingState.IsRunningReturn.Add(true);
+                }
+                _transmittingState.IsRunningReturn.Add(false);
+                keystrokeTransmitterExecutorThread.Inject(BottingOrchestratorThreadInjectType.Stop, 0);
+                Debug.Assert(_callOrder.Count == (i + 3));
+                Debug.Assert(_callOrder[0] == _threadStateRef + "SetState");
+                for (int j = 1; j <= i + 1; j++)
+                {
+                    Debug.Assert(_callOrder[j] == _transmittingStateRef + "IsRunning");
+                }
+                Debug.Assert(_callOrder[i + 2] == _threadStateRef + "SetState");
+            }
+        }
+
 
         /**
          * @brief Verifies thread state changes correctly during shutdown
@@ -524,62 +467,11 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             {
                 var threadState = new MockKeystrokeTransmitterThreadState();
                 var keystrokeTransmitterExecutorThread = _fixture(1, threadState);
+                _transmittingState.IsRunningReturn.Add(false);
                 var stopLambdas = _stopLambdas(keystrokeTransmitterExecutorThread);
                 stopLambdas[i]();
-                Debug.Assert(threadState.SetStateCallArg_state[0] == (int)KeystrokeTransmitterExecutorThreadedUpdate.Stopping);
-                Debug.Assert(threadState.SetStateCallArg_state[1] == (int)KeystrokeTransmitterExecutorThreadedUpdate.Stopped);
-            }
-        }
-
-        /**
-         * @brief Confirms status updates are broadcast during startup
-         * 
-         * When starting automation, the system broadcasts its status so other
-         * components know what's happening. This test ensures the thread sends
-         * the proper notifications when it's starting and after it's started.
-         */
-        private void _testExecutorStartingHandshakeInjectsThreadStates()
-        {
-            var dataTypeList = new List<object>();
-            var injectAction = (object dataType, object data) =>
-            {
-                dataTypeList.Add(dataType);
-            };
-            var threadState = new MockKeystrokeTransmitterThreadState();
-            var keystrokeTransmitterExecutorThread = _fixture(1, threadState);
-            _setupInjectAction(keystrokeTransmitterExecutorThread, injectAction);
-            keystrokeTransmitterExecutorThread.Inject(
-                KeystrokeTransmitterOrchestratorThreadInjectType.Start, 0
-            );
-            Debug.Assert(dataTypeList.Count == 2);
-            Debug.Assert(dataTypeList[0] is KeystrokeTransmitterExecutorThreadedUpdate.Starting);
-            Debug.Assert(dataTypeList[1] is KeystrokeTransmitterExecutorThreadedUpdate.Started);
-        }
-
-        /**
-         * @brief Confirms status updates are broadcast during shutdown
-         * 
-         * When stopping automation, the system broadcasts its status so other
-         * components know it's shutting down. This test ensures the thread sends
-         * proper notifications during the stopping process.
-         */
-        private void _testExecutorStoppingHandshakeInjectsThreadStates()
-        {
-            for (int i = 0; i < 2; i++)
-            {
-                var dataTypeList = new List<object>();
-                var injectAction = (object dataType, object data) =>
-                {
-                    dataTypeList.Add(dataType);
-                };
-                var threadState = new MockKeystrokeTransmitterThreadState();
-                var keystrokeTransmitterExecutorThread = _fixture(1, threadState);
-                var stopLambdas = _stopLambdas(keystrokeTransmitterExecutorThread);
-                _setupInjectAction(keystrokeTransmitterExecutorThread, injectAction);
-                stopLambdas[i]();
-                Debug.Assert(dataTypeList.Count == 2);
-                Debug.Assert(dataTypeList[0] is KeystrokeTransmitterExecutorThreadedUpdate.Stopping);
-                Debug.Assert(dataTypeList[1] is KeystrokeTransmitterExecutorThreadedUpdate.Stopped);
+                Debug.Assert(threadState.SetStateCallArg_state[0] == (int)BottingExecutorThreadedUpdate.Stopping);
+                Debug.Assert(threadState.SetStateCallArg_state[1] == (int)BottingExecutorThreadedUpdate.Stopped);
             }
         }
 
@@ -596,12 +488,13 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             for (int i = 1; i < 10; i++)
             {
                 var threadState = new KeystrokeTransmitterThreadState(
-                    (int) KeystrokeTransmitterExecutorThreadedUpdate.Stopped
+                    (int)BottingExecutorThreadedUpdate.Stopped,
+                    KeystrokeTransmitterThreadType.Botting
                 );
                 var keystrokeTransmitterExecutorThread = _fixture(i, threadState);
-                keystrokeTransmitterExecutorThread.Inject(
-                    KeystrokeTransmitterOrchestratorThreadInjectType.Start, 0
-                );
+                var start = BottingOrchestratorThreadInjectType.Start;
+                _transmittingState.IsRunningReturn.Add(false);
+                keystrokeTransmitterExecutorThread.Inject(start, 0);
                 keystrokeTransmitterExecutorThread.Start();
                 keystrokeTransmitterExecutorThread.Join(10000);
                 Debug.Assert(_executorThreadHelper.TransmitCalls == i);
@@ -620,104 +513,42 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             for (int i = 1; i < 10; i++)
             {
                 var threadState = new KeystrokeTransmitterThreadState(
-                    (int) KeystrokeTransmitterExecutorThreadedUpdate.Started
+                    (int)BottingExecutorThreadedUpdate.Started,
+                    KeystrokeTransmitterThreadType.Botting
                 );
                 var keystrokeTransmitterExecutorThread = _fixture(i, threadState);
-                keystrokeTransmitterExecutorThread.Inject(
-                    KeystrokeTransmitterOrchestratorThreadInjectType.Stop, 0
-                );
+                var stop = BottingOrchestratorThreadInjectType.Stop;
+                _transmittingState.IsRunningReturn.Add(false);
+                keystrokeTransmitterExecutorThread.Inject(stop, 0);
                 keystrokeTransmitterExecutorThread.Start();
                 keystrokeTransmitterExecutorThread.Join(10000);
                 Debug.Assert(_executorThreadHelper.TransmitCalls == 0);
             }
         }
 
-        /**
-         * @brief Verifies the complete thread loop coordination
-         * 
-         * This test ensures the thread's main loop properly coordinates all its
-         * activities: waiting for commands, executing macros, and handling the
-         * coordination between the orchestrator thread and the macro execution thread.
-         */
-        private void _testExecutorThreadLoopHandshake()
-        {
-            for (int i = 1; i < 10; i++)
-            {
-                var threadState = new KeystrokeTransmitterThreadState(
-                    (int) KeystrokeTransmitterExecutorThreadedUpdate.Started
-                );
-                var keystrokeTransmitterExecutorThread = _fixture(i, threadState);
-                keystrokeTransmitterExecutorThread.Inject(
-                    KeystrokeTransmitterOrchestratorThreadInjectType.Start, 0
-                );
-                _callOrder.Clear();
-                _executorThreadHelper.CallOrder = _callOrder;
-                keystrokeTransmitterExecutorThread.Start();
-                keystrokeTransmitterExecutorThread.Join(10000);
-                Debug.Assert(_callOrder.Count == 3 + i);
-                Debug.Assert(_callOrder[0] == _receiveCountDownRef + "WaitCountDown");
-                for (int j = 0; j < i; j++)
-                {
-                    Debug.Assert(_callOrder[j + 1] == _executorThreadHelperRef + "Transmit");
-                }
-                Debug.Assert(_callOrder[i + 1] == _receiveCountDownRef + "SetCountDown");
-                Debug.Assert(_callOrder[i + 2] == _transmitCountDownRef + "CountDown");
-            }
-        }
-
-        /**
-         * @brief Confirms the thread loop uses a single countdown for coordination
-         * 
-         * When the thread loop is running, it uses a countdown to know when to
-         * check for new commands. This test ensures the countdown is correctly
-         * set to 1 for proper thread coordination.
-         */
-        private void _testExecutorThreadLoopHandshakeSetsCountDownToOne()
-        {
-            var threadState = new KeystrokeTransmitterThreadState(
-                (int)KeystrokeTransmitterExecutorThreadedUpdate.Started
-            );
-            var keystrokeTransmitterExecutorThread = _fixture(1, threadState);
-            keystrokeTransmitterExecutorThread.Inject(
-                KeystrokeTransmitterOrchestratorThreadInjectType.Start, 0
-            );
-            _callOrder.Clear();
-            keystrokeTransmitterExecutorThread.Start();
-            keystrokeTransmitterExecutorThread.Join(10000);
-            Debug.Assert(_receiveCountDown.SetCountDownCallArg_countDown[0] == 1);
-        }
-
         public void Run()
         {
             _testExecutorStartingHandshake();
-            _testExecutorStoppingHandshake();
-            _testExecutorStartingHandshakeSetsCountDownToOne();
-            _testExecutorStoppingHandshakeSetsCountDownToOne();
             _testExecutorStartingHandshakeSetsThreadStates();
+            _testExecutorStoppingHandshake();
             _testExecutorStoppingHandshakeSetsThreadStates();
-            _testExecutorStartingHandshakeInjectsThreadStates();
-            _testExecutorStoppingHandshakeInjectsThreadStates();
-            _testExecutorThreadLoopHandshake();
-            _testExecutorThreadLoopHandshakeSetsCountDownToOne();
             _testExecutorThreadLoopTransmitsWhenStarted();
             _testExecutorThreadLoopDoesntTransmitWhenStopped();
         }
     }
 
 
-    public class KeystrokeTransmitterOrchestratorThreadTests
+    public class BottingOrchestratorThreadTests
     {
-        private AbstractKeystrokeTransmitterThreadState _threadState = new KeystrokeTransmitterThreadState(0);
-
-        private MockCountDown _receiveCountDown = new MockCountDown();
+        private AbstractKeystrokeTransmitterThreadState _threadState = new KeystrokeTransmitterThreadState(
+            0, KeystrokeTransmitterThreadType.Botting
+        );
 
         private MockThread _thread = new MockThread(new ThreadRunningState());
 
         private MockRunningState _runningState = new MockRunningState();
 
-        private string _threadStateRef = "";
-
-        private string _receiveCountDownRef = "";
+        private BlockingCollection<int> _threadStates = new BlockingCollection<int>();
 
         private string _threadRef = "";
 
@@ -726,29 +557,37 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private AbstractThread _fixture(AbstractKeystrokeTransmitterThreadState threadState)
         {
             _threadState = threadState;
-            _receiveCountDown = new MockCountDown();
             _thread = new MockThread(new ThreadRunningState());
             _runningState = new MockRunningState();
             _callOrder = [];
-            _receiveCountDown.CallOrder = _callOrder;
             _thread.CallOrder = _callOrder;
+            _threadStates = new BlockingCollection<int>();
             if (_threadState is MockKeystrokeTransmitterThreadState mockThreadState)
             {
                 mockThreadState.CallOrder = _callOrder;
             }
-            _threadStateRef = new TestUtilities().Reference(_threadState);
-            _receiveCountDownRef = new TestUtilities().Reference(_receiveCountDown);
             _threadRef = new TestUtilities().Reference(_thread);
-            _runningState.IsRunningReturn.Add(false);
-            _runningState.IsRunningReturn.Add(true);
-            _runningState.IsRunningReturn.Add(true);
-            _runningState.IsRunningReturn.Add(false);
-            return new KeystrokeTransmitterOrchestratorThread(
-                _threadState,
-                _receiveCountDown,
+            return new BottingOrchestratorThread(
                 _thread,
-                _runningState
+                _runningState,
+                _threadStates
             );
+        }
+
+        private void _setTransmitFixture(int transmitCount)
+        {
+            _runningState.IsRunningReturn.Add(false);
+            _runningState.IsRunningReturn.Add(true);
+            for (int j = 0; j < transmitCount; j++)
+            {
+                _runningState.IsRunningReturn.Add(true);
+            }
+            _runningState.IsRunningReturn.Add(false);
+            _runningState.IsRunningReturn.Add(false);
+            for (int j = 0; j < transmitCount + 1; j++)
+            {
+                _threadStates.Add(j);
+            }
         }
 
         /**
@@ -760,8 +599,12 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
          */
         private void _testStartingOrchestratorStartsExecutorThread()
         {
-            var threadState = new KeystrokeTransmitterThreadState(0);
+            var threadState = new KeystrokeTransmitterThreadState(
+                0, KeystrokeTransmitterThreadType.Botting
+            );
             var transmitterOrchestratorThread = _fixture(threadState);
+            _runningState.IsRunningReturn.Add(false);
+            _runningState.IsRunningReturn.Add(false);
             transmitterOrchestratorThread.Start();
             Debug.Assert(_thread.ThreadStartCalls == 1);
         }
@@ -775,14 +618,18 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
          */
         private void _testStoppingOrchestratorStopsExecutorThread()
         {
-            var threadState = new KeystrokeTransmitterThreadState(0);
+            var threadState = new KeystrokeTransmitterThreadState(
+                0, KeystrokeTransmitterThreadType.Botting
+            );
             var transmitterOrchestratorThread = _fixture(threadState);
+            _runningState.IsRunningReturn.Add(true);
             _thread.CallOrder = _callOrder;
-            _receiveCountDown.CallOrder = _callOrder;
+            Debug.Assert(_threadStates.Count == 0);
             transmitterOrchestratorThread.Stop();
-            Debug.Assert(_callOrder.Count == 2);
+            Debug.Assert(_threadStates.Count == 1);
+            Debug.Assert(_callOrder.Count == 1);
             Debug.Assert(_callOrder[0] == _threadRef + "ThreadStop");
-            Debug.Assert(_callOrder[1] == _receiveCountDownRef + "CountDown");
+
         }
 
         /**
@@ -795,15 +642,18 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
          */
         private void _testInjectingOrchestratorCommandAssignsThreadState()
         {
-            var threadState = new KeystrokeTransmitterThreadState(123);
+            var threadState = new KeystrokeTransmitterThreadState(
+                123, KeystrokeTransmitterThreadType.Botting
+            );
             var transmitterOrchestratorThread = _fixture(threadState);
-            var max = KeystrokeTransmitterOrchestratorThreadInjectType.MaxNum;
+            var max = BottingOrchestratorThreadInjectType.MaxNum;
             for (int i = 0; i < (int)max; i++)
             {
                 transmitterOrchestratorThread.Inject(
-                    (KeystrokeTransmitterOrchestratorThreadInjectType)i, 0
+                    (BottingOrchestratorThreadInjectType)i, 0
                 );
-                Debug.Assert(_threadState.GetState() == i);
+                Debug.Assert(_threadStates.Count == 1);
+                Debug.Assert(_threadStates.Take() == i);
             }
         }
 
@@ -812,22 +662,18 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
          * 
          * When commands are sent to the orchestrator, it should acknowledge them
          * by updating its state and signaling that the command was received.
-         * This test ensures the orchestrator properly handles the command handshake.
+         * This test ensures the orchestrator properly handles the command.
          */
-        private void _testInjectOrchestratorCommandHandshake()
+        private void _testInjectOrchestratorCommand()
         {
-            var max = KeystrokeTransmitterOrchestratorThreadInjectType.MaxNum;
+            var max = BottingOrchestratorThreadInjectType.MaxNum;
             for (int i = 0; i < (int)max; i++)
             {
                 var threadState = new MockKeystrokeTransmitterThreadState();
                 var transmitterOrchestratorThread = _fixture(threadState);
-                transmitterOrchestratorThread.Inject(
-                    (KeystrokeTransmitterOrchestratorThreadInjectType)i, 0
-                );
-                Debug.Assert(_thread.InjectCalls == 0);
-                Debug.Assert(_callOrder.Count == 2);
-                Debug.Assert(_callOrder[0] == _threadStateRef + "SetState");
-                Debug.Assert(_callOrder[1] == _receiveCountDownRef + "CountDown");
+                transmitterOrchestratorThread.Inject((BottingOrchestratorThreadInjectType)i, 0);
+                Debug.Assert(_threadStates.Count == 1);
+                Debug.Assert(_threadStates.Take() == i);
             }
         }
 
@@ -887,50 +733,25 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
          * waiting for commands, updating state, and managing the executor.
          * This test ensures the loop properly sequences all these activities.
          */
-        private void _testThreadLoopHandshake()
+        private void _testThreadLoopInjectsCommands()
         {
-            var threadState = new KeystrokeTransmitterThreadState(123);
-            var transmitterOrchestratorThread = _fixture(threadState);
-            transmitterOrchestratorThread.Start();
-            transmitterOrchestratorThread.Join(10000);
-            Debug.Assert(_callOrder.Count == 4);
-            Debug.Assert(_callOrder[0] == _threadRef + "ThreadStart");
-            Debug.Assert(_callOrder[1] == _receiveCountDownRef + "WaitCountDown");
-            Debug.Assert(_callOrder[2] == _threadRef + "ThreadInject");
-            Debug.Assert(_callOrder[3] == _receiveCountDownRef + "SetCountDown");
-        }
-
-        /**
-         * @brief Confirms the thread loop uses proper countdown coordination
-         * 
-         * The orchestrator uses a countdown mechanism to coordinate with th executor
-         * thread. This test ensures the countdown is correctly configured to
-         * manage the thread coordination properly.
-         */
-        private void _testThreadLoopSetsCountdownToOne()
-        {
-            var threadState = new KeystrokeTransmitterThreadState(123);
-            var transmitterOrchestratorThread = _fixture(threadState);
-            transmitterOrchestratorThread.Start();
-            transmitterOrchestratorThread.Join(10000);
-            Debug.Assert(_receiveCountDown.SetCountDownCallArg_countDown[0] == 1);
-        }
-
-        /**
-         * @brief Verifies the orchestrator sends its current state to the executor
-         * 
-         * When the orchestrator is running, it should inform the executor
-         * thread what state it should be in. This test ensures the current thread
-         * state is properly injected into the executor so it knows what to do.
-         */
-        private void _testThreadLoopInjectsCurrentThreadState()
-        {
-            var threadState = new KeystrokeTransmitterThreadState(123);
-            var transmitterOrchestratorThread = _fixture(threadState);
-            transmitterOrchestratorThread.Start();
-            transmitterOrchestratorThread.Join(10000);
-            Debug.Assert((int)_thread.InjectCallArg_dataType[0] == 123);
-            Debug.Assert(_thread.InjectCallArg_data[0] == null);
+            for (int i = 1; i < 10; i++)
+            {
+                var threadState = new KeystrokeTransmitterThreadState(
+                    123, KeystrokeTransmitterThreadType.Botting
+                );
+                var transmitterOrchestratorThread = _fixture(threadState);
+                _setTransmitFixture(i);
+                transmitterOrchestratorThread.Start();
+                transmitterOrchestratorThread.Join(10000);
+                Debug.Assert(_callOrder.Count == i + 1);
+                Debug.Assert(_callOrder[0] == _threadRef + "ThreadStart");
+                for (int j = 1; j <= i; j++)
+                {
+                    Debug.Assert(_callOrder[j] == _threadRef + "ThreadInject");
+                    Debug.Assert((int)_thread.InjectCallArg_dataType[j - 1]! == j - 1);
+                }
+            }
         }
 
         public void Run()
@@ -938,25 +759,24 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _testStartingOrchestratorStartsExecutorThread();
             _testStoppingOrchestratorStopsExecutorThread();
             _testInjectingOrchestratorCommandAssignsThreadState();
-            _testInjectOrchestratorCommandHandshake();
+            _testInjectOrchestratorCommand();
             _testInjectToExecutorThread();
             _testInjectActionToExecutorThread();
-            _testThreadLoopHandshake();
-            _testThreadLoopSetsCountdownToOne();
-            _testThreadLoopInjectsCurrentThreadState();
+            _testThreadLoopInjectsCommands();
         }
     }
 
 
-    public class KeystrokeTransmitterTestSuite
+
+    public class BottingTransmitterTestSuite
     {
         public void Run()
         {
-            new RandomMacroCommandsSelectorTests().Run();
-            new KeystrokeTransmitterPointDataSelectorTests().Run();
-            new KeystrokeTransmitterExecutorThreadHelperTests().Run();
-            new KeystrokeTransmitterExecutorThreadTests().Run();
-            new KeystrokeTransmitterOrchestratorThreadTests().Run();
+            new RandomBottingMacroCommandsSelectorTests().Run();
+            new BottingPointDataSelectorTests().Run();
+            new BottingExecutorThreadHelperTests().Run();
+            new BottingExecutorThreadTests().Run();
+            new BottingOrchestratorThreadTests().Run();
         }
     }
 }

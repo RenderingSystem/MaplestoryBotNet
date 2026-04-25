@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Keyboard;
+using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
@@ -445,7 +446,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var subSystemInfoList = new MainSubSystemInfoList();
             var subSystemInfo = subSystemInfoList.GetSubSystemInfo();
-            Debug.Assert(subSystemInfo.Count == 6);
+            Debug.Assert(subSystemInfo.Count == 7);
         }
 
         /**
@@ -505,7 +506,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
                 info => info.SystemBuilder is ConfigurationSystemBuilder
             );
             Debug.Assert(configInfo != null);
-            Debug.Assert(configInfo.BuildDependencies.Count == 4);
+            Debug.Assert(configInfo.BuildDependencies.Count == 5);
             Debug.Assert(
                 configInfo.BuildDependencies.Any(
                     dep => dep.SystemBuilder is GameScreenCaptureSystemBuilder
@@ -519,6 +520,11 @@ namespace MaplestoryBotNetTests.Systems.Tests
             Debug.Assert(
                 configInfo.BuildDependencies.Any(
                     dep => dep.SystemBuilder is UIHandlerSystemBuilder
+                )
+            );
+            Debug.Assert(
+                configInfo.BuildDependencies.Any(
+                    dep => dep.SystemBuilder is MacroSystemBuilder
                 )
             );
             Debug.Assert(configInfo.InitializationPriority == 0);

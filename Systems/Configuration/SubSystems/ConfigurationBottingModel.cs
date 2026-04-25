@@ -239,6 +239,12 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("rune_threshold")]
         public float RuneThreshold { set; get; } = 0.6f;
 
+        [JsonPropertyName("rune_activation")]
+        public int RuneActivation { set; get; } = 0;
+
+        [JsonPropertyName("rune_radius")]
+        public int RuneRadius { set; get; } = 0;
+
         public override AbstractConfiguration Copy()
         {
             return new ConfigurationBottingModel
@@ -250,17 +256,10 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
                 CharacterThreshold = CharacterThreshold,
                 RuneThreshold = RuneThreshold,
                 MapPoints = MapPoints.Select(point => point.Copy()).ToList(),
-                RuneFrames = RuneFrames.Select(frame => frame.Copy()).ToList()
+                RuneFrames = RuneFrames.Select(frame => frame.Copy()).ToList(),
+                RuneActivation = RuneActivation,
+                RuneRadius = RuneRadius
             };
-        }
-    }
-
-
-    public class ConfigurationRuneModel : AbstractConfiguration
-    {
-        public override AbstractConfiguration Copy()
-        {
-            throw new NotImplementedException();
         }
     }
 

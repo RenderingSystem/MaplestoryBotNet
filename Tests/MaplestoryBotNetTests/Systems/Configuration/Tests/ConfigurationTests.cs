@@ -104,7 +104,12 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 "macro_directory": "cool_macros",
                 "frame_points_directory": "cool_frame_points",
                 "frame_movements_directory": "cool_frame_movements",
-                "map_directory": "cool_maps"
+                "map_directory": "cool_maps",
+                "macro_check_frequency": {
+                  "check_frequency": 0.123,
+                  "activation_period": 678,
+                  "solve_check_timeout": 0.234
+                }
             }
             """;
         }
@@ -259,6 +264,23 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         }
 
         /**
+         * @brief Tests correct parsing of macro execution timing settings
+         * 
+         * Validates that the bot will correctly load the macro execution frequency and
+         * rune activation period settings from the configuration file. These settings
+         * control how often macros are checked and executed during automation, as well
+         * as how frequently rune activation attempts should occur.
+         */
+        private void _testDeserializeMacroSettings()
+        {
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
+            Debug.Assert(output.MacroSettings.CheckFrequency == 0.123);
+            Debug.Assert(output.MacroSettings.RuneActivationPeriod == 678);
+            Debug.Assert(output.MacroSettings.SolveCheckTimeout == 0.234);
+        }
+
+        /**
          * @brief Executes all configuration parsing tests
          * 
          * Runs the complete test suite to ensure the bot will correctly
@@ -276,6 +298,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             _testDeserializeFramePointsDirectory();
             _testDeserializeFrameMovementsDirectory();
             _testDeserializeMapDirectory();
+            _testDeserializeMacroSettings();
         }
     }
 
@@ -358,7 +381,13 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 MacroDirectory="cool_macros",
                 FramePointsDirectory="cool_frame_points",
                 FrameMovementsDirectory="cool_frame_movements",
-                MapDirectory="cool_maps"
+                MapDirectory="cool_maps",
+                MacroSettings = new MacroSettings
+                {
+                    CheckFrequency=0.123,
+                    RuneActivationPeriod=678,
+                    SolveCheckTimeout=0.234
+                }
 
             };
             return configuration;
@@ -468,7 +497,12 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 "macro_directory": "cool_macros",
                 "frame_points_directory": "cool_frame_points",
                 "frame_movements_directory": "cool_frame_movements",
-                "map_directory": "cool_maps"
+                "map_directory": "cool_maps",
+                "macro_check_frequency": {
+                  "check_frequency": 0.123,
+                  "activation_period": 678,
+                  "solve_check_timeout": 0.234
+                }
             }
             """;
         }
