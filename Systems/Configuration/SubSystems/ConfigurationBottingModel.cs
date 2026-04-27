@@ -197,7 +197,9 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         public double Height { set; get; } = 0;
 
         [JsonPropertyName("rune_frame_data")]
-        public ConfigurationRuneFrameData RuneFrameData { set; get; } = new ConfigurationRuneFrameData();
+        public ConfigurationRuneFrameData RuneFrameData { set; get; } = (
+            new ConfigurationRuneFrameData()
+        );
 
         public ConfigurationRuneFrame Copy()
         {

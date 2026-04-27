@@ -19,11 +19,26 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
     }
 
 
+    public abstract class AbstractFileSaver
+    {
+        public abstract void SaveFile(string filePath, string content);
+    }
+
+
     public class FileReader : AbstractFileReader
     {
         public override string ReadFile(string filePath)
         {
             return File.ReadAllText(filePath);
+        }
+    }
+
+
+    public class FileSaver : AbstractFileSaver
+    {
+        public override void SaveFile(string filePath, string content)
+        {
+            File.WriteAllText(filePath, content);
         }
     }
 }

@@ -106,8 +106,20 @@
     "frame_movements_directory": "./FrameMovements",
     "map_directory": "./Maps",
     "macro_check_frequency": {
-      "check_frequency": 2.0,
-      "activation_period": 900,
-      "solve_check_timeout":  3.0
+        "check_frequency": 2.0,
+        "activation_period": 900,
+        "solve_check_timeout":  3.0
+    },
+    "rune_detection": {
+        "workspace_name": "",
+        "workspace_id": "",
+        "api_key": "",
+        "array": "predictions",
+        "x": "x",
+        "y": "y",
+        "left": "left",
+        "up": "up",
+        "right": "right",
+        "down": "down"
     }
 }

@@ -8,6 +8,7 @@ namespace MaplestoryBotNet.Systems
     {
         Configuration = 0,
         ConfigurationUpdate,
+        ConfigurationSave,
         KeyboardMapping,
         KeyboardDevice,
         KeystrokeTransmitter,

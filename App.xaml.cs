@@ -1,8 +1,8 @@
-﻿using MaplestoryBotNet.LibraryWrappers;
-using MaplestoryBotNet.Systems;
+﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Xaml;
 using System.Windows;
+
 
 namespace MaplestoryBotNet
 {
@@ -17,6 +17,8 @@ namespace MaplestoryBotNet
         SplashScreen? _splashScreen = null;
 
         MapWindow? _mapWindow = null;
+
+        RuneSolverWindow? _runeSolverWindow = null;
 
         MacroBottingWindow? _windowMacroBottingPopup = null;
 
@@ -36,6 +38,7 @@ namespace MaplestoryBotNet
             _mainWindow = new MainWindow();
             _windowMacroBottingPopup = new MacroBottingWindow(_bottingEditMenuState);
             _windowMacroRuneingPopup = new MacroRuneingWindow(_runeingEditMenuState);
+            _runeSolverWindow = new RuneSolverWindow();
             _mainApplication = new MainApplicationFacade();
             _mapWindow = new MapWindow(_bottingEditMenuState, _runeingEditMenuState);
             _splashScreen = new SplashScreen(_mainApplication.System());
@@ -50,6 +53,7 @@ namespace MaplestoryBotNet
                 .WithArgs(_uiHandlers!)
                 .Build();
         }
+
         public AbstractWindowActionHandler InstantiateApplicationClosingActionHandler()
         {
             return new ApplicationClosingActionHandlerBuilder()
@@ -63,8 +67,14 @@ namespace MaplestoryBotNet
             return [
                 .. _windowMacroBottingPopup!.InstantiateActionHandlers(),
                 .. _windowMacroRuneingPopup!.InstantiateActionHandlers(),
-                .. _splashScreen!.InstantiateActionHandlers(_mainWindow!.GetSystemWindow()),
-                .. _mainWindow!.InstantiateActionHandlers(_mapWindow!.GetSystemWindow()),
+                .. _runeSolverWindow!.InstantiateActionHandlers(),
+                .. _splashScreen!.InstantiateActionHandlers(
+                    _mainWindow!.GetSystemWindow()
+                ),
+                .. _mainWindow!.InstantiateActionHandlers(
+                    _mapWindow!.GetSystemWindow(),
+                    _runeSolverWindow.GetSystemWindow()
+                ),
                 .. _mapWindow!.InstantiateActionHandlers(
                     _windowMacroBottingPopup.GetSystemWindow(),
                     _windowMacroRuneingPopup.GetSystemWindow()
@@ -78,6 +88,7 @@ namespace MaplestoryBotNet
             return [
                 _windowMacroBottingPopup!.GetSystemWindow(),
                 _windowMacroRuneingPopup!.GetSystemWindow(),
+                _runeSolverWindow!.GetSystemWindow(),
                 _mapWindow!.GetSystemWindow()
             ];
         }
@@ -92,5 +103,4 @@ namespace MaplestoryBotNet
             _mainInitializer.Initialize();
         }
     }
-
 }

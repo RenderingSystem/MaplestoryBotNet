@@ -13,6 +13,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
 
         MockFileReader _reader = new MockFileReader();
 
+        MockFileSaver _saver = new MockFileSaver();
+
         List<MockConfiguration> _configurations = [];
 
         List<MockConfiguration> _configurationCopies = [];
@@ -34,24 +36,30 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 new ConfigurationEntry(
                     ConfigurationType.MainConfiguration,
                     "image_path_1",
-                    new MockDeserializer()
+                    new MockDeserializer(),
+                    new MockSerializer()
                 ),
                 new ConfigurationEntry(
                     ConfigurationType.ImageConfiguration,
                     "image_path_2",
-                    new MockDeserializer()
+                    new MockDeserializer(),
+                    new MockSerializer()
                 ),
                 new ConfigurationEntry(
                     ConfigurationType.KeyboardConfiguration,
                     "image_path_3",
-                    new MockDeserializer()
+                    new MockDeserializer(),
+                    new MockSerializer()
                 )
             ];
             _reader = new MockFileReader();
             _reader.ReadFileReturn = ["content_1", "content_2", "content_3"];
+            _saver = new MockFileSaver();
             _injector = new MockInjector();
             _setupConfigurations();
-            return new ConfigurationSystem(_configurationEntries, _reader, _injector);
+            return new ConfigurationSystem(
+                _configurationEntries, _reader, _saver, _injector
+            );
         }
 
 
@@ -115,48 +123,6 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         }
 
         /**
-         * @brief Tests correct configuration retrieval by type
-         * 
-         * Validates that the bot correctly retrieves specific configuration types
-         * when requested by automation components, ensuring that each component
-         * receives the appropriate customization options for its operation.
-         */
-        private void _testSystemGetsCorrectConfiguration()
-        {
-            var configurationSystem = _fixture();
-            configurationSystem.Initialize();
-            for (int i = 0; i < _configurationEntries.Count; i++)
-            {
-                var entry = _configurationEntries[i];
-                var configuration = _configurations[i];
-                var configurationCopy = _configurationCopies[i];
-                var result = (MockConfiguration?)configurationSystem.GetConfiguration(entry.ConfigType);
-                Debug.Assert(result != null);
-                Debug.Assert(result == configurationCopy);
-            }
-        }
-
-        /**
-         * @brief Tests correct configuration updating functionality
-         * 
-         * Validates that the bot correctly updates configuration values at runtime,
-         * ensuring that automation behavior can be dynamically adjusted based on
-         * changing game conditions or user preferences.
-         */
-        private void _testSystemSetsCorrectConfiguration()
-        {
-            var configurationSystem = _fixture();
-            configurationSystem.Initialize();
-            var configuration = new MockConfiguration();
-            var configurationCopy = new MockConfiguration();
-            configuration.CopyReturn.Add(configurationCopy);
-            configurationSystem.SetConfiguration(ConfigurationType.MainConfiguration, configuration);
-            var result = configurationSystem.GetConfiguration(ConfigurationType.MainConfiguration);
-            Debug.Assert(result != null);
-            Debug.Assert(result == configurationCopy);
-        }
-
-        /**
          * @brief Tests configuration update propagation to all dependent systems
          * 
          * Validates that when configuration changes occur, the update notifications
@@ -179,19 +145,57 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         }
 
         /**
-         * @brief Executes all configuration management tests
+         * @brief Verifies that when a configuration update is injected, the system
+         * broadcasts the updated configuration to all dependent components
          * 
-         * Runs the complete test suite to ensure the bot will correctly handle
-         * all configuration operations, providing confidence that customization
-         * options will be properly managed throughout automation sessions.
+         * When users change bot settings through the UI, the updated configuration
+         * needs to be sent to all components that rely on it. This test ensures that
+         * the configuration system properly propagates a single configuration injection
+         * to all listeners.
          */
+        private void _testSystemInjectsConfigurationUpdate()
+        {
+            var configurationSystem = _fixture();
+            var configuration = new MockConfiguration();
+            configurationSystem.Initialize();
+            configurationSystem.Inject(SystemInjectType.ConfigurationUpdate, configuration);
+            Debug.Assert(_injector.InjectCalls == 1);
+            Debug.Assert(_injector.InjectCallArg_dataType[0] is SystemInjectType.ConfigurationUpdate);
+            Debug.Assert(_injector.InjectCallArg_data[0] == configuration);
+        }
+
+
+        /**
+         * @brief Verifies that when a configuration is saved, the system writes the
+         * serialized content to the correct file path
+         * 
+         * When users modify bot settings, they expect their changes to persist after
+         * restarting the bot. The configuration system must serialize the current
+         * configuration data and write it to the appropriate file. This test ensures
+         * that the save operation targets the correct file path and writes the properly
+         * serialized content.
+         */
+        private void _testSystemSavesConfigurationToFile()
+        {
+            var configurationSystem = _fixture();
+            configurationSystem.Initialize();
+            var configuration = _configurationEntries[2].Deserialized;
+            var serializer = (MockSerializer)_configurationEntries[2].Serializer!;
+            serializer.SerializeReturn.Add("serialized_content");
+            configurationSystem.Inject(SystemInjectType.ConfigurationSave, configuration);
+            Debug.Assert(_saver.SaveFileCalls == 1);
+            Debug.Assert(_saver.SaveFileCallArg_filePath[0] == "image_path_3");
+            Debug.Assert(_saver.SaveFileCallArg_content[0] == "serialized_content");
+        }
+
+
         public void Run()
         {
             _testSystemInitializationReadsFromAllImagePaths();
             _testSystemInitializationDeserializesAllImageContents();
-            _testSystemGetsCorrectConfiguration();
-            _testSystemSetsCorrectConfiguration();
             _testSystemInjectsConfigurationUpdates();
+            _testSystemInjectsConfigurationUpdate();
+            _testSystemSavesConfigurationToFile();
         }
     }
 

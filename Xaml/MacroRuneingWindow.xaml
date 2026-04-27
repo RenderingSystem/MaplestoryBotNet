@@ -7,7 +7,7 @@
     xmlns:eo="http://schemas.microsoft.com/netfx/2009/xaml/presentation"
     xmlns:local="clr-namespace:MaplestoryBotNet.Xaml"
     mc:Ignorable="d"
-    Title="Runeing Window" 
+    Title="Captain Crunch" 
     WindowStartupLocation="CenterScreen"
     ResizeMode="NoResize"
     Width="600"

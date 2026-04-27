@@ -26,13 +26,23 @@ namespace MaplestoryBotNet
                 .Build();
         }
 
-        private AbstractWindowActionHandler _instantiateMacroWindowMenuItemPopupActionHandler(
-            AbstractSystemWindow systemWindow
+        private AbstractWindowActionHandler _instantiateMapWindowMenuItemPopupActionHandler(
+            AbstractSystemWindow mapWindow
         )
         {
             return new WindowMenuItemPopupHandlerBuilder()
-                .WithArgs(systemWindow)
+                .WithArgs(mapWindow)
                 .WithArgs(MacroMenuItem)
+                .Build();
+        }
+
+        private AbstractWindowActionHandler _instantiateSolverWindowMenuItemPopupActionHandler(
+            AbstractSystemWindow solverWindow
+        )
+        {
+            return new WindowMenuItemPopupHandlerBuilder()
+                .WithArgs(solverWindow)
+                .WithArgs(RuneSolverMenuItem)
                 .Build();
         }
 
@@ -50,13 +60,15 @@ namespace MaplestoryBotNet
         }
 
         public List<AbstractWindowActionHandler> InstantiateActionHandlers(
-            AbstractSystemWindow systemWindow
+            AbstractSystemWindow mapWindow,
+            AbstractSystemWindow solverWindow
         )
         {
             return [
                 _instantiateWindowExiterActionHandler(),
                 _instantiateWindowViewUpdaterActionHandler(),
-                _instantiateMacroWindowMenuItemPopupActionHandler(systemWindow),
+                _instantiateMapWindowMenuItemPopupActionHandler(mapWindow),
+                _instantiateSolverWindowMenuItemPopupActionHandler(solverWindow),
                 _instantiateWindowMenuItemTextActionHandler(),
                 _instantiateWindowMenuItemStartActionHandler()
             ];

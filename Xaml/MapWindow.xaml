@@ -10,7 +10,7 @@
     mc:Ignorable="d"
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
-    Title="Map"
+    Title="Trix"
     Width="600"
     Height="600"
     MaxHeight="600"

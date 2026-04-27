@@ -109,6 +109,18 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                   "check_frequency": 0.123,
                   "activation_period": 678,
                   "solve_check_timeout": 0.234
+                },
+                "rune_detection": {
+                    "workspace_name": "12",
+                    "workspace_id": "23",
+                    "api_key": "34",
+                    "array": "45",
+                    "x": "56",
+                    "y": "67",
+                    "left": "90",
+                    "up": "012",
+                    "right": "123",
+                    "down": "234"
                 }
             }
             """;
@@ -280,6 +292,22 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(output.MacroSettings.SolveCheckTimeout == 0.234);
         }
 
+        private void _testDeserializeRuneDetection()
+        {
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
+            Debug.Assert(output.RuneDetection.WorkspaceName == "12");
+            Debug.Assert(output.RuneDetection.WorkspaceID == "23");
+            Debug.Assert(output.RuneDetection.APIKey == "34");
+            Debug.Assert(output.RuneDetection.Array == "45");
+            Debug.Assert(output.RuneDetection.X == "56");
+            Debug.Assert(output.RuneDetection.Y == "67");
+            Debug.Assert(output.RuneDetection.Left == "90");
+            Debug.Assert(output.RuneDetection.Up == "012");
+            Debug.Assert(output.RuneDetection.Right == "123");
+            Debug.Assert(output.RuneDetection.Down == "234");
+        }
+
         /**
          * @brief Executes all configuration parsing tests
          * 
@@ -387,6 +415,19 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     CheckFrequency=0.123,
                     RuneActivationPeriod=678,
                     SolveCheckTimeout=0.234
+                },
+                RuneDetection = new RuneDetection
+                {
+                    WorkspaceName = "12",
+                    WorkspaceID = "23",
+                    APIKey = "34",
+                    Array = "45",
+                    X = "56",
+                    Y = "67",
+                    Left = "90",
+                    Up = "012",
+                    Right = "123",
+                    Down = "234"
                 }
 
             };
@@ -502,6 +543,18 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                   "check_frequency": 0.123,
                   "activation_period": 678,
                   "solve_check_timeout": 0.234
+                },
+                "rune_detection": {
+                    "workspace_name": "12",
+                    "workspace_id": "23",
+                    "api_key": "34",
+                    "array": "45",
+                    "x": "56",
+                    "y": "67",
+                    "left": "90",
+                    "up": "012",
+                    "right": "123",
+                    "down": "234"
                 }
             }
             """;

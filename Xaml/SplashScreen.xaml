@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:local="clr-namespace:MaplestoryBotNet"
     mc:Ignorable="d"
-    Title="SplashScreen" 
+    Title="Splash" 
     Height="370" 
     Width="340"
     MaxHeight="370"

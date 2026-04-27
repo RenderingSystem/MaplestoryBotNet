@@ -65,4 +65,22 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests.Mocks
             throw new IndexOutOfRangeException();
         }
     }
+
+
+    public class MockFileSaver : AbstractFileSaver
+    {
+        public List<string> CallOrder = [];
+
+        public int SaveFileCalls = 0;
+        public List<string> SaveFileCallArg_filePath = [];
+        public List<string> SaveFileCallArg_content = [];
+        public override void SaveFile(string filePath, string content)
+        {
+            var callReference = new TestUtilities().Reference(this) + "ReadFile";
+            CallOrder.Add(callReference);
+            SaveFileCalls++;
+            SaveFileCallArg_filePath.Add(filePath);
+            SaveFileCallArg_content.Add(content);
+        }
+    }
 }

@@ -124,6 +124,57 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
     }
 
 
+    public class RuneDetection
+    {
+        [JsonPropertyName("workspace_name")]
+        public string WorkspaceName { set; get; } = "";
+
+        [JsonPropertyName("workspace_id")]
+        public string WorkspaceID { set; get; } = "";
+
+        [JsonPropertyName("api_key")]
+        public string APIKey { set; get; } = "";
+
+        [JsonPropertyName("array")]
+        public string Array { set; get; } = "";
+
+        [JsonPropertyName("x")]
+        public string X { set; get; } = "";
+
+        [JsonPropertyName("y")]
+        public string Y { set; get; } = "";
+
+        [JsonPropertyName("left")]
+        public string Left { set; get; } = "";
+
+        [JsonPropertyName("up")]
+        public string Up { set; get; } = "";
+
+        [JsonPropertyName("right")]
+        public string Right { set; get; } = "";
+
+        [JsonPropertyName("down")]
+        public string Down { set; get; } = "";
+
+        public RuneDetection Copy()
+        {
+            return new RuneDetection
+            {
+                WorkspaceName = WorkspaceName,
+                WorkspaceID = WorkspaceID,
+                APIKey = APIKey,
+                Array = Array,
+                X = X,
+                Y = Y,
+                Left = Left,
+                Up = Up,
+                Right = Right,
+                Down = Down
+            };
+        }
+    }
+
+
     public class MaplestoryBotConfiguration : AbstractConfiguration
     {
         [JsonPropertyName("process_name")]
@@ -159,6 +210,9 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("macro_check_frequency")]
         public MacroSettings MacroSettings { get; set; } = new MacroSettings();
 
+        [JsonPropertyName("rune_detection")]
+        public RuneDetection RuneDetection { get; set; } = new RuneDetection();
+
         public override AbstractConfiguration Copy()
         {
             var configuration = new MaplestoryBotConfiguration();
@@ -175,6 +229,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
             configuration.FrameMovementsDirectory = new string(FrameMovementsDirectory);
             configuration.MapDirectory = new string(MapDirectory);
             configuration.MacroSettings = (MacroSettings)MacroSettings.Copy();
+            configuration.RuneDetection = RuneDetection.Copy();
             return configuration;
         }
     }

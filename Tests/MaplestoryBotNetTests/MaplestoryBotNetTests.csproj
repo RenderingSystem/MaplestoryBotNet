@@ -53,6 +53,7 @@
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMinimapViewStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMinimapViewStateHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowNumericTextBoxHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowNumericTextBoxHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowRuneingEditorHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowRuneingEditorHandlers.cs" />
+    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowRuneSolverEditorHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowRuneSolverEditorHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" />
     <Compile Include="..\..\Systems\UIHandler\Utilities\BottingModel.cs" Link="Systems\UIHandler\Utilities\BottingModel.cs" />

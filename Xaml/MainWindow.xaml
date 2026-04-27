@@ -23,12 +23,15 @@
             <MenuItem Header="File">
                 <MenuItem x:Name="ExitMenuItem" Header="Exit"/>
             </MenuItem>
+            <Separator/>
             <MenuItem Header="Edit">
                 <MenuItem Header="Ailments"/>
                 <MenuItem Header="Auto-potion"/>
                 <MenuItem Header="Petfood"/>
                 <MenuItem Header="Skills"/>
+                <MenuItem x:Name="RuneSolverMenuItem" Header="Rune solver"/>
             </MenuItem>
+            <Separator/>
             <MenuItem x:Name="MacroMenuItem" Header="Botting"/>
             <Separator/>
             <Separator/>

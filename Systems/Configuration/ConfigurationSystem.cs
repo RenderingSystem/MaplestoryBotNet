@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using MaplestoryBotNet.Systems.Configuration.SubSystems;
+﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
 
 
 namespace MaplestoryBotNet.Systems.Configuration
@@ -20,22 +19,22 @@ namespace MaplestoryBotNet.Systems.Configuration
 
         public readonly AbstractDeserializer Deserializer;
 
-        public AbstractConfiguration? Deserialized;
+        public readonly AbstractSerializer? Serializer;
 
-        public ReaderWriterLockSlim ReaderWriterLock;
+        public AbstractConfiguration? Deserialized;
 
         public ConfigurationEntry(
             ConfigurationType configType,
             string path,
-            AbstractDeserializer deserializer
+            AbstractDeserializer deserializer,
+            AbstractSerializer? serializer
         )
         {
             ConfigType = configType;
             Path = path;
             Deserializer = deserializer;
+            Serializer = serializer;
             Deserialized = null;
-            ReaderWriterLock = new ReaderWriterLockSlim();
-
         }
     }
 
@@ -46,15 +45,19 @@ namespace MaplestoryBotNet.Systems.Configuration
 
         private AbstractFileReader _fileReader;
 
+        private AbstractFileSaver _fileSaver;
+
         private IDataInjectable _configurationInjector;
 
         public ConfigurationSystem(
             List<ConfigurationEntry> configurationEntries,
             AbstractFileReader fileReader,
+            AbstractFileSaver fileSaver,
             IDataInjectable configurationInjector
         ) {
             _configurationEntries = configurationEntries;
             _fileReader = fileReader;
+            _fileSaver = fileSaver;
             _configurationInjector = configurationInjector;
         }
 
@@ -84,71 +87,38 @@ namespace MaplestoryBotNet.Systems.Configuration
             }
         }
 
-        public virtual AbstractConfiguration? GetConfiguration(ConfigurationType key)
-        {
-            for (int i = 0; i < _configurationEntries.Count; i++) {
-                var entry = _configurationEntries[i];
-                try
-                {
-                    entry.ReaderWriterLock.EnterReadLock();
-                    if (entry.ConfigType == key && entry.Deserialized != null)
-                    {
-                        return entry.Deserialized.Copy();
-                    }
-                }
-                finally
-                {
-                    entry.ReaderWriterLock.ExitReadLock();
-                }
-            }
-            return null;
-        }
-
-        public virtual void SetConfiguration(ConfigurationType key, AbstractConfiguration configuration)
-        {
-            bool updated = false;
-            for (int i = 0; i < _configurationEntries.Count; i++)
-            {
-                var entry = _configurationEntries[i];
-                try
-                {
-                    entry.ReaderWriterLock.EnterWriteLock();
-                    if (entry.ConfigType == key)
-                    {
-                        entry.Deserialized = configuration;
-                        updated = true;
-                        break;
-                    }
-                }
-                finally
-                {
-                    entry.ReaderWriterLock.ExitWriteLock();
-                }
-            }
-            if (updated)
-            {
-                _configurationInjector.Inject(
-                    SystemInjectType.ConfigurationUpdate, configuration
-                );
-            }
-        }
-
         public override void Inject(object dataType, object? data)
         {
-            if (dataType is not SystemInjectType.ConfigurationUpdate)
+            if (dataType is SystemInjectType.ConfigurationUpdate)
             {
-                return;
-            }
-            foreach (var entry in _configurationEntries)
-            {
-                try
+                if (data is not AbstractConfiguration configurationUpdate)
                 {
-                    entry.ReaderWriterLock.EnterReadLock();
-                    _configurationInjector.Inject(SystemInjectType.ConfigurationUpdate, entry.Deserialized);
+                    foreach (var entry in _configurationEntries)
+                    {
+                        _configurationInjector.Inject(
+                            SystemInjectType.ConfigurationUpdate, entry.Deserialized
+                        );
+                    }
                 }
-                finally
+                else
                 {
-                    entry.ReaderWriterLock.ExitReadLock();
+                    _configurationInjector.Inject(
+                        SystemInjectType.ConfigurationUpdate, configurationUpdate
+                    );
+                }
+            }
+            if (
+                dataType is SystemInjectType.ConfigurationSave
+                && data is AbstractConfiguration configurationSave
+            )
+            {
+                var configurationEntry = (
+                    _configurationEntries.Find((e) => e.Deserialized == configurationSave)
+                );
+                if (configurationEntry != null && configurationEntry.Serializer != null)
+                {
+                    var serialized = configurationEntry.Serializer.Serialize(configurationSave);
+                    _fileSaver.SaveFile(configurationEntry.Path, serialized);
                 }
             }
         }
@@ -166,7 +136,8 @@ namespace MaplestoryBotNet.Systems.Configuration
                     new ConfigurationEntry(
                         ConfigurationType.MainConfiguration,
                         "Configuration.json",
-                        new MaplestoryBotConfigurationDeserializer()
+                        new MaplestoryBotConfigurationDeserializer(),
+                        new MaplestoryBotConfigurationSerializer()
                     ),
                     new ConfigurationEntry(
                         ConfigurationType.ImageConfiguration,
@@ -174,15 +145,18 @@ namespace MaplestoryBotNet.Systems.Configuration
                         new ConfigurationImagesDeserializer(
                             new MaplestoryBotImageLoader(),
                             new MaplestoryBotConfigurationDeserializer()
-                        )
+                        ),
+                        null
                     ),
                     new ConfigurationEntry(
                         ConfigurationType.KeyboardConfiguration,
                         "KeyboardEncoding.json",
-                        new KeyboardMappingDeserializer()
+                        new KeyboardMappingDeserializer(),
+                        null
                     ),
                 ],
                 new FileReader(),
+                new FileSaver(),
                 new SystemInjector(_systems)
             );
         }

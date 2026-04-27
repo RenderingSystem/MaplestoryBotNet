@@ -52,6 +52,7 @@ void UnitTestSuite()
     new WindowMinimapViewStateHandlerTestSuite().Run();
     new WindowMinimapPositionHandlersTestSuite().Run();
     new WindowRuneingEditorHandlersTestSuite().Run();
+    new WindowRuneSolverEditorHandlersTestSuite().Run();
 }
 
 
