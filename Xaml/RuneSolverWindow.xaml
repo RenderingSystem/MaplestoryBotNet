@@ -179,6 +179,14 @@
                 FontSize="9"
             />
             <TextBox
+                x:Name="JsonTagArrayTextBox"
+                Margin="50,122,184,161"
+                Background="Black"
+                Foreground="Lime"
+                FontFamily="Courier New"
+                FontSize="9"
+            />
+            <TextBox
                 x:Name="JsonTagXTextBox"
                 Margin="50,145,184,138"
                 Background="Black"
@@ -221,14 +229,6 @@
             <TextBox
                 x:Name="ArrowDownTextBox"
                 Margin="50,273,184,10"
-                Background="Black"
-                Foreground="Lime"
-                FontFamily="Courier New"
-                FontSize="9"
-            />
-            <TextBox
-                x:Name="JsonTagArrayTextBox"
-                Margin="50,122,184,161"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
