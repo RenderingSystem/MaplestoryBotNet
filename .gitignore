@@ -1,16 +1,20 @@
-.vs
-.vscode
-.project
 bin
-obj
-x64
 
-Tests/MaplestoryBotNetTests/.vs
-Tests/MaplestoryBotNetTests/.vscode
-Tests/MaplestoryBotNetTests/.project
-Tests/MaplestoryBotNetTests/bin
-Tests/MaplestoryBotNetTests/obj
-Tests/MaplestoryBotNetTests/x64
+MaplestoryBotNet/.vs
+MaplestoryBotNet/.vscode
+MaplestoryBotNet/.project
+MaplestoryBotNet/packages
+MaplestoryBotNet/bin
+MaplestoryBotNet/obj
+MaplestoryBotNet/x64
+
+RuneSolver/.vs
+RuneSolver/.vscode
+RuneSolver/.project
+RuneSolver/packages
+RuneSolver/bin
+RuneSolver/obj
+RuneSolver/x64
 
 ArrayFireNCC/.vs
 ArrayFireNCC/.vscode
@@ -18,5 +22,21 @@ ArrayFireNCC/.project
 ArrayFireNCC/bin
 ArrayFireNCC/obj
 ArrayFireNCC/x64
+
+Tests/MaplestoryBotNetTests/.vs
+Tests/MaplestoryBotNetTests/.vscode
+Tests/MaplestoryBotNetTests/.project
+Tests/MaplestoryBotNetTests/packages
+Tests/MaplestoryBotNetTests/bin
+Tests/MaplestoryBotNetTests/obj
+Tests/MaplestoryBotNetTests/x64
+
+Tests/MaplestoryRuneSolverTests/.vs
+Tests/MaplestoryRuneSolverTests/.vscode
+Tests/MaplestoryRuneSolverTests/.project
+Tests/MaplestoryRuneSolverTests/packages
+Tests/MaplestoryRuneSolverTests/bin
+Tests/MaplestoryRuneSolverTests/obj
+Tests/MaplestoryRuneSolverTests/x64
 
 Interception.net

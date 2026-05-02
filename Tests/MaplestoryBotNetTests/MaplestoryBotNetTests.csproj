@@ -10,82 +10,19 @@
   </PropertyGroup>
 	
   <ItemGroup>
-    <Compile Include="..\..\Interception.net\Interception\InterceptionInterop.cs" Link="Interception.net\Interception\InterceptionInterop.cs" />
-    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32.cs" Link="Interception.net\Interception\WinApi\Kernel32.cs" />
-    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\AccessMask.cs" Link="Interception.net\Interception\WinApi\Kernel32\AccessMask.cs" />
-    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\FileCreationDisposition.cs" Link="Interception.net\Interception\WinApi\Kernel32\FileCreationDisposition.cs" />
-    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\FileFlagsAndAttributes.cs" Link="Interception.net\Interception\WinApi\Kernel32\FileFlagsAndAttributes.cs" />
-    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\FileShareMode.cs" Link="Interception.net\Interception\WinApi\Kernel32\FileShareMode.cs" />
-    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\HeapFlags.cs" Link="Interception.net\Interception\WinApi\Kernel32\HeapFlags.cs" />
-    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\NativeOverlapped.cs" Link="Interception.net\Interception\WinApi\Kernel32\NativeOverlapped.cs" />
-    <Compile Include="..\..\Interception.net\Interception\WinApi\Kernel32\SecurityAttributes.cs" Link="Interception.net\Interception\WinApi\Kernel32\SecurityAttributes.cs" />
-    <Compile Include="..\..\LibraryWrappers\InterceptionLibrary.cs" Link="LibraryWrappers\InterceptionLibrary.cs" />
-    <Compile Include="..\..\LibraryWrappers\WindowsLibrary.cs" Link="LibraryWrappers\WindowsLibrary.cs" />
-    <Compile Include="..\..\Systems\AbstractSystem.cs" Link="Systems\AbstractSystem.cs" />
-    <Compile Include="..\..\Systems\Configuration\ConfigurationSystem.cs" Link="Systems\Configuration\ConfigurationSystem.cs" />
-    <Compile Include="..\..\Systems\Configuration\SubSystems\AbstractConfiguration.cs" Link="Systems\Configuration\SubSystems\AbstractConfiguration.cs" />
-    <Compile Include="..\..\Systems\Configuration\SubSystems\Configuration.cs" Link="Systems\Configuration\SubSystems\Configuration.cs" />
-    <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationBottingModel.cs" Link="Systems\Configuration\SubSystems\ConfigurationBottingModel.cs" />
-    <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationImages.cs" Link="Systems\Configuration\SubSystems\ConfigurationImages.cs" />
-    <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationKeyboard.cs" Link="Systems\Configuration\SubSystems\ConfigurationKeyboard.cs" />
-    <Compile Include="..\..\Systems\Configuration\SubSystems\ConfigurationMacroData.cs" Link="Systems\Configuration\SubSystems\ConfigurationMacroData.cs" />
-    <Compile Include="..\..\Systems\Configuration\SubSystems\FileReader.cs" Link="Systems\Configuration\SubSystems\FileReader.cs" />
-    <Compile Include="..\..\Systems\GPUSelector\GPUSelectorSystem.cs" Link="Systems\GPUSelector\GPUSelectorSystem.cs" />
-    <Compile Include="..\..\Systems\Keyboard\KeyboardSystem.cs" Link="Systems\Keyboard\KeyboardSystem.cs" />
-    <Compile Include="..\..\Systems\Keyboard\SubSystems\KeyboardDeviceDetector.cs" Link="Systems\Keyboard\SubSystems\KeyboardDeviceDetector.cs" />
-    <Compile Include="..\..\Systems\Keyboard\SubSystems\KeystrokeTransmitter.cs" Link="Systems\Keyboard\SubSystems\KeystrokeTransmitter.cs" />
-    <Compile Include="..\..\Systems\Keyboard\SubSystems\Transmitters\BottingTransmitter.cs" Link="Systems\Keyboard\SubSystems\Transmitters\BottingTransmitter.cs" />
-    <Compile Include="..\..\Systems\Keyboard\SubSystems\Transmitters\RuneingTransmitter.cs" Link="Systems\Keyboard\SubSystems\Transmitters\RuneingTransmitter.cs" />
-    <Compile Include="..\..\Systems\Keyboard\SubSystems\Transmitters\SolvingTransmitter.cs" Link="Systems\Keyboard\SubSystems\Transmitters\SolvingTransmitter.cs" />
-    <Compile Include="..\..\Systems\Macro\MacroSystem.cs" Link="Systems\Macro\MacroSystem.cs" />
-    <Compile Include="..\..\Systems\MainSystem.cs" Link="Systems\MainSystem.cs" />
-    <Compile Include="..\..\Systems\ScreenCapture\ScreenCaptureSystem.cs" Link="Systems\ScreenCapture\ScreenCaptureSystem.cs" />
-    <Compile Include="..\..\Systems\ScreenCapture\SubSystems\ScreenCapture.cs" Link="Systems\ScreenCapture\SubSystems\ScreenCapture.cs" />
-    <Compile Include="..\..\Systems\ScreenProcessing\ScreenProcessingSystem.cs" Link="Systems\ScreenProcessing\ScreenProcessingSystem.cs" />
-    <Compile Include="..\..\Systems\ScreenProcessing\SubSystems\ScreenProcessing.cs" Link="Systems\ScreenProcessing\SubSystems\ScreenProcessing.cs" />
-    <Compile Include="..\..\Systems\UIHandler\UIHandlerSystem.cs" Link="Systems\UIHandler\UIHandlerSystem.cs" />
-    <Compile Include="..\..\Systems\UIHandler\UserInterface\AbstractWindowStateHandlers.cs" Link="Systems\UIHandler\UserInterface\AbstractWindowStateHandlers.cs" />
-    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowComboBoxScaleHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowComboBoxScaleHandlers.cs" />
-    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMacroMenuHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMacroMenuHandlers.cs" />
-    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMapEditorHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMapEditorHandlers.cs" />
-    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMapEditorRuneHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMapEditorRuneHandlers.cs" />
-    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMenuItemPopupHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMenuItemPopupHandlers.cs" />
-    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowMinimapViewStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowMinimapViewStateHandlers.cs" />
-    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowNumericTextBoxHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowNumericTextBoxHandlers.cs" />
-    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowRuneingEditorHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowRuneingEditorHandlers.cs" />
-    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowRuneSolverEditorHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowRuneSolverEditorHandlers.cs" />
-    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowSplashScreenStateHandlers.cs" />
-    <Compile Include="..\..\Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" Link="Systems\UIHandler\UserInterface\WindowViewStateHandlers.cs" />
-    <Compile Include="..\..\Systems\UIHandler\Utilities\BottingModel.cs" Link="Systems\UIHandler\Utilities\BottingModel.cs" />
-    <Compile Include="..\..\Systems\UIHandler\Utilities\BottingModelConverter.cs" Link="Systems\UIHandler\Utilities\BottingModelConverter.cs" />
-    <Compile Include="..\..\Systems\UIHandler\Utilities\CanvasElementFactories.cs" Link="Systems\UIHandler\Utilities\CanvasElementFactories.cs" />
-    <Compile Include="..\..\Systems\UIHandler\Utilities\ComboBoxes.cs" Link="Systems\UIHandler\Utilities\ComboBoxes.cs" />
-    <Compile Include="..\..\Systems\UIHandler\Utilities\Dpi.cs" Link="Systems\UIHandler\Utilities\Dpi.cs" />
-    <Compile Include="..\..\Systems\UIHandler\Utilities\ImageUtilities.cs" Link="Systems\UIHandler\Utilities\ImageUtilities.cs" />
-    <Compile Include="..\..\Systems\UIHandler\Utilities\MacroListBoxItems.cs" Link="Systems\UIHandler\Utilities\MacroListBoxItems.cs" />
-    <Compile Include="..\..\Systems\UIHandler\Utilities\MouseEvents.cs" Link="Systems\UIHandler\Utilities\MouseEvents.cs" />
-    <Compile Include="..\..\Systems\UIHandler\Utilities\SaveLoadDialogs.cs" Link="Systems\UIHandler\Utilities\SaveLoadDialogs.cs" />
-    <Compile Include="..\..\ThreadingUtils\ThreadingUtils.cs" Link="ThreadingUtils\ThreadingUtils.cs" />
-  </ItemGroup>
-	
-  <ItemGroup>
-    <Content Include="..\..\Images\Ailments\blind.gif" Link="Images\Ailments\blind.gif" />
-    <Content Include="..\..\Images\Ailments\confusion.gif" Link="Images\Ailments\confusion.gif" />
-    <Content Include="..\..\Images\Ailments\curse.gif" Link="Images\Ailments\curse.gif" />
-    <Content Include="..\..\Images\Ailments\death.gif" Link="Images\Ailments\death.gif" />
-    <Content Include="..\..\Images\Ailments\petrification.gif" Link="Images\Ailments\petrification.gif" />
-    <Content Include="..\..\Images\Ailments\poison.gif" Link="Images\Ailments\poison.gif" />
-    <Content Include="..\..\Images\Ailments\silence.gif" Link="Images\Ailments\silence.gif" />
-    <Content Include="..\..\Images\Ailments\weakness.gif" Link="Images\Ailments\weakness.gif" />
-    <Content Include="..\..\Images\MapIcons\character.png" Link="Images\MapIcons\character.png" />
-    <Content Include="..\..\Images\MapIcons\rune.png" Link="Images\MapIcons\rune.png" />
+    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\blind.gif" Link="Images\Ailments\blind.gif" />
+    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\confusion.gif" Link="Images\Ailments\confusion.gif" />
+    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\curse.gif" Link="Images\Ailments\curse.gif" />
+    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\death.gif" Link="Images\Ailments\death.gif" />
+    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\petrification.gif" Link="Images\Ailments\petrification.gif" />
+    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\poison.gif" Link="Images\Ailments\poison.gif" />
+    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\silence.gif" Link="Images\Ailments\silence.gif" />
+    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\weakness.gif" Link="Images\Ailments\weakness.gif" />
+    <Content Include="..\..\MaplestoryBotNet\Images\MapIcons\character.png" Link="Images\MapIcons\character.png" />
+    <Content Include="..\..\MaplestoryBotNet\Images\MapIcons\rune.png" Link="Images\MapIcons\rune.png" />
   </ItemGroup>
 	
   <ItemGroup Condition="'$(Configuration)' == 'Debug'">
-    <Reference Include="ArrayFireNCC">
-      <HintPath>..\..\x64\Debug\ArrayFireNCC.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <None Include="C:\Program Files\ArrayFire\v3\lib\*.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Visible>false</Visible>
@@ -94,7 +31,7 @@
 
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <Reference Include="ArrayFireNCC">
-      <HintPath>..\..\x64\Release\ArrayFireNCC.dll</HintPath>
+      <HintPath>..\..\ArrayFireNCC\x64\Release\ArrayFireNCC.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <None Include="C:\Program Files\ArrayFire\v3\lib\*.dll">
@@ -156,16 +93,17 @@
   <ItemGroup>
     <Folder Include="Images\Ailments\" />
     <Folder Include="Images\MapIcons\" />
-    <Folder Include="Interception.net\Interception\WinApi\Kernel32\" />
-    <Folder Include="Systems\Configuration\SubSystems\" />
-    <Folder Include="Systems\Keyboard\SubSystems\Transmitters\" />
-    <Folder Include="Systems\ScreenCapture\SubSystems\" />
-    <Folder Include="Systems\ScreenProcessing\SubSystems\" />
     <Folder Include="Xaml\Resources\" />
   </ItemGroup>
 	
   <ItemGroup>
-    <Page Include="..\..\Xaml\Resources\ComboBoxResource.xaml" Link="Xaml\Resources\ComboBoxResource.xaml" />
+    <Page Include="..\..\MaplestoryBotNet\Xaml\Resources\ComboBoxResource.xaml" Link="Xaml\Resources\ComboBoxResource.xaml" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <ProjectReference Include="..\..\ArrayFireNCC\ArrayFireNCC.vcxproj" />
+    <ProjectReference Include="..\..\Interception.net\Interception\Intercept.csproj" />
+    <ProjectReference Include="..\..\MaplestoryBotNet\MaplestoryBotNet.csproj" />
   </ItemGroup>
 	
   <ItemGroup>

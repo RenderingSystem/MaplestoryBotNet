@@ -12,6 +12,7 @@ using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Drawing;
 
 
 namespace MaplestoryBotNetTests.Systems.Macro.Tests
@@ -542,6 +543,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 new MockTimestamp(),
                 MapIconInfo.Rune
             );
+            _context.BottingModel = new BottingModel();
             return new MacroExecutorStateBotting(_context);
         }
 
@@ -579,14 +581,23 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
          * to start looking for and approaching a rune. This ensures the bot periodically
          * attempts to solve runes.
          */
-        private void _testExecutorTransitionsToRuneingState()
+        private void _testExecutorStaysBottingUntilRuneSpawns()
         {
-            var macroExecutorStateBotting = _fixture();
-            _stopFixture();
-            _runeingStopwatch.GetTimestampReturn.Add(1234);
-            _context.RuneActivationPeriodCurrent = 123;
-            var result = macroExecutorStateBotting.Execute();
-            Debug.Assert(result == (int)MacroExecutorStateTypes.Runeing);
+            var positions = new[] { new Point(1, 1), new Point(-1, -1) };
+            var expecteds = new[] { MacroExecutorStateTypes.Runeing, MacroExecutorStateTypes.Botting };
+            for (int i = 0; i < positions.Count(); i++)
+            {
+                var position = positions[i];
+                var expected = expecteds[i];
+                var macroExecutorStateBotting = _fixture();
+                var mapModel = _context.BottingModel!.GetMapModel();
+                _stopFixture();
+                _runeingStopwatch.GetTimestampReturn.Add(1234);
+                _context.RuneActivationPeriodCurrent = 123;
+                mapModel.SetTemplatePosition(_context.RuneKey, position.X, position.Y);
+                var result = macroExecutorStateBotting.Execute();
+                Debug.Assert(result == (int)expected);
+            }
         }
 
         /**
@@ -669,7 +680,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         public void Run()
         {
             _testExecutorTransitionsToBottingState();
-            _testExecutorTransitionsToRuneingState();
+            _testExecutorStaysBottingUntilRuneSpawns();
             _testExecutorStartsBottingOrchestrator();
             _testExecutorStopsRuneingOrchestrator();
             _testExecutorStopsSolvingOrchestrator();
@@ -890,7 +901,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 Debug.Assert(
                     result ==
                     (
-                        i != (int)SolvingExecutorThreadedUpdate.Solved ?
+                        i != (int)SolvingExecutorThreadedUpdate.Solved &&
+                        i != (int)SolvingExecutorThreadedUpdate.Failed ?
                         (int)MacroExecutorStateTypes.Solving :
                         (int)MacroExecutorStateTypes.SolvedCheck
                     )
@@ -946,6 +958,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                     (
                         (
                             i != (int)SolvingExecutorThreadedUpdate.Started &&
+                            i != (int)SolvingExecutorThreadedUpdate.Failed &&
                             i != (int)SolvingExecutorThreadedUpdate.Solved
                         ) ? 1 : 0
                     )

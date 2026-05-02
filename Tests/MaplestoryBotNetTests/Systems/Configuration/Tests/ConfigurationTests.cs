@@ -111,17 +111,25 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                   "solve_check_timeout": 0.234
                 },
                 "rune_detection": {
-                    "workspace_name": "12",
-                    "workspace_id": "23",
-                    "api_key": "34",
-                    "array": "45",
+                    "ip_address": "12",
+                    "port": "23",
+                    "route": "34",
                     "x": "56",
                     "y": "67",
+                    "class_tag": "45",
                     "left": "90",
                     "up": "012",
                     "right": "123",
                     "down": "234"
-                }
+                },
+                "rune_server_settings": {
+                    "server_executable": "987",
+                    "client_watchdog_timeout": 876,
+                    "server_rune_model": "765",
+                    "server_rune_model_console": 654,
+                    "server_watchdog_timeout": 543
+                },
+                "rune_interact_key": "key"
             }
             """;
         }
@@ -292,20 +300,49 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(output.MacroSettings.SolveCheckTimeout == 0.234);
         }
 
+        /**
+         * @brief Tests correct parsing of rune detection service configuration settings
+         * 
+         * Validates that the bot will correctly load the configuration for the external
+         * rune solving service. This includes network settings (IP address, port, route),
+         * JSON field names for parsing detection results (class tag, X/Y coordinates),
+         * arrow key mappings for puzzle solving (left, up, right, down), and service
+         * management settings (executable path, watchdog timeout).
+         */
         private void _testDeserializeRuneDetection()
         {
             var deserializer = new MaplestoryBotConfigurationDeserializer();
             var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
-            Debug.Assert(output.RuneDetection.WorkspaceName == "12");
-            Debug.Assert(output.RuneDetection.WorkspaceID == "23");
-            Debug.Assert(output.RuneDetection.APIKey == "34");
-            Debug.Assert(output.RuneDetection.Array == "45");
+            Debug.Assert(output.RuneDetection.RuneSolverIPAddress == "12");
+            Debug.Assert(output.RuneDetection.RuneSolverPort == "23");
+            Debug.Assert(output.RuneDetection.RuneSolverRoute == "34");
+            Debug.Assert(output.RuneDetection.ClassTag == "45");
             Debug.Assert(output.RuneDetection.X == "56");
             Debug.Assert(output.RuneDetection.Y == "67");
             Debug.Assert(output.RuneDetection.Left == "90");
             Debug.Assert(output.RuneDetection.Up == "012");
             Debug.Assert(output.RuneDetection.Right == "123");
             Debug.Assert(output.RuneDetection.Down == "234");
+            Debug.Assert(output.RuneInteractKey == "key");
+        }
+
+        /**
+         * @brief Tests correct parsing of rune solver server configuration settings
+         * 
+         * Validates that the bot will correctly load the configuration for the external
+         * rune solving server process. These settings control how the main bot launches
+         * and manages the separate rune solver executable, including the executable path,
+         * model file location, timeout values, and console visibility settings.
+         */
+        private void _testDeserializeRuneServerSettings()
+        {
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
+            Debug.Assert(output.RuneServerSettings.ServerExecutable == "987");
+            Debug.Assert(output.RuneServerSettings.ClientWatchdogTimeout == 876);
+            Debug.Assert(output.RuneServerSettings.ServerRuneModel == "765");
+            Debug.Assert(output.RuneServerSettings.ServerRuneModelConsole == 654);
+            Debug.Assert(output.RuneServerSettings.ServerWatchdogTimeout == 543);
         }
 
         /**
@@ -327,6 +364,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             _testDeserializeFrameMovementsDirectory();
             _testDeserializeMapDirectory();
             _testDeserializeMacroSettings();
+            _testDeserializeRuneDetection();
+            _testDeserializeRuneServerSettings();
         }
     }
 
@@ -418,18 +457,26 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 },
                 RuneDetection = new RuneDetection
                 {
-                    WorkspaceName = "12",
-                    WorkspaceID = "23",
-                    APIKey = "34",
-                    Array = "45",
+                    RuneSolverIPAddress = "12",
+                    RuneSolverPort = "23",
+                    RuneSolverRoute = "34",
                     X = "56",
                     Y = "67",
+                    ClassTag = "45",
                     Left = "90",
                     Up = "012",
                     Right = "123",
-                    Down = "234"
-                }
-
+                    Down = "234",
+                },
+                RuneServerSettings = new RuneServerSettings
+                {
+                    ServerExecutable = "987",
+                    ClientWatchdogTimeout = 876,
+                    ServerRuneModel = "765",
+                    ServerRuneModelConsole = 654,
+                    ServerWatchdogTimeout = 543
+                },
+                RuneInteractKey = "key"
             };
             return configuration;
         }
@@ -545,17 +592,25 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                   "solve_check_timeout": 0.234
                 },
                 "rune_detection": {
-                    "workspace_name": "12",
-                    "workspace_id": "23",
-                    "api_key": "34",
-                    "array": "45",
+                    "ip_address": "12",
+                    "port": "23",
+                    "route": "34",
                     "x": "56",
                     "y": "67",
+                    "class_tag": "45",
                     "left": "90",
                     "up": "012",
                     "right": "123",
                     "down": "234"
-                }
+                },
+                "rune_server_settings": {
+                    "server_executable": "987",
+                    "client_watchdog_timeout": 876,
+                    "server_rune_model": "765",
+                    "server_rune_model_console": 654,
+                    "server_watchdog_timeout": 543
+                },
+                "rune_interact_key": "key"
             }
             """;
         }

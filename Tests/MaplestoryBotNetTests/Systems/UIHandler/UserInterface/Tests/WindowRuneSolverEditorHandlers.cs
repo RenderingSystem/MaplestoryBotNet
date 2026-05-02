@@ -13,13 +13,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     {
         private MockSystemWindow _systemWindow = new MockSystemWindow();
 
-        private TextBox _workspaceNameTextBox = new TextBox();
+        private TextBox _ipAddressTextBox = new TextBox();
 
-        private TextBox _workspaceIDTextBox = new TextBox();
+        private TextBox _portTextBox = new TextBox();
 
-        private TextBox _apiKeyTextBox = new TextBox();
+        private TextBox _routeTextBox = new TextBox();
 
-        private TextBox _arrayTextBox = new TextBox();
+        private TextBox _classTagTextBox = new TextBox();
 
         private TextBox _xTextBox = new TextBox();
 
@@ -41,10 +41,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             _systemWindow = new MockSystemWindow();
             _systemWindow.GetWindowReturn.Add(new Window());
-            _workspaceNameTextBox = new TextBox();
-            _workspaceIDTextBox = new TextBox();
-            _apiKeyTextBox = new TextBox();
-            _arrayTextBox = new TextBox();
+            _ipAddressTextBox = new TextBox();
+            _portTextBox = new TextBox();
+            _routeTextBox = new TextBox();
+            _classTagTextBox = new TextBox();
             _xTextBox = new TextBox();
             _yTextBox = new TextBox();
             _leftArrowTextBox = new TextBox();
@@ -55,10 +55,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             {
                 RuneDetection = new RuneDetection
                 {
-                    WorkspaceName = "12",
-                    WorkspaceID = "23",
-                    APIKey = "34",
-                    Array = "45",
+                    RuneSolverIPAddress = "12",
+                    RuneSolverPort = "23",
+                    RuneSolverRoute = "34",
+                    ClassTag = "45",
                     X = "56",
                     Y = "67",
                     Left = "78",
@@ -69,10 +69,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             };
             var handler = new WindowRuneSolverRoboflowAPILoadActionHandlerFacade(
                 _systemWindow,
-                _workspaceNameTextBox,
-                _workspaceIDTextBox,
-                _apiKeyTextBox,
-                _arrayTextBox,
+                _ipAddressTextBox,
+                _portTextBox,
+                _routeTextBox,
+                _classTagTextBox,
                 _xTextBox,
                 _yTextBox,
                 _leftArrowTextBox,
@@ -107,10 +107,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     new object(),
                     new DependencyPropertyChangedEventArgs()
                 );
-                Debug.Assert(_workspaceNameTextBox.Text == (visible ? "12" : ""));
-                Debug.Assert(_workspaceIDTextBox.Text == (visible ? "23" : ""));
-                Debug.Assert(_apiKeyTextBox.Text == (visible ? "34" : ""));
-                Debug.Assert(_arrayTextBox.Text == (visible ? "45" : ""));
+                Debug.Assert(_ipAddressTextBox.Text == (visible ? "12" : ""));
+                Debug.Assert(_portTextBox.Text == (visible ? "23" : ""));
+                Debug.Assert(_routeTextBox.Text == (visible ? "34" : ""));
+                Debug.Assert(_classTagTextBox.Text == (visible ? "45" : ""));
                 Debug.Assert(_xTextBox.Text == (visible ? "56" : ""));
                 Debug.Assert(_yTextBox.Text == (visible ? "67" : ""));
                 Debug.Assert(_leftArrowTextBox.Text == (visible ? "78" : ""));
@@ -131,13 +131,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     {
         private MockSystemWindow _systemWindow = new MockSystemWindow();
 
-        private TextBox _workspaceNameTextBox = new TextBox();
+        private TextBox _ipAddressTextBox = new TextBox();
 
-        private TextBox _workspaceIDTextBox = new TextBox();
+        private TextBox _portTextBox = new TextBox();
 
-        private TextBox _apiKeyTextBox = new TextBox();
+        private TextBox _routeTextBox = new TextBox();
 
-        private TextBox _arrayTextBox = new TextBox();
+        private TextBox _classTagTextBox = new TextBox();
 
         private TextBox _xTextBox = new TextBox();
 
@@ -159,10 +159,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             _systemWindow = new MockSystemWindow();
             _systemWindow.GetWindowReturn.Add(new Window());
-            _workspaceNameTextBox = new TextBox { Text = "12" };
-            _workspaceIDTextBox = new TextBox { Text = "23" };
-            _apiKeyTextBox = new TextBox { Text = "34" };
-            _arrayTextBox = new TextBox { Text = "45" };
+            _ipAddressTextBox = new TextBox { Text = "12" };
+            _portTextBox = new TextBox { Text = "23" };
+            _routeTextBox = new TextBox { Text = "34" };
+            _classTagTextBox = new TextBox { Text = "45" };
             _xTextBox = new TextBox { Text = "56" };
             _yTextBox = new TextBox { Text = "67" };
             _leftArrowTextBox = new TextBox { Text = "78" };
@@ -172,10 +172,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration();
             var handler = new WindowRuneSolverRoboflowAPISaveActionHandlerFacade(
                 _systemWindow,
-                _workspaceNameTextBox,
-                _workspaceIDTextBox,
-                _apiKeyTextBox,
-                _arrayTextBox,
+                _ipAddressTextBox,
+                _portTextBox,
+                _routeTextBox,
+                _classTagTextBox,
                 _xTextBox,
                 _yTextBox,
                 _leftArrowTextBox,
@@ -211,10 +211,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     new DependencyPropertyChangedEventArgs()
                 );
                 var runeDetection = _maplestoryBotConfiguration.RuneDetection;
-                Debug.Assert(runeDetection.WorkspaceName == (!visible ? "12" : ""));
-                Debug.Assert(runeDetection.WorkspaceID == (!visible ? "23" : ""));
-                Debug.Assert(runeDetection.APIKey == (!visible ? "34" : ""));
-                Debug.Assert(runeDetection.Array == (!visible ? "45" : ""));
+                Debug.Assert(runeDetection.RuneSolverIPAddress == (!visible ? "12" : ""));
+                Debug.Assert(runeDetection.RuneSolverPort == (!visible ? "23" : ""));
+                Debug.Assert(runeDetection.RuneSolverRoute == (!visible ? "34" : ""));
+                Debug.Assert(runeDetection.ClassTag == (!visible ? "45" : ""));
                 Debug.Assert(runeDetection.X == (!visible ? "56" : ""));
                 Debug.Assert(runeDetection.Y == (!visible ? "67" : ""));
                 Debug.Assert(runeDetection.Left == (!visible ? "78" : ""));
@@ -233,7 +233,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
     public class WindowRuneSolverRoboflowAPIOutputActionHandlerTests
     {
-        private TextBox _arrayTextBox = new TextBox();
+        private TextBox _classTagTextBox = new TextBox();
 
         private TextBox _xTextBox = new TextBox();
 
@@ -251,7 +251,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private AbstractWindowActionHandler _fixture()
         {
-            _arrayTextBox = new TextBox();
+            _classTagTextBox = new TextBox();
             _xTextBox = new TextBox();
             _yTextBox = new TextBox();
             _leftArrowTextBox = new TextBox();
@@ -260,7 +260,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _downArrowTextBox = new TextBox();
             _outputFormatTextBlock = new TextBlock();
             return new WindowRuneSolverRoboflowAPIOutputActionHandlerFacade(
-                _arrayTextBox,
+                _classTagTextBox,
                 _xTextBox,
                 _yTextBox,
                 _leftArrowTextBox,
@@ -285,7 +285,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var roboflowAPIOutputActionHandler = _fixture();
             var textBoxes = new[] {
-                _arrayTextBox,
+                _classTagTextBox,
                 _xTextBox,
                 _yTextBox,
                 _leftArrowTextBox,
@@ -299,21 +299,18 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 textBox.Text = i.ToString() + (i + 1).ToString();
                 Debug.Assert(
                     _outputFormatTextBlock.Text == (
-                        "{\n" +
-                        "  \"" + _arrayTextBox.Text + "\":\n" +
-                        "  [\n" +
-                        "    {\n" +
-                        "      \"" + _xTextBox.Text + "\": <integer>\n" +
-                        "      \"" + _yTextBox.Text + "\": <integer>\n" +
-                        "      \"class\": <" +
+                        "[\n" +
+                        "  {\n" +
+                        "    \"" + _xTextBox.Text + "\": <integer>\n" +
+                        "    \"" + _yTextBox.Text + "\": <integer>\n" +
+                        "    \"" + _classTagTextBox.Text + "\": <" +
                         "\"" + _leftArrowTextBox.Text + "\"|" +
                         "\"" + _upArrowTextBox.Text + "\"|" +
                         "\"" + _rightArrowTextBox.Text + "\"|" +
                         "\"" + _downArrowTextBox.Text + "\">\n" +
-                        "    },\n" +
-                        "    ...\n" +
-                        "  ]\n" +
-                        "}"
+                        "  },\n" +
+                        "  ...\n" +
+                        "]\n"
                     )
                 );
             }

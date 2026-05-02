@@ -289,6 +289,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 
         private string _executionEventRef = "";
 
+        private string _executorThreadHelperRef = "";
+
         private void _setupNewFixture(
             AbstractKeystrokeTransmitterThreadState threadState
         )
@@ -350,6 +352,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _threadStateRef = new TestUtilities().Reference(_threadState);
             _transmittingStateRef = new TestUtilities().Reference(_transmittingState); ;
             _executionEventRef = new TestUtilities().Reference(_executionEvent);
+            _executorThreadHelperRef = new TestUtilities().Reference(_executorThreadHelper);
         }
 
         private AbstractThread _fixture(
@@ -526,6 +529,40 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             }
         }
 
+        /**
+         * @brief Verifies that the executor thread helper is reset before and after each
+         * transmission cycle to ensure clean state for the next macro execution
+         * 
+         * When the botting executor processes macros for killing monsters, the thread
+         * helper must be reset to a clean state before executing keystroke transmissions
+         * for the current character position. This prevents stale data from previous
+         * macro executions from affecting the current transmission.
+         */
+        private void _testExecutorThreadLoopResetsBeforeAndAfterTransmit()
+        {
+            for (int i = 1; i < 10; i++)
+            {
+                var threadState = new KeystrokeTransmitterThreadState(
+                    (int)BottingExecutorThreadedUpdate.Stopped,
+                    KeystrokeTransmitterThreadType.Botting
+                );
+                var keystrokeTransmitterExecutorThread = _fixture(i, threadState);
+                var callOrder = _executorThreadHelper.CallOrder;
+                _transmittingState.IsRunningReturn.Add(false);
+                var start = BottingOrchestratorThreadInjectType.Start;
+                keystrokeTransmitterExecutorThread.Inject(start, 0);
+                keystrokeTransmitterExecutorThread.Start();
+                keystrokeTransmitterExecutorThread.Join(10000);
+                Debug.Assert(callOrder.Count == i + 2);
+                Debug.Assert(callOrder[0] == _executorThreadHelperRef + "Reset");
+                for (int j = 1; j <= i; j++)
+                {
+                    Debug.Assert(callOrder[j] == _executorThreadHelperRef + "Transmit");
+                }
+                Debug.Assert(callOrder[i + 1] == _executorThreadHelperRef + "Reset");
+            }
+        }
+
         public void Run()
         {
             _testExecutorStartingHandshake();
@@ -534,6 +571,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _testExecutorStoppingHandshakeSetsThreadStates();
             _testExecutorThreadLoopTransmitsWhenStarted();
             _testExecutorThreadLoopDoesntTransmitWhenStopped();
+            _testExecutorThreadLoopResetsBeforeAndAfterTransmit();
         }
     }
 

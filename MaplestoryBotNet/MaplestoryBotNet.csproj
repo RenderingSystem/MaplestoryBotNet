@@ -1,0 +1,140 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>False</UseWindowsForms>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AssemblyName>Cookie Crisp</AssemblyName>
+    <AssemblyTitle>Cookie Crisp</AssemblyTitle>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ArrayFireNCC\**" />
+    <Compile Remove="packages\**" />
+    <Compile Remove="Tests\**" />
+    <Compile Remove="x64\**" />
+    <EmbeddedResource Remove="ArrayFireNCC\**" />
+    <EmbeddedResource Remove="packages\**" />
+    <EmbeddedResource Remove="Tests\**" />
+    <EmbeddedResource Remove="x64\**" />
+    <None Remove="ArrayFireNCC\**" />
+    <None Remove="packages\**" />
+    <None Remove="Tests\**" />
+    <None Remove="x64\**" />
+    <Page Remove="ArrayFireNCC\**" />
+    <Page Remove="packages\**" />
+    <Page Remove="Tests\**" />
+    <Page Remove="x64\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove=".gitignore" />
+    <None Remove=".gitmodules" />
+    <None Remove=".project" />
+    <None Remove="Xaml\SplashScreenImage.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ScreenCapture.NET.DX11" Version="3.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.8" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <None Include="C:\Program Files\ArrayFire\v3\lib\*.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)' == 'Release'">
+    <Reference Include="ArrayFireNCC">
+      <HintPath>..\ArrayFireNCC\x64\Release\ArrayFireNCC.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <None Include="C:\Program Files\ArrayFire\v3\lib\*.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Configuration.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\Ailments\blind.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\Ailments\confusion.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\Ailments\curse.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\Ailments\death.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\Ailments\petrification.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\Ailments\poison.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\Ailments\silence.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\Ailments\weakness.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\MapIcons\character.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\MapIcons\character.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\MapIcons\rune.gif">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\MapIcons\rune.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="KeyboardEncoding.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Macros\TestMacro.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Images\Ailments\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="App.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ArrayFireNCC\ArrayFireNCC.vcxproj" />
+    <ProjectReference Include="..\Interception.net\Interception\Intercept.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Xaml\SplashScreenImage.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Systems\UIHandler\UserInterface\WindowMenuItemPopupHandlers.cs">
+      <Generator>MSBuild:Compile</Generator>
+    </Compile>
+  </ItemGroup>
+
+</Project>

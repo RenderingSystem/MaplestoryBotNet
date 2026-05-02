@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.TestHelpers;
+using System.Diagnostics;
 
 
 namespace MaplestoryBotNetTests.ThreadingUtils
@@ -97,7 +98,7 @@ namespace MaplestoryBotNetTests.ThreadingUtils
         public bool ThreadJoinSpy = false;
         public List<int> ThreadJoinCallArg_milliseconds = [];
         public List<bool> ThreadJoinReturn = [];
-         public override bool Join(int milliseconds)
+        public override bool Join(int milliseconds)
         {
             var callReference = new TestUtilities().Reference(this) + "ThreadJoin";
             CallOrder.Add(callReference);
@@ -241,6 +242,66 @@ namespace MaplestoryBotNetTests.ThreadingUtils
             var callReference = new TestUtilities().Reference(this) + "WaitOne";
             CallOrder.Add(callReference);
             WaitOneCalls++;
+        }
+    }
+
+
+    public class MockProcessName : AbstractProcessName
+    {
+        public List<string> CallOrder = [];
+
+        public int GetProcessNameCalls = 0;
+        public int GetProcessNameIndex = 0;
+        public List<string> GetProcessNameReturn = [];
+        public override string GetProcessName()
+        {
+            var callReference = new TestUtilities().Reference(this) + "GetProcessName";
+            CallOrder.Add(callReference);
+            GetProcessNameCalls++;
+            if (GetProcessNameIndex < GetProcessNameReturn.Count)
+            {
+                return GetProcessNameReturn[GetProcessNameIndex++];
+            }
+            throw new IndexOutOfRangeException();
+        }
+    }
+
+
+    public class MockProcessLauncher : AbstractProcessLauncher
+    {
+        public List<string> CallOrder = [];
+
+        public int LaunchCalls = 0;
+        public List<ProcessStartInfo> LaunchCallArg_startInfo = [];
+        public override void Launch(ProcessStartInfo startInfo)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Launch";
+            CallOrder.Add(callReference);
+            LaunchCalls++;
+            LaunchCallArg_startInfo.Add(startInfo);
+        }
+    }
+
+
+    public class MockProcessMonitor : AbstractProcessMonitor
+    {
+        public List<string> CallOrder = [];
+
+        public int RunningCalls = 0;
+        public int RunningIndex = 0;
+        public List<string> RunningCallArg_processName = [];
+        public List<int> RunningReturn = [];
+        public override int Running(string processName)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Running";
+            CallOrder.Add(callReference);
+            RunningCallArg_processName.Add(processName);
+            RunningCalls++;
+            if (RunningIndex < RunningReturn.Count)
+            {
+                return RunningReturn[RunningIndex++];
+            }
+            throw new IndexOutOfRangeException();
         }
     }
 }
