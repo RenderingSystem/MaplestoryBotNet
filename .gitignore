@@ -8,13 +8,13 @@ MaplestoryBotNet/bin
 MaplestoryBotNet/obj
 MaplestoryBotNet/x64
 
-RuneSolver/.vs
-RuneSolver/.vscode
-RuneSolver/.project
-RuneSolver/packages
-RuneSolver/bin
-RuneSolver/obj
-RuneSolver/x64
+MaplestoryRuneSolver/.vs
+MaplestoryRuneSolver/.vscode
+MaplestoryRuneSolver/.project
+MaplestoryRuneSolver/packages
+MaplestoryRuneSolver/bin
+MaplestoryRuneSolver/obj
+MaplestoryRuneSolver/x64
 
 ArrayFireNCC/.vs
 ArrayFireNCC/.vscode
