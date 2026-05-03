@@ -217,6 +217,14 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
+        private AbstractWindowActionHandler _instantiateUniformMovementsLoadingActionHandler()
+        {
+            return new WindowRuneingEditorUniformMovementsLoadingActionHandlerFacade(
+                GlobalSettingsButton,
+                GetSystemWindow()
+            );
+        }
+
         private AbstractWindowActionHandler _instantiateMovementsLoadingActionHandler()
         {
             return new WindowRuneingEditorMovementsLoadingActionHandlerFacade(
@@ -232,6 +240,7 @@ namespace MaplestoryBotNet.Xaml
             return new WindowRuneingEditorMovementsSavingActionHandlerFacade(
                 GetSystemWindow(),
                 RuneingMovementsListBox,
+                GlobalSettingsButton,
                 _editMenuState
             );
         }
@@ -357,6 +366,7 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateWindowMenuItemHideActionHandler(),
                 _instantiateMovementDirectionComboBoxScaleActionHandler(),
                 _instantiateFramePointMacrosLoadingActionHandler(),
+                _instantiateUniformMovementsLoadingActionHandler(),
                 _instantiateMovementsLoadingActionHandler(),
                 _frameNameLoadingActionHandler(),
                 _instantiateFramePointMacrosSavingActionHandler(),

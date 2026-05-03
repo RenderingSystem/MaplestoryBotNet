@@ -409,7 +409,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                     )
                 ).ToList(),
                 RuneRadius = runeModel.GetRadius(),
-                RuneActivation = runeModel.GetCooldown()
+                RuneActivation = runeModel.GetCooldown(),
+                UniformMovement = runeModel.GetUniformMovement()
             };
         }
 
@@ -479,6 +480,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             }
             bottingModel.GetRuneModel().SetRadius(configurationBottingModel.RuneRadius);
             bottingModel.GetRuneModel().SetCooldown(configurationBottingModel.RuneActivation);
+            bottingModel.GetRuneModel().SetUniformMovement(configurationBottingModel.UniformMovement);
         }
 
         public override object? ToDataModel(object configuration)

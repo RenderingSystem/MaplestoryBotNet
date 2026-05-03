@@ -1378,6 +1378,109 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
+    public class WindowRuneingEditorUniformMovementsLoadingModifier : AbstractWindowStateModifier
+    {
+        private CheckBox _uniformMovementsCheckbox;
+
+        public WindowRuneingEditorUniformMovementsLoadingModifier(
+            CheckBox uniformMovementsCheckbox
+        )
+        {
+            _uniformMovementsCheckbox = uniformMovementsCheckbox;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (
+                value is AbstractBottingModel bottingModel
+                && bottingModel.GetRuneModel() is AbstractRuneModel runeModel
+            )
+            {
+                _uniformMovementsCheckbox.IsChecked = runeModel.GetUniformMovement() != 0;
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorUniformMovementsLoadingActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractSystemWindow _windowRuneingEditor;
+
+        private AbstractWindowStateModifier _uniformMovementsLoadingModifier;
+
+        private AbstractBottingModel? _bottingModel;
+
+        public WindowRuneingEditorUniformMovementsLoadingActionHandler(
+            AbstractSystemWindow windowRuneingEditor,
+            AbstractWindowStateModifier uniformMovementsLoadingModifier
+        )
+        {
+            _windowRuneingEditor = windowRuneingEditor;
+            _uniformMovementsLoadingModifier = uniformMovementsLoadingModifier;
+            _bottingModel = null;
+            var window = (Window)_windowRuneingEditor.GetWindow()!;
+            window.IsVisibleChanged += OnDependencyEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _uniformMovementsLoadingModifier;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
+            {
+                _bottingModel = bottingModel;
+            }
+        }
+
+        public override void OnDependencyEvent(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (_windowRuneingEditor.Visible())
+            {
+                _uniformMovementsLoadingModifier.Modify(_bottingModel);
+            }
+        }
+    }
+
+
+    public class WindowRuneingEditorUniformMovementsLoadingActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _framePointMacrosLoadingActionHandler;
+
+        public WindowRuneingEditorUniformMovementsLoadingActionHandlerFacade(
+            CheckBox uniformMovementsCheckbox,
+            AbstractSystemWindow windowRuneingEditor
+        )
+        {
+            _framePointMacrosLoadingActionHandler = (
+                new WindowRuneingEditorUniformMovementsLoadingActionHandler(
+                    windowRuneingEditor,
+                    new WindowRuneingEditorUniformMovementsLoadingModifier(
+                        uniformMovementsCheckbox
+                    )
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _framePointMacrosLoadingActionHandler.Modifier();
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _framePointMacrosLoadingActionHandler.Inject(dataType, data);
+        }
+
+        public override void OnDependencyEvent(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            _framePointMacrosLoadingActionHandler.OnDependencyEvent(sender, e);
+        }
+    }
+
+
     public class WindowRuneingEditorMovementsLoadingModifier : AbstractWindowStateModifier
     {
         private ListBox _movementsListBox;
@@ -1529,15 +1632,42 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private ListBox _movementsListBox;
 
+        private CheckBox _uniformMovementsCheckbox;
+
         private AbstractWindowMapEditMenuState _editMenuState;
 
         public WindowRuneingEditorMovementsSavingModifier(
             ListBox movementsListBox,
+            CheckBox uniformMovementsCheckbox,
             AbstractWindowMapEditMenuState editMenuState
         )
         {
             _movementsListBox = movementsListBox;
+            _uniformMovementsCheckbox = uniformMovementsCheckbox;
             _editMenuState = editMenuState;
+        }
+
+        private void _assignMovements(AbstractRuneModel runeModel, RuneFrame runeFrame)
+        {
+            var isChecked = _uniformMovementsCheckbox.IsChecked! == true ? 1 : 0;
+            var runeFrameDirections = runeFrame.FrameData.RuneFrameDirections;
+            runeFrameDirections.Clear();
+            for (int i = 0; i < _movementsListBox.Items.Count; i++)
+            {
+                var listBoxItem = (ListBoxItem)_movementsListBox.Items[i];
+                var listTextBoxes = (List<TextBox>)((Grid)listBoxItem.Content).Tag;
+                var movementTag = (WindowRuneingEditorMovementTag)listBoxItem.Tag;
+                runeFrameDirections.Add(
+                    new RuneFrameDirection
+                    {
+                        DirectionName = listTextBoxes.Count > 0 ? listTextBoxes[0].Text : "",
+                        DirectionCommands = [.. movementTag.MovementCommands],
+                        Distance = movementTag.Distance,
+                        Direction = movementTag.Direction
+                    }
+                );
+            }
+            runeModel.EditRuneFrame(runeFrame);
         }
 
         public override void Modify(object? value)
@@ -1551,27 +1681,24 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 && runeFrameObject.Tag is MapCanvasRuneFrameDataTag runeFrameDataTag
                 && runeFrameDataTag.ElementLabel is string elementLabel
                 && bottingModel.GetRuneModel() is AbstractRuneModel runeModel
-                && runeModel.FindRuneFrameByName(elementLabel) is RuneFrame runeFrame
-                && runeFrame.FrameData.RuneFrameDirections is List<RuneFrameDirection> runeFrameDirections
             )
             {
-                runeFrameDirections.Clear();
-                for (int i = 0; i < _movementsListBox.Items.Count; i++)
+                var isChecked = (bool)_uniformMovementsCheckbox.IsChecked!;
+                if (!isChecked)
                 {
-                    var listBoxItem = (ListBoxItem)_movementsListBox.Items[i];
-                    var listTextBoxes = (List<TextBox>)((Grid)listBoxItem.Content).Tag;
-                    var movementTag = (WindowRuneingEditorMovementTag)listBoxItem.Tag;
-                    runeFrameDirections.Add(
-                        new RuneFrameDirection
-                        {
-                            DirectionName = listTextBoxes.Count > 0 ? listTextBoxes[0].Text : "",
-                            DirectionCommands = [.. movementTag.MovementCommands],
-                            Distance = movementTag.Distance,
-                            Direction = movementTag.Direction
-                        }
-                    );
+                    if (runeModel.FindRuneFrameByName(elementLabel) is RuneFrame runeFrame)
+                    {
+                        _assignMovements(runeModel, runeFrame);
+                    }
                 }
-                runeModel.EditRuneFrame(runeFrame);
+                else
+                {
+                    foreach (var runeFrame in runeModel.RuneFrames())
+                    {
+                        _assignMovements(runeModel, runeFrame);
+                    }
+                }
+                runeModel.SetUniformMovement(isChecked ? 1 : 0);
             }
         }
     }
@@ -1627,13 +1754,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public WindowRuneingEditorMovementsSavingActionHandlerFacade(
             AbstractSystemWindow windowRuneingEditor,
             ListBox movementsListBox,
+            CheckBox uniformMovementsCheckBox,
             AbstractWindowMapEditMenuState editMenuState
         )
         {
             _framePointMacrosSavingActionHandler = new WindowRuneingEditorMovementsSavingActionHandler(
                 windowRuneingEditor,
                 new WindowRuneingEditorMovementsSavingModifier(
-                    movementsListBox, editMenuState
+                    movementsListBox, uniformMovementsCheckBox, editMenuState
                 )
             );
         }

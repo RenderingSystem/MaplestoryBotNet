@@ -254,6 +254,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             bottingModel.GetMapModel().SetTemplateThreshold(MapIconInfo.Rune, 0.123f);
             bottingModel.GetRuneModel().SetCooldown(123);
             bottingModel.GetRuneModel().SetRadius(234);
+            bottingModel.GetRuneModel().SetUniformMovement(345);
             return bottingModel;
         }
 
@@ -460,7 +461,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 "character_threshold": 0.234,
                 "rune_threshold": 0.123,
                 "rune_activation": 123,
-                "rune_radius": 234
+                "rune_radius": 234,
+                "uniform_movement": 345
             }
             """;
         }

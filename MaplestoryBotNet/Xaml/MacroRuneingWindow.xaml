@@ -397,6 +397,15 @@
                             IsTabStop="False"
                             Height="27" IsEnabled="False"
                         />
+                        <CheckBox
+                            x:Name="GlobalSettingsButton"
+                            Content="Global settings"
+                            Margin="435,28,15,275"
+                            VerticalContentAlignment="Center"
+                            FontFamily="Courier New"
+                            Foreground="White"
+                            FontSize="11"
+                        />
                     </Grid>
                 </TabItem>
             </TabControl>

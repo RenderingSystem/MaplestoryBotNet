@@ -211,7 +211,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 "character_threshold": 0.234,
                 "rune_threshold": 0.123,
                 "rune_activation": 123,
-                "rune_radius": 234
+                "rune_radius": 234,
+                "uniform_movement": 345
             }
             """;
         }
@@ -389,7 +390,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 CharacterThreshold = 0.234f,
                 RuneThreshold = 0.123f,
                 RuneActivation = 123,
-                RuneRadius = 234
+                RuneRadius = 234,
+                UniformMovement = 345
             };
         }
     }
@@ -791,6 +793,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             var deserialized = deserializer.DeserializeBottingModel(ConfigurationFixture.StringFixture());
             Debug.Assert(deserialized.RuneActivation == 123);
             Debug.Assert(deserialized.RuneRadius == 234);
+            Debug.Assert(deserialized.UniformMovement == 345);
         }
 
         /**

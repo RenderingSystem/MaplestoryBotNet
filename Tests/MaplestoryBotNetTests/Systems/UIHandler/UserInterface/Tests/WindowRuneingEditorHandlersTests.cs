@@ -3106,11 +3106,67 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    public class WindowRuneingEditorUniformMovementsLoadingActionHandlerTests
+    {
+        private CheckBox _uniformMovementsCheckbox = new CheckBox();
+
+        private MockSystemWindow _windowRuneingEditor = new MockSystemWindow();
+
+        private AbstractBottingModel _bottingModel = new BottingModel();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _uniformMovementsCheckbox = new CheckBox();
+            _windowRuneingEditor = new MockSystemWindow();
+            _bottingModel = new BottingModel();
+            _windowRuneingEditor.GetWindowReturn.Add(new Window());
+            var handler = new WindowRuneingEditorUniformMovementsLoadingActionHandlerFacade(
+                _uniformMovementsCheckbox,
+                _windowRuneingEditor
+            );
+            handler.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _windowRuneingEditor.VisibleReturn.Add(true);
+            return handler;
+        }
+
+        /**
+         * @brief Verifies that when the Runeing Editor window opens, the uniform
+         * movement checkbox state is loaded from the botting model's saved setting
+         * 
+         * When users open the Runeing Editor to edit frame movements, the "Uniform Movement"
+         * checkbox must reflect the previously saved setting from the botting model.
+         * This setting determines whether movement changes are applied to only the
+         * currently selected frame or to all frames uniformly.
+         */
+        private void _testOpeningEditorLoadsUniformMovement()
+        {
+            foreach (var checkState in new[] { true, false })
+            {
+                var uniformMovementsLoadingActionHandler = _fixture();
+                _uniformMovementsCheckbox.IsChecked = !checkState;
+                _bottingModel.GetRuneModel().SetUniformMovement(checkState ? 1 : 0);
+                uniformMovementsLoadingActionHandler.OnDependencyEvent(
+                    uniformMovementsLoadingActionHandler,
+                    new DependencyPropertyChangedEventArgs()
+                );
+                Debug.Assert(_uniformMovementsCheckbox.IsChecked == checkState);
+            }
+        }
+
+        public void Run()
+        {
+            _testOpeningEditorLoadsUniformMovement();
+        }
+    }
+
+
     public class WindowRuneingEditorMovementsSavingActionHandlerTests
     {
         private MockSystemWindow _windowRuneingEditor = new MockSystemWindow();
 
         private ListBox _movementsListBox = new ListBox();
+
+        private CheckBox _uniformMovementsCheckbox = new CheckBox();
 
         private AbstractWindowMapEditMenuState _editMenuState = new WindowMapEditMenuState();
 
@@ -3140,9 +3196,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _movementsListBox = new ListBox();
             _editMenuState = new WindowMapEditMenuState();
             _bottingModel = DataFixtures.BottingModelFixture();
+            _uniformMovementsCheckbox = new CheckBox();
+            foreach (var runeFrame in _bottingModel.GetRuneModel().RuneFrames())
+            {
+                runeFrame.FrameData.RuneFrameDirections.Clear();
+                _bottingModel.GetRuneModel().EditRuneFrame(runeFrame);
+            }
             var handler = new WindowRuneingEditorMovementsSavingActionHandlerFacade(
                 _windowRuneingEditor,
                 _movementsListBox,
+                _uniformMovementsCheckbox,
                 _editMenuState
             );
             handler.Inject(SystemInjectType.BottingModel, _bottingModel);
@@ -3173,89 +3236,179 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         /**
          * @brief Verifies that movement command sequences are saved to the botting model
-         * when the editor closes
+         * when the editor closes, either for a single selected frame or uniformly to all frames
          * 
          * When users edit the command sequences of movements in the editor, these changes
          * must be persisted to the rune frame's direction commands when the editor window
          * closes. The command list defines the automation actions that execute when the
          * bot moves in that direction.
+         * 
+         * This test covers two scenarios:
+         * 
+         * 1. Uniform movement disabled (value = 0): Only the currently selected frame
+         *    receives the movement command updates. Other frames remain unchanged.
+         *    
+         * 2. Uniform movement enabled (value = 123): All frames receive the same movement
+         *    command updates regardless of which frame was selected.
          */
         private void _testClosingEditorSavesMovementCommands()
         {
             for (int i = 0; i < 2; i++)
+            foreach (var uniformValue in new[] { false, true })
             {
                 var nextFrame = "F" + ((i + 1) % 2).ToString();
                 var framePointMacrosSavingActionHandler = _fixture(nextFrame, nextFrame);
                 var runeModel = _bottingModel.GetRuneModel();
+                _uniformMovementsCheckbox.IsChecked = uniformValue;
                 _windowRuneingEditor.VisibleReturn.Add(false);
                 _editMenuState.Select(SelectedFixture.Object("FT" + i.ToString(), "F" + i.ToString()));
                 framePointMacrosSavingActionHandler.OnDependencyEvent(
                     framePointMacrosSavingActionHandler, new DependencyPropertyChangedEventArgs()
                 );
-                var runeFrame = runeModel.FindRuneFrameByName("FT" + i.ToString())!;
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections.Count == 2);
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections[0].DirectionCommands.Count == 3);
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections[0].DirectionCommands[0] == "C1");
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections[0].DirectionCommands[1] == "C2");
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections[0].DirectionCommands[2] == "C3");
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections[1].DirectionCommands.Count == 3);
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections[1].DirectionCommands[0] == "C2");
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections[1].DirectionCommands[1] == "C3");
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections[1].DirectionCommands[2] == "C4");
+                for (int j = 0; j < 2; j++)
+                {
+                    var runeFrame = runeModel.FindRuneFrameByName("FT" + j.ToString())!;
+                    if (uniformValue || j == i)
+                    {
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections.Count == 2);
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections[0].DirectionCommands.Count == 3);
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections[0].DirectionCommands[0] == "C1");
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections[0].DirectionCommands[1] == "C2");
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections[0].DirectionCommands[2] == "C3");
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections[1].DirectionCommands.Count == 3);
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections[1].DirectionCommands[0] == "C2");
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections[1].DirectionCommands[1] == "C3");
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections[1].DirectionCommands[2] == "C4");
+                    }
+                    else
+                    {
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections.Count == 0);
+                    }
+                }
             }
         }
 
         /**
          * @brief Verifies that movement distance values are saved to the botting model
-         * when the editor closes
+         * when the editor closes, either for a single selected frame or uniformly to all frames
          * 
          * When users modify the distance value of a movement (the maximum safe movement
-         * distance that prevents the character from falling off platforms), this value
-         * must be saved to the rune frame's direction list when the editor closes.
+         * distance that prevents the character from falling off platforms), these values
+         * must be saved to the rune frame's direction list when the editor window closes.
+         * 
+         * This test covers two scenarios:
+         * 
+         * 1. Uniform movement disabled (value = 0): Only the currently selected frame
+         *    receives the distance value updates. Other frames remain unchanged.
+         *    
+         * 2. Uniform movement enabled (value = 123): All frames receive the same distance
+         *    values regardless of which frame was selected.
          */
         private void _testClosingEditorSavesDistance()
         {
             for (int i = 0; i < 2; i++)
+            foreach (var uniformValue in new[] { false, true })
             {
                 var nextFrame = "F" + ((i + 1) % 2).ToString();
                 var framePointMacrosSavingActionHandler = _fixture(nextFrame, nextFrame);
                 var runeModel = _bottingModel.GetRuneModel();
+                _uniformMovementsCheckbox.IsChecked = uniformValue;
                 _windowRuneingEditor.VisibleReturn.Add(false);
                 _editMenuState.Select(SelectedFixture.Object("FT" + i.ToString(), "F" + i.ToString()));
                 framePointMacrosSavingActionHandler.OnDependencyEvent(
                     framePointMacrosSavingActionHandler, new DependencyPropertyChangedEventArgs()
                 );
-                var runeFrame = runeModel.FindRuneFrameByName("FT" + i.ToString())!;
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections.Count == 2);
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections[0].Distance == 123);
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections[1].Distance == 234);
+                for (int j = 0; j < 2; j++)
+                {
+                    var runeFrame = runeModel.FindRuneFrameByName("FT" + j.ToString())!;
+                    if (uniformValue || j == i)
+                    {
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections.Count == 2);
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections[0].Distance == 123);
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections[1].Distance == 234);
+                    }
+                    else
+                    {
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections.Count == 0);
+                    }
+                }
             }
         }
 
         /**
          * @brief Verifies that movement names are saved to the botting model when the
-         * editor closes
+         * editor closes, either for a single selected frame or uniformly to all frames
          * 
          * When users edit the name of a movement in the editor's text box, the movement
          * name must be saved to the rune frame's direction list as DirectionName. This
          * allows users to identify and reference movements by custom names in the editor.
+         * 
+         * This test covers two scenarios:
+         * 
+         * 1. Uniform movements disabled (uniformValue = false): Only the currently
+         *    selected frame receives the movement name updates. Other frames remain
+         *    unchanged.
+         *    
+         * 2. Uniform movements enabled (uniformValue = true): All frames receive the same
+         *    movement names regardless of which frame was selected.
          */
         private void _testClosingEditorMovementName()
         {
             for (int i = 0; i < 2; i++)
+            foreach (var uniformValue in new[] { false, true })
             {
                 var nextFrame = "F" + ((i + 1) % 2).ToString();
                 var framePointMacrosSavingActionHandler = _fixture(nextFrame, nextFrame);
                 var runeModel = _bottingModel.GetRuneModel();
+                _uniformMovementsCheckbox.IsChecked = uniformValue;
                 _windowRuneingEditor.VisibleReturn.Add(false);
                 _editMenuState.Select(SelectedFixture.Object("FT" + i.ToString(), "F" + i.ToString()));
                 framePointMacrosSavingActionHandler.OnDependencyEvent(
                     framePointMacrosSavingActionHandler, new DependencyPropertyChangedEventArgs()
                 );
-                var runeFrame = runeModel.FindRuneFrameByName("FT" + i.ToString())!;
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections.Count == 2);
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections[0].DirectionName == "Meow 1");
-                Debug.Assert(runeFrame.FrameData.RuneFrameDirections[1].DirectionName == "Meow 2");
+                for (int j = 0; j < 2; j++)
+                {
+                    var runeFrame = runeModel.FindRuneFrameByName("FT" + j.ToString())!;
+                    if (uniformValue || j == i)
+                    {
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections.Count == 2);
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections[0].DirectionName == "Meow 1");
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections[1].DirectionName == "Meow 2");
+                    }
+                    else
+                    {
+                        Debug.Assert(runeFrame.FrameData.RuneFrameDirections.Count == 0);
+                    }
+                }
+            }
+        }
+
+        /**
+         * @brief Verifies that the uniform movement setting (apply movement changes to all frames)
+         * is saved to the botting model when the editor closes
+         * 
+         * When users toggle the "Uniform Movement" checkbox in the editor, this setting
+         * determines whether movement command sequences, distance values, and direction names
+         * are applied to only the currently selected frame or to all frames simultaneously.
+         * This setting must be persisted to the botting model when the editor window closes so
+         * that it persists across editing sessions.
+         */
+        private void _testClosingEditorUniformMovement()
+        {
+            for (int i = 0; i < 2; i++)
+            foreach (var uniformValue in new[] { false, true })
+            {
+                var nextFrame = "F" + ((i + 1) % 2).ToString();
+                var framePointMacrosSavingActionHandler = _fixture(nextFrame, nextFrame);
+                var runeModel = _bottingModel.GetRuneModel();
+                runeModel.SetUniformMovement(!uniformValue ? 1 : 0);
+                _uniformMovementsCheckbox.IsChecked = uniformValue;
+                _windowRuneingEditor.VisibleReturn.Add(false);
+                _editMenuState.Select(SelectedFixture.Object("FT" + i.ToString(), "F" + i.ToString()));
+                framePointMacrosSavingActionHandler.OnDependencyEvent(
+                    framePointMacrosSavingActionHandler, new DependencyPropertyChangedEventArgs()
+                );
+                Debug.Assert(runeModel.GetUniformMovement() == (uniformValue ? 1 : 0));
             }
         }
 
@@ -3283,13 +3436,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 var runeFrame = runeModel.FindRuneFrameByName("FT" + i.ToString())!;
                 var nextRuneFrame = runeModel.FindRuneFrameRefByLabel("F" + ((i + 1) % 2).ToString())!;
                 var runeFrameDirections = runeFrame.FrameData.RuneFrameDirections;
-                Debug.Assert(runeFrameDirections.Count == 2);
-                Debug.Assert(runeFrameDirections[0].Distance == (i == 0 ? 123 : 345));
-                Debug.Assert(runeFrameDirections[1].Distance == (i == 0 ? 234 : 456));
-                Debug.Assert(runeFrameDirections[0].DirectionName == "D" + ((2 * i) + 0).ToString());
-                Debug.Assert(runeFrameDirections[1].DirectionName == "D" + ((2 * i) + 1).ToString());
-                Debug.Assert(runeFrameDirections[1].Direction == (RuneFrameDirectionTypes)(i == 0 ? 345 : 567));
-                Debug.Assert(runeFrameDirections[0].Direction == (RuneFrameDirectionTypes)(i == 0 ? 234 : 456));
+                Debug.Assert(runeFrameDirections.Count == 0);
             }
         }
 
@@ -3298,6 +3445,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _testClosingEditorSavesMovementCommands();
             _testClosingEditorSavesDistance();
             _testClosingEditorMovementName();
+            _testClosingEditorUniformMovement();
             _testOpeningEditorDoesntSaveMovements();
         }
     }
@@ -3419,6 +3567,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowRuneingEditorFramePointLoadActionHandlerTests().Run();
             new WindowRuneingEditorFramePointSaveActionHandlerTests().Run();
 
+            new WindowRuneingEditorUniformMovementsLoadingActionHandlerTests().Run();
             new WindowRuneingEditorMovementsLoadingActionHandlerTests().Run();
             new WindowRuneingEditorMovementsSavingActionHandlerTests().Run();
             new WindowRuneingEditorMovementAddActionHandlerTests().Run();

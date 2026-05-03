@@ -151,6 +151,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public abstract int GetRadius();
 
+        public abstract void SetUniformMovement(int uniformMovement);
+
+        public abstract int GetUniformMovement();
+
         public abstract List<string> NextNavigation(Point initialPoint, Point finalPoint);
 
         public abstract AbstractRuneModel Copy();
@@ -612,6 +616,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         private volatile int _runeRadius = 0;
 
+        private volatile int _uniformMovement = 0;
+
         public override void AddRuneFrame(RuneFrame frame)
         {
             try
@@ -765,6 +771,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 _runeFrames.AddRange(newRuneModel.RuneFrames());
                 _runeCooldown = newRuneModel.GetCooldown();
                 _runeRadius = newRuneModel.GetRadius();
+                _uniformMovement = newRuneModel.GetUniformMovement();
             }
             finally
             {
@@ -781,7 +788,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 {
                     _runeCooldown = _runeCooldown,
                     _runeRadius = _runeRadius,
-                    _runeFrames = _getRuneFrames(),
+                    _uniformMovement = _uniformMovement,
+                    _runeFrames = _getRuneFrames()
                 };
             }
             finally
@@ -835,6 +843,32 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             {
                 _runeFrameLock.EnterReadLock();
                 return _runeRadius;
+            }
+            finally
+            {
+                _runeFrameLock.ExitReadLock();
+            }
+        }
+
+        public override void SetUniformMovement(int uniformMovement)
+        {
+            try
+            {
+                _runeFrameLock.EnterWriteLock();
+                _uniformMovement = uniformMovement;
+            }
+            finally
+            {
+                _runeFrameLock.ExitWriteLock();
+            }
+        }
+
+        public override int GetUniformMovement()
+        {
+            try
+            {
+                _runeFrameLock.EnterReadLock();
+                return _uniformMovement;
             }
             finally
             {

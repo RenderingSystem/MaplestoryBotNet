@@ -247,6 +247,9 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("rune_radius")]
         public int RuneRadius { set; get; } = 0;
 
+        [JsonPropertyName("uniform_movement")]
+        public int UniformMovement { set; get; } = 0;
+
         public override AbstractConfiguration Copy()
         {
             return new ConfigurationBottingModel
@@ -260,7 +263,8 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
                 MapPoints = MapPoints.Select(point => point.Copy()).ToList(),
                 RuneFrames = RuneFrames.Select(frame => frame.Copy()).ToList(),
                 RuneActivation = RuneActivation,
-                RuneRadius = RuneRadius
+                RuneRadius = RuneRadius,
+                UniformMovement = UniformMovement
             };
         }
     }
