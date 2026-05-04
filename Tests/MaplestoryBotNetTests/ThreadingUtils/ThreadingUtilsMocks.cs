@@ -1,4 +1,4 @@
-﻿using MaplestoryBotNet.Systems;
+﻿using MaplestoryBotNet.Systems.ProcessWatchdog;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.TestHelpers;
 using System.Diagnostics;
@@ -267,13 +267,13 @@ namespace MaplestoryBotNetTests.ThreadingUtils
     }
 
 
-    public class MockProcessLauncher : AbstractProcessLauncher
+    public class MockProcessLauncher : AbstractProcessStarter
     {
         public List<string> CallOrder = [];
 
         public int LaunchCalls = 0;
         public List<ProcessStartInfo> LaunchCallArg_startInfo = [];
-        public override void Launch(ProcessStartInfo startInfo)
+        public override void Start(ProcessStartInfo startInfo)
         {
             var callReference = new TestUtilities().Reference(this) + "Launch";
             CallOrder.Add(callReference);
@@ -290,8 +290,8 @@ namespace MaplestoryBotNetTests.ThreadingUtils
         public int RunningCalls = 0;
         public int RunningIndex = 0;
         public List<string> RunningCallArg_processName = [];
-        public List<int> RunningReturn = [];
-        public override int Running(string processName)
+        public List<List<AbstractProcess>> RunningReturn = [];
+        public override List<AbstractProcess> Running(string processName)
         {
             var callReference = new TestUtilities().Reference(this) + "Running";
             CallOrder.Add(callReference);
@@ -302,6 +302,22 @@ namespace MaplestoryBotNetTests.ThreadingUtils
                 return RunningReturn[RunningIndex++];
             }
             throw new IndexOutOfRangeException();
+        }
+    }
+
+
+    public class MockProcess : AbstractProcess
+    {
+        public List<string> CallOrder = [];
+
+        public int KillCalls = 0;
+        public List<int> KillCallArg_waitMilliseconds = []; 
+        public override void Kill(int waitMilliseconds)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Kill";
+            CallOrder.Add(callReference);
+            KillCalls++;
+            KillCallArg_waitMilliseconds.Add(waitMilliseconds);
         }
     }
 }

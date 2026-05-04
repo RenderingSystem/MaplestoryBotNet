@@ -14,21 +14,72 @@ using System.Text.Json;
 
 namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
 {
-    public class RuneSolverWatchdogManagerTests
+    public class RuneSolverPingerTests
+    {
+        private MockRuneSolverClient _client = (
+            new MockRuneSolverClient()
+        );
+
+        private AbstractRuneSolverPinger _fixture()
+        {
+            _client = new MockRuneSolverClient();
+            return new RuneSolverPinger(_client);
+        }
+
+        /**
+         * @brief Verifies that the watchdog thread helper correctly constructs the ping URL
+         * and delegates the HTTP GET request to the HTTP client
+         * 
+         * When the watchdog needs to check whether the rune solver server is alive and
+         * responsive, it calls the Ping method with the rune detection configuration
+         * (IP address, port, route) and a timeout value. This test ensures that the helper
+         * properly formats the URL by combining the address, port, route, and "/ping" endpoint,
+         * then forwards the request to the underlying HTTP client with the specified timeout.
+         */
+        public void _testPing()
+        {
+            var watchdogThreadHelper = _fixture();
+            var responseMessage = new HttpResponseMessage();
+            _client.GetReturn.Add(responseMessage);
+            var result = watchdogThreadHelper.Ping(
+                new RuneDetection
+                {
+                    RuneSolverIPAddress = "123",
+                    RuneSolverPort = "456",
+                    RuneSolverRoute = "789"
+                },
+                234
+            );
+            Debug.Assert(_client.GetCalls == 1);
+            Debug.Assert(_client.GetCallArg_url[0] == "123:456/789/ping");
+            Debug.Assert(_client.GetCallArg_timeoutMilliseconds[0] == 234);
+            Debug.Assert(responseMessage == result);
+        }
+
+        public void Run()
+        {
+            _testPing();
+        }
+    }
+
+
+    public class RuneSolverControllerTests
     {
         private MockProcessName _processName = new MockProcessName();
 
+        private MockProcessMonitor _processMonitor = new MockProcessMonitor();
+
         private MockProcessLauncher _processLauncher = new MockProcessLauncher();
 
-        private MockRuneSolverWatchdogClient _client = new MockRuneSolverWatchdogClient();
-
-        public AbstractRuneSolverWatchdogManager _fixture()
+        public AbstractRuneSolverController _fixture()
         {
             _processName = new MockProcessName();
             _processLauncher = new MockProcessLauncher();
-            _client = new MockRuneSolverWatchdogClient();
-            return new RuneSolverWatchdogManager(
-                _processName, _processLauncher, _client
+            _processMonitor = new MockProcessMonitor();
+            return new RuneSolverController(
+                _processName,
+                _processMonitor,
+                _processLauncher
             );
         }
 
@@ -117,36 +168,6 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
         }
 
         /**
-         * @brief Verifies that the watchdog thread helper correctly constructs the ping URL
-         * and delegates the HTTP GET request to the HTTP client
-         * 
-         * When the watchdog needs to check whether the rune solver server is alive and
-         * responsive, it calls the Ping method with the rune detection configuration
-         * (IP address, port, route) and a timeout value. This test ensures that the helper
-         * properly formats the URL by combining the address, port, route, and "/ping" endpoint,
-         * then forwards the request to the underlying HTTP client with the specified timeout.
-         */
-        public void _testPing()
-        {
-            var watchdogThreadHelper = _fixture();
-            var responseMessage = new HttpResponseMessage();
-            _client.GetReturn.Add(responseMessage);
-            var result = watchdogThreadHelper.Ping(
-                new RuneDetection
-                {
-                    RuneSolverIPAddress = "123",
-                    RuneSolverPort = "456",
-                    RuneSolverRoute = "789"
-                },
-                234
-            );
-            Debug.Assert(_client.GetCalls == 1);
-            Debug.Assert(_client.GetCallArg_url[0] == "123:456/789/ping");
-            Debug.Assert(_client.GetCallArg_timeoutMilliseconds[0] == 234);
-            Debug.Assert(responseMessage == result);
-        }
-
-        /**
          * @brief Verifies that the watchdog thread helper correctly launches the rune solver
          * process with properly formatted command-line arguments and process settings
          * 
@@ -166,7 +187,7 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
                 dynamic expected = expectedList[i];
                 var watchdogThreadHelper = _fixture();
                 _processName.GetProcessNameReturn.Add(parameters.processName);
-                watchdogThreadHelper.StartProcess(
+                watchdogThreadHelper.Start(
                     new RuneServerSettings
                     {
                         ServerRuneModel = parameters.serverRuneModel,
@@ -194,51 +215,74 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
             }
         }
 
+        /**
+         * @brief Verifies that the watchdog terminates all rune solver processes when
+         * the system needs to purge a suspended or unresponsive server
+         * 
+         * When the rune solver server becomes suspended, frozen, or unresponsive due to
+         * deadlocks, infinite loops, or network timeouts, the watchdog must purge all
+         * running instances of the process before attempting a restart. This purge
+         * operation ensures no leftover processes are stuck, allowing a clean restart
+         * of the service.
+         */
+        private void _testKill()
+        {
+            foreach (
+                var executableName in new[]
+                {
+                    "l o l",
+                    "l o l.exe",
+                    "\"l o l.exe\"",
+                    "meow\\l o l.exe"
+                }
+            )
+            {
+                var watchdogThreadHelper = _fixture();
+                var killProcesses = new List<AbstractProcess>
+                {
+                    new MockProcess(),
+                    new MockProcess(),
+                    new MockProcess(),
+                    new MockProcess(),
+                    new MockProcess()
+                };
+                _processMonitor.RunningReturn.Add(killProcesses);
+                watchdogThreadHelper.Purge(
+                    new RuneServerSettings
+                    {
+                        ServerExecutable = executableName,
+                        ClientWatchdogTimeout = 1234
+                    }
+                );
+                Debug.Assert(_processMonitor.RunningCalls == 1);
+                Debug.Assert(_processMonitor.RunningCallArg_processName[0] == "l o l");
+                foreach (MockProcess killProcess in killProcesses)
+                {
+                    Debug.Assert(killProcess.KillCalls == 1);
+                    Debug.Assert(killProcess.KillCallArg_waitMilliseconds[0] == 1234);
+                }
+            }
+        }
+
         public void Run()
         {
-            _testPing();
             _testLaunch();
+            _testKill();
         }
     }
 
 
-    public class RuneSolverWatchdogHelperTests
+    public class RuneSolverHealthMonitorTests
     {
-        private MockTimestamp _pingStopwatch = new MockTimestamp();
-
         private MockProcessMonitor _processMonitor = new MockProcessMonitor();
 
-        private MockMacroSleeper _sleeper = new MockMacroSleeper();
+        private MockRuneSolverPinger _watchdogPinger = new MockRuneSolverPinger();
 
-        private MockRuneSolverWatchdogManager _manager = new MockRuneSolverWatchdogManager();
-
-        private AbstractRuneSolverWatchdogHelper _fixture()
+        private AbstractRuneSolverHealthMonitor _fixture()
         {
-            _pingStopwatch = new MockTimestamp();
             _processMonitor = new MockProcessMonitor();
-            _sleeper = new MockMacroSleeper();
-            _manager = new MockRuneSolverWatchdogManager();
-            return new RuneSolverWatchdogHelper(
-                _pingStopwatch,
-                _processMonitor,
-                _sleeper,
-                _manager
-            );
-        }
-
-        /**
-         * @brief Verifies that the watchdog timer is correctly reset on each cycle
-         * 
-         * When the watchdog runs its monitoring loop, it must reset the stopwatch at the
-         * beginning of each iteration to accurately measure the time taken for the current
-         * health check. This ensures that subsequent sleep calculations correctly subtract
-         * the elapsed time from the configured timeout.
-         */
-        private void _testSettingStopwatch()
-        {
-            var helper = _fixture();
-            helper.SetStopwatch();
-            Debug.Assert(_pingStopwatch.SetTimestampCalls == 1);
+            _watchdogPinger = new MockRuneSolverPinger();
+            return new RuneSolverHealthMonitor(_watchdogPinger, _processMonitor);
         }
 
         /**
@@ -257,11 +301,11 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
                 var helper = _fixture();
                 var runeDetection = new RuneDetection();
                 var runeServerSettings = new RuneServerSettings { ServerExecutable = executable };
-                _processMonitor.RunningReturn.Add(0);
+                _processMonitor.RunningReturn.Add([]);
                 Debug.Assert(helper.NeedsLaunch(runeDetection, runeServerSettings));
                 Debug.Assert(_processMonitor.RunningCalls == 1);
                 Debug.Assert(_processMonitor.RunningCallArg_processName[0] == "123");
-                Debug.Assert(_manager.PingCalls == 0);
+                Debug.Assert(_watchdogPinger.PingCalls == 0);
             }
         }
 
@@ -283,14 +327,14 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
                 ServerExecutable = "123",
                 ClientWatchdogTimeout = 234
             };
-            _processMonitor.RunningReturn.Add(1);
-            _manager.PingReturn.Add(null);
+            _processMonitor.RunningReturn.Add([new MockProcess()]);
+            _watchdogPinger.PingReturn.Add(null);
             Debug.Assert(helper.NeedsLaunch(runeDetection, runeServerSettings));
             Debug.Assert(_processMonitor.RunningCalls == 1);
             Debug.Assert(_processMonitor.RunningCallArg_processName[0] == "123");
-            Debug.Assert(_manager.PingCalls == 1);
-            Debug.Assert(_manager.PingCallArg_runeDetection[0] == runeDetection);
-            Debug.Assert(_manager.PingCallArg_clientWatchdogTimeout[0] == 234);
+            Debug.Assert(_watchdogPinger.PingCalls == 1);
+            Debug.Assert(_watchdogPinger.PingCallArg_runeDetection[0] == runeDetection);
+            Debug.Assert(_watchdogPinger.PingCallArg_clientWatchdogTimeout[0] == 234);
         }
 
         /**
@@ -312,14 +356,14 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
                 ServerExecutable = "123",
                 ClientWatchdogTimeout = 234
             };
-            _processMonitor.RunningReturn.Add(1);
-            _manager.PingReturn.Add(response);
+            _processMonitor.RunningReturn.Add([new MockProcess()]);
+            _watchdogPinger.PingReturn.Add(response);
             Debug.Assert(helper.NeedsLaunch(runeDetection, runeServerSettings));
             Debug.Assert(_processMonitor.RunningCalls == 1);
             Debug.Assert(_processMonitor.RunningCallArg_processName[0] == "123");
-            Debug.Assert(_manager.PingCalls == 1);
-            Debug.Assert(_manager.PingCallArg_runeDetection[0] == runeDetection);
-            Debug.Assert(_manager.PingCallArg_clientWatchdogTimeout[0] == 234);
+            Debug.Assert(_watchdogPinger.PingCalls == 1);
+            Debug.Assert(_watchdogPinger.PingCallArg_runeDetection[0] == runeDetection);
+            Debug.Assert(_watchdogPinger.PingCallArg_clientWatchdogTimeout[0] == 234);
         }
 
         /**
@@ -340,33 +384,203 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
                 ServerExecutable = "123",
                 ClientWatchdogTimeout = 234
             };
-            _processMonitor.RunningReturn.Add(1);
-            _manager.PingReturn.Add(response);
+            _processMonitor.RunningReturn.Add([new MockProcess()]);
+            _watchdogPinger.PingReturn.Add(response);
             Debug.Assert(!helper.NeedsLaunch(runeDetection, runeServerSettings));
             Debug.Assert(_processMonitor.RunningCalls == 1);
             Debug.Assert(_processMonitor.RunningCallArg_processName[0] == "123");
-            Debug.Assert(_manager.PingCalls == 1);
-            Debug.Assert(_manager.PingCallArg_runeDetection[0] == runeDetection);
-            Debug.Assert(_manager.PingCallArg_clientWatchdogTimeout[0] == 234);
+            Debug.Assert(_watchdogPinger.PingCalls == 1);
+            Debug.Assert(_watchdogPinger.PingCallArg_runeDetection[0] == runeDetection);
+            Debug.Assert(_watchdogPinger.PingCallArg_clientWatchdogTimeout[0] == 234);
+        }
+
+        public void Run()
+        {
+            _testNeedsLaunchWhenExecutableNotRunning();
+            _testNeedsLaunchWhenRunningAndPingUnresponsive();
+            _testNeedsLaunchWhenRunningAndPingError();
+            _testNeedsLaunchWhenRunningAndPingSuccessful();
+        }
+    }
+
+
+    public class RuneSolverSupervisorTests
+    {
+        private MockRuneSolverController _runeSolverController = new MockRuneSolverController();
+
+        private MockRuneSolverHealthMonitor _runeSolverHealthMonitor = new MockRuneSolverHealthMonitor();
+
+        private AbstractRuneSolverSupervisor _fixture(int tolerance)
+        {
+            _runeSolverController = new MockRuneSolverController();
+            _runeSolverHealthMonitor = new MockRuneSolverHealthMonitor();
+            return new RuneSolverSupervisor(
+                _runeSolverController,
+                _runeSolverHealthMonitor,
+                tolerance
+            );
         }
 
         /**
-         * @brief Verifies that Launch correctly delegates process startup to the manager
+         * @brief Verifies that the supervisor tracks consecutive launch failures and
+         * purges (force terminates) the stuck process after reaching the failure tolerance
          * 
-         * When the watchdog determines that the rune solver needs to be started or
-         * restarted, the Launch method must forward the request to the underlying manager
-         * with the correct configuration settings (server settings and rune detection
-         * settings).
+         * When the rune solver service repeatedly fails to respond to health checks,
+         * the supervisor increments a failure counter. If the number of consecutive
+         * launch attempts reaches the configured tolerance (i), the supervisor
+         * first purges (force terminates) any stuck processes before attempting
+         * a fresh start.
          */
-        private void _testLaunchStartsProcess()
+        private void _testEnsureRunningStartAndPurgesWhenNeeded()
         {
-            var helper = _fixture();
+            for (int i = 1; i < 10; i++)
+            {
+                var runeSolverSupervisor = _fixture(i);
+                var controllerRef = new TestUtilities().Reference(_runeSolverController);
+                var runeDetection = new RuneDetection();
+                var runeServerSettings = new RuneServerSettings();
+                for (int j = 0; j < i; j++)
+                {
+                    _runeSolverHealthMonitor.NeedsLaunchReturn.Add(true);
+                }
+                for (int j = 0; j < i; j++)
+                {
+                    runeSolverSupervisor.EnsureRunning(runeDetection, runeServerSettings);
+                }
+                Debug.Assert(_runeSolverController.CallOrder.Count == i + 1);
+                for (int j = 0; j < i - 1; j++)
+                {
+                    Debug.Assert(_runeSolverController.CallOrder[j] == controllerRef + "Start");
+                }
+                Debug.Assert(_runeSolverController.CallOrder[i - 1] == controllerRef + "Purge");
+                Debug.Assert(_runeSolverController.CallOrder[i] == controllerRef + "Start");
+            }
+        }
+
+        /**
+         * @brief Verifies that the supervisor resets the consecutive failure counter
+         * whenever a health check succeeds (NeedsLaunch returns false)
+         * 
+         * The supervisor tracks how many times in a row the rune solver has needed to
+         * be launched. When a health check succeeds (the service is running and healthy),
+         * the failure counter resets to zero. This ensures that a single transient
+         * failure doesn't cause a purge, and that the failure tolerance only applies
+         * to truly consecutive failures.
+         */
+        private void _testEnsureRunningResetsLaunchCount()
+        {
+            for (int i = 2; i < 10; i++)
+            {
+                var runeSolverSupervisor = _fixture(i);
+                var controllerRef = new TestUtilities().Reference(_runeSolverController);
+                var runeDetection = new RuneDetection();
+                var runeServerSettings = new RuneServerSettings();
+                for (int j = 0; j < i - 1; j++)
+                {
+                    _runeSolverHealthMonitor.NeedsLaunchReturn.Add(true);
+                }
+                _runeSolverHealthMonitor.NeedsLaunchReturn.Add(false);
+                for (int j = 0; j < i; j++)
+                {
+                    _runeSolverHealthMonitor.NeedsLaunchReturn.Add(true);
+                }
+                for (int j = 0; j < 2 * i; j++)
+                {
+                    runeSolverSupervisor.EnsureRunning(runeDetection, runeServerSettings);
+                }
+                Debug.Assert(_runeSolverController.CallOrder.Count == 2 * i);
+                for (int j = 0; j < 2 * i - 2; j++)
+                {
+                    Debug.Assert(_runeSolverController.CallOrder[j] == controllerRef + "Start");
+                }
+                Debug.Assert(_runeSolverController.CallOrder[2 * i - 2] == controllerRef + "Purge");
+                Debug.Assert(_runeSolverController.CallOrder[2 * i - 1] == controllerRef + "Start");
+            }
+        }
+
+        /**
+         * @brief Verifies that the supervisor does not attempt to start the rune solver
+         * when the health monitor indicates it is already running and healthy
+         * 
+         * When the rune solver service is already running and passing health checks,
+         * the supervisor should take no action. This prevents unnecessary process
+         * starts that could waste system resources or cause port conflicts.
+         */
+        private void _testEnsureRunningDoesntStartWhenLaunchNotNeeded()
+        {
+            var runeSolverSupervisor = _fixture(1);
             var runeDetection = new RuneDetection();
             var runeServerSettings = new RuneServerSettings();
-            helper.Launch(runeDetection, runeServerSettings);
-            Debug.Assert(_manager.StartProcessCalls == 1);
-            Debug.Assert(_manager.StartProcessCallArg_runeServerSettings[0] == runeServerSettings);
-            Debug.Assert(_manager.StartProcessCallArg_runeDetection[0] == runeDetection);
+            _runeSolverHealthMonitor.NeedsLaunchReturn.Add(false);
+            runeSolverSupervisor.EnsureRunning(runeDetection, runeServerSettings);
+            Debug.Assert(_runeSolverController.CallOrder.Count == 0);
+        }
+
+        /**
+         * @brief Verifies that the supervisor correctly passes the rune detection and
+         * server settings to the health monitor and controller components
+         * 
+         * When ensuring the rune solver is running, the supervisor must forward the
+         * configuration settings to both the health monitor (to check if a launch is
+         * needed) and the controller (to start or purge the process). This ensures
+         * that all components use the same settings consistently.
+         */
+        private void _testEnsureRunningUsesRuneDetectionAndRuneServerSettings()
+        {
+            var runeSolverSupervisor = _fixture(1);
+            var runeDetection = new RuneDetection();
+            var runeServerSettings = new RuneServerSettings();
+            _runeSolverHealthMonitor.NeedsLaunchReturn.Add(true);
+            runeSolverSupervisor.EnsureRunning(runeDetection, runeServerSettings);
+            Debug.Assert(_runeSolverHealthMonitor.NeedsLaunchCalls == 1);
+            Debug.Assert(_runeSolverHealthMonitor.NeedsLaunchCallArg_runeDetection[0] == runeDetection);
+            Debug.Assert(_runeSolverHealthMonitor.NeedsLaunchCallArg_runeServerSettings[0] == runeServerSettings);
+            Debug.Assert(_runeSolverController.PurgeCalls == 1);
+            Debug.Assert(_runeSolverController.PurgeCallArg_runeServerSettings[0] == runeServerSettings);
+            Debug.Assert(_runeSolverController.StartCalls == 1);
+            Debug.Assert(_runeSolverController.StartCallArg_runeDetection[0] == runeDetection);
+            Debug.Assert(_runeSolverController.StartCallArg_runeServerSettings[0] == runeServerSettings);
+        }
+
+        public void Run()
+        {
+            _testEnsureRunningStartAndPurgesWhenNeeded();
+            _testEnsureRunningResetsLaunchCount();
+            _testEnsureRunningDoesntStartWhenLaunchNotNeeded();
+            _testEnsureRunningUsesRuneDetectionAndRuneServerSettings();
+        }
+    }
+
+
+    public class RuneSolverWatchdogTimerTests
+    {
+        private MockTimestamp _pingStopwatch = new MockTimestamp();
+
+        private MockMacroSleeper _sleeper = new MockMacroSleeper();
+
+        private AbstractRuneSolverWatchdogTimer _fixture()
+        {
+            _pingStopwatch = new MockTimestamp();
+            _sleeper = new MockMacroSleeper();
+            return new RuneSolverWatchdogTimer(
+                _pingStopwatch,
+                _sleeper
+            );
+        }
+
+        /**
+         * @brief Verifies that the watchdog timer is correctly reset on each cycle
+         * 
+         * When the watchdog runs its monitoring loop, it must reset the stopwatch at the
+         * beginning of each iteration to accurately measure the time taken for the current
+         * health check. This ensures that subsequent sleep calculations correctly subtract
+         * the elapsed time from the configured timeout.
+         */
+        private void _testSettingStopwatch()
+        {
+            var helper = _fixture();
+            helper.SetStopwatch();
+            Debug.Assert(_pingStopwatch.SetTimestampCalls == 1);
         }
 
         /**
@@ -398,11 +612,6 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
         public void Run()
         {
             _testSettingStopwatch();
-            _testNeedsLaunchWhenExecutableNotRunning();
-            _testNeedsLaunchWhenRunningAndPingUnresponsive();
-            _testNeedsLaunchWhenRunningAndPingError();
-            _testNeedsLaunchWhenRunningAndPingSuccessful();
-            _testLaunchStartsProcess();
             _testSleepRemainingWaitTime();
         }
     }
@@ -410,16 +619,22 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
 
     public class RuneSolverWatchdogThreadTests
     {
-        private MockRuneSolverWatchdogHelper _helper = new MockRuneSolverWatchdogHelper();
+        private MockRuneSolverWatchdogTimer _timer = new MockRuneSolverWatchdogTimer();
 
         private MockRunningState _runningState = new MockRunningState();
 
+        private MockRuneSolverSupervisor _supervisor = new MockRuneSolverSupervisor();
+
         private MaplestoryBotConfiguration _maplestoryBotConfiguration = new MaplestoryBotConfiguration();
+
+        public List<string> _callOrder = [];
 
         private AbstractThread _fixture()
         {
-            _helper = new MockRuneSolverWatchdogHelper();
+            _timer = new MockRuneSolverWatchdogTimer();
             _runningState = new MockRunningState();
+            _supervisor = new MockRuneSolverSupervisor();
+            _callOrder = new List<string>();
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration
             {
                 RuneDetection = new RuneDetection
@@ -445,8 +660,12 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
                 }
             };
             _runningState.IsRunningReturn.Add(false);
+            _timer.CallOrder = _callOrder;
+            _supervisor.CallOrder = _callOrder;
             return new RuneSolverWatchdogThread(
-                _helper, _runningState
+                _timer,
+                _supervisor,
+                _runningState
             );
         }
 
@@ -458,48 +677,38 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
         }
 
         /**
-         * @brief Verifies that the watchdog thread correctly executes the monitoring loop.
+         * @brief Verifies that the watchdog thread executes the health monitoring loop,
+         * resetting the timer and launching the rune solver on each iteration
          * 
-         * When the watchdog thread is running, it must continuously monitor the health of
-         * the rune solver service. On each iteration of the loop, the thread should:
-         * 1. Reset the stopwatch to measure the current check duration
-         * 2. Determine if the service needs to be launched (based on process status and ping)
-         * 3. Launch the service if needed (otherwise skip)
-         * 4. Sleep for the remaining time until the next check
+         * When the watchdog thread is running, it continuously monitors whether the rune
+         * solver service needs to be active. On each iteration of the loop, the thread:
+         * 1. Resets the timer's stopwatch to begin measuring the current check cycle
+         * 2. Launches the rune solver if the supervisor determines it should be running
+         * 3. Sleeps for the remaining time before the next check cycle
          */
-        private void _testThreadLoopLaunchesWhenNeeded()
+        private void _testThreadLoopLaunches()
         {
             for (int i = 1; i < 10; i++)
             {
                 var runeSolverWatchdog = _fixture();
-                var helperRef = new TestUtilities().Reference(_helper);
+                var helperRef = new TestUtilities().Reference(_timer);
+                var supervisorRef = new TestUtilities().Reference(_supervisor);
                 runeSolverWatchdog.Inject(
                     SystemInjectType.ConfigurationUpdate,
                     _maplestoryBotConfiguration
                 );
                 for (int j = 0; j < i; j++)
                 {
-                    _helper.NeedsLaunchReturn.Add((j % 2) == 0);
                     _runningState.IsRunningReturn.Add(true);
                 }
                 _runningState.IsRunningReturn.Add(false);
                 runeSolverWatchdog.Start();
                 runeSolverWatchdog.Join(10000);
-                var oddCount = Math.Floor(i / 2.0) * 3;
-                var evenCount = Math.Ceiling(i / 2.0) * 4;
-                Debug.Assert(_helper.CallOrder.Count == oddCount + evenCount);
-                for (int j = 0; j < _helper.CallOrder.Count; j += 7)
+                for (int j = 0; j < i; j++)
                 {
-                    Debug.Assert(_helper.CallOrder[j + 0] == helperRef + "SetStopwatch");
-                    Debug.Assert(_helper.CallOrder[j + 1] == helperRef + "NeedsLaunch");
-                    Debug.Assert(_helper.CallOrder[j + 2] == helperRef + "Launch");
-                    Debug.Assert(_helper.CallOrder[j + 3] == helperRef + "SleepRemaining");
-                }
-                for (int j = 4; j < _helper.CallOrder.Count; j += 7)
-                {
-                    Debug.Assert(_helper.CallOrder[j + 0] == helperRef + "SetStopwatch");
-                    Debug.Assert(_helper.CallOrder[j + 1] == helperRef + "NeedsLaunch");
-                    Debug.Assert(_helper.CallOrder[j + 2] == helperRef + "SleepRemaining");
+                    Debug.Assert(_timer.CallOrder[3 * j + 0] == helperRef + "SetStopwatch");
+                    Debug.Assert(_timer.CallOrder[3 * j + 1] == supervisorRef + "EnsureRunning");
+                    Debug.Assert(_timer.CallOrder[3 * j + 2] == helperRef + "SleepRemaining");
                 }
             }
         }
@@ -520,36 +729,23 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
                 SystemInjectType.ConfigurationUpdate,
                 _maplestoryBotConfiguration
             );
-            _helper.NeedsLaunchReturn.Add(true);
             _runningState.IsRunningReturn.Add(true);
             _runningState.IsRunningReturn.Add(false);
             runeSolverWatchdog.Start();
             runeSolverWatchdog.Join(10000);
             _assertEqual(
-                _helper.NeedsLaunchCallArg_runeDetection[0],
-                _maplestoryBotConfiguration.RuneDetection
-            );
-            _assertEqual(
-                _helper.NeedsLaunchCallArg_runeServerSettings[0],
+                _supervisor.EnsureRunningCallArg_runeServerSettings[0],
                 _maplestoryBotConfiguration.RuneServerSettings
             );
             _assertEqual(
-                _helper.LaunchCallArg_runeDetection[0],
-                _maplestoryBotConfiguration.RuneDetection
-            );
-            _assertEqual(
-                _helper.LaunchCallArg_runeServerSettings[0],
-                _maplestoryBotConfiguration.RuneServerSettings
-            );
-            _assertEqual(
-                _helper.SleepRemainingCallArg_runeServerSettings[0],
+                _timer.SleepRemainingCallArg_runeServerSettings[0],
                 _maplestoryBotConfiguration.RuneServerSettings
             );
         }
 
         public void Run()
         {
-            _testThreadLoopLaunchesWhenNeeded();
+            _testThreadLoopLaunches();
             _testThreadLoopUsesInjectedRuneSettings();
         }
     }
@@ -663,8 +859,11 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
     {
         public void Run()
         {
-            new RuneSolverWatchdogManagerTests().Run();
-            new RuneSolverWatchdogHelperTests().Run();
+            new RuneSolverPingerTests().Run();
+            new RuneSolverHealthMonitorTests().Run();
+            new RuneSolverControllerTests().Run();
+            new RuneSolverSupervisorTests().Run();
+            new RuneSolverWatchdogTimerTests().Run();
             new RuneSolverWatchdogThreadTests().Run();
             new ProcessWatchdogSystemTests().Run();
         }

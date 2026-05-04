@@ -21,9 +21,9 @@ namespace MaplestoryBotNet.ThreadingUtils
     }
 
 
-    public abstract class AbstractProcessLauncher
+    public abstract class AbstractProcessStarter
     {
-        public abstract void Launch(ProcessStartInfo startInfo);
+        public abstract void Start(ProcessStartInfo startInfo);
     }
 
 
@@ -61,9 +61,40 @@ namespace MaplestoryBotNet.ThreadingUtils
     }
 
 
+    public abstract class AbstractProcess
+    {
+        public abstract void Kill(int waitMilliseconds);
+    }
+
+
     public abstract class AbstractProcessMonitor
     {
-        public abstract int Running(string processName);
+        public abstract List<AbstractProcess> Running(string processName);
+    }
+
+
+    public class SystemProcess : AbstractProcess
+    {
+        private Process _process;
+
+        public SystemProcess(Process process)
+        {
+            _process = process;
+        }
+
+        public override void Kill(int waitMilliseconds)
+        {
+            try
+            {
+                _process.Kill();
+                _process.WaitForExit(waitMilliseconds);
+                _process.Dispose();
+            }
+            catch
+            {
+
+            }
+        }
     }
 
 
@@ -333,16 +364,21 @@ namespace MaplestoryBotNet.ThreadingUtils
 
     public class ProcessMonitor : AbstractProcessMonitor
     {
-        public override int Running(string processName)
+        public override List<AbstractProcess> Running(string processName)
         {
-            return Process.GetProcessesByName(processName).Length;
+            var processes = new List<AbstractProcess>();
+            foreach (var process in Process.GetProcessesByName(processName))
+            {
+                processes.Add(new SystemProcess(process));
+            }
+            return processes;
         }
     }
 
 
-    public class ProcessLauncher : AbstractProcessLauncher
+    public class ProcessStarter : AbstractProcessStarter
     {
-        public override void Launch(ProcessStartInfo startInfo)
+        public override void Start(ProcessStartInfo startInfo)
         {
             try
             {

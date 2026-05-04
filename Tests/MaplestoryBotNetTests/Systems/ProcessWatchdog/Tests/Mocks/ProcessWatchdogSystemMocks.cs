@@ -6,7 +6,7 @@ using System.Net.Http;
 
 namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests.Mocks
 {
-    public class MockRuneSolverWatchdogClient : AbstractRuneSolverWatchdogClient
+    public class MockRuneSolverClient : AbstractRuneSolverClient
     {
         public List<string> CallOrder = [];
 
@@ -33,7 +33,8 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests.Mocks
     }
 
 
-    public class MockRuneSolverWatchdogManager : AbstractRuneSolverWatchdogManager
+
+    public class MockRuneSolverPinger : AbstractRuneSolverPinger
     {
         public List<string> CallOrder = [];
 
@@ -58,43 +59,93 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests.Mocks
             }
             throw new IndexOutOfRangeException();
         }
+    }
 
-        public int StartProcessCalls = 0;
-        public int StartProcessIndex = 0;
-        public List<RuneServerSettings> StartProcessCallArg_runeServerSettings = [];
-        public List<RuneDetection> StartProcessCallArg_runeDetection = [];
-        public override void StartProcess(
+
+    public class MockRuneSolverController : AbstractRuneSolverController
+    {
+        public List<string> CallOrder = [];
+
+        public int StartCalls = 0;
+        public int StartIndex = 0;
+        public List<RuneServerSettings> StartCallArg_runeServerSettings = [];
+        public List<RuneDetection> StartCallArg_runeDetection = [];
+        public override void Start(
             RuneServerSettings runeServerSettings,
             RuneDetection runeDetection
         )
         {
-            var callReference = new TestUtilities().Reference(this) + "StartProcess";
+            var callReference = new TestUtilities().Reference(this) + "Start";
             CallOrder.Add(callReference);
-            StartProcessCalls++;
-            StartProcessCallArg_runeServerSettings.Add(runeServerSettings);
-            StartProcessCallArg_runeDetection.Add(runeDetection);
+            StartCalls++;
+            StartCallArg_runeServerSettings.Add(runeServerSettings);
+            StartCallArg_runeDetection.Add(runeDetection);
+        }
+
+        public int PurgeCalls = 0;
+        public List<RuneServerSettings> PurgeCallArg_runeServerSettings = [];
+        public override void Purge(
+            RuneServerSettings runeServerSettings
+        )
+        {
+            var callReference = new TestUtilities().Reference(this) + "Purge";
+            CallOrder.Add(callReference);
+            PurgeCalls++;
+            PurgeCallArg_runeServerSettings.Add(runeServerSettings);
         }
     }
 
 
-    public class MockRuneSolverWatchdogHelper : AbstractRuneSolverWatchdogHelper
+    public class MockRuneSolverWatchdogTimer : AbstractRuneSolverWatchdogTimer
     {
         public List<string> CallOrder = [];
 
-        public int LaunchCalls = 0;
-        public List<RuneDetection> LaunchCallArg_runeDetection = [];
-        public List<RuneServerSettings> LaunchCallArg_runeServerSettings = [];
-        public override void Launch(
+        public int SetStopwatchCalls = 0;
+        public override void SetStopwatch()
+        {
+            var callReference = new TestUtilities().Reference(this) + "SetStopwatch";
+            CallOrder.Add(callReference);
+            SetStopwatchCalls++;
+        }
+
+        public int SleepRemainingCalls = 0;
+        public List<RuneServerSettings> SleepRemainingCallArg_runeServerSettings = [];
+        public override void SleepRemaining(
+            RuneServerSettings runeServerSettings
+        )
+        {
+            var callReference = new TestUtilities().Reference(this) + "SleepRemaining";
+            CallOrder.Add(callReference);
+            SleepRemainingCalls++;
+            SleepRemainingCallArg_runeServerSettings.Add(runeServerSettings);
+        }
+    }
+
+
+    public class MockRuneSolverSupervisor : AbstractRuneSolverSupervisor
+    {
+        public List<string> CallOrder = [];
+
+        public int EnsureRunningCalls = 0;
+        public List<RuneDetection> EnsureRunningCallArg_runeDetection = [];
+        public List<RuneServerSettings> EnsureRunningCallArg_runeServerSettings = [];
+        public override void EnsureRunning(
             RuneDetection runeDetection,
             RuneServerSettings runeServerSettings
         )
         {
-            var callReference = new TestUtilities().Reference(this) + "Launch";
+            var callReference = new TestUtilities().Reference(this) + "EnsureRunning";
             CallOrder.Add(callReference);
-            LaunchCalls++;
-            LaunchCallArg_runeDetection.Add(runeDetection);
-            LaunchCallArg_runeServerSettings.Add(runeServerSettings);
+            EnsureRunningCalls++;
+            EnsureRunningCallArg_runeDetection.Add(runeDetection);
+            EnsureRunningCallArg_runeServerSettings.Add(runeServerSettings);
         }
+    }
+
+
+    public class MockRuneSolverHealthMonitor : AbstractRuneSolverHealthMonitor
+    {
+        public List<string> CallOrder = [];
 
         public int NeedsLaunchCalls = 0;
         public int NeedsLaunchIndex = 0;
@@ -116,26 +167,6 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests.Mocks
                 return NeedsLaunchReturn[NeedsLaunchIndex++];
             }
             throw new IndexOutOfRangeException();
-        }
-
-        public int SetStopwatchCalls = 0;
-        public override void SetStopwatch()
-        {
-            var callReference = new TestUtilities().Reference(this) + "SetStopwatch";
-            CallOrder.Add(callReference);
-            SetStopwatchCalls++;
-        }
-
-        public int SleepRemainingCalls = 0;
-        public List<RuneServerSettings> SleepRemainingCallArg_runeServerSettings = [];
-        public override void SleepRemaining(
-            RuneServerSettings runeServerSettings
-        )
-        {
-            var callReference = new TestUtilities().Reference(this) + "SleepRemaining";
-            CallOrder.Add(callReference);
-            SleepRemainingCalls++;
-            SleepRemainingCallArg_runeServerSettings.Add(runeServerSettings);
         }
     }
 }

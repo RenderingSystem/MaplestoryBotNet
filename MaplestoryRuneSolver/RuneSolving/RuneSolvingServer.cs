@@ -79,16 +79,30 @@ namespace MaplestoryRuneSolver.RuneSolving
         [HttpGet("ping")]
         public IActionResult Ping()
         {
-            PingStopwatch?.SetTimestamp();
-            return Ok("Running");
+            try
+            {
+                PingStopwatch?.SetTimestamp();
+                return Ok("Running");
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
         }
 
         [HttpPost("solve")]
         public IActionResult Solve([FromBody] string imageBase64)
         {
-            var solution = RuneSolvingAgent != null ? 
-                RuneSolvingAgent.Solve(imageBase64) : "";
-            return solution == "" ? StatusCode(500) : Ok(solution);
+            try
+            {
+                var solution = RuneSolvingAgent != null ?
+                    RuneSolvingAgent.Solve(imageBase64) : "";
+                return solution == "" ? StatusCode(500) : Ok(solution);
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
         }
     }
 

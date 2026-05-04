@@ -8,39 +8,37 @@ using System.Net.Http;
 
 namespace MaplestoryBotNet.Systems.ProcessWatchdog
 {
-    public abstract class AbstractRuneSolverWatchdogManager
+    public abstract class AbstractRuneSolverPinger
     {
         public abstract HttpResponseMessage? Ping(
             RuneDetection runeDetection,
             int clientWatchdogTimeout
         );
+    }
 
-        public abstract void StartProcess(
+
+    public abstract class AbstractRuneSolverController
+    {
+        public abstract void Start(
             RuneServerSettings runeServerSettings,
             RuneDetection runeDetection
+        );
+
+        public abstract void Purge(
+            RuneServerSettings runeServerSettings
         );
     }
 
 
-    public abstract class AbstractRuneSolverWatchdogClient
+    public abstract class AbstractRuneSolverClient
     {
         public abstract HttpResponseMessage? Get(string url, int timeoutMilliseconds);
     }
 
 
-    public abstract class AbstractRuneSolverWatchdogHelper
+    public abstract class AbstractRuneSolverWatchdogTimer
     {
         public abstract void SetStopwatch();
-
-        public abstract bool NeedsLaunch(
-            RuneDetection runeDetection,
-            RuneServerSettings runeServerSettings
-        );
-
-        public abstract void Launch(
-            RuneDetection runeDetection,
-            RuneServerSettings runeServerSettings
-        );
 
         public abstract void SleepRemaining(
             RuneServerSettings runeServerSettings
@@ -48,7 +46,25 @@ namespace MaplestoryBotNet.Systems.ProcessWatchdog
     }
 
 
-    public class RuneSolverWatchdogClient : AbstractRuneSolverWatchdogClient
+    public abstract class AbstractRuneSolverSupervisor
+    {
+        public abstract void EnsureRunning(
+            RuneDetection runeDetection,
+            RuneServerSettings runeServerSettings
+        );
+    }
+
+
+    public abstract class AbstractRuneSolverHealthMonitor
+    {
+        public abstract bool NeedsLaunch(
+            RuneDetection runeDetection,
+            RuneServerSettings runeServerSettings
+        );
+    }
+
+
+    public class RuneSolverClient : AbstractRuneSolverClient
     {
         public override HttpResponseMessage? Get(string url, int timeoutMilliseconds)
         {
@@ -68,22 +84,13 @@ namespace MaplestoryBotNet.Systems.ProcessWatchdog
     }
 
 
-    public class RuneSolverWatchdogManager : AbstractRuneSolverWatchdogManager
+    public class RuneSolverPinger : AbstractRuneSolverPinger
     {
-        private AbstractProcessName _processName;
-
-        private AbstractProcessLauncher _processLauncher;
-
-        private AbstractRuneSolverWatchdogClient _watchdogClient;
-
-        public RuneSolverWatchdogManager(
-            AbstractProcessName processName,
-            AbstractProcessLauncher processLauncher,
-            AbstractRuneSolverWatchdogClient watchdogClient
+        private AbstractRuneSolverClient _watchdogClient;
+        public RuneSolverPinger(
+            AbstractRuneSolverClient watchdogClient
         )
         {
-            _processName = processName;
-            _processLauncher = processLauncher;
             _watchdogClient = watchdogClient;
         }
 
@@ -101,6 +108,67 @@ namespace MaplestoryBotNet.Systems.ProcessWatchdog
             pingUrl += "/ping";
             return _watchdogClient.Get(pingUrl, clientWatchdogTimeout);
         }
+    }
+
+
+    public class RuneSolverHealthMonitor : AbstractRuneSolverHealthMonitor
+    {
+        private AbstractProcessMonitor _processMonitor;
+
+        private AbstractRuneSolverPinger _watchdogPinger;
+
+        public RuneSolverHealthMonitor(
+            AbstractRuneSolverPinger watchdogPinger,
+            AbstractProcessMonitor processMonitor
+        )
+        {
+            _watchdogPinger = watchdogPinger;
+            _processMonitor = processMonitor;
+        }
+
+        private string _parseExecutable(string executable)
+        {
+            executable = Path.GetFileName(executable).Trim('"');
+            executable = executable.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ?
+                executable.Substring(0, executable.Length - ".exe".Length) : executable;
+            return executable;
+        }
+
+        public override bool NeedsLaunch(
+            RuneDetection runeDetection,
+            RuneServerSettings runeServerSettings
+        )
+        {
+            var executable = _parseExecutable(runeServerSettings.ServerExecutable);
+            var timeout = runeServerSettings.ClientWatchdogTimeout;
+            if (_processMonitor.Running(executable).Count == 0)
+            {
+                return true;
+            }
+            var response = _watchdogPinger.Ping(runeDetection, timeout);
+            return response?.IsSuccessStatusCode != true;
+        }
+    }
+
+
+    public class RuneSolverController : AbstractRuneSolverController
+    {
+        private AbstractProcessName _processName;
+
+        private AbstractProcessMonitor _processMonitor;
+
+        private AbstractProcessStarter _processLauncher;
+
+        public RuneSolverController(
+            AbstractProcessName processName,
+            AbstractProcessMonitor processMonitor,
+            AbstractProcessStarter processLauncher
+        )
+        {
+            _processName = processName;
+            _processMonitor = processMonitor;
+            _processLauncher = processLauncher;
+        }
 
         private string _parseDirectoryName(string executable)
         {
@@ -117,6 +185,14 @@ namespace MaplestoryBotNet.Systems.ProcessWatchdog
             return executable;
         }
 
+        private string _parseProcessName(string executable)
+        {
+            executable = Path.GetFileName(executable).Trim('"');
+            executable = executable.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ?
+                executable.Substring(0, executable.Length - ".exe".Length) : executable;
+            return executable;
+        }
+
         private ProcessWindowStyle _parseWindowStyle(int showConsole)
         {
             return (
@@ -126,7 +202,7 @@ namespace MaplestoryBotNet.Systems.ProcessWatchdog
             );
         }
 
-        public override void StartProcess(
+        public override void Start(
             RuneServerSettings runeServerSettings,
             RuneDetection runeDetection
         )
@@ -149,70 +225,85 @@ namespace MaplestoryBotNet.Systems.ProcessWatchdog
                 UseShellExecute = true,
                 WindowStyle = windowStyle
             };
-            _processLauncher.Launch(startInfo);
+            _processLauncher.Start(startInfo);
+        }
+
+        public override void Purge(
+            RuneServerSettings runeServerSettings
+        )
+        {
+            var processName = _parseProcessName(runeServerSettings.ServerExecutable);
+            var processes = _processMonitor.Running(processName);
+            foreach (var process in processes)
+            {
+                process.Kill(runeServerSettings.ClientWatchdogTimeout);
+            }
         }
     }
 
 
-    public class RuneSolverWatchdogHelper : AbstractRuneSolverWatchdogHelper
+    public class RuneSolverSupervisor : AbstractRuneSolverSupervisor
+    {
+        private AbstractRuneSolverController _controller;
+
+        private AbstractRuneSolverHealthMonitor _healthMonitor;
+
+        private int _needsLaunchCount;
+
+        private int _maxLaunchTolerance;
+
+        public RuneSolverSupervisor(
+            AbstractRuneSolverController controller,
+            AbstractRuneSolverHealthMonitor healthMonitor,
+            int maxLaunchTolerance
+        )
+        {
+            _controller = controller;
+            _healthMonitor = healthMonitor;
+            _needsLaunchCount = 0;
+            _maxLaunchTolerance = maxLaunchTolerance;
+        }
+
+        public override void EnsureRunning(
+            RuneDetection runeDetection,
+            RuneServerSettings runeServerSettings
+        )
+        {
+            if (_healthMonitor.NeedsLaunch(runeDetection, runeServerSettings))
+            {
+                if (++_needsLaunchCount >= _maxLaunchTolerance)
+                {
+                    _controller.Purge(runeServerSettings);
+                    _needsLaunchCount = 0;
+                }
+                _controller.Start(runeServerSettings, runeDetection);
+            }
+            else
+            {
+                _needsLaunchCount = 0;
+            }
+        }
+    }
+
+
+    public class RuneSolverWatchdogTimer : AbstractRuneSolverWatchdogTimer
     {
         private AbstractTimestamp _pingStopwatch;
 
-        private AbstractProcessMonitor _processMonitor;
-
         private AbstractMacroSleeper _sleeper;
 
-        private AbstractRuneSolverWatchdogManager _manager;
-
-        public RuneSolverWatchdogHelper(
+        public RuneSolverWatchdogTimer(
             AbstractTimestamp pingStopwatch,
-            AbstractProcessMonitor processMonitor,
-            AbstractMacroSleeper sleeper,
-            AbstractRuneSolverWatchdogManager manager
+            AbstractMacroSleeper sleeper
         )
         {
             _pingStopwatch = pingStopwatch;
-            _processMonitor = processMonitor;
             _sleeper = sleeper;
-            _manager = manager;
         }
 
         public override void SetStopwatch()
         {
             _pingStopwatch.SetTimestamp();
-        }
-        private string _parseExecutable(string executable)
-        {
-            executable = Path.GetFileName(executable).Trim('"');
-            executable = executable.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ?
-                executable.Substring(0, executable.Length - ".exe".Length) : executable;
-            return executable;
-        }
-
-        public override bool NeedsLaunch(
-            RuneDetection runeDetection,
-            RuneServerSettings runeServerSettings
-        )
-        {
-            var executable = _parseExecutable(runeServerSettings.ServerExecutable);
-            var timeout = runeServerSettings.ClientWatchdogTimeout;
-            if (_processMonitor.Running(executable) == 0)
-            {
-                return true;
-            }
-            var response = _manager.Ping(runeDetection, timeout);
-            return response?.IsSuccessStatusCode != true;
-        }
-
-        public override void Launch(
-            RuneDetection runeDetection,
-            RuneServerSettings runeServerSettings
-        )
-        {
-            _manager.StartProcess(
-                runeServerSettings,
-                runeDetection
-            );
         }
 
         public override void SleepRemaining(
@@ -228,18 +319,22 @@ namespace MaplestoryBotNet.Systems.ProcessWatchdog
 
     public class RuneSolverWatchdogThread : AbstractThread
     {
-        private AbstractRuneSolverWatchdogHelper _helper;
+        private AbstractRuneSolverWatchdogTimer _timer;
+
+        private AbstractRuneSolverSupervisor _supervisor;
 
         private RuneDetection? _runeDetection;
 
         private RuneServerSettings? _runeServerSettings;
 
         public RuneSolverWatchdogThread(
-            AbstractRuneSolverWatchdogHelper helper,
+            AbstractRuneSolverWatchdogTimer timer,
+            AbstractRuneSolverSupervisor supervisor,
             AbstractThreadRunningState runningState
         ) : base(runningState)
         {
-            _helper = helper;
+            _timer = timer;
+            _supervisor = supervisor;
             _runeDetection = null;
             _runeServerSettings = null;
         }
@@ -252,12 +347,9 @@ namespace MaplestoryBotNet.Systems.ProcessWatchdog
                 var runeServerSettings = _runeServerSettings;
                 if (runeDetection != null && runeServerSettings != null)
                 {
-                    _helper.SetStopwatch();
-                    if (_helper.NeedsLaunch(runeDetection, runeServerSettings))
-                    {
-                        _helper.Launch(runeDetection, runeServerSettings);
-                    }
-                    _helper.SleepRemaining(runeServerSettings);
+                    _timer.SetStopwatch();
+                    _supervisor.EnsureRunning(runeDetection, runeServerSettings);
+                    _timer.SleepRemaining(runeServerSettings);
                 }
                 else
                 {
@@ -285,15 +377,23 @@ namespace MaplestoryBotNet.Systems.ProcessWatchdog
         public override AbstractThread CreateThread()
         {
             return new RuneSolverWatchdogThread(
-                new RuneSolverWatchdogHelper(
+                new RuneSolverWatchdogTimer(
                     new StopwatchTimestamp(),
-                    new ProcessMonitor(),
-                    new MacroSleeper(),
-                    new RuneSolverWatchdogManager(
+                    new MacroSleeper()
+                ),
+                new RuneSolverSupervisor(
+                    new RuneSolverController(
                         new ProcessName(),
-                        new ProcessLauncher(),
-                        new RuneSolverWatchdogClient()
-                    )
+                        new ProcessMonitor(),
+                        new ProcessStarter()
+                    ),
+                    new RuneSolverHealthMonitor(
+                        new RuneSolverPinger(
+                            new RuneSolverClient()
+                        ),
+                        new ProcessMonitor()
+                    ),
+                    3
                 ),
                 new ThreadRunningState()
             );
@@ -341,11 +441,6 @@ namespace MaplestoryBotNet.Systems.ProcessWatchdog
 
     public class ProcessWatchdogSystemBuilder : AbstractSystemBuilder
     {
-        public ProcessWatchdogSystemBuilder()
-        {
-
-        }
-
         public override AbstractSystem Build()
         {
             return new ProcessWatchdogSystem(
