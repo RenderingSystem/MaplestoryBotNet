@@ -44,10 +44,10 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     public class CashShopOrchestratorThread : AbstractOrchestratorThread<CashShopOrchestratorThreadInjectType>
     {
         public CashShopOrchestratorThread(
-            AbstractThread bottingExecutorThread,
+            AbstractThread cashShopExecutorThread,
             AbstractThreadRunningState runningState,
             BlockingCollection<int> threadStates
-        ) : base(bottingExecutorThread, runningState, threadStates)
+        ) : base(cashShopExecutorThread, runningState, threadStates)
         { }
     }
 

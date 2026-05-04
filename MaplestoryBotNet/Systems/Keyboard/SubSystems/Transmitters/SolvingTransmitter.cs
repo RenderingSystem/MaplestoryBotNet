@@ -442,28 +442,16 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     public class SolvingOrchestratorThread : AbstractOrchestratorThread<SolvingOrchestratorThreadInjectType>
     {
         public SolvingOrchestratorThread(
-            AbstractThread bottingExecutorThread,
+            AbstractThread solvingExecutorThread,
             AbstractThreadRunningState runningState,
             BlockingCollection<int> threadStates
-        ) : base(bottingExecutorThread, runningState, threadStates)
+        ) : base(solvingExecutorThread, runningState, threadStates)
         { }
     }
 
 
     public class SolvingOrchestratorThreadFactory : AbstractThreadFactory
     {
-        private string _characterKey;
-
-        private string _runeKey;
-
-        public SolvingOrchestratorThreadFactory(
-            string characterKey, string runeKey
-        )
-        {
-            _characterKey = characterKey;
-            _runeKey = runeKey;
-        }
-
         public override AbstractThread CreateThread()
         {
             var threadState = new KeystrokeTransmitterThreadState(
@@ -505,7 +493,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
         public override AbstractSystem Build()
         {
             return new SolvingOrchestratorSystem(
-                [new SolvingOrchestratorThreadFactory(MapIconInfo.Character, MapIconInfo.Rune)]
+                [new SolvingOrchestratorThreadFactory()]
             );
         }
 

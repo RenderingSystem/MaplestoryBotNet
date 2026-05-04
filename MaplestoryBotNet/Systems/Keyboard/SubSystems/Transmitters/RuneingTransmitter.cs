@@ -213,10 +213,10 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     public class RuneingOrchestratorThread : AbstractOrchestratorThread<RuneingOrchestratorThreadInjectType>
     {
         public RuneingOrchestratorThread(
-            AbstractThread bottingExecutorThread,
+            AbstractThread runeingExecutorThread,
             AbstractThreadRunningState runningState,
             BlockingCollection<int> threadStates
-        ) : base(bottingExecutorThread, runningState, threadStates)
+        ) : base(runeingExecutorThread, runningState, threadStates)
         { }
     }
 
