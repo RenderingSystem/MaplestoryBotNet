@@ -210,7 +210,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
             if (_macroCommandsExecutor != null)
             {
                 _macroCommandsExecutor.Execute(["key press {" + _interactKey + "} {50} {100}"]);
-                _macroCommandsExecutor.Execute(["wait {1000} {1100}"]);
+                _macroCommandsExecutor.Execute(["wait {800} {900}"]);
                 return true;
             }
             return false;
@@ -259,7 +259,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
                 foreach (var arrowKey in arrowKeys)
                 {
                     _macroCommandsExecutor.Execute(["key press {" + arrowKey + "} {100} {150}"]);
-                    _macroCommandsExecutor.Execute(["wait {100} {150}"]);
+                    _macroCommandsExecutor.Execute(["wait {200} {250}"]);
                 }
                 return true;
             }

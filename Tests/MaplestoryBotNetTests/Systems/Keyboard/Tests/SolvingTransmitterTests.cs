@@ -290,7 +290,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             Debug.Assert(_macroCommandsExecutor.ExecuteCallArg_macroCommands[0].Count == 1);
             Debug.Assert(_macroCommandsExecutor.ExecuteCallArg_macroCommands[0][0] == "key press {meow} {50} {100}");
             Debug.Assert(_macroCommandsExecutor.ExecuteCallArg_macroCommands[1].Count == 1);
-            Debug.Assert(_macroCommandsExecutor.ExecuteCallArg_macroCommands[1][0] == "wait {1000} {1100}");
+            Debug.Assert(_macroCommandsExecutor.ExecuteCallArg_macroCommands[1][0] == "wait {800} {900}");
             Debug.Assert(result);
         }
 
@@ -386,13 +386,13 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                 Debug.Assert(command.Count == 1);
             }
             Debug.Assert(commands[0][0] == "key press {ARROW_LEFT} {100} {150}");
-            Debug.Assert(commands[1][0] == "wait {100} {150}");
+            Debug.Assert(commands[1][0] == "wait {200} {250}");
             Debug.Assert(commands[2][0] == "key press {ARROW_UP} {100} {150}");
-            Debug.Assert(commands[3][0] == "wait {100} {150}");
+            Debug.Assert(commands[3][0] == "wait {200} {250}");
             Debug.Assert(commands[4][0] == "key press {ARROW_RIGHT} {100} {150}");
-            Debug.Assert(commands[5][0] == "wait {100} {150}");
+            Debug.Assert(commands[5][0] == "wait {200} {250}");
             Debug.Assert(commands[6][0] == "key press {ARROW_DOWN} {100} {150}");
-            Debug.Assert(commands[7][0] == "wait {100} {150}");
+            Debug.Assert(commands[7][0] == "wait {200} {250}");
             Debug.Assert(result);
         }
 
