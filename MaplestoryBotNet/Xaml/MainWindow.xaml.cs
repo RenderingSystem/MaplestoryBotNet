@@ -50,13 +50,34 @@ namespace MaplestoryBotNet
         {
             return new WindowMenuItemStartTextActionHandlerFacade(
                 StartMenuItem,
-                new SystemAsyncDispatcher(Dispatcher, DispatcherPriority.Background)
+                new SystemAsyncDispatcher(
+                    Dispatcher,
+                    DispatcherPriority.Background
+                )
             );
         }
 
         private AbstractWindowActionHandler _instantiateWindowMenuItemStartActionHandler()
         {
             return new WindowMenuItemStartActionHandlerFacade(StartMenuItem);
+        }
+
+        private AbstractWindowActionHandler _instantiateWindowBottingTextStatusActionHandler()
+        {
+            return new WindowBottingTextStatusActionHandlerFacade(
+                [
+                    ResettingText,
+                    IdleText,
+                    BottingText,
+                    RuneingText,
+                    SolvingText,
+                    SolvedCheckText
+                ],
+                new SystemAsyncDispatcher(
+                    Dispatcher,
+                    DispatcherPriority.Background
+                )
+            );
         }
 
         public List<AbstractWindowActionHandler> InstantiateActionHandlers(
@@ -70,7 +91,8 @@ namespace MaplestoryBotNet
                 _instantiateMapWindowMenuItemPopupActionHandler(mapWindow),
                 _instantiateSolverWindowMenuItemPopupActionHandler(solverWindow),
                 _instantiateWindowMenuItemTextActionHandler(),
-                _instantiateWindowMenuItemStartActionHandler()
+                _instantiateWindowMenuItemStartActionHandler(),
+                _instantiateWindowBottingTextStatusActionHandler()
             ];
         }
 

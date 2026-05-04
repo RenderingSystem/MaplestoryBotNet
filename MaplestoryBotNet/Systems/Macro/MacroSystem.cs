@@ -297,7 +297,6 @@ namespace MaplestoryBotNet.Systems.Macro
             var botting = _context.BottingController.GetState();
             var runeing = _context.RuneingController.GetState();
             var solving = _context.SolvingController.GetState();
-            var switchState = solving == (int)SolvingExecutorThreadedUpdate.Solved;
             if (botting != (int)BottingExecutorThreadedUpdate.Stopped)
             {
                 _context.BottingController.StopOrchestrator();
@@ -314,7 +313,10 @@ namespace MaplestoryBotNet.Systems.Macro
             {
                 _context.SolvingController.StartOrchestrator();
             }
-            if (switchState)
+            if (
+                solving == (int)SolvingExecutorThreadedUpdate.Solved ||
+                solving == (int)SolvingExecutorThreadedUpdate.Failed
+            )
             {
                 _context.SolvingStopwatch.SetTimestamp();
             }
@@ -356,7 +358,7 @@ namespace MaplestoryBotNet.Systems.Macro
             {
                 _context.BottingController.StartOrchestrator();
             }
-            if (_context.SolvingStopwatch.GetTimestamp() <= _context.SolvedCheckTimeout)
+            if (_context.SolvingStopwatch.GetTimestamp() <= _context.SolveCheckTimeout)
             {
                 return (
                     _context.BottingModel is AbstractBottingModel bottingModel
@@ -397,8 +399,6 @@ namespace MaplestoryBotNet.Systems.Macro
 
         public int RuneActivationPeriodCurrent;
 
-        public double SolvedCheckTimeout;
-
         public double ExecutionFrequency;
 
         public double SolveCheckTimeout;
@@ -421,7 +421,7 @@ namespace MaplestoryBotNet.Systems.Macro
             RuneKey = runeKey;
             RuneActivationPeriod = 0;
             RuneActivationPeriodCurrent = 0;
-            SolvedCheckTimeout = 0.0;
+            SolveCheckTimeout = 0.0;
             ExecutionFrequency = 0.0;
         }
     }
@@ -436,6 +436,8 @@ namespace MaplestoryBotNet.Systems.Macro
         private AbstractMacroSleeper _sleeper;
 
         private AbstractTimestamp _executeTimestamp;
+
+        private AbstractInjectAction? _threadedInjectAction;
 
         private int _macroExecutorState;
 
@@ -457,7 +459,12 @@ namespace MaplestoryBotNet.Systems.Macro
         private void _transmit()
         {
             _executeTimestamp.SetTimestamp();
-            _macroExecutorState = _executorStates[_macroExecutorState].Execute();
+            var nextState = _executorStates[_macroExecutorState].Execute();
+            if (nextState != _macroExecutorState)
+            {
+                _threadedInjectAction?.GetAction()((MacroExecutorStateTypes)nextState, 0);
+            }
+            _macroExecutorState = nextState;
         }
 
         private void _transmitSleep()
@@ -483,6 +490,7 @@ namespace MaplestoryBotNet.Systems.Macro
         {
             _macroExecutorState = (int)MacroExecutorStateTypes.Reset;
             _macroExecutorState = _executorStates[_macroExecutorState].Execute();
+            _threadedInjectAction?.GetAction()((MacroExecutorStateTypes)_macroExecutorState, 0);
         }
 
         public override void Inject(object dataType, object? data)
@@ -524,6 +532,10 @@ namespace MaplestoryBotNet.Systems.Macro
             )
             {
                 _context.BottingModel = bottingModel;
+            }
+            if (dataType is SystemInjectType.InjectAction && data is AbstractInjectAction injectAction)
+            {
+                _threadedInjectAction = injectAction;
             }
         }
     }

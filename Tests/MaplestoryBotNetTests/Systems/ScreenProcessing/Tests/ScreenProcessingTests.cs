@@ -136,7 +136,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
     {
         private MockRunningState _runningState = new MockRunningState();
 
-        private MockCountDown _threadLoopCountDown = new MockCountDown();
+        private MockResetEvent _resetEvent = new MockResetEvent();
 
         private MockGameMinimapProcessHandler _processHandler = new MockGameMinimapProcessHandler();
 
@@ -150,21 +150,20 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
         {
             _callOrder = [];
             _runningState = new MockRunningState();
-            _threadLoopCountDown = new MockCountDown();
+            _resetEvent = new MockResetEvent();
             _processHandler = new MockGameMinimapProcessHandler();
             _threadStateUpdater = new MockGameMinimapProcessorThreadStateUpdater();
             _runningState.CallOrder = _callOrder;
-            _threadLoopCountDown.CallOrder = _callOrder;
+            _resetEvent.CallOrder = _callOrder;
             _processHandler.CallOrder = _callOrder;
             _threadStateUpdater.CallOrder = _callOrder;
-            _threadLoopCountDown.CountReturn.Add(1);
             return new GameMinimapProcessorThread(
                 _runningState,
                 new BitmapTemplateMatcherBuilder(),
                 new RectangleMerger(),
                 new GameMinimapPositionCropper(new ImageSharpConverter()),
                 _processHandler,
-                _threadLoopCountDown,
+                _resetEvent,
                 mockUpdater ? _threadStateUpdater : new GameMinimapProcessorThreadStateUpdater(),
                 MapIconInfo.Character
             );
@@ -338,13 +337,14 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
         }
 
         /**
-         * @brief Verifies that the processing thread only awakens when a valid bitmap
-         * is injected while a map model is present.
+         * @brief Verifies that the minimap capture thread only awakens when both a valid
+         * screenshot and the map model are present
          * 
-         * The thread should only consume CPU cycles when it has both the necessary
-         * configuration (map model) and actual data to process (bitmap). This test
-         * confirms the countdown mechanism prevents processing when either
-         * component is missing.
+         * When the bot is running, the minimap capture thread should only consume CPU cycles
+         * when it has both the necessary map configuration (to know where to look) and an
+         * actual screenshot to process. Without either component, the thread should remain
+         * dormant. This test injects bitmaps with and without a map model to confirm the
+         * countdown mechanism only signals the thread when both prerequisites are satisfied.
          */
         private void _testInjectingValidBitmapAwakensThread()
         {
@@ -358,27 +358,26 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
                 {
                     fixture.Inject(SystemInjectType.BottingModel, mapModel);
                 }
-                Debug.Assert(_threadLoopCountDown.CountDownCalls == 0);
+                Debug.Assert(_resetEvent.SetCalls == 0);
                 fixture.Inject(0, bitmaps[i].Item1);
                 Debug.Assert(
                     (expected[i] == true) ?
-                    _threadLoopCountDown.CountDownCalls == 1 :
-                    _threadLoopCountDown.CountDownCalls == 0
+                    _resetEvent.SetCalls == 1 :
+                    _resetEvent.SetCalls == 0
                 );
             }
         }
 
         /**
-         * @brief Verifies the correct sequence of operations in each thread loop iteration.
+         * @brief Verifies the correct sequence of operations in each thread loop iteration:
+         * wait for bitmap, process the image, then update the thread state
          * 
-         * The thread must follow a strict order: set countdown, wait for bitmap, process the image,
-         * then clear the bitmap. This test ensures that for each iteration, the thread properly
-         * waits at the countdown before attempting to handle the bitmap and perform the update.
-         * 
-         * Without this wait-before-processing sequence, the thread could race ahead and attempt
-         * to process a bitmap that hasn't been injected yet, or could clear the bitmap before
-         * processing it. This would cause missed detections or processing of stale data, leading
-         * to incorrect character position tracking and erratic bot behavior.
+         * When the minimap capture thread receives a new screenshot, it must follow a strict
+         * order to ensure accurate character position tracking. First, it must wait at the
+         * countdown for a bitmap to be injected. Then it processes the image to detect the
+         * character's position on the minimap. Finally, it atomically updates the thread
+         * state with the new position. Skipping or reordering these steps could cause
+         * racing conditions where stale data is processed or position updates are missed.
          */
         private void _testThreadLoopWaitsBeforeHandlingAndUpdate()
         {
@@ -391,36 +390,35 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
                 }
                 var utilities = new TestUtilities();
                 var runningStateRef = utilities.Reference(_runningState);
-                var threadLoopCountDownRef = utilities.Reference(_threadLoopCountDown);
+                var resetEventRef = utilities.Reference(_resetEvent);
                 var processHandlerRef = utilities.Reference(_processHandler);
                 var threadStateUpdaterRef = utilities.Reference(_threadStateUpdater);
                 fixture.Start();
                 fixture.Join(10000);
-                Debug.Assert(_callOrder.Count == (5 * i) + 3);
-                Debug.Assert(_threadLoopCountDown.SetCountDownCalls == i);
-                Debug.Assert(_threadLoopCountDown.WaitCountDownCalls == i);
+                Debug.Assert(_callOrder.Count == (4 * i) + 3);
+                Debug.Assert(_resetEvent.WaitOneCalls == i);
                 Debug.Assert(_processHandler.HandleCalls == i);
                 Debug.Assert(_threadStateUpdater.AtomicUpdateCalls == i);
                 for (int j = 0; j < i; j++)
                 {
-                    Debug.Assert(_callOrder[5 * j + 3] == threadLoopCountDownRef + "SetCountDown");
-                    Debug.Assert(_callOrder[5 * j + 4] == threadLoopCountDownRef + "WaitCountDown");
-                    Debug.Assert(_callOrder[5 * j + 5] == processHandlerRef + "Handle");
-                    Debug.Assert(_callOrder[5 * j + 6] == threadStateUpdaterRef + "AtomicUpdate");
+                    Debug.Assert(_callOrder[4 * j + 3] == resetEventRef + "WaitOne");
+                    Debug.Assert(_callOrder[4 * j + 4] == processHandlerRef + "Handle");
+                    Debug.Assert(_callOrder[4 * j + 5] == threadStateUpdaterRef + "AtomicUpdate");
                 }
             }
         }
 
         /**
-         * @brief Verifies that each thread loop iteration sets the countdown to 1 before waiting.
+         * @brief Verifies that the minimap capture thread correctly waits for a signal
+         * before processing each screenshot
          * 
-         * The thread uses a countdown mechanism to synchronize processing with incoming bitmaps.
-         * Before waiting for new minimap data, it must reset the countdown to expect exactly one
-         * signal. This test confirms that regardless of how many iterations run (1-4), the thread
-         * correctly sets CountDown = 1 each time, preventing synchronization errors where the
-         * thread might wait for more signals than expected or hang indefinitely.
+         * The minimap capture thread uses an AutoResetEvent to synchronize with the screen
+         * capture system. On each iteration of the thread loop, it must wait for the event
+         * to be signaled before attempting to process a new minimap screenshot. This
+         * ensures the thread only consumes CPU cycles when new image data is available,
+         * rather than spinning continuously or processing stale data.
          */
-        private void _testThreadLoopSetsWaitCountToOne()
+        private void _testThreadLoopWaitsOne()
         {
             for (int i = 1; i < 5; i++)
             {
@@ -431,12 +429,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
                 }
                 fixture.Start();
                 fixture.Join(10000);
-                for (int j = 0; j < i; j++)
-                {
-                    Debug.Assert(
-                        _threadLoopCountDown.SetCountDownCallArg_countDown[j] == 1
-                    );
-                }
+                Debug.Assert(_resetEvent.WaitOneCalls == i);
             }
         }
 
@@ -507,7 +500,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
             _testInjectingValidBitmapUpdatesThreadState();
             _testInjectingValidBitmapAwakensThread();
             _testThreadLoopWaitsBeforeHandlingAndUpdate();
-            _testThreadLoopSetsWaitCountToOne();
+            _testThreadLoopWaitsOne();
             _testThreadLoopProcessesWithCurrentThreadState();
             _testThreadLoopResetsCurrentBitmap();
         }

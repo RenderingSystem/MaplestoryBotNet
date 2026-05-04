@@ -133,9 +133,29 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             }
         }
 
+        /**
+         * @brief Verifies that the botting point data selector returns null when the
+         * character's position cannot be detected on the minimap
+         * 
+         * When the bot's image recognition fails to locate the character marker on the
+         * minimap (e.g., due to map transition, UI overlay, or detection threshold issues),
+         * the system should not attempt to select a nearest point. Returning null allows
+         * the calling code to handle this gracefully, such as retrying the detection or
+         * waiting for the character position to become available again.
+         */
+        private void _testSelectPointSelectsNoPointOnInvalidPosition()
+        {
+            var closestPoints = _closestPoints();
+            var pointDataSelector = _fixture();
+            _bottingModel.GetMapModel().SetTemplatePosition("some key", -1, -1);
+            var result = pointDataSelector.SelectPoint(_bottingModel);
+            Debug.Assert(result == null);
+        }
+
         public void Run()
         {
             _testSelectPointSelectsClosestPoint();
+            _testSelectPointSelectsNoPointOnInvalidPosition();
         }
     }
 

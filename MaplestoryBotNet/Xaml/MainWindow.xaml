@@ -37,11 +37,72 @@
             <Separator/>
             <MenuItem x:Name="StartMenuItem" Header="Start!"/>
         </Menu>
-        <Image
-            x:Name="ImageView"
-            HorizontalAlignment="Center" 
-            VerticalAlignment="Center" 
-            Stretch="Uniform"
-        />
+        <Grid>
+            <Image
+                x:Name="ImageView"
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Center" 
+                Stretch="Uniform"
+            />
+            <TextBlock
+                x:Name="ResettingText"
+                Text="Resetting"
+                Margin="0,510,10,0"
+                FontFamily="Courier New"
+                Foreground="#FF00FF00"
+                HorizontalAlignment="Right"
+                FontSize="20"
+                Visibility="Hidden"
+            />
+            <TextBlock
+                x:Name="BottingText"
+                Text="Botting"
+                Margin="0,510,10,0"
+                FontFamily="Courier New"
+                Foreground="#FF00FF00"
+                HorizontalAlignment="Right"
+                FontSize="20"
+                Visibility="Hidden"
+            />
+            <TextBlock
+                x:Name="RuneingText"
+                Text="Runeing"
+                Margin="0,510,10,0"
+                FontFamily="Courier New"
+                Foreground="#FF00FF00"
+                HorizontalAlignment="Right"
+                FontSize="20"
+                Visibility="Hidden"
+            />
+            <TextBlock
+                x:Name="SolvingText"
+                Text="Solving"
+                Margin="0,510,10,0"
+                FontFamily="Courier New"
+                Foreground="#FF00FF00"
+                HorizontalAlignment="Right"
+                FontSize="20"
+                Visibility="Hidden"
+            />
+            <TextBlock
+                x:Name="SolvedCheckText"
+                Text="Solved check"
+                Margin="0,510,10,0"
+                FontFamily="Courier New"
+                Foreground="#FF00FF00"
+                HorizontalAlignment="Right"
+                FontSize="20"
+                Visibility="Hidden"
+            />
+            <TextBlock
+                x:Name="IdleText"
+                Text="Idle"
+                Margin="0,510,10,0"
+                FontFamily="Courier New"
+                Foreground="#FF00FF00"
+                HorizontalAlignment="Right"
+                FontSize="20"
+            />
+        </Grid>
     </DockPanel>
 </Window>

@@ -87,17 +87,20 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
             var (charX, charY) = bottingModel.GetMapModel().GetTemplatePosition(_templateKey);
             MinimapPointData? selectedMinimapPoint = null;
             var minDistanceSquared = double.PositiveInfinity;
-            for (int i = 0; i < minimapPoints.Count; i++)
+            if (charX > -1 && charY > -1)
             {
-                var currMinimapPoint = minimapPoints[i];
-                var currX = currMinimapPoint.X + (currMinimapPoint.XRange / 2);
-                var currY = currMinimapPoint.Y + (currMinimapPoint.YRange / 2);
-                var (vX, vY) = (charX - currX, charY - currY);
-                var distanceSquared = (vX * vX) + (vY * vY);
-                if (distanceSquared < minDistanceSquared)
+                for (int i = 0; i < minimapPoints.Count; i++)
                 {
-                    minDistanceSquared = distanceSquared;
-                    selectedMinimapPoint = currMinimapPoint.PointData.Copy();
+                    var currMinimapPoint = minimapPoints[i];
+                    var currX = currMinimapPoint.X + (currMinimapPoint.XRange / 2);
+                    var currY = currMinimapPoint.Y + (currMinimapPoint.YRange / 2);
+                    var (vX, vY) = (charX - currX, charY - currY);
+                    var distanceSquared = (vX * vX) + (vY * vY);
+                    if (distanceSquared < minDistanceSquared)
+                    {
+                        minDistanceSquared = distanceSquared;
+                        selectedMinimapPoint = currMinimapPoint.PointData.Copy();
+                    }
                 }
             }
             return selectedMinimapPoint;

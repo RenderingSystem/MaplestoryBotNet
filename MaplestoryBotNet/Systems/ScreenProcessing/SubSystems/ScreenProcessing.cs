@@ -237,7 +237,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
 
     public class GameMinimapProcessorThread : AbstractThread
     {
-        private AbstractCountDown _threadLoopCountDown;
+        private AbstractResetEvent _threadResetEvent;
 
         private AbstractBitmapTemplateMatcherBuilder _templateMatcherBuilder;
 
@@ -259,14 +259,14 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
             AbstractRectangleMerger matchMerger,
             AbstractGameMinimapPositionCropper cropper,
             AbstractGameMinimapProcessHandler processHandler,
-            AbstractCountDown threadLoopCountDown,
+            AbstractResetEvent threadResetEvent,
             AbstractGameMinimapProcessorThreadStateUpdater<
                 GameMinimapProcessorThreadState
             > threadStateUpdater,
             string imageKey
         ) : base(runningState)
         {
-            _threadLoopCountDown = threadLoopCountDown;
+            _threadResetEvent = threadResetEvent;
             _templateMatcherBuilder = templateMatcherBuilder;
             _cropper = cropper;
             _processHandler = processHandler;
@@ -281,8 +281,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
         {
             while (_runningState.IsRunning())
             {
-                _threadLoopCountDown.SetCountDown(1);
-                _threadLoopCountDown.WaitCountDown();
+                _threadResetEvent.WaitOne();
                 _processHandler.Handle(ThreadState);
                 _threadStateUpdater.AtomicUpdate(
                     ref ThreadState!,
@@ -350,8 +349,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
             {
                 var threadState = ThreadState;
                 if (
-                    _threadLoopCountDown.Count() > 0
-                    && threadState.BottingModel != null
+                    threadState.BottingModel != null
                     && bitmap.Width > 1
                     && bitmap.Height > 1
                 )
@@ -368,7 +366,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                             )
                         }
                     );
-                    _threadLoopCountDown.CountDown();
+                    _threadResetEvent.Set();
                 }
             }
             else if (
@@ -405,7 +403,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                 new RectangleMerger(),
                 new GameMinimapPositionCropper(new ImageSharpConverter()),
                 new GameMinimapProcessHandler(new StopwatchTimestamp(), new GameMinimapPositionProcessor()),
-                new ThreadSafeCountDown(),
+                new ExecutionEvent(),
                 new GameMinimapProcessorThreadStateUpdater(),
                 MapIconInfo.Character
             );
@@ -422,7 +420,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                 new RectangleMerger(),
                 new GameMinimapPositionCropper(new ImageSharpConverter()),
                 new GameMinimapProcessHandler(new StopwatchTimestamp(), new GameMinimapPositionProcessor()),
-                new ThreadSafeCountDown(),
+                new ExecutionEvent(),
                 new GameMinimapProcessorThreadStateUpdater(),
                 MapIconInfo.Rune
             );

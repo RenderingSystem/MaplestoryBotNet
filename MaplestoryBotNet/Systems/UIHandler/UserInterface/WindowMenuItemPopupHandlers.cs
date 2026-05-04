@@ -2,6 +2,7 @@
 using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.ThreadingUtils;
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
 
 
@@ -151,7 +152,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public static readonly string Stopping = "Stopping...";
 
         public static readonly string Start = "Start!";
-
     }
 
 
@@ -169,7 +169,15 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override void Modify(object? value)
         {
-            _dispatcher.Dispatch(() => { if (value is string text) { _menuItem.Header = text; } });
+            _dispatcher.Dispatch(
+                () =>
+                {
+                    if (value is string text)
+                    {
+                        _menuItem.Header = text;
+                    }
+                }
+            );
         }
     }
 
@@ -334,6 +342,97 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override void Inject(object dataType, object? data)
         {
             _windowMenuItemStartACtionHandler.Inject(dataType, data);
+        }
+    }
+
+
+    public class WindowBottingTextStatusModifier : AbstractWindowStateModifier
+    {
+        private List<TextBlock> _allTexts;
+
+        private AbstractDispatcher _dispatcher;
+
+        public WindowBottingTextStatusModifier(
+            List<TextBlock> allTexts,
+            AbstractDispatcher dispatcher
+        )
+        {
+            _allTexts = allTexts;
+            _dispatcher = dispatcher;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is not MacroExecutorStateTypes type)
+            {
+                return;
+            }
+            if ((int)type >= _allTexts.Count)
+            {
+                return;
+            }
+            _dispatcher.Dispatch(
+                () =>
+                {
+                    foreach (var text in _allTexts)
+                    {
+                        text.Visibility = Visibility.Hidden;
+                    }
+                    _allTexts[(int)type].Visibility = Visibility.Visible;
+                }
+            );
+        }
+    }
+
+
+    public class WindowBottingTextStatusActionHandler : AbstractWindowActionHandler
+    {
+        public AbstractWindowStateModifier _textStatusModifier;
+
+        public WindowBottingTextStatusActionHandler(
+            AbstractWindowStateModifier textStatusModifier
+        )
+        {
+            _textStatusModifier = textStatusModifier;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _textStatusModifier;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (dataType is MacroExecutorStateTypes type)
+            {
+                _textStatusModifier.Modify(type);
+            }
+        }
+    }
+
+
+    public class WindowBottingTextStatusActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _textStatusActionHandler;
+
+        public WindowBottingTextStatusActionHandlerFacade(
+            List<TextBlock> allTexts,
+            AbstractDispatcher dispatcher
+        )
+        {
+            _textStatusActionHandler = new WindowBottingTextStatusActionHandler(
+                new WindowBottingTextStatusModifier(allTexts, dispatcher)
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _textStatusActionHandler.Modifier();
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _textStatusActionHandler.Inject(dataType, data);
         }
     }
 }

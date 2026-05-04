@@ -331,6 +331,67 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    public class WindowBottingTextStatusActionHandlerTests
+    {
+        private List<TextBlock> _allTexts = [];
+
+        private MockDispatcher _dispatcher = new MockDispatcher();
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _allTexts = [];
+            for (int i = 0; i < (int)MacroExecutorStateTypes.MaxNum; i++)
+            {
+                _allTexts.Add(new TextBlock());
+                _allTexts[i].Visibility = Visibility.Visible;
+            }
+            _dispatcher = new MockDispatcher();
+            return new WindowBottingTextStatusActionHandlerFacade(
+                _allTexts, _dispatcher
+            );
+        }
+
+        /**
+         * @brief Verifies that when a macro executor state update is injected, the UI
+         * text blocks update their visibility to show only the active state
+         * 
+         * When the botting system changes operational states (e.g., from Botting to
+         * Runeing or from Solving to Idle), the UI must reflect the current state so
+         * users can see what the bot is doing at a glance. This test ensures that
+         * injecting a new state (represented as an integer) triggers a UI update where
+         * only the text block corresponding to the active state remains visible, while
+         * all other state text blocks are hidden.
+         */
+        private void _testInjectingSetsVisibilityStatus()
+        {
+            for (int i = 0; i < (int)MacroExecutorStateTypes.MaxNum; i++)
+            {
+                var textStatusActionHandler = _fixture();
+                textStatusActionHandler.Inject((MacroExecutorStateTypes)i, 0);
+                for (int j = 0; j < (int)MacroExecutorStateTypes.MaxNum; j++)
+                {
+                    Debug.Assert(_allTexts[j].Visibility == Visibility.Visible);
+                }
+                Debug.Assert(_dispatcher.DispatchCalls == 1);
+                _dispatcher.DispatchCallArg_action[0]();
+                for (int j = 0; j < (int)MacroExecutorStateTypes.MaxNum; j++)
+                {
+                    Debug.Assert(
+                        (j != i) ?
+                        _allTexts[j].Visibility == Visibility.Hidden :
+                        _allTexts[j].Visibility == Visibility.Visible
+                    );
+                }
+            }
+        }
+
+        public void Run()
+        {
+            _testInjectingSetsVisibilityStatus();
+        }
+    }
+
+
     public class WindowMenuItemPopupHandlersTestSuite
     {
         public void Run()
@@ -339,6 +400,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowMenuItemHideHandlerTests().Run();
             new WindowMenuItemStartTextActionHandlerTests().Run();
             new WindowMeuItemStartActionHandlerTests().Run();
+            new WindowBottingTextStatusActionHandlerTests().Run();
         }
     }
 }

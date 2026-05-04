@@ -930,7 +930,11 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 var result = macroExecutorStateSolving.Execute();
                 Debug.Assert(
                     _solvingStopwatch.SetTimestampCalls ==
-                    (i == (int)SolvingExecutorThreadedUpdate.Solved ? 1 : 0)
+                    (
+                        i == (int)SolvingExecutorThreadedUpdate.Solved ||
+                        i == (int)SolvingExecutorThreadedUpdate.Failed ?
+                        1 : 0
+                    )
                 );
             }
         }
@@ -1085,7 +1089,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
             _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
             _solvingStopwatch.GetTimestampReturn.Add(123);
-            _context.SolvedCheckTimeout = 12;
+            _context.SolveCheckTimeout = 12;
             var result = macroExecutorStateSolvedCheck.Execute();
             Debug.Assert(result == (int)MacroExecutorStateTypes.Botting);
         }
@@ -1106,7 +1110,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
             _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
             _solvingStopwatch.GetTimestampReturn.Add(12);
-            _context.SolvedCheckTimeout = 123;
+            _context.SolveCheckTimeout = 123;
             _bottingModel.GetMapModel().SetTemplatePosition(MapIconInfo.Rune, 12, 23);
             var result = macroExecutorStateSolvedCheck.Execute();
             Debug.Assert(result == (int)MacroExecutorStateTypes.Runeing);
@@ -1128,7 +1132,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
             _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
             _solvingStopwatch.GetTimestampReturn.Add(12);
-            _context.SolvedCheckTimeout = 123;
+            _context.SolveCheckTimeout = 123;
             _bottingModel.GetMapModel().SetTemplatePosition(MapIconInfo.Rune, -1, -1);
             var result = macroExecutorStateSolvedCheck.Execute();
             Debug.Assert(result == (int)MacroExecutorStateTypes.SolvedCheck);
@@ -1152,7 +1156,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
                 _solvingStopwatch.GetTimestampReturn.Add(i == 1 ? 123 : 12);
-                _context.SolvedCheckTimeout = i == 1 ? 12 : 123;
+                _context.SolveCheckTimeout = i == 1 ? 12 : 123;
                 macroExecutorStateSolvedCheck.Execute();
                 Debug.Assert(_runeingStopwatch.SetTimestampCalls == (i == 1 ? 1 : 0));
             }
@@ -1175,7 +1179,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
                 _solvingStopwatch.GetTimestampReturn.Add(i == 1 ? 123 : 12);
-                _context.SolvedCheckTimeout = i == 1 ? 12 : 123;
+                _context.SolveCheckTimeout = i == 1 ? 12 : 123;
                 _context.RuneActivationPeriodCurrent = 1234;
                 _context.RuneActivationPeriod = 12345;
                 macroExecutorStateSolvedCheck.Execute();
@@ -1367,6 +1371,34 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         }
 
         /**
+         * @brief Verifies that when the state machine resets, the Reset state's return
+         * value (the next state ID) is broadcast to all registered inject action listeners
+         * 
+         * When the macro system resets (e.g., after loading a new configuration or
+         * stopping automation), the state machine executes the Reset state to perform
+         * cleanup and determine the next state (typically Idle). This test ensures that
+         * the return value from the Reset state is properly captured and injected as a
+         * notification to any listeners, allowing the UI or other components to update
+         * their displays based on the new state.
+         */
+        private void _testResettingStateMachineInjectsExecuteState()
+        {
+            var typeList = new List<object>();
+            var injectAction = new InjectAction((type, data) => { typeList.Add(type); });
+            var reset = (int)MacroExecutorStateTypes.Reset;
+            var stateMachine = _fixture();
+            stateMachine.Inject(SystemInjectType.InjectAction, injectAction);
+            for (int i = 0; i <= reset; i++)
+            {
+                _executorStates.Add(new MockExecutorState());
+            }
+            ((MockExecutorState)_executorStates[reset]).ExecuteReturn.Add(123);
+            stateMachine.Reset();
+            Debug.Assert(typeList.Count == 1);
+            Debug.Assert((int)typeList[0] == 123);
+        }
+
+        /**
          * @brief Verifies that transmitting the state machine correctly executes the
          * sequence of states defined by their transition rules
          * 
@@ -1395,6 +1427,44 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             Debug.Assert(_callOrder[2] == ref0 + "Execute");
             Debug.Assert(_callOrder[3] == ref2 + "Execute");
             Debug.Assert(_callOrder[4] == ref4 + "Execute");
+        }
+
+        /**
+         * @brief Verifies that when a state transitions, the state machine broadcasts
+         * the next state ID to all registered inject action listeners
+         * 
+         * As the macro executor cycles through different operational states (Idle, Botting,
+         * Runeing, Solving, SolvedCheck), each state's Execute method returns the ID of
+         * the next state to transition to. This test ensures that when a state returns
+         * a new state ID (different from the current one), that value is broadcast as a
+         * notification to any injected action listeners.
+         */
+        public void _testTransmittingStateMachineInjectsNewExecuteState()
+        {
+            foreach (var state in new[] { MacroExecutorStateTypes.Idle, (MacroExecutorStateTypes)123 })
+            {
+                var typeList = new List<object>();
+                var injectAction = new InjectAction((type, data) => { typeList.Add(type); });
+                var idle = (int)MacroExecutorStateTypes.Idle;
+                var stateMachine = _fixture();
+                stateMachine.Inject(SystemInjectType.InjectAction, injectAction);
+                for (int i = 0; i < (int)MacroExecutorStateTypes.MaxNum; i++)
+                {
+                    _executorStates.Add(new MockExecutorState());
+                    _executeTimestamp.GetTimestampReturn.Add(0);
+                }
+                ((MockExecutorState)_executorStates[idle]).ExecuteReturn.Add((int)state);
+                stateMachine.Transmit();
+                if (state is not MacroExecutorStateTypes.Idle)
+                {
+                    Debug.Assert(typeList.Count == 1);
+                    Debug.Assert((int)typeList[0] == 123);
+                }
+                else
+                {
+                    Debug.Assert(typeList.Count == 0);
+                }
+            }
         }
 
         /**
@@ -1579,7 +1649,9 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         public void Run()
         {
             _testResettingStateMachineExecutesAtReset();
+            _testResettingStateMachineInjectsExecuteState();
             _testTransmittingStateMachineRunsNextStates();
+            _testTransmittingStateMachineInjectsNewExecuteState();
             _testTransmittingStateMachineSleepsRemaining();
             _testTransmittingStateMachineDoesntSleepWhenDelayed();
             _testTransmittingStateMachineDoesntSleepWhenInvalidFrequency();
