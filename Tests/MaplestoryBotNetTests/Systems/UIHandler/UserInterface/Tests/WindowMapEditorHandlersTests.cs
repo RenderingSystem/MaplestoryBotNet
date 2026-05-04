@@ -252,7 +252,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             bottingModel.GetRuneModel().AddRuneFrame(runeFrame1);
             bottingModel.GetMapModel().SetTemplateThreshold(MapIconInfo.Character, 0.234f);
             bottingModel.GetMapModel().SetTemplateThreshold(MapIconInfo.Rune, 0.123f);
-            bottingModel.GetRuneModel().SetCooldown(123);
+            bottingModel.GetRuneModel().SetCooldown(987);
+            bottingModel.GetRuneModel().SetActivation(123);
             bottingModel.GetRuneModel().SetRadius(234);
             bottingModel.GetRuneModel().SetUniformMovement(345);
             return bottingModel;
@@ -460,6 +461,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 ],
                 "character_threshold": 0.234,
                 "rune_threshold": 0.123,
+                "rune_cooldown": 987,
                 "rune_activation": 123,
                 "rune_radius": 234,
                 "uniform_movement": 345
@@ -3741,6 +3743,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     {
         private TextBox _cooldownTextBox = new TextBox();
 
+        private TextBox _activationTextBox = new TextBox();
+
         private TextBox _radiusTextBox = new TextBox();
 
         private AbstractBottingModel _bottingModel = new BottingModel();
@@ -3748,10 +3752,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private AbstractWindowActionHandler _fixture()
         {
             _cooldownTextBox = new TextBox();
+            _activationTextBox = new TextBox();
             _radiusTextBox = new TextBox();
             _bottingModel = DataFixtures.BottingModelFixture();
             var handler = new WindowMapCanvasRuneingSaveSettingsActionHandlerFacade(
                 _cooldownTextBox,
+                _activationTextBox,
                 _radiusTextBox
             );
             handler.Inject(SystemInjectType.BottingModel, _bottingModel);
@@ -3772,9 +3778,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testChangingTextSavesRuneingSettingsToBottingModel()
         {
             var runeingSaveSettingsActionHandler = _fixture();
-            _cooldownTextBox.Text = "345";
+            _cooldownTextBox.Text = "567";
+            _activationTextBox.Text = "345";
             _radiusTextBox.Text = "456";
-            Debug.Assert(_bottingModel.GetRuneModel().GetCooldown() == 345);
+            Debug.Assert(_bottingModel.GetRuneModel().GetCooldown() == 567);
+            Debug.Assert(_bottingModel.GetRuneModel().GetActivation() == 345);
             Debug.Assert(_bottingModel.GetRuneModel().GetRadius() == 456);
         }
 
@@ -3789,6 +3797,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     {
         private TextBox _cooldownTextBox = new TextBox();
 
+        private TextBox _activationTextBox = new TextBox();
+
         private TextBox _radiusTextBox = new TextBox();
 
         private AbstractLoadFileDialog _loadFileDialog = new WindowLoadFileDialog("", "");
@@ -3798,11 +3808,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private AbstractWindowActionHandler _fixture()
         {
             _cooldownTextBox = new TextBox();
+            _activationTextBox = new TextBox();
             _radiusTextBox = new TextBox();
             _loadFileDialog = new WindowLoadFileDialog("", "");
             _bottingModel = DataFixtures.BottingModelFixture();
             var handler = new WindowMapCanvasRuneingLoadSettingsActionHandlerFacade(
                 _cooldownTextBox,
+                _activationTextBox,
                 _radiusTextBox,
                 _loadFileDialog
             );
@@ -3825,7 +3837,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         {
             var runeingLoadSettingsActionHandler = _fixture();
             _loadFileDialog.InvokeFileLoaded("", "");
-            Debug.Assert(_cooldownTextBox.Text == "123");
+            Debug.Assert(_cooldownTextBox.Text == "987");
+            Debug.Assert(_activationTextBox.Text == "123");
             Debug.Assert(_radiusTextBox.Text == "234");
         }
 

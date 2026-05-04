@@ -241,6 +241,9 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("rune_threshold")]
         public float RuneThreshold { set; get; } = 0.6f;
 
+        [JsonPropertyName("rune_cooldown")]
+        public int RuneCooldown { set; get; } = 0;
+
         [JsonPropertyName("rune_activation")]
         public int RuneActivation { set; get; } = 0;
 
@@ -262,6 +265,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
                 RuneThreshold = RuneThreshold,
                 MapPoints = MapPoints.Select(point => point.Copy()).ToList(),
                 RuneFrames = RuneFrames.Select(frame => frame.Copy()).ToList(),
+                RuneCooldown = RuneCooldown,
                 RuneActivation = RuneActivation,
                 RuneRadius = RuneRadius,
                 UniformMovement = UniformMovement

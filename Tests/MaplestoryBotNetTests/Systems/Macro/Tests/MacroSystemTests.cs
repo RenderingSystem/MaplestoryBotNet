@@ -254,7 +254,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         {
             var macroExecutorStateReset = _fixture();
             _stopFixture();
-            _bottingModel.GetRuneModel().SetCooldown(123);
+            _bottingModel.GetRuneModel().SetActivation(123);
             macroExecutorStateReset.Execute();
             Debug.Assert(_context.RuneActivationPeriodCurrent == 123);
         }
@@ -1181,7 +1181,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _solvingStopwatch.GetTimestampReturn.Add(i == 1 ? 123 : 12);
                 _context.SolveCheckTimeout = i == 1 ? 12 : 123;
                 _context.RuneActivationPeriodCurrent = 1234;
-                _context.RuneActivationPeriod = 12345;
+                _bottingModel.GetRuneModel().SetCooldown(12345);
                 macroExecutorStateSolvedCheck.Execute();
                 Debug.Assert(_context.RuneActivationPeriodCurrent == (i == 1 ? 12345 : 1234));
             }
@@ -1619,14 +1619,14 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 MacroSettings = new MacroSettings
                 {
                     CheckFrequency = 12,
-                    RuneActivationPeriod = 23,
-                    SolveCheckTimeout = 34
+                    SolveCheckTimeout = 34,
+                    CashShopTolerance = 1234
                 }
             };
             stateMachine.Inject(SystemInjectType.Configuration, data);
             Debug.Assert(_context.ExecutionFrequency == 12);
-            Debug.Assert(_context.RuneActivationPeriod == 23);
             Debug.Assert(_context.SolveCheckTimeout == 34);
+            Debug.Assert(_context.CashShopTolerance == 1234);
         }
 
         /**

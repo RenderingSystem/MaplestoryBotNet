@@ -88,7 +88,6 @@
             "static_rect": [ 0, 0, 1280, 720 ]
         }
     },
-    "ailments_allcure_key": "c",
     "map_icons": {
         "character": {
             "image": "images/mapicons/character.png",
@@ -107,8 +106,9 @@
     "map_directory": "./Maps",
     "macro_check_frequency": {
         "check_frequency": 2.0,
-        "activation_period": 600,
-        "solve_check_timeout": 3.0
+        "solve_check_timeout": 3.0,
+        "cash_shop_tolerance": 3,
+        "cash_shop_timeout": 60
     },
     "rune_detection": {
         "ip_address": "http://localhost",
@@ -127,5 +127,9 @@
         "server_rune_model_console": 0,
         "server_watchdog_timeout": 2000
     },
-    "rune_interact_key": " "
+    "macro_key_settings": {
+        "rune_interact_key": " ",
+        "cash_shop_key": "\\",
+        "ailments_allcure_key": "c"
+    }
 }

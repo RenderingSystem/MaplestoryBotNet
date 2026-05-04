@@ -1,11 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+
+using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.ThreadingUtils;
+using System.Collections.Concurrent;
 
 namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
 {
+    // TODO
     public enum CashShopOrchestratorThreadInjectType
     {
         None = 0,
@@ -24,7 +25,69 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
         MaxNum
     }
 
-    internal class CashShopTransmitter
+
+    public class CashShopExecutorThread : AbstractThread
     {
+        public CashShopExecutorThread(
+            AbstractThreadRunningState runningState
+        ) : base(runningState)
+        {
+        }
+
+        public override void ThreadLoop()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+
+    public class CashShopOrchestratorThread : AbstractOrchestratorThread<CashShopOrchestratorThreadInjectType>
+    {
+        public CashShopOrchestratorThread(
+            AbstractThread bottingExecutorThread,
+            AbstractThreadRunningState runningState,
+            BlockingCollection<int> threadStates
+        ) : base(bottingExecutorThread, runningState, threadStates)
+        { }
+    }
+
+
+    public class CashShopOrchestratorThreadFactory : AbstractThreadFactory
+    {
+        public override AbstractThread CreateThread()
+        {
+            return new CashShopOrchestratorThread(
+                new CashShopExecutorThread(
+                    new ThreadRunningState()
+                ),
+                new ThreadRunningState(),
+                new BlockingCollection<int>()
+            );
+        }
+    }
+
+
+    public class CashShopOrchestratorSystem : AbstractOrchestratorSystem
+    {
+        public CashShopOrchestratorSystem(
+            List<AbstractThreadFactory> threadFactories
+        ) : base(threadFactories)
+        { }
+    }
+
+
+    public class CashShopOrchestratorSystemBuilder : AbstractSystemBuilder
+    {
+        public override AbstractSystem Build()
+        {
+            return new CashShopOrchestratorSystem(
+                [new CashShopOrchestratorThreadFactory()]
+            );
+        }
+
+        public override AbstractSystemBuilder WithArg(object arg)
+        {
+            return this;
+        }
     }
 }

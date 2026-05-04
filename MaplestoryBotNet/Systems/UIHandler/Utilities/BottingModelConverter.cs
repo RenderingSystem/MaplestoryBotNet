@@ -409,7 +409,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                     )
                 ).ToList(),
                 RuneRadius = runeModel.GetRadius(),
-                RuneActivation = runeModel.GetCooldown(),
+                RuneCooldown = runeModel.GetCooldown(),
+                RuneActivation = runeModel.GetActivation(),
                 UniformMovement = runeModel.GetUniformMovement()
             };
         }
@@ -479,7 +480,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 bottingModel.GetRuneModel().AddRuneFrame(runeFrames[i]);
             }
             bottingModel.GetRuneModel().SetRadius(configurationBottingModel.RuneRadius);
-            bottingModel.GetRuneModel().SetCooldown(configurationBottingModel.RuneActivation);
+            bottingModel.GetRuneModel().SetCooldown(configurationBottingModel.RuneCooldown);
+            bottingModel.GetRuneModel().SetActivation(configurationBottingModel.RuneActivation);
             bottingModel.GetRuneModel().SetUniformMovement(configurationBottingModel.UniformMovement);
         }
 

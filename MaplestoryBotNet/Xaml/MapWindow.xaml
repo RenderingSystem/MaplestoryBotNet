@@ -466,21 +466,10 @@
                             Foreground="White"
                         />
                         <Label
-                            Content="Activation:"
+                            Content="Next:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,355,0,0"
-                            VerticalAlignment="Top"
-                            Width="120"
-                            Foreground="White"
-                            FontSize="11"
-                            FontWeight="Bold"
-                        />
-                        <Label
-                            Content="Seconds:"
-                            FontFamily="Courier New"
-                            HorizontalAlignment="Left"
-                            Margin="404,378,0,0"
+                            Margin="404,376,0,0"
                             VerticalAlignment="Top"
                             Width="61"
                             FontSize="10"
@@ -488,7 +477,7 @@
                         />
                         <TextBox
                             x:Name="RuneingRuneActivation"
-                            Margin="468,378,10,131"
+                            Margin="468,376,10,133"
                             Background="Black"
                             Foreground="Lime"
                             FontFamily="Courier New"
@@ -498,7 +487,7 @@
                             Content="Radius:"
                             FontFamily="Courier New"
                             HorizontalAlignment="Left"
-                            Margin="404,401,0,0"
+                            Margin="404,398,0,0"
                             VerticalAlignment="Top"
                             Width="61"
                             FontSize="10"
@@ -506,7 +495,25 @@
                         />
                         <TextBox
                             x:Name="RuneingRuneRadius"
-                            Margin="468,401,10,108"
+                            Margin="468,398,10,111"
+                            Background="Black"
+                            Foreground="Lime"
+                            FontFamily="Courier New"
+                            TabIndex="12"
+                        />
+                        <Label
+                            Content="Cooldown:"
+                            FontFamily="Courier New"
+                            HorizontalAlignment="Left"
+                            Margin="404,353,0,0"
+                            VerticalAlignment="Top"
+                            Width="61"
+                            FontSize="10"
+                            Foreground="White"
+                        />
+                        <TextBox
+                            x:Name="RuneingRuneCooldown"
+                            Margin="468,353,10,156"
                             Background="Black"
                             Foreground="Lime"
                             FontFamily="Courier New"

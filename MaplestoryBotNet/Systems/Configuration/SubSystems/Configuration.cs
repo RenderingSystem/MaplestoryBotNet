@@ -107,24 +107,29 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("check_frequency")]
         public double CheckFrequency { set; get; } = 0.5;
 
-        [JsonPropertyName("activation_period")]
-        public int RuneActivationPeriod { set; get; } = 900;
-
         [JsonPropertyName("solve_check_timeout")]
         public double SolveCheckTimeout { set; get; } = 3;
 
+        [JsonPropertyName("cash_shop_tolerance")]
+        public int CashShopTolerance { set; get; } = 3;
+
+        [JsonPropertyName("cash_shop_timeout")]
+        public int CashShopTimeout { set; get; } = 60;
+
         public override AbstractConfiguration Copy()
         {
-            var macroSettings = new MacroSettings();
-            macroSettings.RuneActivationPeriod = RuneActivationPeriod;
-            macroSettings.CheckFrequency = CheckFrequency;
-            macroSettings.SolveCheckTimeout = SolveCheckTimeout;
-            return macroSettings;
+            return new MacroSettings
+            {
+                CheckFrequency = CheckFrequency,
+                SolveCheckTimeout = SolveCheckTimeout,
+                CashShopTolerance = CashShopTolerance,
+                CashShopTimeout = CashShopTimeout
+            };
         }
     }
 
 
-    public class RuneDetection
+    public class RuneDetection : AbstractConfiguration
     {
         [JsonPropertyName("ip_address")]
         public string RuneSolverIPAddress { set; get; } = "";
@@ -150,7 +155,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("down")]
         public string Down { set; get; } = "";
 
-        public RuneDetection Copy()
+        public override AbstractConfiguration Copy()
         {
             return new RuneDetection
             {
@@ -167,7 +172,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
     }
 
 
-    public class RuneServerSettings
+    public class RuneServerSettings : AbstractConfiguration
     {
         [JsonPropertyName("server_executable")]
         public string ServerExecutable { set; get; } = "";
@@ -184,7 +189,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("server_watchdog_timeout")]
         public int ServerWatchdogTimeout { set; get; } = 0;
 
-        public RuneServerSettings Copy()
+        public override AbstractConfiguration Copy()
         {
             return new RuneServerSettings
             {
@@ -193,6 +198,29 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
                 ServerRuneModel = ServerRuneModel,
                 ServerRuneModelConsole = ServerRuneModelConsole,
                 ServerWatchdogTimeout = ServerWatchdogTimeout
+            };
+        }
+    }
+
+
+    public class MacroKeySettings : AbstractConfiguration
+    {
+        [JsonPropertyName("ailments_allcure_key")]
+        public string AilmentsAllcureKey { get; set; } = "";
+
+        [JsonPropertyName("rune_interact_key")]
+        public string RuneInteractKey { get; set; } = "";
+
+        [JsonPropertyName("cash_shop_key")]
+        public string CashShopKey { get; set; } = "";
+
+        public override AbstractConfiguration Copy()
+        {
+            return new MacroKeySettings
+            {
+                AilmentsAllcureKey = AilmentsAllcureKey,
+                RuneInteractKey = RuneInteractKey,
+                CashShopKey = CashShopKey
             };
         }
     }
@@ -211,9 +239,6 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
 
         [JsonPropertyName("ailments")]
         public Dictionary<string, Ailment> Ailments { get; set; } = new Dictionary<string, Ailment>();
-
-        [JsonPropertyName("ailments_allcure_key")]
-        public string AilmentsAllcureKey { get; set; } = "";
 
         [JsonPropertyName("map_icons")]
         public Dictionary<string, MapIcon> MapIcons { get; set; } = new Dictionary<string, MapIcon>();
@@ -239,8 +264,8 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("rune_server_settings")]
         public RuneServerSettings RuneServerSettings { get; set; } = new RuneServerSettings();
 
-        [JsonPropertyName("rune_interact_key")]
-        public string RuneInteractKey { get; set; } = "";
+        [JsonPropertyName("macro_key_settings")]
+        public MacroKeySettings MacroKeySettings { get; set; } = new MacroKeySettings();
 
         public override AbstractConfiguration Copy()
         {
@@ -250,7 +275,6 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
             configuration.Mp = (Resource)Mp.Copy();
             foreach (var item in Ailments)
                 configuration.Ailments.Add(new string(item.Key), (Ailment)item.Value.Copy());
-            configuration.AilmentsAllcureKey = new string(AilmentsAllcureKey);
             foreach (var item in MapIcons)
                 configuration.MapIcons.Add(new string(item.Key), (MapIcon)item.Value.Copy());
             configuration.MacroDirectory = new string(MacroDirectory);
@@ -258,9 +282,9 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
             configuration.FrameMovementsDirectory = new string(FrameMovementsDirectory);
             configuration.MapDirectory = new string(MapDirectory);
             configuration.MacroSettings = (MacroSettings)MacroSettings.Copy();
-            configuration.RuneDetection = RuneDetection.Copy();
-            configuration.RuneServerSettings = RuneServerSettings.Copy();
-            configuration.RuneInteractKey = new string(RuneInteractKey);
+            configuration.RuneDetection = (RuneDetection)RuneDetection.Copy();
+            configuration.RuneServerSettings = (RuneServerSettings)RuneServerSettings.Copy();
+            configuration.MacroKeySettings = (MacroKeySettings)MacroKeySettings.Copy();
             return configuration;
         }
     }

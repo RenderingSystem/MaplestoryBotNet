@@ -274,10 +274,11 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
             if (
                 dataType is SystemInjectType.ConfigurationUpdate
                 && data is MaplestoryBotConfiguration maplestoryBotConfiguration
+                && maplestoryBotConfiguration.RuneDetection.Copy() is RuneDetection runeDetection
             )
             {
-                _runeDetection = maplestoryBotConfiguration.RuneDetection.Copy();
-                _interactKey = maplestoryBotConfiguration.RuneInteractKey;
+                _runeDetection = runeDetection;
+                _interactKey = maplestoryBotConfiguration.MacroKeySettings.RuneInteractKey;
             }
             else if (data is Image<Bgra32> solveImage)
             {
@@ -438,78 +439,14 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     }
 
 
-    public class SolvingOrchestratorThread : AbstractThread
+    public class SolvingOrchestratorThread : AbstractOrchestratorThread<SolvingOrchestratorThreadInjectType>
     {
-        private AbstractThread _solvingExecutorThread;
-
-        private BlockingCollection<int> _threadStates;
-
         public SolvingOrchestratorThread(
-            AbstractThread solvingExecutorThread,
+            AbstractThread bottingExecutorThread,
             AbstractThreadRunningState runningState,
             BlockingCollection<int> threadStates
-        ) : base(runningState)
-        {
-            _solvingExecutorThread = solvingExecutorThread;
-            _threadStates = threadStates;
-        }
-
-        public override void Start()
-        {
-            _solvingExecutorThread.Start();
-            base.Start();
-        }
-
-        public override void Stop()
-        {
-            base.Stop();
-            _solvingExecutorThread.Stop();
-            _threadStates.Add(0);
-        }
-
-        public override void ThreadLoop()
-        {
-            while (_runningState.IsRunning())
-            {
-                foreach (var threadState in _threadStates.GetConsumingEnumerable())
-                {
-                    if (!_runningState.IsRunning())
-                    {
-                        break;
-                    }
-                    _solvingExecutorThread.Inject(
-                        (SolvingOrchestratorThreadInjectType)
-                        threadState, null
-                    );
-                }
-            }
-        }
-
-        public override void Inject(object dataType, object? value)
-        {
-            if (dataType is SolvingOrchestratorThreadInjectType injectType)
-            {
-                _threadStates.Add((int)injectType);
-            }
-            else
-            {
-                _solvingExecutorThread.Inject(dataType, value);
-                if (
-                    dataType is SystemInjectType.InjectAction
-                    && value is AbstractInjectAction injectAction
-                )
-                {
-                    injectAction.GetAction()(
-                        SystemInjectType.ThreadDependency, this
-                    );
-                }
-            }
-        }
-
-        public override object? State()
-        {
-            return _solvingExecutorThread.State();
-        }
+        ) : base(bottingExecutorThread, runningState, threadStates)
+        { }
     }
 
 
@@ -554,43 +491,12 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     }
 
 
-    public class SolvingOrchestratorSystem : AbstractSystem
+    public class SolvingOrchestratorSystem : AbstractOrchestratorSystem
     {
-        private List<AbstractThreadFactory> _threadFactories;
-
-        private List<AbstractThread> _threads;
-
         public SolvingOrchestratorSystem(
             List<AbstractThreadFactory> threadFactories
-        )
-        {
-            _threadFactories = threadFactories;
-            _threads = [];
-        }
-
-        public override void Initialize()
-        {
-            for (int i = 0; i < _threadFactories.Count; i++)
-            {
-                _threads.Add(_threadFactories[i].CreateThread());
-            }
-        }
-
-        public override void Start()
-        {
-            for (int i = 0; i < _threads.Count; i++)
-            {
-                _threads[i].Start();
-            }
-        }
-
-        public override void Inject(object dataType, object? data)
-        {
-            for (int i = 0; i < _threads.Count; i++)
-            {
-                _threads[i].Inject(dataType, data);
-            }
-        }
+        ) : base(threadFactories)
+        { }
     }
 
 

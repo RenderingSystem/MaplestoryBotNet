@@ -83,6 +83,7 @@ namespace MaplestoryBotNet.Xaml
                     RuneingRuneTextBoxX,
                     RuneingRuneTextBoxY,
                     RuneingRuneThreshold,
+                    RuneingRuneCooldown,
                     RuneingRuneActivation,
                     RuneingRuneRadius,
                     RuneingTabItem,
@@ -563,6 +564,8 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
 
         private TextBox _runeThreshold;
 
+        private TextBox _runeCooldown;
+
         private TextBox _runeActivation;
 
         private TextBox _runeRadius;
@@ -597,6 +600,7 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             TextBox runeTextBoxX,
             TextBox runeTextBoxY,
             TextBox runeThreshold,
+            TextBox runeCooldown,
             TextBox runeActivation,
             TextBox runeRadius,
             TabItem tabItem,
@@ -622,6 +626,7 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
             _runeTextBoxX = runeTextBoxX;
             _runeTextBoxY = runeTextBoxY;
             _runeThreshold = runeThreshold;
+            _runeCooldown = runeCooldown;
             _runeActivation = runeActivation;
             _runeRadius = runeRadius;
             _tabItem = tabItem;
@@ -844,6 +849,7 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
         private AbstractWindowActionHandler _instantiateRuneingLoadSettingsActionHandler()
         {
             return new WindowMapCanvasRuneingLoadSettingsActionHandlerFacade(
+                _runeCooldown,
                 _runeActivation,
                 _runeRadius,
                 _loadFileDialog
@@ -853,6 +859,7 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
         private AbstractWindowActionHandler _instantiateRuneingSaveSettingsActionHandler()
         {
             return new WindowMapCanvasRuneingSaveSettingsActionHandlerFacade(
+                _runeCooldown,
                 _runeActivation,
                 _runeRadius
             );
@@ -867,8 +874,10 @@ public class BottingTabHandlersContainer : AbstractMapWindowHandlersContainer
                 _instantiateWindowMenuItemHideActionHandler(_systemWindow),
                 _instantiateEditMenuActionHandler(_editButton, _systemWindow, editWindow),
                 _instantiateNumericTextBoxPropertyActionHandler(_runeRadius, 999),
+                _instantiateNumericTextBoxPropertyActionHandler(_runeCooldown, 9999),
                 _instantiateNumericTextBoxPropertyActionHandler(_runeActivation, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(_runeRadius, 999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(_runeCooldown, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(_runeActivation, 9999),
                 _instantiateRunePositionActionHandler(),
                 _instantiateLoadRuneThresholdActionHandler(),

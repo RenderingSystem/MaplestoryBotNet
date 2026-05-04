@@ -171,7 +171,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration
             {
                 RuneDetection = new RuneDetection(),
-                RuneInteractKey = "meow"
+                MacroKeySettings = new MacroKeySettings { RuneInteractKey = "meow" }
             };
             var runeSolverWorkflow = new RuneSolverWorkflow(
                 _macroCommandsExecutorBuilder, _runeSolverCaller
@@ -214,7 +214,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration
             {
                 RuneDetection = new RuneDetection(),
-                RuneInteractKey = "meow"
+                MacroKeySettings = new MacroKeySettings { RuneInteractKey = "meow" }
             };
             workflow.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             workflow.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);
@@ -237,7 +237,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration
             {
                 RuneDetection = new RuneDetection(),
-                RuneInteractKey = ""
+                MacroKeySettings = new MacroKeySettings { RuneInteractKey = "" }
             };
             workflow.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             workflow.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);
@@ -259,7 +259,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration
             {
                 RuneDetection = new RuneDetection(),
-                RuneInteractKey = "meow"
+                MacroKeySettings = new MacroKeySettings { RuneInteractKey = "meow" }
             };
             workflow.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);
             var result = workflow.ValidatePrerequisites();
@@ -281,7 +281,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration
             {
                 RuneDetection = new RuneDetection(),
-                RuneInteractKey = "meow"
+                MacroKeySettings = new MacroKeySettings { RuneInteractKey = "meow" }
             };
             workflow.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             workflow.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);

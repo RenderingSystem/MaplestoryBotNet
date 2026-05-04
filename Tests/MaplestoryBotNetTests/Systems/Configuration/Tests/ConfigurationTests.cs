@@ -92,7 +92,6 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                         "static_rect": [ 456, 567, 678, 789 ]
                     }
                 },
-                "ailments_allcure_key": "some_allcure_key",
                 "map_icons": {
                     "character": {
                         "image": "some_image_3"
@@ -106,9 +105,10 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 "frame_movements_directory": "cool_frame_movements",
                 "map_directory": "cool_maps",
                 "macro_check_frequency": {
-                  "check_frequency": 0.123,
-                  "activation_period": 678,
-                  "solve_check_timeout": 0.234
+                    "check_frequency": 0.123,
+                    "solve_check_timeout": 0.234,
+                    "cash_shop_tolerance": 1234,
+                    "cash_shop_timeout": 2345
                 },
                 "rune_detection": {
                     "ip_address": "12",
@@ -127,7 +127,11 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     "server_rune_model_console": 654,
                     "server_watchdog_timeout": 543
                 },
-                "rune_interact_key": "key"
+                "macro_key_settings": {
+                    "ailments_allcure_key": "some_allcure_key",
+                    "rune_interact_key": "key",
+                    "cash_shop_key": "cs_key"
+                }
             }
             """;
         }
@@ -205,7 +209,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(output.Ailments["weakness"].MacroCommands.SequenceEqual(["234", "345", "456"]));
             Debug.Assert(output.Ailments["weakness"].Image == "some_image_2");
             Debug.Assert(output.Ailments["weakness"].StaticRect.SequenceEqual([456, 567, 678, 789]));
-            Debug.Assert(output.AilmentsAllcureKey == "some_allcure_key");
+            Debug.Assert(output.MacroKeySettings.AilmentsAllcureKey == "some_allcure_key");
         }
 
         /**
@@ -294,8 +298,9 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             var deserializer = new MaplestoryBotConfigurationDeserializer();
             var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
             Debug.Assert(output.MacroSettings.CheckFrequency == 0.123);
-            Debug.Assert(output.MacroSettings.RuneActivationPeriod == 678);
             Debug.Assert(output.MacroSettings.SolveCheckTimeout == 0.234);
+            Debug.Assert(output.MacroSettings.CashShopTolerance == 1234);
+            Debug.Assert(output.MacroSettings.CashShopTimeout == 2345);
         }
 
         /**
@@ -319,7 +324,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(output.RuneDetection.Up == "012");
             Debug.Assert(output.RuneDetection.Right == "123");
             Debug.Assert(output.RuneDetection.Down == "234");
-            Debug.Assert(output.RuneInteractKey == "key");
+            Debug.Assert(output.MacroKeySettings.RuneInteractKey == "key");
         }
 
         /**
@@ -425,7 +430,6 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                         StaticRect = [456, 567, 678, 789]
                     }
                 },
-                AilmentsAllcureKey="some_allcure_key",
                 MapIcons =
                 {
                     ["character"] = new MapIcon
@@ -448,8 +452,9 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 MacroSettings = new MacroSettings
                 {
                     CheckFrequency=0.123,
-                    RuneActivationPeriod=678,
-                    SolveCheckTimeout=0.234
+                    SolveCheckTimeout=0.234,
+                    CashShopTolerance=1234,
+                    CashShopTimeout=2345
                 },
                 RuneDetection = new RuneDetection
                 {
@@ -470,7 +475,12 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     ServerRuneModelConsole = 654,
                     ServerWatchdogTimeout = 543
                 },
-                RuneInteractKey = "key"
+                MacroKeySettings = new MacroKeySettings
+                {
+                    AilmentsAllcureKey = "some_allcure_key",
+                    RuneInteractKey = "key",
+                    CashShopKey = "cs_key"
+                }
             };
             return configuration;
         }
@@ -563,7 +573,6 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                         ]
                     }
                 },
-                "ailments_allcure_key": "some_allcure_key",
                 "map_icons": {
                     "character": {
                         "image": "some_image_3",
@@ -581,9 +590,10 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 "frame_movements_directory": "cool_frame_movements",
                 "map_directory": "cool_maps",
                 "macro_check_frequency": {
-                  "check_frequency": 0.123,
-                  "activation_period": 678,
-                  "solve_check_timeout": 0.234
+                    "check_frequency": 0.123,
+                    "solve_check_timeout": 0.234,
+                    "cash_shop_tolerance": 1234,
+                    "cash_shop_timeout": 2345
                 },
                 "rune_detection": {
                     "ip_address": "12",
@@ -602,7 +612,11 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     "server_rune_model_console": 654,
                     "server_watchdog_timeout": 543
                 },
-                "rune_interact_key": "key"
+                "macro_key_settings": {
+                    "ailments_allcure_key": "some_allcure_key",
+                    "rune_interact_key": "key",
+                    "cash_shop_key": "cs_key"
+                }
             }
             """;
         }

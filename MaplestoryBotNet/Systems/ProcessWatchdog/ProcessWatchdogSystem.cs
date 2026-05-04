@@ -363,10 +363,12 @@ namespace MaplestoryBotNet.Systems.ProcessWatchdog
             if (
                 dataType is SystemInjectType.ConfigurationUpdate
                 && value is MaplestoryBotConfiguration maplestoryBotConfiguration
+                && maplestoryBotConfiguration.RuneDetection.Copy() is RuneDetection runeDetection
+                && maplestoryBotConfiguration.RuneServerSettings.Copy() is RuneServerSettings runeServerSettings
             )
             {
-                _runeDetection = maplestoryBotConfiguration.RuneDetection.Copy();
-                _runeServerSettings = maplestoryBotConfiguration.RuneServerSettings.Copy();
+                _runeDetection = runeDetection;
+                _runeServerSettings = runeServerSettings;
             }
         }
     }

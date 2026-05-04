@@ -147,6 +147,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public abstract int GetCooldown();
 
+        public abstract void SetActivation(int seconds);
+
+        public abstract int GetActivation();
+
         public abstract void SetRadius(int radius);
 
         public abstract int GetRadius();
@@ -614,6 +618,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         private volatile int _runeCooldown = 0;
 
+        private volatile int _runeActivation = 0;
+
         private volatile int _runeRadius = 0;
 
         private volatile int _uniformMovement = 0;
@@ -770,6 +776,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 _runeFrames.Clear();
                 _runeFrames.AddRange(newRuneModel.RuneFrames());
                 _runeCooldown = newRuneModel.GetCooldown();
+                _runeActivation = newRuneModel.GetActivation();
                 _runeRadius = newRuneModel.GetRadius();
                 _uniformMovement = newRuneModel.GetUniformMovement();
             }
@@ -787,6 +794,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                 return new RuneModel
                 {
                     _runeCooldown = _runeCooldown,
+                    _runeActivation = _runeActivation,
                     _runeRadius = _runeRadius,
                     _uniformMovement = _uniformMovement,
                     _runeFrames = _getRuneFrames()
@@ -815,8 +823,34 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         {
             try
             {
-                _runeFrameLock.EnterReadLock();
+                _runeFrameLock.EnterWriteLock();
                 return _runeCooldown;
+            }
+            finally
+            {
+                _runeFrameLock.ExitWriteLock();
+            }
+        }
+
+        public override void SetActivation(int seconds)
+        {
+            try
+            {
+                _runeFrameLock.EnterWriteLock();
+                _runeActivation = seconds;
+            }
+            finally
+            {
+                _runeFrameLock.ExitWriteLock();
+            }
+        }
+
+        public override int GetActivation()
+        {
+            try
+            {
+                _runeFrameLock.EnterReadLock();
+                return _runeActivation;
             }
             finally
             {

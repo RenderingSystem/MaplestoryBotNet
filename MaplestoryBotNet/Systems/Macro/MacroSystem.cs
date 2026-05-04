@@ -160,7 +160,7 @@ namespace MaplestoryBotNet.Systems.Macro
             if (_context.BottingModel is AbstractBottingModel bottingModel)
             {
                 var runeModel = bottingModel.GetRuneModel();
-                var cooldown = runeModel.GetCooldown();
+                var cooldown = runeModel.GetActivation();
                 _context.RuneActivationPeriodCurrent = cooldown;
             }
             return (int)MacroExecutorStateTypes.Idle;
@@ -371,7 +371,14 @@ namespace MaplestoryBotNet.Systems.Macro
             }
             else
             {
-                _context.RuneActivationPeriodCurrent = _context.RuneActivationPeriod;
+                if (
+                    _context.BottingModel is AbstractBottingModel bottingModel
+                    && _context.BottingModel.GetRuneModel() is AbstractRuneModel runeModel
+                    && runeModel.GetCooldown() is int cooldown
+                )
+                {
+                    _context.RuneActivationPeriodCurrent = cooldown;
+                }
                 _context.RuneingStopwatch.SetTimestamp();
                 return (int)MacroExecutorStateTypes.Botting;
             }
@@ -395,13 +402,13 @@ namespace MaplestoryBotNet.Systems.Macro
 
         public string RuneKey;
 
-        public int RuneActivationPeriod;
-
         public int RuneActivationPeriodCurrent;
 
         public double ExecutionFrequency;
 
         public double SolveCheckTimeout;
+
+        public int CashShopTolerance;
 
         public MacroExecutorThreadContext(
             AbstractOrchestratorController bottingController,
@@ -419,7 +426,6 @@ namespace MaplestoryBotNet.Systems.Macro
             RuneingStopwatch = runeingStopwatch;
             SolvingStopwatch = solvingStopwatch;
             RuneKey = runeKey;
-            RuneActivationPeriod = 0;
             RuneActivationPeriodCurrent = 0;
             SolveCheckTimeout = 0.0;
             ExecutionFrequency = 0.0;
@@ -525,8 +531,8 @@ namespace MaplestoryBotNet.Systems.Macro
             )
             {
                 _context.ExecutionFrequency = macroSettings.CheckFrequency;
-                _context.RuneActivationPeriod = macroSettings.RuneActivationPeriod;
                 _context.SolveCheckTimeout = macroSettings.SolveCheckTimeout;
+                _context.CashShopTolerance = macroSettings.CashShopTolerance;
             }
             if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel
             )
@@ -643,72 +649,14 @@ namespace MaplestoryBotNet.Systems.Macro
     }
 
 
-    public class MacroOrchestratorThread : AbstractThread
+    public class MacroOrchestratorThread : AbstractOrchestratorThread<MacroOrchestratorThreadInjectType>
     {
-        private AbstractThread _macroExecutorThread;
-
-        private BlockingCollection<int> _threadStates;
-
         public MacroOrchestratorThread(
             AbstractThread macroExecutorThread,
             AbstractThreadRunningState runningState,
             BlockingCollection<int> threadStates
-        ) : base(runningState)
-        {
-            _macroExecutorThread = macroExecutorThread;
-            _threadStates = threadStates;
-        }
-        public override void Start()
-        {
-            _macroExecutorThread.Start();
-            base.Start();
-        }
-
-        public override void Stop()
-        {
-            base.Stop();
-            _macroExecutorThread.Stop();
-            _threadStates.Add(0);
-        }
-
-        public override void ThreadLoop()
-        {
-            while (_runningState.IsRunning())
-            {
-                foreach (var threadState in _threadStates.GetConsumingEnumerable())
-                {
-                    if (!_runningState.IsRunning())
-                    {
-                        break;
-                    }
-                    _macroExecutorThread.Inject(
-                        (MacroOrchestratorThreadInjectType)
-                        threadState, null
-                    );
-                }
-            }
-        }
-
-        public override void Inject(object dataType, object? value)
-        {
-            if (dataType is MacroOrchestratorThreadInjectType injectType)
-            {
-                _threadStates.Add((int)injectType);
-            }
-            else
-            {
-                _macroExecutorThread.Inject(dataType, value);
-                if (dataType is SystemInjectType.InjectAction && value is AbstractInjectAction injectAction)
-                {
-                    injectAction.GetAction()(SystemInjectType.ThreadDependency, this);
-                }
-            }
-        }
-
-        public override object? State()
-        {
-            return _macroExecutorThread.State();
-        }
+        ) : base(macroExecutorThread, runningState, threadStates)
+        { }
     }
 
 
@@ -784,40 +732,12 @@ namespace MaplestoryBotNet.Systems.Macro
     }
 
 
-    public class MacroSystem : AbstractSystem
+    public class MacroSystem : AbstractOrchestratorSystem
     {
-        public AbstractThread? _macroOrchestratorThread;
-
-        public AbstractThreadFactory _macroOrchestatorThreadFactory;
-
-        public MacroSystem(AbstractThreadFactory macroOrchestratorThreadFactory)
-        {
-            _macroOrchestatorThreadFactory = macroOrchestratorThreadFactory;
-        }
-
-        public override void Initialize()
-        {
-            if (_macroOrchestratorThread == null)
-            {
-                _macroOrchestratorThread = _macroOrchestatorThreadFactory.CreateThread();
-            }
-        }
-
-        public override void Start()
-        {
-            if (_macroOrchestratorThread != null)
-            {
-                _macroOrchestratorThread.Start();
-            }
-        }
-
-        public override void Inject(object dataType, object? data)
-        {
-            if (_macroOrchestratorThread != null)
-            {
-                _macroOrchestratorThread.Inject(dataType, data);
-            }
-        }
+        public MacroSystem(
+            List<AbstractThreadFactory> threadFactories
+        ) : base(threadFactories)
+        { }
     }
 
 
@@ -825,7 +745,9 @@ namespace MaplestoryBotNet.Systems.Macro
     {
         public override AbstractSystem Build()
         {
-            return new MacroSystem(new MacroOrchestratorThreadFactory());
+            return new MacroSystem(
+                [new MacroOrchestratorThreadFactory()]
+            );
         }
 
         public override AbstractSystemBuilder WithArg(object arg)

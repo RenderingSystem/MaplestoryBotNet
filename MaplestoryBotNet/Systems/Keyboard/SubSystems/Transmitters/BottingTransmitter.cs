@@ -2,7 +2,6 @@
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using MaplestoryBotNet.ThreadingUtils;
 using System.Collections.Concurrent;
-using static Interception.InterceptionInterop;
 
 
 namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
@@ -255,78 +254,14 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     }
 
 
-    public class BottingOrchestratorThread : AbstractThread
+    public class BottingOrchestratorThread : AbstractOrchestratorThread<BottingOrchestratorThreadInjectType>
     {
-        private AbstractThread _bottingExecutorThread;
-
-        private BlockingCollection<int> _threadStates;
-
         public BottingOrchestratorThread(
             AbstractThread bottingExecutorThread,
             AbstractThreadRunningState runningState,
             BlockingCollection<int> threadStates
-        ) : base(runningState)
-        {
-            _bottingExecutorThread = bottingExecutorThread;
-            _threadStates = threadStates;
-        }
-
-        public override void Start()
-        {
-            _bottingExecutorThread.Start();
-            base.Start();
-        }
-
-        public override void Stop()
-        {
-            base.Stop();
-            _bottingExecutorThread.Stop();
-            _threadStates.Add(0);
-        }
-
-        public override void ThreadLoop()
-        {
-            while (_runningState.IsRunning())
-            {
-                foreach (var threadState in _threadStates.GetConsumingEnumerable())
-                {
-                    if (!_runningState.IsRunning())
-                    {
-                        break;
-                    }
-                    _bottingExecutorThread.Inject(
-                        (BottingOrchestratorThreadInjectType)
-                        threadState, null
-                    );
-                }
-            }
-        }
-
-        public override void Inject(object dataType, object? value)
-        {
-            if (dataType is BottingOrchestratorThreadInjectType injectType)
-            {
-                _threadStates.Add((int)injectType);
-            }
-            else
-            {
-                _bottingExecutorThread.Inject(dataType, value);
-                if (
-                    dataType is SystemInjectType.InjectAction
-                    && value is AbstractInjectAction injectAction
-                )
-                {
-                    injectAction.GetAction()(
-                        SystemInjectType.ThreadDependency, this
-                    );
-                }
-            }
-        }
-
-        public override object? State()
-        {
-            return _bottingExecutorThread.State();
-        }
+        ) : base(bottingExecutorThread, runningState, threadStates)
+        { }
     }
 
 
@@ -363,43 +298,12 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     }
 
 
-    public class BottingOrchestratorSystem : AbstractSystem
+    public class BottingOrchestratorSystem : AbstractOrchestratorSystem
     {
-        private List<AbstractThreadFactory> _threadFactories;
-
-        private List<AbstractThread> _threads;
-
         public BottingOrchestratorSystem(
             List<AbstractThreadFactory> threadFactories
-        )
-        {
-            _threadFactories = threadFactories;
-            _threads = [];
-        }
-
-        public override void Initialize()
-        {
-            for (int i = 0; i < _threadFactories.Count; i++)
-            {
-                _threads.Add(_threadFactories[i].CreateThread());
-            }
-        }
-
-        public override void Start()
-        {
-            for (int i = 0; i < _threads.Count; i++)
-            {
-                _threads[i].Start();
-            }
-        }
-
-        public override void Inject(object dataType, object? data)
-        {
-            for (int i = 0; i < _threads.Count; i++)
-            {
-                _threads[i].Inject(dataType, data);
-            }
-        }
+        ) : base(threadFactories)
+        { }
     }
 
 

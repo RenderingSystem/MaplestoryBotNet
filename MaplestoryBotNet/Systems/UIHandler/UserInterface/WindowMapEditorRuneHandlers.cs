@@ -2519,14 +2519,18 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private TextBox _cooldownTextBox;
 
+        private TextBox _activationTextBox;
+
         private TextBox _radiusTextBox;
 
         public WindowMapCanvasRuneingSaveSettingsModifier(
             TextBox cooldownTextBox,
+            TextBox activationTextBox,
             TextBox radiusTextBox
         )
         {
             _cooldownTextBox = cooldownTextBox;
+            _activationTextBox = activationTextBox;
             _radiusTextBox = radiusTextBox;
         }
 
@@ -2538,6 +2542,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 if (int.TryParse(_cooldownTextBox.Text, out int cooldown))
                 {
                     runeModel.SetCooldown(cooldown);
+                }
+                if (int.TryParse(_activationTextBox.Text, out int activation))
+                {
+                    runeModel.SetActivation(activation);
                 }
                 if (int.TryParse(_radiusTextBox.Text, out int radius))
                 {
@@ -2552,6 +2560,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private TextBox _cooldownTextBox;
 
+        private TextBox _activationTextBox;
+
         private TextBox _radiusTextBox;
 
         private AbstractWindowStateModifier _runeingSaveSettingsModifier;
@@ -2560,14 +2570,17 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public WindowMapCanvasRuneingSaveSettingsActionHandler(
             TextBox cooldownTextBox,
+            TextBox activationTextBox,
             TextBox radiusTextBox,
             AbstractWindowStateModifier runeingSettingsModifier
         )
         {
             _cooldownTextBox = cooldownTextBox;
+            _activationTextBox = activationTextBox;
             _radiusTextBox = radiusTextBox;
             _runeingSaveSettingsModifier = runeingSettingsModifier;
             _cooldownTextBox.TextChanged += OnEvent;
+            _activationTextBox.TextChanged += OnEvent;
             _radiusTextBox.TextChanged += OnEvent;
         }
 
@@ -2596,14 +2609,21 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         private AbstractWindowActionHandler _runeingSaveSettingsActionHandler;
 
         public WindowMapCanvasRuneingSaveSettingsActionHandlerFacade(
-            TextBox cooldownTextBox, TextBox radiusTextBox
+            TextBox cooldownTextBox,
+            TextBox activationTextBox,
+            TextBox radiusTextBox
         )
         {
             _runeingSaveSettingsActionHandler = (
                 new WindowMapCanvasRuneingSaveSettingsActionHandler(
                     cooldownTextBox,
+                    activationTextBox,
                     radiusTextBox,
-                    new WindowMapCanvasRuneingSaveSettingsModifier(cooldownTextBox, radiusTextBox)
+                    new WindowMapCanvasRuneingSaveSettingsModifier(
+                        cooldownTextBox,
+                        activationTextBox,
+                        radiusTextBox
+                    )
                 )
             );
         }
@@ -2629,13 +2649,18 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private TextBox _cooldownTextBox;
 
+        private TextBox _activationTextBox;
+
         private TextBox _radiusTextBox;
 
         public WindowMapCanvasRuneingLoadSettingsModifier(
-            TextBox cooldownTextBox, TextBox radiusTextBox
+            TextBox cooldownTextBox,
+            TextBox activationTextBox,
+            TextBox radiusTextBox
         )
         {
             _cooldownTextBox = cooldownTextBox;
+            _activationTextBox = activationTextBox;
             _radiusTextBox = radiusTextBox;
         }
 
@@ -2645,6 +2670,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 var runeModel = bottingModel.GetRuneModel();
                 _cooldownTextBox.Text = runeModel.GetCooldown().ToString();
+                _activationTextBox.Text = runeModel.GetActivation().ToString();
                 _radiusTextBox.Text = runeModel.GetRadius().ToString();
             }
         }
@@ -2695,6 +2721,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         private AbstractWindowActionHandler _runeingLoadSettingsActionHandler;
         public WindowMapCanvasRuneingLoadSettingsActionHandlerFacade(
             TextBox cooldownTextBox,
+            TextBox activationTextBox,
             TextBox radiusTextBox,
             AbstractLoadFileDialog loadFileDialog
         )
@@ -2704,6 +2731,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     loadFileDialog,
                     new WindowMapCanvasRuneingLoadSettingsModifier(
                         cooldownTextBox,
+                        activationTextBox,
                         radiusTextBox
                     )
                 )

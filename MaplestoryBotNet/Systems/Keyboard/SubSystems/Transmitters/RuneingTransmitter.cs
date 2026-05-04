@@ -210,78 +210,14 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     }
 
 
-    public class RuneingOrchestratorThread : AbstractThread
+    public class RuneingOrchestratorThread : AbstractOrchestratorThread<RuneingOrchestratorThreadInjectType>
     {
-        private AbstractThread _runeingExecutorThread;
-
-        private BlockingCollection<int> _threadStates;
-
         public RuneingOrchestratorThread(
-            AbstractThread runeingExecutorThread,
+            AbstractThread bottingExecutorThread,
             AbstractThreadRunningState runningState,
             BlockingCollection<int> threadStates
-        ) : base(runningState)
-        {
-            _runeingExecutorThread = runeingExecutorThread;
-            _threadStates = threadStates;
-        }
-
-        public override void Start()
-        {
-            _runeingExecutorThread.Start();
-            base.Start();
-        }
-
-        public override void Stop()
-        {
-            base.Stop();
-            _runeingExecutorThread.Stop();
-            _threadStates.Add(0);
-        }
-
-        public override void ThreadLoop()
-        {
-            while (_runningState.IsRunning())
-            {
-                foreach (var threadState in _threadStates.GetConsumingEnumerable())
-                {
-                    if (!_runningState.IsRunning())
-                    {
-                        break;
-                    }
-                    _runeingExecutorThread.Inject(
-                        (RuneingOrchestratorThreadInjectType)
-                        threadState, null
-                    );
-                }
-            }
-        }
-
-        public override void Inject(object dataType, object? value)
-        {
-            if (dataType is RuneingOrchestratorThreadInjectType injectType)
-            {
-                _threadStates.Add((int)injectType);
-            }
-            else
-            {
-                _runeingExecutorThread.Inject(dataType, value);
-                if (
-                    dataType is SystemInjectType.InjectAction
-                    && value is AbstractInjectAction injectAction
-                )
-                {
-                    injectAction.GetAction()(
-                        SystemInjectType.ThreadDependency, this
-                    );
-                }
-            }
-        }
-
-        public override object? State()
-        {
-            return _runeingExecutorThread.State();
-        }
+        ) : base(bottingExecutorThread, runningState, threadStates)
+        { }
     }
 
 
@@ -323,43 +259,12 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     }
 
 
-    public class RuneingOrchestratorSystem : AbstractSystem
+    public class RuneingOrchestratorSystem : AbstractOrchestratorSystem
     {
-        private List<AbstractThreadFactory> _threadFactories;
-
-        private List<AbstractThread> _threads;
-
         public RuneingOrchestratorSystem(
             List<AbstractThreadFactory> threadFactories
-        )
-        {
-            _threadFactories = threadFactories;
-            _threads = [];
-        }
-
-        public override void Initialize()
-        {
-            for (int i = 0; i < _threadFactories.Count; i++)
-            {
-                _threads.Add(_threadFactories[i].CreateThread());
-            }
-        }
-
-        public override void Start()
-        {
-            for (int i = 0; i < _threads.Count; i++)
-            {
-                _threads[i].Start();
-            }
-        }
-
-        public override void Inject(object dataType, object? data)
-        {
-            for (int i = 0; i < _threads.Count; i++)
-            {
-                _threads[i].Inject(dataType, data);
-            }
-        }
+        ) : base(threadFactories)
+        { }
     }
 
 
