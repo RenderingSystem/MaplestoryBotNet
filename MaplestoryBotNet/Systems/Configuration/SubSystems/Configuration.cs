@@ -135,12 +135,6 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("route")]
         public string RuneSolverRoute { set; get; } = "";
 
-        [JsonPropertyName("x")]
-        public string X { set; get; } = "";
-
-        [JsonPropertyName("y")]
-        public string Y { set; get; } = "";
-
         [JsonPropertyName("class_tag")]
         public string ClassTag { set; get; } = "";
 
@@ -163,8 +157,6 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
                 RuneSolverIPAddress = RuneSolverIPAddress,
                 RuneSolverPort = RuneSolverPort,
                 RuneSolverRoute = RuneSolverRoute,
-                X = X,
-                Y = Y,
                 ClassTag = ClassTag,
                 Left = Left,
                 Up = Up,

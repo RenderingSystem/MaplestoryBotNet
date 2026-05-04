@@ -9,7 +9,7 @@ using System.Windows.Controls;
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 {
-    public class WindowRuneSolverRoboflowAPILoadActionHandlerTests
+    public class WindowRuneSolverAPILoadActionHandlerTests
     {
         private MockSystemWindow _systemWindow = new MockSystemWindow();
 
@@ -20,10 +20,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private TextBox _routeTextBox = new TextBox();
 
         private TextBox _classTagTextBox = new TextBox();
-
-        private TextBox _xTextBox = new TextBox();
-
-        private TextBox _yTextBox = new TextBox();
 
         private TextBox _leftArrowTextBox = new TextBox();
 
@@ -45,8 +41,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _portTextBox = new TextBox();
             _routeTextBox = new TextBox();
             _classTagTextBox = new TextBox();
-            _xTextBox = new TextBox();
-            _yTextBox = new TextBox();
             _leftArrowTextBox = new TextBox();
             _upArrowTextBox = new TextBox();
             _rightArrowTextBox = new TextBox();
@@ -59,22 +53,18 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     RuneSolverPort = "23",
                     RuneSolverRoute = "34",
                     ClassTag = "45",
-                    X = "56",
-                    Y = "67",
                     Left = "78",
                     Up = "89",
                     Right = "90",
                     Down = "01"
                 }
             };
-            var handler = new WindowRuneSolverRoboflowAPILoadActionHandlerFacade(
+            var handler = new WindowRuneSolverAPILoadActionHandlerFacade(
                 _systemWindow,
                 _ipAddressTextBox,
                 _portTextBox,
                 _routeTextBox,
                 _classTagTextBox,
-                _xTextBox,
-                _yTextBox,
                 _leftArrowTextBox,
                 _upArrowTextBox,
                 _rightArrowTextBox,
@@ -88,22 +78,22 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Verifies that when the Roboflow API settings window becomes visible,
+         * @brief Verifies that when the  API settings window becomes visible,
          * the saved configuration values are loaded into the input text boxes
          * 
-         * When users open the Roboflow API settings window to configure rune detection
+         * When users open the  API settings window to configure rune detection
          * for the rune solver, the system must display the currently saved tags in
          * the text boxes. This includes the workspace name, workspace ID, API key,
          * array settings, detected coordinates, and the arrow key mappings (left,
          * up, right, down) used for solving rune puzzles.
          */
-        private void _testShowingRoboflowWindowPopulatesTextBoxes()
+        private void _testShowingWindowPopulatesTextBoxes()
         {
             foreach (var visible in new[] { true, false })
             {
-                var roboflowAPILoadActionHandler = _fixture();
+                var APILoadActionHandler = _fixture();
                 _systemWindow.VisibleReturn.Add(visible);
-                roboflowAPILoadActionHandler.OnDependencyEvent(
+                APILoadActionHandler.OnDependencyEvent(
                     new object(),
                     new DependencyPropertyChangedEventArgs()
                 );
@@ -111,8 +101,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 Debug.Assert(_portTextBox.Text == (visible ? "23" : ""));
                 Debug.Assert(_routeTextBox.Text == (visible ? "34" : ""));
                 Debug.Assert(_classTagTextBox.Text == (visible ? "45" : ""));
-                Debug.Assert(_xTextBox.Text == (visible ? "56" : ""));
-                Debug.Assert(_yTextBox.Text == (visible ? "67" : ""));
                 Debug.Assert(_leftArrowTextBox.Text == (visible ? "78" : ""));
                 Debug.Assert(_upArrowTextBox.Text == (visible ? "89" : ""));
                 Debug.Assert(_rightArrowTextBox.Text == (visible ? "90" : ""));
@@ -122,12 +110,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         public void Run()
         {
-            _testShowingRoboflowWindowPopulatesTextBoxes();
+            _testShowingWindowPopulatesTextBoxes();
         }
     }
 
 
-    public class WindowRuneSolverRoboflowAPISaveActionHandlerTests
+    public class WindowRuneSolverAPISaveActionHandlerTests
     {
         private MockSystemWindow _systemWindow = new MockSystemWindow();
 
@@ -138,10 +126,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private TextBox _routeTextBox = new TextBox();
 
         private TextBox _classTagTextBox = new TextBox();
-
-        private TextBox _xTextBox = new TextBox();
-
-        private TextBox _yTextBox = new TextBox();
 
         private TextBox _leftArrowTextBox = new TextBox();
 
@@ -163,21 +147,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _portTextBox = new TextBox { Text = "23" };
             _routeTextBox = new TextBox { Text = "34" };
             _classTagTextBox = new TextBox { Text = "45" };
-            _xTextBox = new TextBox { Text = "56" };
-            _yTextBox = new TextBox { Text = "67" };
             _leftArrowTextBox = new TextBox { Text = "78" };
             _upArrowTextBox = new TextBox { Text = "89" };
             _rightArrowTextBox = new TextBox { Text = "90" };
             _downArrowTextBox = new TextBox { Text = "01" };
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration();
-            var handler = new WindowRuneSolverRoboflowAPISaveActionHandlerFacade(
+            var handler = new WindowRuneSolverAPISaveActionHandlerFacade(
                 _systemWindow,
                 _ipAddressTextBox,
                 _portTextBox,
                 _routeTextBox,
                 _classTagTextBox,
-                _xTextBox,
-                _yTextBox,
                 _leftArrowTextBox,
                 _upArrowTextBox,
                 _rightArrowTextBox,
@@ -191,22 +171,22 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Verifies that when the Roboflow API settings window is closed or hidden,
+         * @brief Verifies that when the  API settings window is closed or hidden,
          * the text box values are saved to the configuration
          * 
-         * When users modify their Roboflow API settings (workspace name, API key,
+         * When users modify their  API settings (workspace name, API key,
          * arrow key mappings for rune puzzles, etc.) and then close the settings window,
          * the system must save the new values to the configuration. This ensures that
          * the rune solver will use the updated settings for future rune detection and
          * puzzle-solving operations.
          */
-        private void _testHidingRoboflowWindowSavesTextBoxData()
+        private void _testHidingWindowSavesTextBoxData()
         {
             foreach (var visible in new[] { true, false })
             {
-                var roboflowAPILoadActionHandler = _fixture();
+                var APILoadActionHandler = _fixture();
                 _systemWindow.VisibleReturn.Add(visible);
-                roboflowAPILoadActionHandler.OnDependencyEvent(
+                APILoadActionHandler.OnDependencyEvent(
                     new object(),
                     new DependencyPropertyChangedEventArgs()
                 );
@@ -215,8 +195,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 Debug.Assert(runeDetection.RuneSolverPort == (!visible ? "23" : ""));
                 Debug.Assert(runeDetection.RuneSolverRoute == (!visible ? "34" : ""));
                 Debug.Assert(runeDetection.ClassTag == (!visible ? "45" : ""));
-                Debug.Assert(runeDetection.X == (!visible ? "56" : ""));
-                Debug.Assert(runeDetection.Y == (!visible ? "67" : ""));
                 Debug.Assert(runeDetection.Left == (!visible ? "78" : ""));
                 Debug.Assert(runeDetection.Up == (!visible ? "89" : ""));
                 Debug.Assert(runeDetection.Right == (!visible ? "90" : ""));
@@ -226,18 +204,14 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         public void Run()
         {
-            _testHidingRoboflowWindowSavesTextBoxData();
+            _testHidingWindowSavesTextBoxData();
         }
     }
 
 
-    public class WindowRuneSolverRoboflowAPIOutputActionHandlerTests
+    public class WindowRuneSolverAPIOutputActionHandlerTests
     {
         private TextBox _classTagTextBox = new TextBox();
-
-        private TextBox _xTextBox = new TextBox();
-
-        private TextBox _yTextBox = new TextBox();
 
         private TextBox _leftArrowTextBox = new TextBox();
 
@@ -252,17 +226,13 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private AbstractWindowActionHandler _fixture()
         {
             _classTagTextBox = new TextBox();
-            _xTextBox = new TextBox();
-            _yTextBox = new TextBox();
             _leftArrowTextBox = new TextBox();
             _upArrowTextBox = new TextBox();
             _rightArrowTextBox = new TextBox();
             _downArrowTextBox = new TextBox();
             _outputFormatTextBlock = new TextBlock();
-            return new WindowRuneSolverRoboflowAPIOutputActionHandlerFacade(
+            return new WindowRuneSolverAPIOutputActionHandlerFacade(
                 _classTagTextBox,
-                _xTextBox,
-                _yTextBox,
                 _leftArrowTextBox,
                 _upArrowTextBox,
                 _rightArrowTextBox,
@@ -272,22 +242,20 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Verifies that when users edit any of the Roboflow API format settings,
+         * @brief Verifies that when users edit any of the  API format settings,
          * the output format preview updates in real-time
          * 
-         * When users configure the Roboflow API settings for rune detection (such as the
+         * When users configure the  API settings for rune detection (such as the
          * array name, coordinate field names X/Y, and the arrow key class labels for
          * up/down/left/right), the system displays a live preview of the expected JSON
          * output format. This preview helps users understand how their rune detection
-         * predictions will be formatted by the Roboflow API.
+         * predictions will be formatted by the  API.
          */
         private void _testChangingConfigurationTextUpdatesOutput()
         {
-            var roboflowAPIOutputActionHandler = _fixture();
+            var APIOutputActionHandler = _fixture();
             var textBoxes = new[] {
                 _classTagTextBox,
-                _xTextBox,
-                _yTextBox,
                 _leftArrowTextBox,
                 _upArrowTextBox,
                 _rightArrowTextBox,
@@ -301,8 +269,6 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     _outputFormatTextBlock.Text == (
                         "[\n" +
                         "  {\n" +
-                        "    \"" + _xTextBox.Text + "\": <integer>\n" +
-                        "    \"" + _yTextBox.Text + "\": <integer>\n" +
                         "    \"" + _classTagTextBox.Text + "\": <" +
                         "\"" + _leftArrowTextBox.Text + "\"|" +
                         "\"" + _upArrowTextBox.Text + "\"|" +
@@ -322,7 +288,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
-    public class WindowRuneSolverRoboflowAPIInjectActionHandlerTests
+    public class WindowRuneSolverAPIInjectActionHandlerTests
     {
         private MockSystemWindow _systemWindow = new MockSystemWindow();
 
@@ -336,35 +302,35 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _injectAction = new MockInjectAction();
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration();
             _systemWindow.GetWindowReturn.Add(new Window());
-            var handler = new WindowRuneSolverRoboflowAPIInjectActionHandlerFacade(_systemWindow);
+            var handler = new WindowRuneSolverAPIInjectActionHandlerFacade(_systemWindow);
             handler.Inject(SystemInjectType.InjectAction, _injectAction);
             handler.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);
             return handler;
         }
 
         /**
-         * @brief Verifies that when the Roboflow API settings window is closed or hidden,
+         * @brief Verifies that when the  API settings window is closed or hidden,
          * the system broadcasts the updated configuration to all dependent components
          * and triggers a configuration save
          * 
-         * When users finish editing their Roboflow API settings (workspace name, API key,
+         * When users finish editing their  API settings (workspace name, API key,
          * arrow key mappings for rune puzzles, etc.) and close the settings window, the
          * system must inject the updated configuration into all components that rely on
-         * rune detection settings (such as the rune solver executor and the Roboflow API
+         * rune detection settings (such as the rune solver executor and the  API
          * client).
          */
-        private void _testHidingRoboflowWindowInjectsConfigurationData()
+        private void _testHidingWindowInjectsConfigurationData()
         {
             foreach (var visible in new[] { true, false })
             {
                 var dataType = new List<object>();
                 var data = new List<object>();
-                var roboflowAPIInjectActionHandler = _fixture();
+                var APIInjectActionHandler = _fixture();
                 _systemWindow.VisibleReturn.Add(visible);
                 _injectAction.GetActionReturn.Add(
                     (_, __) => { dataType.Add(_); data.Add(__); }
                 );
-                roboflowAPIInjectActionHandler.OnDependencyEvent(
+                APIInjectActionHandler.OnDependencyEvent(
                     new object(),
                     new DependencyPropertyChangedEventArgs()
                 );
@@ -387,7 +353,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         public void Run()
         {
-            _testHidingRoboflowWindowInjectsConfigurationData();
+            _testHidingWindowInjectsConfigurationData();
         }
     }
 
@@ -396,10 +362,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     {
         public void Run()
         {
-            new WindowRuneSolverRoboflowAPILoadActionHandlerTests().Run();
-            new WindowRuneSolverRoboflowAPISaveActionHandlerTests().Run();
-            new WindowRuneSolverRoboflowAPIInjectActionHandlerTests().Run();
-            new WindowRuneSolverRoboflowAPIOutputActionHandlerTests().Run();
+            new WindowRuneSolverAPILoadActionHandlerTests().Run();
+            new WindowRuneSolverAPISaveActionHandlerTests().Run();
+            new WindowRuneSolverAPIInjectActionHandlerTests().Run();
+            new WindowRuneSolverAPIOutputActionHandlerTests().Run();
         }
     }
 }

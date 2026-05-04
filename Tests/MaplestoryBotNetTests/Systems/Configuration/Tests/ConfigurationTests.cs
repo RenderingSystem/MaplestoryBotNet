@@ -114,8 +114,6 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     "ip_address": "12",
                     "port": "23",
                     "route": "34",
-                    "x": "56",
-                    "y": "67",
                     "class_tag": "45",
                     "left": "90",
                     "up": "012",
@@ -317,8 +315,6 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(output.RuneDetection.RuneSolverPort == "23");
             Debug.Assert(output.RuneDetection.RuneSolverRoute == "34");
             Debug.Assert(output.RuneDetection.ClassTag == "45");
-            Debug.Assert(output.RuneDetection.X == "56");
-            Debug.Assert(output.RuneDetection.Y == "67");
             Debug.Assert(output.RuneDetection.Left == "90");
             Debug.Assert(output.RuneDetection.Up == "012");
             Debug.Assert(output.RuneDetection.Right == "123");
@@ -460,8 +456,6 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     RuneSolverIPAddress = "12",
                     RuneSolverPort = "23",
                     RuneSolverRoute = "34",
-                    X = "56",
-                    Y = "67",
                     ClassTag = "45",
                     Left = "90",
                     Up = "012",
@@ -595,8 +589,6 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     "ip_address": "12",
                     "port": "23",
                     "route": "34",
-                    "x": "56",
-                    "y": "67",
                     "class_tag": "45",
                     "left": "90",
                     "up": "012",

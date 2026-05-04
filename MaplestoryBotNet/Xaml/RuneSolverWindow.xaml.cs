@@ -21,16 +21,14 @@ namespace MaplestoryBotNet.Xaml
                 .Build();
         }
 
-        private AbstractWindowActionHandler _instantiateRoboflowAPILoadActionHandler()
+        private AbstractWindowActionHandler _instantiateAPILoadActionHandler()
         {
-            return new WindowRuneSolverRoboflowAPILoadActionHandlerFacade(
+            return new WindowRuneSolverAPILoadActionHandlerFacade(
                 GetSystemWindow(),
                 IPAddressTextbox,
                 PortTextBox,
                 RouteTextBox,
                 ClassTagTextBox,
-                JsonTagXTextBox,
-                JsonTagYTextBox,
                 ArrowLeftTextBox,
                 ArrowUpTextBox,
                 ArrowRightTextBox,
@@ -38,16 +36,14 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
-        private AbstractWindowActionHandler _instantiateRoboflowAPISaveActionHandler()
+        private AbstractWindowActionHandler _instantiateAPISaveActionHandler()
         {
-            return new WindowRuneSolverRoboflowAPISaveActionHandlerFacade(
+            return new WindowRuneSolverAPISaveActionHandlerFacade(
                 GetSystemWindow(),
                 IPAddressTextbox,
                 PortTextBox,
                 RouteTextBox,
                 ClassTagTextBox,
-                JsonTagXTextBox,
-                JsonTagYTextBox,
                 ArrowLeftTextBox,
                 ArrowUpTextBox,
                 ArrowRightTextBox,
@@ -55,19 +51,17 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
-        private AbstractWindowActionHandler _instantiateRoboflowAPIInjectActionHandler()
+        private AbstractWindowActionHandler _instantiateAPIInjectActionHandler()
         {
-            return new WindowRuneSolverRoboflowAPIInjectActionHandlerFacade(
+            return new WindowRuneSolverAPIInjectActionHandlerFacade(
                 GetSystemWindow()
             );
         }
 
-        private AbstractWindowActionHandler _instantiateRoboflowAPIOutputActionHandler()
+        private AbstractWindowActionHandler _instantiateAPIOutputActionHandler()
         {
-            return new WindowRuneSolverRoboflowAPIOutputActionHandlerFacade(
+            return new WindowRuneSolverAPIOutputActionHandlerFacade(
                 ClassTagTextBox,
-                JsonTagXTextBox,
-                JsonTagYTextBox,
                 ArrowLeftTextBox,
                 ArrowUpTextBox,
                 ArrowRightTextBox,
@@ -80,10 +74,10 @@ namespace MaplestoryBotNet.Xaml
         {
             return [
                 _instantiateWindowMenuItemHideActionHandler(),
-                _instantiateRoboflowAPILoadActionHandler(),
-                _instantiateRoboflowAPISaveActionHandler(),
-                _instantiateRoboflowAPIInjectActionHandler(),
-                _instantiateRoboflowAPIOutputActionHandler()
+                _instantiateAPILoadActionHandler(),
+                _instantiateAPISaveActionHandler(),
+                _instantiateAPIInjectActionHandler(),
+                _instantiateAPIOutputActionHandler()
             ];
         }
 

@@ -114,8 +114,6 @@
         "ip_address": "http://localhost",
         "port": "24680",
         "route": "api/rune",
-        "x": "X",
-        "y": "Y",
         "class_tag": "Class",
         "left": "left",
         "up": "up",

@@ -5,7 +5,7 @@ using System.Windows.Controls;
 
 namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 {
-    public class WindowRuneSolverRoboflowAPILoadModifier : AbstractWindowStateModifier
+    public class WindowRuneSolverAPILoadModifier : AbstractWindowStateModifier
     {
         private TextBox _ipAddressTextBox;
 
@@ -15,10 +15,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBox _classTagTextBox;
 
-        private TextBox _xTextBox;
-
-        private TextBox _yTextBox;
-
         private TextBox _leftArrowTextBox;
 
         private TextBox _upArrowTextBox;
@@ -27,13 +23,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBox _downArrowTextBox;
 
-        public WindowRuneSolverRoboflowAPILoadModifier(
+        public WindowRuneSolverAPILoadModifier(
             TextBox ipAddressTextBox,
             TextBox portTextBox,
             TextBox routeTextBox,
             TextBox classTagTextBox,
-            TextBox xTextBox,
-            TextBox yTextBox,
             TextBox leftArrowTextBox,
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
@@ -44,8 +38,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _portTextBox = portTextBox;
             _routeTextBox = routeTextBox;
             _classTagTextBox = classTagTextBox;
-            _xTextBox = xTextBox;
-            _yTextBox = yTextBox;
             _leftArrowTextBox = leftArrowTextBox;
             _upArrowTextBox = upArrowTextBox;
             _rightArrowTextBox = rightArrowTextBox;
@@ -63,8 +55,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 _portTextBox.Text = runeDetection.RuneSolverPort;
                 _routeTextBox.Text = runeDetection.RuneSolverRoute;
                 _classTagTextBox.Text = runeDetection.ClassTag;
-                _xTextBox.Text = runeDetection.X;
-                _yTextBox.Text = runeDetection.Y;
                 _leftArrowTextBox.Text = runeDetection.Left;
                 _upArrowTextBox.Text = runeDetection.Up;
                 _rightArrowTextBox.Text = runeDetection.Right;
@@ -74,7 +64,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowRuneSolverRoboflowAPILoadActionHandler : AbstractWindowActionHandler
+    public class WindowRuneSolverAPILoadActionHandler : AbstractWindowActionHandler
     {
         private AbstractSystemWindow _systemWindow;
 
@@ -82,7 +72,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private MaplestoryBotConfiguration? _maplestoryBotConfiguration;
 
-        public WindowRuneSolverRoboflowAPILoadActionHandler(
+        public WindowRuneSolverAPILoadActionHandler(
             AbstractSystemWindow systemWindow,
             AbstractWindowStateModifier roboflowAPILoadModifier
         )
@@ -120,18 +110,16 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
     
-    public class WindowRuneSolverRoboflowAPILoadActionHandlerFacade : AbstractWindowActionHandler
+    public class WindowRuneSolverAPILoadActionHandlerFacade : AbstractWindowActionHandler
     {
         private AbstractWindowActionHandler _roboflowAPILoadActionHandler;
 
-        public WindowRuneSolverRoboflowAPILoadActionHandlerFacade(
+        public WindowRuneSolverAPILoadActionHandlerFacade(
             AbstractSystemWindow systemWindow,
             TextBox workspaceNameTextBox,
             TextBox workspaceIDTextBox,
             TextBox apiKeyTextBox,
             TextBox arrayTextBox,
-            TextBox xTextBox,
-            TextBox yTextBox,
             TextBox leftArrowTextBox,
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
@@ -139,15 +127,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         )
         {
             _roboflowAPILoadActionHandler = (
-                new WindowRuneSolverRoboflowAPILoadActionHandler(
+                new WindowRuneSolverAPILoadActionHandler(
                     systemWindow,
-                    new WindowRuneSolverRoboflowAPILoadModifier(
+                    new WindowRuneSolverAPILoadModifier(
                         workspaceNameTextBox,
                         workspaceIDTextBox,
                         apiKeyTextBox,
                         arrayTextBox,
-                        xTextBox,
-                        yTextBox,
                         leftArrowTextBox,
                         upArrowTextBox,
                         rightArrowTextBox,
@@ -176,7 +162,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowRuneSolverRoboflowAPISaveModifierParameters
+    public class WindowRuneSolverAPISaveModifierParameters
     {
         public AbstractInjectAction? InjectAction = null;
 
@@ -184,7 +170,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowRuneSolverRoboflowAPISaveModifier : AbstractWindowStateModifier
+    public class WindowRuneSolverAPISaveModifier : AbstractWindowStateModifier
     {
         private TextBox _ipAddressTextBox;
 
@@ -194,10 +180,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBox _classTagTextBox;
 
-        private TextBox _xTextBox;
-
-        private TextBox _yTextBox;
-
         private TextBox _leftArrowTextBox;
 
         private TextBox _upArrowTextBox;
@@ -206,13 +188,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBox _downArrowTextBox;
 
-        public WindowRuneSolverRoboflowAPISaveModifier(
+        public WindowRuneSolverAPISaveModifier(
             TextBox ipAddressTextBox,
             TextBox portTextBox,
             TextBox routeTextBox,
             TextBox classTagTextBox,
-            TextBox xTextBox,
-            TextBox yTextBox,
             TextBox leftArrowTextBox,
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
@@ -223,8 +203,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _portTextBox = portTextBox;
             _routeTextBox = routeTextBox;
             _classTagTextBox = classTagTextBox;
-            _xTextBox = xTextBox;
-            _yTextBox = yTextBox;
             _leftArrowTextBox = leftArrowTextBox;
             _upArrowTextBox = upArrowTextBox;
             _rightArrowTextBox = rightArrowTextBox;
@@ -242,8 +220,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                         RuneSolverPort = _portTextBox.Text,
                         RuneSolverRoute = _routeTextBox.Text,
                         ClassTag = _classTagTextBox.Text,
-                        X = _xTextBox.Text,
-                        Y = _yTextBox.Text,
                         Left = _leftArrowTextBox.Text,
                         Up = _upArrowTextBox.Text,
                         Right = _rightArrowTextBox.Text,
@@ -255,7 +231,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowRuneSolverRoboflowAPISaveActionHandler : AbstractWindowActionHandler
+    public class WindowRuneSolverAPISaveActionHandler : AbstractWindowActionHandler
     {
         private AbstractSystemWindow _systemWindow;
 
@@ -263,7 +239,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private MaplestoryBotConfiguration? _maplestoryBotConfiguration;
 
-        public WindowRuneSolverRoboflowAPISaveActionHandler(
+        public WindowRuneSolverAPISaveActionHandler(
             AbstractSystemWindow systemWindow,
             AbstractWindowStateModifier roboflowAPISaveModifier
         )
@@ -301,18 +277,16 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowRuneSolverRoboflowAPISaveActionHandlerFacade : AbstractWindowActionHandler
+    public class WindowRuneSolverAPISaveActionHandlerFacade : AbstractWindowActionHandler
     {
         private AbstractWindowActionHandler _roboflowAPISaveActionHandler;
 
-        public WindowRuneSolverRoboflowAPISaveActionHandlerFacade(
+        public WindowRuneSolverAPISaveActionHandlerFacade(
             AbstractSystemWindow systemWindow,
             TextBox ipAddressTextBox,
             TextBox portTextBox,
             TextBox routeTextBox,
             TextBox classTagTextBox,
-            TextBox xTextBox,
-            TextBox yTextBox,
             TextBox leftArrowTextBox,
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
@@ -320,15 +294,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         )
         {
             _roboflowAPISaveActionHandler = (
-                new WindowRuneSolverRoboflowAPISaveActionHandler(
+                new WindowRuneSolverAPISaveActionHandler(
                     systemWindow,
-                    new WindowRuneSolverRoboflowAPISaveModifier(
+                    new WindowRuneSolverAPISaveModifier(
                         ipAddressTextBox,
                         portTextBox,
                         routeTextBox,
                         classTagTextBox,
-                        xTextBox,
-                        yTextBox,
                         leftArrowTextBox,
                         upArrowTextBox,
                         rightArrowTextBox,
@@ -358,7 +330,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
 
 
-    public class WindowRuneSolverRoboflowAPIInjectModifierParameters
+    public class WindowRuneSolverAPIInjectModifierParameters
     {
         public AbstractInjectAction? InjectAction = null;
 
@@ -366,12 +338,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowRuneSolverRoboflowAPIInjectModifier : AbstractWindowStateModifier
+    public class WindowRuneSolverAPIInjectModifier : AbstractWindowStateModifier
     {
         public override void Modify(object? value)
         {
             if (
-                value is WindowRuneSolverRoboflowAPIInjectModifierParameters parameters
+                value is WindowRuneSolverAPIInjectModifierParameters parameters
                 && parameters.InjectAction is AbstractInjectAction injectAction
                 && parameters.MaplestoryBotConfiguration is MaplestoryBotConfiguration configuration
             )
@@ -384,7 +356,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowRuneSolverRoboflowAPIInjectActionHandler : AbstractWindowActionHandler
+    public class WindowRuneSolverAPIInjectActionHandler : AbstractWindowActionHandler
     {
         private AbstractSystemWindow _systemWindow;
 
@@ -394,7 +366,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractConfiguration? _maplestoryBotConfiguration;
 
-        public WindowRuneSolverRoboflowAPIInjectActionHandler(
+        public WindowRuneSolverAPIInjectActionHandler(
             AbstractSystemWindow systemWindow,
             AbstractWindowStateModifier roboflowAPIInjectModifier
         )
@@ -436,7 +408,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             if (!_systemWindow.Visible())
             {
                 _roboflowAPIInjectModifier.Modify(
-                    new WindowRuneSolverRoboflowAPIInjectModifierParameters
+                    new WindowRuneSolverAPIInjectModifierParameters
                     {
                         InjectAction = _injectAction,
                         MaplestoryBotConfiguration = _maplestoryBotConfiguration
@@ -447,16 +419,16 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowRuneSolverRoboflowAPIInjectActionHandlerFacade : AbstractWindowActionHandler
+    public class WindowRuneSolverAPIInjectActionHandlerFacade : AbstractWindowActionHandler
     {
         private AbstractWindowActionHandler _apiInjectActionHandler;
 
-        public WindowRuneSolverRoboflowAPIInjectActionHandlerFacade(
+        public WindowRuneSolverAPIInjectActionHandlerFacade(
             AbstractSystemWindow systemWindow
         )
         {
-            _apiInjectActionHandler = new WindowRuneSolverRoboflowAPIInjectActionHandler(
-                systemWindow, new WindowRuneSolverRoboflowAPIInjectModifier()
+            _apiInjectActionHandler = new WindowRuneSolverAPIInjectActionHandler(
+                systemWindow, new WindowRuneSolverAPIInjectModifier()
             );
         }
 
@@ -479,13 +451,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowRuneSolverRoboflowAPIOutputModifier : AbstractWindowStateModifier
+    public class WindowRuneSolverAPIOutputModifier : AbstractWindowStateModifier
     {
         private TextBox _classTagTextBox;
-
-        private TextBox _xTextBox;
-
-        private TextBox _yTextBox;
 
         private TextBox _leftArrowTextBox;
 
@@ -497,10 +465,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBlock _outputFormatTextBlock;
 
-        public WindowRuneSolverRoboflowAPIOutputModifier(
+        public WindowRuneSolverAPIOutputModifier(
             TextBox classTagTextBox,
-            TextBox xTextBox,
-            TextBox yTextBox,
             TextBox leftArrowTextBox,
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
@@ -509,8 +475,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         )
         {
             _classTagTextBox = classTagTextBox;
-            _xTextBox = xTextBox;
-            _yTextBox = yTextBox;
             _leftArrowTextBox = leftArrowTextBox;
             _upArrowTextBox = upArrowTextBox;
             _rightArrowTextBox = rightArrowTextBox;
@@ -523,8 +487,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _outputFormatTextBlock.Text = (
                 "[\n" +
                 "  {\n" +
-                "    \"" + _xTextBox.Text + "\": <integer>\n" +
-                "    \"" + _yTextBox.Text + "\": <integer>\n" +
                 "    \"" + _classTagTextBox.Text + "\": <" +
                 "\"" + _leftArrowTextBox.Text + "\"|" +
                 "\"" + _upArrowTextBox.Text + "\"|" + 
@@ -538,13 +500,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowRuneSolverRoboflowAPIFormatActionHandler : AbstractWindowActionHandler
+    public class WindowRuneSolverAPIFormatActionHandler : AbstractWindowActionHandler
     {
         private TextBox _classTagTextBox;
-
-        private TextBox _xTextBox;
-
-        private TextBox _yTextBox;
 
         private TextBox _leftArrowTextBox;
 
@@ -556,10 +514,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractWindowStateModifier _roboflowAPIOutputFormatModifier;
 
-        public WindowRuneSolverRoboflowAPIFormatActionHandler(
+        public WindowRuneSolverAPIFormatActionHandler(
             TextBox classTagTextBox,
-            TextBox xTextBox,
-            TextBox yTextBox,
             TextBox leftArrowTextBox,
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
@@ -568,8 +524,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         )
         {
             _classTagTextBox = classTagTextBox;
-            _xTextBox = xTextBox;
-            _yTextBox = yTextBox;
             _leftArrowTextBox = leftArrowTextBox;
             _upArrowTextBox = upArrowTextBox;
             _rightArrowTextBox = rightArrowTextBox;
@@ -577,8 +531,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _roboflowAPIOutputFormatModifier = roboflowAPIOutputFormatModifier;
 
             _classTagTextBox.TextChanged += OnEvent;
-            _xTextBox.TextChanged += OnEvent;
-            _yTextBox.TextChanged += OnEvent;
             _leftArrowTextBox.TextChanged += OnEvent;
             _upArrowTextBox.TextChanged += OnEvent;
             _rightArrowTextBox.TextChanged += OnEvent;
@@ -597,14 +549,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public class WindowRuneSolverRoboflowAPIOutputActionHandlerFacade : AbstractWindowActionHandler
+    public class WindowRuneSolverAPIOutputActionHandlerFacade : AbstractWindowActionHandler
     {
         private AbstractWindowActionHandler _roboflowAPIOutputFormatActionHandler;
 
-        public WindowRuneSolverRoboflowAPIOutputActionHandlerFacade(
+        public WindowRuneSolverAPIOutputActionHandlerFacade(
             TextBox classTagTextBox,
-            TextBox xTextBox,
-            TextBox yTextBox,
             TextBox leftArrowTextBox,
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
@@ -613,18 +563,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         )
         {
             _roboflowAPIOutputFormatActionHandler = (
-                new WindowRuneSolverRoboflowAPIFormatActionHandler(
+                new WindowRuneSolverAPIFormatActionHandler(
                     classTagTextBox,
-                    xTextBox,
-                    yTextBox,
                     leftArrowTextBox,
                     upArrowTextBox,
                     rightArrowTextBox,
                     downArrowTextBox,
-                    new WindowRuneSolverRoboflowAPIOutputModifier(
+                    new WindowRuneSolverAPIOutputModifier(
                         classTagTextBox,
-                        xTextBox,
-                        yTextBox,
                         leftArrowTextBox,
                         upArrowTextBox,
                         rightArrowTextBox,

@@ -642,8 +642,6 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
                     RuneSolverIPAddress = "123",
                     RuneSolverPort = "234",
                     RuneSolverRoute = "345",
-                    X = "a",
-                    Y = "b",
                     ClassTag = "c",
                     Left = "d",
                     Up = "e",
