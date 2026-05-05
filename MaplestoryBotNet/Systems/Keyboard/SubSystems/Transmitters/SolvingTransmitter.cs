@@ -275,10 +275,11 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
                 dataType is SystemInjectType.ConfigurationUpdate
                 && data is MaplestoryBotConfiguration maplestoryBotConfiguration
                 && maplestoryBotConfiguration.RuneDetection.Copy() is RuneDetection runeDetection
+                && maplestoryBotConfiguration.MacroKeySettings is MacroKeySettings macroKeySettings
             )
             {
                 _runeDetection = runeDetection;
-                _interactKey = maplestoryBotConfiguration.MacroKeySettings.RuneInteractKey;
+                _interactKey = macroKeySettings.RuneInteractKey;
             }
             else if (data is Image<Bgra32> solveImage)
             {

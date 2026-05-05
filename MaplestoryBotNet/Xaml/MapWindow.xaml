@@ -268,7 +268,8 @@
                             Padding="2,2,2,2"
                             VerticalAlignment="Top"
                             Width="74"
-                            IsTabStop="False" RenderTransformOrigin="-1.296,0.826" IsEnabled="False"
+                            IsTabStop="False"
+                            IsEnabled="False"
                         />
                         <Button
                             Style="{StaticResource BottingButtonStyle}" 
@@ -621,7 +622,6 @@
                 Width="55"
                 FontSize="10"
                 Foreground="White"
-                RenderTransformOrigin="0.509,1.614"
             />
             <TextBox
                 x:Name="MapAreaBottomTextBox"

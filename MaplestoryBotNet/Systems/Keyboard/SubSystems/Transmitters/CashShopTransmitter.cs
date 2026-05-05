@@ -6,7 +6,6 @@ using System.Collections.Concurrent;
 
 namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
 {
-    // TODO
     public enum CashShopOrchestratorThreadInjectType
     {
         None = 0,
@@ -26,17 +25,146 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     }
 
 
+    public class CashShopExecutorThreadHelper : AbstractKeystrokeTransmitterThreadHelper
+    {
+        private AbstractTimestamp _cashShopStopwatch;
+
+        private AbstractMacroCommandsExecutorBuilder _macroCommandsExecutorBuilder;
+
+        private AbstractMacroCommandsExecutor? _macroCommandsExecutor;
+
+        private int _cashShopTimeout;
+
+        private string _cashShopKey;
+
+        public CashShopExecutorThreadHelper(
+            AbstractTimestamp cashShopStopwatch,
+            AbstractMacroCommandsExecutorBuilder executorBuilder
+        )
+        {
+            _cashShopStopwatch = cashShopStopwatch;
+            _macroCommandsExecutorBuilder = executorBuilder;
+            _macroCommandsExecutor = null;
+            _cashShopTimeout = 0;
+            _cashShopKey = "";
+        }
+
+        public override void Reset()
+        {
+            _cashShopStopwatch.SetTimestamp();
+        }
+
+        public override bool Transmit()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (
+                dataType is SystemInjectType.KeystrokeTransmitter
+                && data is AbstractKeystrokeTransmitter keystrokeTransmitter
+            )
+            {
+                _macroCommandsExecutor = _macroCommandsExecutorBuilder
+                    .WithArg(keystrokeTransmitter)
+                    .Build();
+            }
+            if (
+                dataType is SystemInjectType.ConfigurationUpdate &&
+                data is MaplestoryBotConfiguration maplestoryBotConfiguration
+            )
+            {
+                _cashShopTimeout = maplestoryBotConfiguration.MacroSettings.CashShopTimeout;
+                _cashShopKey = maplestoryBotConfiguration.MacroKeySettings.CashShopKey;
+            }
+        }
+
+    }
+
+
     public class CashShopExecutorThread : AbstractThread
     {
+        private AbstractResetEvent _executionEvent;
+
+        private AbstractKeystrokeTransmitterThreadHelper _cashShopExecutorThreadHelper;
+
+        private AbstractKeystrokeTransmitterThreadState _threadState;
+
+        private AbstractThreadRunningState _transmittingState;
+
         public CashShopExecutorThread(
+            AbstractResetEvent executionEvent,
+            AbstractKeystrokeTransmitterThreadHelper cashShopExecutorThreadHelpers,
+            AbstractKeystrokeTransmitterThreadState threadState,
+            AbstractThreadRunningState transmittingState,
             AbstractThreadRunningState runningState
         ) : base(runningState)
         {
+            _executionEvent = executionEvent;
+            _cashShopExecutorThreadHelper = cashShopExecutorThreadHelpers;
+            _threadState = threadState;
+            _transmittingState = transmittingState;
         }
 
         public override void ThreadLoop()
         {
-            throw new NotImplementedException();
+            while (_runningState.IsRunning())
+            {
+                _executionEvent.WaitOne();
+                _transmittingState.SetRunning(true);
+                _cashShopExecutorThreadHelper.Reset();
+                while (_threadState.GetState() == (int)CashShopExecutorThreadedUpdate.Started)
+                {
+                    if (!_cashShopExecutorThreadHelper.Transmit())
+                    {
+                        break;
+                    }
+                }
+                _cashShopExecutorThreadHelper.Reset();
+                _transmittingState.SetRunning(false);
+            }
+        }
+
+        public override void Stop()
+        {
+            base.Stop();
+            Inject(CashShopOrchestratorThreadInjectType.Stop, null);
+        }
+
+        public override void Inject(object dataType, object? value)
+        {
+            if (dataType is CashShopOrchestratorThreadInjectType injectType)
+            {
+                if (injectType == CashShopOrchestratorThreadInjectType.Start)
+                {
+                    _threadState.SetState((int)CashShopExecutorThreadedUpdate.Starting);
+                    while (_transmittingState.IsRunning())
+                    {
+                        Thread.Yield();
+                    }
+                    _threadState.SetState((int)CashShopExecutorThreadedUpdate.Started);
+                    _executionEvent.Set();
+                }
+                else if (injectType == CashShopOrchestratorThreadInjectType.Stop)
+                {
+                    _threadState.SetState((int)CashShopExecutorThreadedUpdate.Stopping);
+                    while (_transmittingState.IsRunning())
+                    {
+                        Thread.Yield();
+                    }
+                    _threadState.SetState((int)CashShopExecutorThreadedUpdate.Stopped);
+                }
+            }
+            else
+            {
+                _cashShopExecutorThreadHelper.Inject(dataType, value);
+            }
+        }
+
+        public override object? State()
+        {
+            return _threadState;
         }
     }
 
@@ -58,6 +186,16 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
         {
             return new CashShopOrchestratorThread(
                 new CashShopExecutorThread(
+                    new ExecutionEvent(),
+                    new CashShopExecutorThreadHelper(
+                        new StopwatchTimestamp(),
+                        new MacroCommandsExecutorBuilder()
+                    ),
+                    new KeystrokeTransmitterThreadState(
+                        (int)CashShopExecutorThreadedUpdate.Stopped,
+                        KeystrokeTransmitterThreadType.CashShop
+                    ),
+                    new ThreadRunningState(),
                     new ThreadRunningState()
                 ),
                 new ThreadRunningState(),

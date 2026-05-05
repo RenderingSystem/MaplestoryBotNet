@@ -32,7 +32,8 @@ namespace MaplestoryBotNet.Xaml
                 ArrowLeftTextBox,
                 ArrowUpTextBox,
                 ArrowRightTextBox,
-                ArrowDownTextBox
+                ArrowDownTextBox,
+                InteractKeyTextBox
             );
         }
 
@@ -47,7 +48,8 @@ namespace MaplestoryBotNet.Xaml
                 ArrowLeftTextBox,
                 ArrowUpTextBox,
                 ArrowRightTextBox,
-                ArrowDownTextBox
+                ArrowDownTextBox,
+                InteractKeyTextBox
             );
         }
 

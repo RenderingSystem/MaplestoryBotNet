@@ -23,6 +23,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBox _downArrowTextBox;
 
+        private TextBox _interactKeyTextBox;
+
         public WindowRuneSolverAPILoadModifier(
             TextBox ipAddressTextBox,
             TextBox portTextBox,
@@ -31,7 +33,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox leftArrowTextBox,
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
-            TextBox downArrowTextBox
+            TextBox downArrowTextBox,
+            TextBox interactKeyTextBox
         )
         {
             _ipAddressTextBox = ipAddressTextBox;
@@ -42,6 +45,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _upArrowTextBox = upArrowTextBox;
             _rightArrowTextBox = rightArrowTextBox;
             _downArrowTextBox = downArrowTextBox;
+            _interactKeyTextBox = interactKeyTextBox;
         }
 
         public override void Modify(object? value)
@@ -49,6 +53,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             if (
                 value is MaplestoryBotConfiguration configuration
                 && configuration.RuneDetection is RuneDetection runeDetection
+                && configuration.MacroKeySettings is MacroKeySettings macroKeySettings
             )
             {
                 _ipAddressTextBox.Text = runeDetection.RuneSolverIPAddress;
@@ -59,6 +64,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 _upArrowTextBox.Text = runeDetection.Up;
                 _rightArrowTextBox.Text = runeDetection.Right;
                 _downArrowTextBox.Text = runeDetection.Down;
+                _interactKeyTextBox.Text = macroKeySettings.RuneInteractKey;
             }
         }
     }
@@ -123,7 +129,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox leftArrowTextBox,
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
-            TextBox downArrowTextBox
+            TextBox downArrowTextBox,
+            TextBox interactKeyTextBox
         )
         {
             _roboflowAPILoadActionHandler = (
@@ -137,7 +144,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                         leftArrowTextBox,
                         upArrowTextBox,
                         rightArrowTextBox,
-                        downArrowTextBox
+                        downArrowTextBox,
+                        interactKeyTextBox
                     )
                 )
             );
@@ -188,6 +196,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBox _downArrowTextBox;
 
+        private TextBox _interactKeyTextBox;
+
         public WindowRuneSolverAPISaveModifier(
             TextBox ipAddressTextBox,
             TextBox portTextBox,
@@ -196,7 +206,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox leftArrowTextBox,
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
-            TextBox downArrowTextBox
+            TextBox downArrowTextBox,
+            TextBox interactKeyTextBox
         )
         {
             _ipAddressTextBox = ipAddressTextBox;
@@ -207,6 +218,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _upArrowTextBox = upArrowTextBox;
             _rightArrowTextBox = rightArrowTextBox;
             _downArrowTextBox = downArrowTextBox;
+            _interactKeyTextBox = interactKeyTextBox;
         }
 
         public override void Modify(object? value)
@@ -225,6 +237,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                         Right = _rightArrowTextBox.Text,
                         Down = _downArrowTextBox.Text,
                     }
+                );
+                maplestoryBotConfiguration.MacroKeySettings.RuneInteractKey = (
+                    _interactKeyTextBox.Text
                 );
             }
         }
@@ -290,7 +305,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox leftArrowTextBox,
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
-            TextBox downArrowTextBox
+            TextBox downArrowTextBox,
+            TextBox interactKeyTextBox
         )
         {
             _roboflowAPISaveActionHandler = (
@@ -304,7 +320,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                         leftArrowTextBox,
                         upArrowTextBox,
                         rightArrowTextBox,
-                        downArrowTextBox
+                        downArrowTextBox,
+                        interactKeyTextBox
                     )
                 )
             );

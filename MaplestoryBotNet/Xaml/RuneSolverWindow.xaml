@@ -21,10 +21,6 @@
 >
     <Viewbox Stretch="Fill">
         <Grid Width="300" Height="300">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="203*"/>
-                <ColumnDefinition Width="97*"/>
-            </Grid.ColumnDefinitions>
             <Label
                 Content="Rune solving configuration:"
                 FontFamily="Courier New"
@@ -33,7 +29,7 @@
                 VerticalAlignment="Top"
                 Width="182"
                 FontSize="10"
-                Foreground="White"
+                Foreground="White" FontWeight="Bold"
             />
             <Label
                 Content="IP address:"
@@ -102,7 +98,7 @@
                 Background="Black"
                 Foreground="LightYellow"
                 FontFamily="Courier New"
-                FontSize="9" Grid.ColumnSpan="2"
+                FontSize="9"
             />
             <TextBox
                 x:Name="PortTextBox"
@@ -111,11 +107,11 @@
                 Background="Black"
                 Foreground="LightYellow"
                 FontFamily="Courier New"
-                FontSize="9" Grid.ColumnSpan="2"
+                FontSize="9"
             />
             <TextBox
                 x:Name="ArrowLeftTextBox"
-                Margin="51,147,94,136"
+                Margin="51,147,191,136"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -123,7 +119,7 @@
             />
             <TextBox
                 x:Name="ArrowUpTextBox"
-                Margin="51,169,94,114"
+                Margin="51,169,191,114"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -131,7 +127,7 @@
             />
             <TextBox
                 x:Name="ArrowRightTextBox"
-                Margin="51,191,94,92"
+                Margin="51,191,191,92"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -139,7 +135,7 @@
             />
             <TextBox
                 x:Name="ArrowDownTextBox"
-                Margin="51,213,94,70"
+                Margin="51,213,191,70"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -148,7 +144,7 @@
             <Frame
                 Margin="113,122,7,9"
                 BorderBrush="White"
-                BorderThickness="1" Grid.ColumnSpan="2"
+                BorderThickness="1"
             />
             <TextBlock
                 x:Name="OutputFormatTextBlock"
@@ -161,7 +157,7 @@
                 Foreground="Lime"
                 Text="TextBlock"
                 VerticalAlignment="Top"
-                Width="168" Grid.ColumnSpan="2"
+                Width="168"
             />
             <Label
                 Content="Tag:"
@@ -175,7 +171,7 @@
             />
             <TextBox
                 x:Name="ClassTagTextBox"
-                Margin="51,124,94,159"
+                Margin="51,124,191,159"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -198,7 +194,7 @@
                 Background="Black"
                 Foreground="LightYellow"
                 FontFamily="Courier New"
-                FontSize="9" Grid.ColumnSpan="2"
+                FontSize="9"
             />
             <Label
                 Content="Prediction JSON tags:"
@@ -208,8 +204,36 @@
                 VerticalAlignment="Top"
                 Width="143"
                 FontSize="10"
-                Foreground="White"
+                Foreground="White" FontWeight="Bold"
             />
+            <Label
+                Content="Rune interact:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="5,231,0,0"
+                VerticalAlignment="Top"
+                Width="102"
+                FontSize="10"
+                Foreground="White"
+                FontWeight="Bold"
+            />
+            <TextBox
+                x:Name="InteractKeyTextBox"
+                Margin="51,252,191,31"
+                Background="Black"
+                Foreground="Lime"
+                FontFamily="Courier New"
+                FontSize="9"
+            />
+            <Label Content="Key:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="7,250,0,0"
+                VerticalAlignment="Top"
+                Width="43"
+                FontSize="10"
+                Foreground="White"
+        />
         </Grid>
     </Viewbox>
 </Window>

@@ -30,6 +30,7 @@
                 <MenuItem Header="Petfood"/>
                 <MenuItem Header="Skills"/>
                 <MenuItem x:Name="RuneSolverMenuItem" Header="Rune solver"/>
+                <MenuItem x:Name="CashShopMenuItem" Header="Cash shop"/>
             </MenuItem>
             <Separator/>
             <MenuItem x:Name="MacroMenuItem" Header="Botting"/>

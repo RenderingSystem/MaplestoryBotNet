@@ -29,6 +29,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private TextBox _downArrowTextBox = new TextBox();
 
+        private TextBox _interactKeyTextBox = new TextBox();
+
         private MaplestoryBotConfiguration _maplestoryBotConfiguration = (
             new MaplestoryBotConfiguration()
         );
@@ -45,6 +47,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _upArrowTextBox = new TextBox();
             _rightArrowTextBox = new TextBox();
             _downArrowTextBox = new TextBox();
+            _interactKeyTextBox = new TextBox();
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration
             {
                 RuneDetection = new RuneDetection
@@ -57,6 +60,10 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     Up = "89",
                     Right = "90",
                     Down = "01"
+                },
+                MacroKeySettings = new MacroKeySettings
+                {
+                    RuneInteractKey = "00"
                 }
             };
             var handler = new WindowRuneSolverAPILoadActionHandlerFacade(
@@ -68,7 +75,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _leftArrowTextBox,
                 _upArrowTextBox,
                 _rightArrowTextBox,
-                _downArrowTextBox
+                _downArrowTextBox,
+                _interactKeyTextBox
             );
             handler.Inject(
                 SystemInjectType.ConfigurationUpdate,
@@ -105,6 +113,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 Debug.Assert(_upArrowTextBox.Text == (visible ? "89" : ""));
                 Debug.Assert(_rightArrowTextBox.Text == (visible ? "90" : ""));
                 Debug.Assert(_downArrowTextBox.Text == (visible ? "01" : ""));
+                Debug.Assert(_interactKeyTextBox.Text == (visible ? "00" : ""));
             }
         }
 
@@ -135,6 +144,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private TextBox _downArrowTextBox = new TextBox();
 
+        private TextBox _interactKeyTextBox = new TextBox();
+
         private MaplestoryBotConfiguration _maplestoryBotConfiguration = (
             new MaplestoryBotConfiguration()
         );
@@ -151,6 +162,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _upArrowTextBox = new TextBox { Text = "89" };
             _rightArrowTextBox = new TextBox { Text = "90" };
             _downArrowTextBox = new TextBox { Text = "01" };
+            _interactKeyTextBox = new TextBox { Text = "00" };
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration();
             var handler = new WindowRuneSolverAPISaveActionHandlerFacade(
                 _systemWindow,
@@ -161,7 +173,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _leftArrowTextBox,
                 _upArrowTextBox,
                 _rightArrowTextBox,
-                _downArrowTextBox
+                _downArrowTextBox,
+                _interactKeyTextBox
             );
             handler.Inject(
                 SystemInjectType.ConfigurationUpdate,
@@ -191,6 +204,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                     new DependencyPropertyChangedEventArgs()
                 );
                 var runeDetection = _maplestoryBotConfiguration.RuneDetection;
+                var macroKeySettings = _maplestoryBotConfiguration.MacroKeySettings;
                 Debug.Assert(runeDetection.RuneSolverIPAddress == (!visible ? "12" : ""));
                 Debug.Assert(runeDetection.RuneSolverPort == (!visible ? "23" : ""));
                 Debug.Assert(runeDetection.RuneSolverRoute == (!visible ? "34" : ""));
@@ -199,6 +213,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 Debug.Assert(runeDetection.Up == (!visible ? "89" : ""));
                 Debug.Assert(runeDetection.Right == (!visible ? "90" : ""));
                 Debug.Assert(runeDetection.Down == (!visible ? "01" : ""));
+                Debug.Assert(macroKeySettings.RuneInteractKey == (!visible ? "00" : ""));
             }
         }
 

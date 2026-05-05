@@ -87,7 +87,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
                     _locatedRunePoint.Y > -1
                 );
 
-                if (pointsLocated)
+                 if (pointsLocated)
                 {
                     var nextNavigation = runeModel.NextNavigation(_locatedCharacterPoint, _locatedRunePoint);
                     _macroCommandsExecutor!.Execute(nextNavigation);

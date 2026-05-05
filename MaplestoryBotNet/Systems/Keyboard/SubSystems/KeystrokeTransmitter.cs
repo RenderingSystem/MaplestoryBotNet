@@ -94,6 +94,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
         Botting,
         Solving,
         Macro,
+        CashShop,
         MaxNum
     }
 

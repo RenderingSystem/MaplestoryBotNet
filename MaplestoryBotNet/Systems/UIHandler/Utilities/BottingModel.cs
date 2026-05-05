@@ -913,7 +913,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
         private List<RuneFrame>? _shortestPath(RuneFrame start, RuneFrame destination)
         {
             var queue = new Queue<List<RuneFrame>>();
-            var visited = new HashSet<RuneFrame> { start };
+            var visited = new HashSet<string> { start.FrameData.ElementLabel };
             queue.Enqueue(new List<RuneFrame> { start });
             while (queue.Count > 0)
             {
@@ -927,13 +927,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
                     }
                     var next = macro.NextRuneFrame;
                     var newPath = new List<RuneFrame>(path) { next };
-                    if (next == destination)
+                    if (next.FrameData.ElementLabel == destination.FrameData.ElementLabel)
                     {
                         return newPath;
                     }
-                    if (!visited.Contains(next))
+                    if (!visited.Contains(next.FrameData.ElementLabel))
                     {
-                        visited.Add(next);
+                        visited.Add(next.FrameData.ElementLabel);
                         queue.Enqueue(newPath);
                     }
                 }
