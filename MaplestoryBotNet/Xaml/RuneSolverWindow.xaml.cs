@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using System.Windows;
+using System.Windows.Controls;
 
 
 namespace MaplestoryBotNet.Xaml
@@ -12,6 +13,30 @@ namespace MaplestoryBotNet.Xaml
         public RuneSolverWindow()
         {
             InitializeComponent();
+        }
+
+        private AbstractWindowActionHandler _instantiateNumericTextBoxPropertyActionHandler(
+            TextBox numericTextBox, int maxValue
+        )
+        {
+            return (
+                new NumericTextBoxValidationActionHandlerBuilder()
+                    .WithArgs(maxValue)
+                    .WithArgs(numericTextBox)
+                    .Build()
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateNumericTextBoxPropertyPasteActionHandler(
+            TextBox numericTextBox, int maxValue
+        )
+        {
+            return (
+                new NumericTextBoxPasteValidationActionHandlerBuilder()
+                    .WithArgs(maxValue)
+                    .WithArgs(numericTextBox)
+                    .Build()
+            );
         }
 
         private AbstractWindowActionHandler _instantiateWindowMenuItemHideActionHandler()
@@ -33,7 +58,10 @@ namespace MaplestoryBotNet.Xaml
                 ArrowUpTextBox,
                 ArrowRightTextBox,
                 ArrowDownTextBox,
-                InteractKeyTextBox
+                InteractKeyTextBox,
+                CashShopKey,
+                CashShopTimeout,
+                RuneRetriesTextBox
             );
         }
 
@@ -49,7 +77,10 @@ namespace MaplestoryBotNet.Xaml
                 ArrowUpTextBox,
                 ArrowRightTextBox,
                 ArrowDownTextBox,
-                InteractKeyTextBox
+                InteractKeyTextBox,
+                CashShopKey,
+                CashShopTimeout,
+                RuneRetriesTextBox
             );
         }
 
@@ -75,6 +106,10 @@ namespace MaplestoryBotNet.Xaml
         public List<AbstractWindowActionHandler> InstantiateActionHandlers()
         {
             return [
+                _instantiateNumericTextBoxPropertyActionHandler(CashShopTimeout, 999),
+                _instantiateNumericTextBoxPropertyActionHandler(RuneRetriesTextBox, 99),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(CashShopTimeout, 999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(RuneRetriesTextBox, 99),
                 _instantiateWindowMenuItemHideActionHandler(),
                 _instantiateAPILoadActionHandler(),
                 _instantiateAPISaveActionHandler(),

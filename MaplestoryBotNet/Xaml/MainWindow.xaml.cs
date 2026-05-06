@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Threading;
 
 
@@ -71,7 +72,8 @@ namespace MaplestoryBotNet
                     BottingText,
                     RuneingText,
                     SolvingText,
-                    SolvedCheckText
+                    SolvedCheckText,
+                    CashShopText
                 ],
                 new SystemAsyncDispatcher(
                     Dispatcher,

@@ -35,7 +35,14 @@ namespace MaplestoryBotNet.Systems.Macro
         Runeing,
         Solving,
         SolvedCheck,
+        CashShop,
         MaxNum
+    }
+
+
+    public abstract class AbstractExecutorStateActivator
+    {
+        public abstract void Activate(MacroExecutorStateTypes stateType);
     }
 
 
@@ -58,6 +65,119 @@ namespace MaplestoryBotNet.Systems.Macro
     public abstract class AbstractExecutorState
     {
         public abstract int Execute();
+    }
+
+
+    public class ExecutorStateActivator : AbstractExecutorStateActivator
+    {
+        private MacroExecutorThreadContext _context;
+
+        private List<Action> _stopActions;
+
+        private List<Action> _startActions;
+
+        public ExecutorStateActivator(MacroExecutorThreadContext context)
+        {
+            _context = context;
+            _stopActions = [];
+            _startActions = [];
+        }
+
+        private void _updateBottingOrchestrator(MacroExecutorStateTypes stateType)
+        {
+            _updateOrchestrator(
+                shouldRun: (
+                    stateType == MacroExecutorStateTypes.Botting ||
+                    stateType == MacroExecutorStateTypes.SolvedCheck
+                ),
+                stoppedStates: [
+                    (int)BottingExecutorThreadedUpdate.Stopped
+                ],
+                runningStates: [
+                    (int)BottingExecutorThreadedUpdate.Started
+                ],
+                controller: _context.BottingController
+            );
+        }
+
+        private void _updateRuneingOrchestrator(MacroExecutorStateTypes stateType)
+        {
+            _updateOrchestrator(
+                shouldRun: stateType == MacroExecutorStateTypes.Runeing,
+                stoppedStates: [
+                    (int)RuneingExecutorThreadedUpdate.Stopped
+                ],
+                runningStates: [
+                    (int)RuneingExecutorThreadedUpdate.Started,
+                    (int)RuneingExecutorThreadedUpdate.Arrived
+                ],
+                controller: _context.RuneingController
+            );
+        }
+
+        private void _updateSolvingOrchestrator(MacroExecutorStateTypes stateType)
+        {
+            _updateOrchestrator(
+                shouldRun: stateType == MacroExecutorStateTypes.Solving,
+                stoppedStates: [
+                    (int)SolvingExecutorThreadedUpdate.Stopped
+                ],
+                runningStates: [
+                    (int)SolvingExecutorThreadedUpdate.Started,
+                    (int)SolvingExecutorThreadedUpdate.Solved,
+                    (int)SolvingExecutorThreadedUpdate.Failed
+                ],
+                controller: _context.SolvingController
+            );
+        }
+
+        private void _updateCashShopOrchestrator(MacroExecutorStateTypes stateType)
+        {
+            _updateOrchestrator(
+                shouldRun: stateType == MacroExecutorStateTypes.CashShop,
+                stoppedStates: [
+                    (int)CashShopExecutorThreadedUpdate.Stopped
+                ],
+                runningStates: [
+                    (int)CashShopExecutorThreadedUpdate.Started,
+                    (int)CashShopExecutorThreadedUpdate.TimedOut
+                ],
+                controller: _context.CashShopController
+            );
+        }
+
+        private void _updateOrchestrator(
+            bool shouldRun,
+            int[] stoppedStates,
+            int[] runningStates,
+            AbstractOrchestratorController controller
+        )
+        {
+            if (controller.GetState() is not int currentState)
+            {
+                return;
+            }
+            if (shouldRun && !runningStates.Contains(currentState))
+            {
+                _startActions.Add(controller.StartOrchestrator);
+            }
+            else if (!shouldRun && !stoppedStates.Contains(currentState))
+            {
+                _stopActions.Add(controller.StopOrchestrator);
+            }
+        }
+
+        public override void Activate(MacroExecutorStateTypes stateType)
+        {
+            _stopActions.Clear();
+            _startActions.Clear();
+            _updateBottingOrchestrator(stateType);
+            _updateRuneingOrchestrator(stateType);
+            _updateSolvingOrchestrator(stateType);
+            _updateCashShopOrchestrator(stateType);
+            foreach (var _ in _stopActions) _();
+            foreach (var _ in _startActions) _();
+        }
     }
 
 
@@ -135,34 +255,26 @@ namespace MaplestoryBotNet.Systems.Macro
     {
         private MacroExecutorThreadContext _context;
 
-        public MacroExecutorStateReset(MacroExecutorThreadContext context)
+        private AbstractExecutorStateActivator _activator;
+        public MacroExecutorStateReset(
+            MacroExecutorThreadContext context,
+            AbstractExecutorStateActivator activator
+        )
         {
             _context = context;
+            _activator = activator;
         }
 
         public override int Execute()
         {
-            var botting = _context.BottingController.GetState();
-            var runeing = _context.RuneingController.GetState();
-            var solving = _context.SolvingController.GetState();
-            if (botting != (int)BottingExecutorThreadedUpdate.Stopped)
-            {
-                _context.BottingController.StopOrchestrator();
-            }
-            if (runeing != (int)RuneingExecutorThreadedUpdate.Stopped)
-            {
-                _context.RuneingController.StopOrchestrator();
-            }
-            if (solving != (int)SolvingExecutorThreadedUpdate.Stopped)
-            {
-                _context.SolvingController.StopOrchestrator();
-            }
+            _activator.Activate(MacroExecutorStateTypes.Reset);
             if (_context.BottingModel is AbstractBottingModel bottingModel)
             {
                 var runeModel = bottingModel.GetRuneModel();
                 var cooldown = runeModel.GetActivation();
                 _context.RuneActivationPeriodCurrent = cooldown;
             }
+            _context.MissedRuneCount = 0;
             return (int)MacroExecutorStateTypes.Idle;
         }
     }
@@ -172,28 +284,20 @@ namespace MaplestoryBotNet.Systems.Macro
     {
         private MacroExecutorThreadContext _context;
 
-        public MacroExecutorStateIdle(MacroExecutorThreadContext context)
+        private AbstractExecutorStateActivator _activator;
+
+        public MacroExecutorStateIdle(
+            MacroExecutorThreadContext context,
+            AbstractExecutorStateActivator activator
+        )
         {
             _context = context;
+            _activator = activator;
         }
 
         public override int Execute()
         {
-            var botting = _context.BottingController.GetState();
-            var runeing = _context.RuneingController.GetState();
-            var solving = _context.SolvingController.GetState();
-            if (botting != (int)BottingExecutorThreadedUpdate.Stopped)
-            {
-                _context.BottingController.StopOrchestrator();
-            }
-            if (runeing != (int)RuneingExecutorThreadedUpdate.Stopped)
-            {
-                _context.RuneingController.StopOrchestrator();
-            }
-            if (solving != (int)SolvingExecutorThreadedUpdate.Stopped)
-            {
-                _context.SolvingController.StopOrchestrator();
-            }
+            _activator.Activate(MacroExecutorStateTypes.Idle);
             _context.RuneingStopwatch.SetTimestamp();
             return (int)MacroExecutorStateTypes.Botting;
         }
@@ -204,28 +308,20 @@ namespace MaplestoryBotNet.Systems.Macro
     {
         private MacroExecutorThreadContext _context;
 
-        public MacroExecutorStateBotting(MacroExecutorThreadContext context)
+        private AbstractExecutorStateActivator _activator;
+
+        public MacroExecutorStateBotting(
+            MacroExecutorThreadContext context,
+            AbstractExecutorStateActivator activator
+        )
         {
             _context = context;
+            _activator = activator;
         }
 
         public override int Execute()
         {
-            var botting = _context.BottingController.GetState();
-            var runeing = _context.RuneingController.GetState();
-            var solving = _context.SolvingController.GetState();
-            if (solving != (int)SolvingExecutorThreadedUpdate.Stopped)
-            {
-                _context.SolvingController.StopOrchestrator();
-            }
-            if (runeing != (int)RuneingExecutorThreadedUpdate.Stopped)
-            {
-                _context.RuneingController.StopOrchestrator();
-            }
-            if (botting != (int)BottingExecutorThreadedUpdate.Started)
-            {
-                _context.BottingController.StartOrchestrator();
-            }
+            _activator.Activate(MacroExecutorStateTypes.Botting);
             if (
                 _context.RuneingStopwatch.GetTimestamp() > _context.RuneActivationPeriodCurrent &&
                 _context.BottingModel is AbstractBottingModel bottingModel &&
@@ -248,33 +344,22 @@ namespace MaplestoryBotNet.Systems.Macro
     {
         private MacroExecutorThreadContext _context;
 
-        public MacroExecutorStateRuneing(MacroExecutorThreadContext context)
+        private AbstractExecutorStateActivator _activator;
+
+        public MacroExecutorStateRuneing(
+            MacroExecutorThreadContext context,
+            AbstractExecutorStateActivator activator
+        )
         {
             _context = context;
+            _activator = activator;
         }
 
         public override int Execute()
         {
-            var botting = _context.BottingController.GetState();
-            var runeing = _context.RuneingController.GetState();
-            var solving = _context.SolvingController.GetState();
-            if (botting != (int)BottingExecutorThreadedUpdate.Stopped)
-            {
-                _context.BottingController.StopOrchestrator();
-            }
-            if (solving != (int)SolvingExecutorThreadedUpdate.Stopped)
-            {
-                _context.SolvingController.StopOrchestrator();
-            }
-            if (
-                runeing != (int)RuneingExecutorThreadedUpdate.Started &&
-                runeing != (int)RuneingExecutorThreadedUpdate.Arrived
-            )
-            {
-                _context.RuneingController.StartOrchestrator();
-            }
+            _activator.Activate(MacroExecutorStateTypes.Runeing);
             return (
-                runeing == (int)RuneingExecutorThreadedUpdate.Arrived ?
+                _context.RuneingController.GetState() == (int)RuneingExecutorThreadedUpdate.Arrived ?
                 (int)MacroExecutorStateTypes.Solving :
                 (int)MacroExecutorStateTypes.Runeing
             );
@@ -286,48 +371,34 @@ namespace MaplestoryBotNet.Systems.Macro
     {
         private MacroExecutorThreadContext _context;
 
-        public MacroExecutorStateSolving(MacroExecutorThreadContext context)
+        private AbstractExecutorStateActivator _activator;
+
+        public MacroExecutorStateSolving(
+            MacroExecutorThreadContext context,
+            AbstractExecutorStateActivator activator
+        )
         {
             _context = context;
+            _activator = activator;
         }
 
 
         public override int Execute()
         {
-            var botting = _context.BottingController.GetState();
-            var runeing = _context.RuneingController.GetState();
+            _activator.Activate(MacroExecutorStateTypes.Solving);
             var solving = _context.SolvingController.GetState();
-            if (botting != (int)BottingExecutorThreadedUpdate.Stopped)
-            {
-                _context.BottingController.StopOrchestrator();
-            }
-            if (runeing != (int)RuneingExecutorThreadedUpdate.Stopped)
-            {
-                _context.RuneingController.StopOrchestrator();
-            }
-            if (
-                solving != (int)SolvingExecutorThreadedUpdate.Started &&
-                solving != (int)SolvingExecutorThreadedUpdate.Solved &&
-                solving != (int)SolvingExecutorThreadedUpdate.Failed
-            )
-            {
-                _context.SolvingController.StartOrchestrator();
-            }
             if (
                 solving == (int)SolvingExecutorThreadedUpdate.Solved ||
                 solving == (int)SolvingExecutorThreadedUpdate.Failed
             )
             {
                 _context.SolvingStopwatch.SetTimestamp();
+                return (int)MacroExecutorStateTypes.SolvedCheck;
             }
-            return (
-                (
-                    solving != (int)SolvingExecutorThreadedUpdate.Solved &&
-                    solving != (int)SolvingExecutorThreadedUpdate.Failed
-                ) ?
-                (int)MacroExecutorStateTypes.Solving :
-                (int)MacroExecutorStateTypes.SolvedCheck
-            );
+            else
+            {
+                return (int)MacroExecutorStateTypes.Solving;
+            }
         }
     }
 
@@ -336,38 +407,44 @@ namespace MaplestoryBotNet.Systems.Macro
     {
         private MacroExecutorThreadContext _context;
 
-        public MacroExecutorStateSolvedCheck(MacroExecutorThreadContext context)
+        private AbstractExecutorStateActivator _activator;
+
+        public MacroExecutorStateSolvedCheck(
+            MacroExecutorThreadContext context,
+            AbstractExecutorStateActivator activator
+        )
         {
             _context = context;
+            _activator = activator;
         }
 
         public override int Execute()
         {
-            var botting = _context.BottingController.GetState();
-            var runeing = _context.RuneingController.GetState();
-            var solving = _context.SolvingController.GetState();
-            if (solving != (int)SolvingExecutorThreadedUpdate.Stopped)
-            {
-                _context.SolvingController.StopOrchestrator();
-            }
-            if (runeing != (int)RuneingExecutorThreadedUpdate.Stopped)
-            {
-                _context.RuneingController.StopOrchestrator();
-            }
-            if (botting != (int)BottingExecutorThreadedUpdate.Started)
-            {
-                _context.BottingController.StartOrchestrator();
-            }
+            _activator.Activate(MacroExecutorStateTypes.SolvedCheck);
             if (_context.SolvingStopwatch.GetTimestamp() <= _context.SolveCheckTimeout)
             {
-                return (
+                if (
                     _context.BottingModel is AbstractBottingModel bottingModel
                     && bottingModel.GetMapModel() is AbstractMapModel mapModel
                     && mapModel.GetTemplatePosition(_context.RuneKey) is Tuple<int, int> tuple
                     && (tuple.Item1 > -1 || tuple.Item2 > -1)
-                ) ?
-                (int)MacroExecutorStateTypes.Runeing :
-                (int)MacroExecutorStateTypes.SolvedCheck;
+                )
+                {
+
+                    if (++_context.MissedRuneCount < _context.CashShopTolerance)
+                    {
+                        return (int)MacroExecutorStateTypes.Runeing;
+                    }
+                    else
+                    {
+                        _context.MissedRuneCount = 0;
+                        return (int)MacroExecutorStateTypes.CashShop;
+                    }
+                }
+                else
+                {
+                    return (int)MacroExecutorStateTypes.SolvedCheck;
+                }
             }
             else
             {
@@ -380,7 +457,39 @@ namespace MaplestoryBotNet.Systems.Macro
                     _context.RuneActivationPeriodCurrent = cooldown;
                 }
                 _context.RuneingStopwatch.SetTimestamp();
+                _context.MissedRuneCount = 0;
                 return (int)MacroExecutorStateTypes.Botting;
+            }
+        }
+    }
+
+
+    public class MacroExecutorStateCashShop : AbstractExecutorState
+    {
+        private MacroExecutorThreadContext _context;
+
+        private AbstractExecutorStateActivator _activator;
+
+        public MacroExecutorStateCashShop(
+            MacroExecutorThreadContext context,
+            AbstractExecutorStateActivator activator
+        )
+        {
+            _context = context;
+            _activator = activator;
+        }
+
+        public override int Execute()
+        {
+            _activator.Activate(MacroExecutorStateTypes.CashShop);
+            var cashShop = _context.CashShopController.GetState();
+            if (cashShop == (int)CashShopExecutorThreadedUpdate.TimedOut)
+            {
+                return (int)MacroExecutorStateTypes.Botting;
+            }
+            else
+            {
+                return (int)MacroExecutorStateTypes.CashShop;
             }
         }
     }
@@ -393,6 +502,8 @@ namespace MaplestoryBotNet.Systems.Macro
         public AbstractOrchestratorController RuneingController;
 
         public AbstractOrchestratorController SolvingController;
+
+        public AbstractOrchestratorController CashShopController;
 
         public AbstractBottingModel? BottingModel;
 
@@ -410,10 +521,13 @@ namespace MaplestoryBotNet.Systems.Macro
 
         public int CashShopTolerance;
 
+        public int MissedRuneCount;
+
         public MacroExecutorThreadContext(
             AbstractOrchestratorController bottingController,
             AbstractOrchestratorController runeingController,
             AbstractOrchestratorController solvingController,
+            AbstractOrchestratorController cashShopController,
             AbstractTimestamp runeingStopwatch,
             AbstractTimestamp solvingStopwatch,
             string runeKey
@@ -422,6 +536,7 @@ namespace MaplestoryBotNet.Systems.Macro
             BottingController = bottingController;
             RuneingController = runeingController;
             SolvingController = solvingController;
+            CashShopController = cashShopController;
             BottingModel = null;
             RuneingStopwatch = runeingStopwatch;
             SolvingStopwatch = solvingStopwatch;
@@ -429,6 +544,8 @@ namespace MaplestoryBotNet.Systems.Macro
             RuneActivationPeriodCurrent = 0;
             SolveCheckTimeout = 0.0;
             ExecutionFrequency = 0.0;
+            CashShopTolerance = 0;
+            MissedRuneCount = 0;
         }
     }
 
@@ -511,7 +628,6 @@ namespace MaplestoryBotNet.Systems.Macro
                 {
                     _context.BottingController.SetOrchestrator(thread);
                     _context.BottingController.SetOrchestratorThreadState(state);
-
                 }
                 if (state.Type() is KeystrokeTransmitterThreadType.Runeing)
                 {
@@ -522,6 +638,11 @@ namespace MaplestoryBotNet.Systems.Macro
                 {
                     _context.SolvingController.SetOrchestrator(thread);
                     _context.SolvingController.SetOrchestratorThreadState(state);
+                }
+                if (state.Type() is KeystrokeTransmitterThreadType.CashShop)
+                {
+                    _context.CashShopController.SetOrchestrator(thread);
+                    _context.CashShopController.SetOrchestratorThreadState(state);
                 }
             }
             if (
@@ -692,6 +813,15 @@ namespace MaplestoryBotNet.Systems.Macro
                     SolvingOrchestratorThreadInjectType.Stop,
                     SolvingExecutorThreadedUpdate.Stopped
                 ),
+                new OrchestratorController<
+                    CashShopOrchestratorThreadInjectType,
+                    CashShopExecutorThreadedUpdate
+                >(
+                    CashShopOrchestratorThreadInjectType.Start,
+                    CashShopExecutorThreadedUpdate.Started,
+                    CashShopOrchestratorThreadInjectType.Stop,
+                    CashShopExecutorThreadedUpdate.Stopped
+                ),
                 new StopwatchTimestamp(),
                 new StopwatchTimestamp(),
                 MapIconInfo.Rune
@@ -701,17 +831,19 @@ namespace MaplestoryBotNet.Systems.Macro
         public override AbstractThread CreateThread()
         {
             var threadContext = _threadContext();
+            var activator = new ExecutorStateActivator(threadContext);
             return new MacroOrchestratorThread(
                 new MacroExecutorThread(
                     new ExecutionEvent(),
                     new MacroExecutorThreadStateMachine(
                         [
-                            new MacroExecutorStateReset(threadContext),
-                            new MacroExecutorStateIdle(threadContext),
-                            new MacroExecutorStateBotting(threadContext),
-                            new MacroExecutorStateRuneing(threadContext),
-                            new MacroExecutorStateSolving(threadContext),
-                            new MacroExecutorStateSolvedCheck(threadContext),
+                            new MacroExecutorStateReset(threadContext, activator),
+                            new MacroExecutorStateIdle(threadContext, activator),
+                            new MacroExecutorStateBotting(threadContext, activator),
+                            new MacroExecutorStateRuneing(threadContext, activator),
+                            new MacroExecutorStateSolving(threadContext, activator),
+                            new MacroExecutorStateSolvedCheck(threadContext, activator),
+                            new MacroExecutorStateCashShop(threadContext, activator),
                         ],
                         threadContext,
                         new MacroSleeper(),

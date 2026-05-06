@@ -1,8 +1,7 @@
-﻿
-
-using MaplestoryBotNet.Systems.Configuration.SubSystems;
+﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.ThreadingUtils;
 using System.Collections.Concurrent;
+
 
 namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
 {
@@ -13,6 +12,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
         Start,
         MaxNum
     }
+
 
     public enum CashShopExecutorThreadedUpdate
     {
@@ -29,7 +29,11 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     {
         private AbstractTimestamp _cashShopStopwatch;
 
+        private AbstractKeystrokeTransmitterThreadState _threadState;
+
         private AbstractMacroCommandsExecutorBuilder _macroCommandsExecutorBuilder;
+
+        private double _cashShopAttemptDelay;
 
         private AbstractMacroCommandsExecutor? _macroCommandsExecutor;
 
@@ -39,11 +43,15 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
 
         public CashShopExecutorThreadHelper(
             AbstractTimestamp cashShopStopwatch,
-            AbstractMacroCommandsExecutorBuilder executorBuilder
+            AbstractKeystrokeTransmitterThreadState threadState,
+            AbstractMacroCommandsExecutorBuilder executorBuilder,
+            double cashShopAttemptDelay
         )
         {
             _cashShopStopwatch = cashShopStopwatch;
+            _threadState = threadState;
             _macroCommandsExecutorBuilder = executorBuilder;
+            _cashShopAttemptDelay = cashShopAttemptDelay;
             _macroCommandsExecutor = null;
             _cashShopTimeout = 0;
             _cashShopKey = "";
@@ -56,7 +64,28 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
 
         public override bool Transmit()
         {
-            throw new NotImplementedException();
+            if (_macroCommandsExecutor == null)
+            {
+                return true;
+            }
+            var timestamp = _cashShopStopwatch.GetTimestamp();
+            if (timestamp < _cashShopAttemptDelay)
+            {
+                _macroCommandsExecutor.Execute(["key press {" + _cashShopKey + "} {100} {150}"]);
+                _macroCommandsExecutor.Execute(["wait {100} {150}"]);
+            }
+            else if (timestamp > (_cashShopAttemptDelay + _cashShopTimeout))
+            {
+                _macroCommandsExecutor.Execute(["key press {ESCAPE} {100} {150}"]);
+                _macroCommandsExecutor.Execute(["wait {900} {1100}"]);
+                _macroCommandsExecutor.Execute(["key press {ENTER} {100} {150}"]);
+                _threadState.SetState((int)CashShopExecutorThreadedUpdate.TimedOut);
+            }
+            else
+            {
+                Thread.Yield();
+            }
+            return true;
         }
 
         public override void Inject(object dataType, object? data)
@@ -79,7 +108,6 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
                 _cashShopKey = maplestoryBotConfiguration.MacroKeySettings.CashShopKey;
             }
         }
-
     }
 
 
@@ -184,17 +212,20 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     {
         public override AbstractThread CreateThread()
         {
+            var threadState = new KeystrokeTransmitterThreadState(
+                (int)CashShopExecutorThreadedUpdate.Stopped,
+                KeystrokeTransmitterThreadType.CashShop
+            );
             return new CashShopOrchestratorThread(
                 new CashShopExecutorThread(
                     new ExecutionEvent(),
                     new CashShopExecutorThreadHelper(
                         new StopwatchTimestamp(),
-                        new MacroCommandsExecutorBuilder()
+                        threadState,
+                        new MacroCommandsExecutorBuilder(),
+                        6
                     ),
-                    new KeystrokeTransmitterThreadState(
-                        (int)CashShopExecutorThreadedUpdate.Stopped,
-                        KeystrokeTransmitterThreadType.CashShop
-                    ),
+                    threadState,
                     new ThreadRunningState(),
                     new ThreadRunningState()
                 ),

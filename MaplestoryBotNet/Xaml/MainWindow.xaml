@@ -30,7 +30,6 @@
                 <MenuItem Header="Petfood"/>
                 <MenuItem Header="Skills"/>
                 <MenuItem x:Name="RuneSolverMenuItem" Header="Rune solver"/>
-                <MenuItem x:Name="CashShopMenuItem" Header="Cash shop"/>
             </MenuItem>
             <Separator/>
             <MenuItem x:Name="MacroMenuItem" Header="Botting"/>
@@ -88,6 +87,16 @@
             <TextBlock
                 x:Name="SolvedCheckText"
                 Text="Solved check"
+                Margin="0,510,10,0"
+                FontFamily="Courier New"
+                Foreground="#FF00FF00"
+                HorizontalAlignment="Right"
+                FontSize="20"
+                Visibility="Hidden"
+            />
+            <TextBlock
+                x:Name="CashShopText"
+                Text="Cash shop"
                 Margin="0,510,10,0"
                 FontFamily="Courier New"
                 Foreground="#FF00FF00"

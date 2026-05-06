@@ -11,16 +11,16 @@
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
     Title="Fruit Loops"
-    Width="300"
     Height="300"
     MaxHeight="300"
-    MaxWidth="300"
     MinHeight="300"
-    MinWidth="300"
+    Width="250"
+    MaxWidth="250"
+    MinWidth="250"
     Background="Black"
 >
     <Viewbox Stretch="Fill">
-        <Grid Width="300" Height="300">
+        <Grid Width="250" Height="300">
             <Label
                 Content="Rune solving configuration:"
                 FontFamily="Courier New"
@@ -37,7 +37,7 @@
                 HorizontalAlignment="Left"
                 Margin="14,30,0,0"
                 VerticalAlignment="Top"
-                Width="102"
+                Width="77"
                 FontSize="10"
                 Foreground="White"
             />
@@ -47,7 +47,7 @@
                 HorizontalAlignment="Left"
                 Margin="14,51,0,0"
                 VerticalAlignment="Top"
-                Width="102"
+                Width="77"
                 FontSize="10"
                 Foreground="White"
             />
@@ -55,7 +55,7 @@
                 Content="Left:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="6,145,0,0"
+                Margin="5,137,0,0"
                 VerticalAlignment="Top"
                 Width="44"
                 FontSize="10"
@@ -65,7 +65,7 @@
                 Content="Up:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="7,168,0,0"
+                Margin="6,156,0,0"
                 VerticalAlignment="Top"
                 Width="43"
                 FontSize="10"
@@ -75,7 +75,7 @@
                 Content="Right:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="6,191,0,0"
+                Margin="4,175,0,0"
                 VerticalAlignment="Top"
                 Width="45"
                 FontSize="10"
@@ -85,7 +85,7 @@
                 Content="Down:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="6,211,0,0"
+                Margin="6,194,0,0"
                 VerticalAlignment="Top"
                 Width="43"
                 FontSize="10"
@@ -93,8 +93,7 @@
             />
             <TextBox
                 x:Name="IPAddressTextbox"
-                Margin="117,32,18,252"
-                Width="165"
+                Margin="96,32,10,252"
                 Background="Black"
                 Foreground="LightYellow"
                 FontFamily="Courier New"
@@ -102,8 +101,7 @@
             />
             <TextBox
                 x:Name="PortTextBox"
-                Margin="117,53,18,230"
-                Width="165"
+                Margin="96,53,10,230"
                 Background="Black"
                 Foreground="LightYellow"
                 FontFamily="Courier New"
@@ -111,7 +109,7 @@
             />
             <TextBox
                 x:Name="ArrowLeftTextBox"
-                Margin="51,147,191,136"
+                Margin="49,140,138,143"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -119,7 +117,7 @@
             />
             <TextBox
                 x:Name="ArrowUpTextBox"
-                Margin="51,169,191,114"
+                Margin="49,159,138,124"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -127,7 +125,7 @@
             />
             <TextBox
                 x:Name="ArrowRightTextBox"
-                Margin="51,191,191,92"
+                Margin="49,177,138,106"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -135,35 +133,35 @@
             />
             <TextBox
                 x:Name="ArrowDownTextBox"
-                Margin="51,213,191,70"
+                Margin="49,196,138,87"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
                 FontSize="9"
             />
             <Frame
-                Margin="113,122,7,9"
+                Margin="10,219,10,5"
                 BorderBrush="White"
                 BorderThickness="1"
             />
             <TextBlock
                 x:Name="OutputFormatTextBlock"
-                HorizontalAlignment="Left"
-                Height="155"
-                Margin="120,129,0,0"
+                HorizontalAlignment="Center"
+                Height="68"
+                Margin="0,223,0,0"
                 TextWrapping="Wrap"
                 FontSize="8"
                 FontFamily="Courier New"
                 Foreground="Lime"
                 Text="TextBlock"
                 VerticalAlignment="Top"
-                Width="168"
+                Width="223"
             />
             <Label
                 Content="Tag:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="7,122,0,0"
+                Margin="5,119,0,0"
                 VerticalAlignment="Top"
                 Width="44"
                 FontSize="10"
@@ -171,7 +169,7 @@
             />
             <TextBox
                 x:Name="ClassTagTextBox"
-                Margin="51,124,191,159"
+                Margin="49,120,138,163"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -183,26 +181,25 @@
                 HorizontalAlignment="Left"
                 Margin="14,73,0,0"
                 VerticalAlignment="Top"
-                Width="102"
+                Width="77"
                 FontSize="10"
                 Foreground="White"
             />
             <TextBox
                 x:Name="RouteTextBox"
-                Margin="117,75,18,208"
-                Width="165"
+                Margin="96,75,10,208"
                 Background="Black"
                 Foreground="LightYellow"
                 FontFamily="Courier New"
                 FontSize="9"
             />
             <Label
-                Content="Prediction JSON tags:"
+                Content="JSON tags:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="6,97,0,0"
+                Margin="5,95,0,0"
                 VerticalAlignment="Top"
-                Width="143"
+                Width="73"
                 FontSize="10"
                 Foreground="White" FontWeight="Bold"
             />
@@ -210,16 +207,17 @@
                 Content="Rune interact:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="5,231,0,0"
+                Margin="117,157,0,0"
                 VerticalAlignment="Top"
                 Width="102"
                 FontSize="10"
                 Foreground="White"
                 FontWeight="Bold"
+                Height="20"
             />
             <TextBox
-                x:Name="InteractKeyTextBox"
-                Margin="51,252,191,31"
+                x:Name="RuneRetriesTextBox"
+                Margin="177,196,10,87"
                 Background="Black"
                 Foreground="Lime"
                 FontFamily="Courier New"
@@ -228,12 +226,75 @@
             <Label Content="Key:"
                 FontFamily="Courier New"
                 HorizontalAlignment="Left"
-                Margin="7,250,0,0"
+                Margin="118,175,0,0"
+                VerticalAlignment="Top"
+                Width="44"
+                FontSize="10"
+                Foreground="White"
+            />
+            <Label
+                Content="Cash shop:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="118,95,0,0"
+                VerticalAlignment="Top"
+                Width="70"
+                FontSize="10"
+                Foreground="White"
+                FontWeight="Bold"
+            />
+            <Label Content="Key:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="118,119,0,0"
                 VerticalAlignment="Top"
                 Width="43"
                 FontSize="10"
                 Foreground="White"
-        />
+            />
+            <TextBox
+                x:Name="CashShopKey"
+                Margin="177,120,10,163"
+                Background="Black"
+                Foreground="Lime"
+                FontFamily="Courier New"
+                FontSize="9"
+            />
+            <TextBox
+                x:Name="CashShopTimeout"
+                Margin="177,140,10,143"
+                Background="Black"
+                Foreground="Lime"
+                FontFamily="Courier New"
+                FontSize="9"
+            />
+            <Label Content="Timeout:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="118,137,0,0"
+                VerticalAlignment="Top"
+                Width="58"
+                FontSize="10"
+                Foreground="White"
+            />
+            <Label
+                Content="Retries:"
+                FontFamily="Courier New"
+                HorizontalAlignment="Left"
+                Margin="118,194,0,0"
+                VerticalAlignment="Top"
+                Width="58"
+                FontSize="10"
+                Foreground="White"
+            />
+            <TextBox
+                x:Name="InteractKeyTextBox"
+                Margin="177,177,10,106"
+                Background="Black"
+                Foreground="Lime"
+                FontFamily="Courier New"
+                FontSize="9"
+            />
         </Grid>
     </Viewbox>
 </Window>

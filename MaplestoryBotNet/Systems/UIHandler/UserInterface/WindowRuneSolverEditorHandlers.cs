@@ -25,6 +25,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBox _interactKeyTextBox;
 
+        private TextBox _cashShopKeyTextBox;
+
+        private TextBox _cashShopTimeoutTextBox;
+
+        private TextBox _runeRetriesTextBox;
+
         public WindowRuneSolverAPILoadModifier(
             TextBox ipAddressTextBox,
             TextBox portTextBox,
@@ -34,7 +40,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
             TextBox downArrowTextBox,
-            TextBox interactKeyTextBox
+            TextBox interactKeyTextBox,
+            TextBox cashShopKeyTextBox,
+            TextBox cashShopTimeoutTextBox,
+            TextBox runeRetriesTextBox
         )
         {
             _ipAddressTextBox = ipAddressTextBox;
@@ -46,6 +55,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _rightArrowTextBox = rightArrowTextBox;
             _downArrowTextBox = downArrowTextBox;
             _interactKeyTextBox = interactKeyTextBox;
+            _cashShopKeyTextBox = cashShopKeyTextBox;
+            _cashShopTimeoutTextBox = cashShopTimeoutTextBox;
+            _runeRetriesTextBox = runeRetriesTextBox;
         }
 
         public override void Modify(object? value)
@@ -53,6 +65,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             if (
                 value is MaplestoryBotConfiguration configuration
                 && configuration.RuneDetection is RuneDetection runeDetection
+                && configuration.MacroSettings is MacroSettings macroSettings
                 && configuration.MacroKeySettings is MacroKeySettings macroKeySettings
             )
             {
@@ -65,6 +78,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 _rightArrowTextBox.Text = runeDetection.Right;
                 _downArrowTextBox.Text = runeDetection.Down;
                 _interactKeyTextBox.Text = macroKeySettings.RuneInteractKey;
+                _cashShopKeyTextBox.Text = macroKeySettings.CashShopKey;
+                _cashShopTimeoutTextBox.Text = macroSettings.CashShopTimeout.ToString();
+                _runeRetriesTextBox.Text = macroSettings.CashShopTolerance.ToString();
             }
         }
     }
@@ -130,7 +146,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
             TextBox downArrowTextBox,
-            TextBox interactKeyTextBox
+            TextBox interactKeyTextBox,
+            TextBox cashShopKeyTextBox,
+            TextBox cashShopTimeoutTextBox,
+            TextBox runeRetriesTextBox
         )
         {
             _roboflowAPILoadActionHandler = (
@@ -145,7 +164,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                         upArrowTextBox,
                         rightArrowTextBox,
                         downArrowTextBox,
-                        interactKeyTextBox
+                        interactKeyTextBox,
+                        cashShopKeyTextBox,
+                        cashShopTimeoutTextBox,
+                        runeRetriesTextBox
                     )
                 )
             );
@@ -198,6 +220,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBox _interactKeyTextBox;
 
+        private TextBox _cashShopKeyTextBox;
+
+        private TextBox _cashShopTimeoutTextBox;
+
+        private TextBox _runeRetriesTextBox;
+
         public WindowRuneSolverAPISaveModifier(
             TextBox ipAddressTextBox,
             TextBox portTextBox,
@@ -207,7 +235,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
             TextBox downArrowTextBox,
-            TextBox interactKeyTextBox
+            TextBox interactKeyTextBox,
+            TextBox cashShopKeyTextBox,
+            TextBox cashShopTimeoutTextBox,
+            TextBox runeRetriesTextBox
         )
         {
             _ipAddressTextBox = ipAddressTextBox;
@@ -219,6 +250,9 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _rightArrowTextBox = rightArrowTextBox;
             _downArrowTextBox = downArrowTextBox;
             _interactKeyTextBox = interactKeyTextBox;
+            _cashShopKeyTextBox = cashShopKeyTextBox;
+            _cashShopTimeoutTextBox = cashShopTimeoutTextBox;
+            _runeRetriesTextBox = runeRetriesTextBox;
         }
 
         public override void Modify(object? value)
@@ -241,6 +275,17 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 maplestoryBotConfiguration.MacroKeySettings.RuneInteractKey = (
                     _interactKeyTextBox.Text
                 );
+                maplestoryBotConfiguration.MacroKeySettings.CashShopKey = (
+                    _cashShopKeyTextBox.Text
+                );
+                if (int.TryParse(_cashShopTimeoutTextBox.Text, out int cashShopTimeout))
+                {
+                    maplestoryBotConfiguration.MacroSettings.CashShopTimeout = cashShopTimeout;
+                }
+                if (int.TryParse(_runeRetriesTextBox.Text, out int runeRetries))
+                {
+                    maplestoryBotConfiguration.MacroSettings.CashShopTolerance = runeRetries;
+                }
             }
         }
     }
@@ -306,7 +351,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox upArrowTextBox,
             TextBox rightArrowTextBox,
             TextBox downArrowTextBox,
-            TextBox interactKeyTextBox
+            TextBox interactKeyTextBox,
+            TextBox cashShopKeyTextBox,
+            TextBox cashShopTimeoutTextBox,
+            TextBox runeRetriesTextBox
         )
         {
             _roboflowAPISaveActionHandler = (
@@ -321,7 +369,10 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                         upArrowTextBox,
                         rightArrowTextBox,
                         downArrowTextBox,
-                        interactKeyTextBox
+                        interactKeyTextBox,
+                        cashShopKeyTextBox,
+                        cashShopTimeoutTextBox,
+                        runeRetriesTextBox
                     )
                 )
             );

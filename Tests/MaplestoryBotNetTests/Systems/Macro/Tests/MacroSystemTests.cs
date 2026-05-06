@@ -181,7 +181,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
     }
 
 
-    public class MacroExecutorStateResetTests
+    public class ExecutorStateActivatorTests
     {
         private MockOrchestratorController _bottingController = new MockOrchestratorController();
 
@@ -189,7 +189,328 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
 
         private MockOrchestratorController _solvingController = new MockOrchestratorController();
 
+        private MockOrchestratorController _cashShopController = new MockOrchestratorController();
+
         private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new MockTimestamp(),
+            new MockTimestamp(),
+            MapIconInfo.Rune
+        );
+
+        private AbstractExecutorStateActivator _fixture()
+        {
+            _bottingController = new MockOrchestratorController();
+            _runeingController = new MockOrchestratorController();
+            _solvingController = new MockOrchestratorController();
+            _cashShopController = new MockOrchestratorController();
+            _context = new MacroExecutorThreadContext(
+                _bottingController,
+                _runeingController,
+                _solvingController,
+                _cashShopController,
+                new MockTimestamp(),
+                new MockTimestamp(),
+                MapIconInfo.Rune
+            );
+            return new ExecutorStateActivator(_context);
+        }
+
+        /**
+         * @brief Verifies that the cash shop orchestrator is stopped in all macro states
+         * except CashShop state
+         * 
+         * The cash shop orchestrator controls entering the cash shop to reset the map.
+         * This operation should only occur in the CashShop state. In all other states,
+         * the cash shop orchestrator must be stopped to prevent accidental map resets
+         * that would disrupt automation.
+         */
+        private void _testActivatorStopsCashShopOrchestrator()
+        {
+            var stopStates = new[]
+            {
+                MacroExecutorStateTypes.Idle,
+                MacroExecutorStateTypes.Reset,
+                MacroExecutorStateTypes.Botting,
+                MacroExecutorStateTypes.Runeing,
+                MacroExecutorStateTypes.Solving,
+                MacroExecutorStateTypes.SolvedCheck,
+            };
+            foreach (var stopState in stopStates)
+            for (int i = 0; i < (int)CashShopExecutorThreadedUpdate.MaxNum; i++)
+            {
+                var activator = _fixture();
+                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
+                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
+                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
+                _cashShopController.GetStateReturn.Add(i);
+                activator.Activate(stopState);
+                Debug.Assert(
+                    _cashShopController.StopOrchestratorCalls ==
+                    (i != (int)CashShopExecutorThreadedUpdate.Stopped ? 1 : 0)
+                );
+            }
+        }
+
+        /**
+         * @brief Verifies that the solving orchestrator is stopped in all macro states
+         * except Solving state
+         * 
+         * The solving orchestrator handles rune puzzle solving operations. This should
+         * only be active during the Solving state. In all other states, the solving
+         * orchestrator must be stopped to prevent puzzle-solving keystrokes from
+         * interfering with other automation routines.
+         */
+        private void _testActivatorStopsSolvingOrchestrator()
+        {
+            var stopStates = new[]
+            {
+                MacroExecutorStateTypes.Idle,
+                MacroExecutorStateTypes.Reset,
+                MacroExecutorStateTypes.Botting,
+                MacroExecutorStateTypes.Runeing,
+                MacroExecutorStateTypes.SolvedCheck,
+                MacroExecutorStateTypes.CashShop
+            };
+            foreach (var stopState in stopStates)
+            for (int i = 0; i < (int)SolvingExecutorThreadedUpdate.MaxNum; i++)
+            {
+                var activator = _fixture();
+                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
+                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
+                _solvingController.GetStateReturn.Add(i);
+                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                activator.Activate(stopState);
+                Debug.Assert(
+                    _solvingController.StopOrchestratorCalls ==
+                    (i != (int)SolvingExecutorThreadedUpdate.Stopped ? 1 : 0)
+                );
+            }
+        }
+
+        /**
+         * @brief Verifies that the rune navigation orchestrator is stopped in all macro
+         * states except Runeing state
+         * 
+         * The rune navigation orchestrator controls movement toward detected runes.
+         * This should only be active during the Runeing state. In all other states,
+         * the rune navigation orchestrator must be stopped to prevent the bot from
+         * wandering toward runes while performing other tasks like monster killing
+         * or solving puzzles.
+         */
+        private void _testActivatorStopsRuneingOrchestrator()
+        {
+            var stopStates = new[]
+            {
+                MacroExecutorStateTypes.Idle,
+                MacroExecutorStateTypes.Reset,
+                MacroExecutorStateTypes.Botting,
+                MacroExecutorStateTypes.Solving,
+                MacroExecutorStateTypes.SolvedCheck,
+                MacroExecutorStateTypes.CashShop
+            };
+            foreach (var stopState in stopStates)
+            for (int i = 0; i < (int)RuneingExecutorThreadedUpdate.MaxNum; i++)
+            {
+                var activator = _fixture();
+                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
+                _runeingController.GetStateReturn.Add(i);
+                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
+                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                activator.Activate(stopState);
+                Debug.Assert(
+                    _runeingController.StopOrchestratorCalls ==
+                    (i != (int)RuneingExecutorThreadedUpdate.Stopped ? 1 : 0)
+                );
+            }
+        }
+
+        /**
+         * @brief Verifies that the botting orchestrator is stopped in all macro states
+         * except Botting and SolvedCheck states
+         * 
+         * The botting orchestrator handles monster killing automation. This should be
+         * active only during Botting and SolvedCheck states (where the bot may still
+         * need to kill monsters while waiting for rune spawns). In all other states,
+         * the botting orchestrator must be stopped to prevent combat keystrokes during
+         * navigation, puzzle solving, or cash shop operations.
+         */
+        private void _testActivatorStopsBottingOrchestrator()
+        {
+            var stopStates = new[]
+            {
+                MacroExecutorStateTypes.Idle,
+                MacroExecutorStateTypes.Reset,
+                MacroExecutorStateTypes.Runeing,
+                MacroExecutorStateTypes.Solving,
+                MacroExecutorStateTypes.CashShop
+            };
+            foreach (var stopState in stopStates)
+            for (int i = 0; i < (int)BottingExecutorThreadedUpdate.MaxNum; i++)
+            {
+                var activator = _fixture();
+                _bottingController.GetStateReturn.Add(i);
+                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
+                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
+                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                activator.Activate(stopState);
+                Debug.Assert(
+                    _bottingController.StopOrchestratorCalls ==
+                    (i != (int)BottingExecutorThreadedUpdate.Stopped ? 1 : 0)
+                );
+            }
+        }
+
+        /**
+         * @brief Verifies that the botting orchestrator is started when entering Botting
+         * or SolvedCheck states, but only if not already Started
+         * 
+         * The botting orchestrator handles monster killing. When the macro executor
+         * transitions to Botting state (active combat) or SolvedCheck state (waiting for
+         * next rune), the botting orchestrator must be started to ensure the bot kills
+         * monsters. However, if the orchestrator is already Started, no action is needed
+         * to avoid unnecessary restarts.
+         */
+        private void _testActivatorStartsBottingOrchestrator()
+        {
+            var startStates = new[]
+            {
+                MacroExecutorStateTypes.Botting,
+                MacroExecutorStateTypes.SolvedCheck
+            };
+            foreach (var startState in startStates)
+            for (int i = 0; i < (int)BottingExecutorThreadedUpdate.MaxNum; i++)
+            {
+                var activator = _fixture();
+                _bottingController.GetStateReturn.Add(i);
+                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
+                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
+                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                activator.Activate(startState);
+                Debug.Assert(
+                    _bottingController.StartOrchestratorCalls ==
+                    (i != (int)BottingExecutorThreadedUpdate.Started ? 1 : 0)
+                );
+            }
+        }
+
+        /**
+         * @brief Verifies that the rune navigation orchestrator is started when entering
+         * Runeing state, but only if not already Started or Arrived
+         * 
+         * The rune navigation orchestrator controls movement toward detected runes.
+         * When the macro executor transitions to Runeing state, the orchestrator must be
+         * started to begin approaching the rune. However, if the orchestrator is already
+         * Started (navigation in progress) or Arrived (already at the rune), no action
+         * is needed. This prevents redundant navigation commands.
+         */
+        private void _testActivatorStartsRuneingOrchestrator()
+        {
+            for (int i = 0; i < (int)RuneingExecutorThreadedUpdate.MaxNum; i++)
+            {
+                var activator = _fixture();
+                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
+                _runeingController.GetStateReturn.Add(i);
+                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
+                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                activator.Activate(MacroExecutorStateTypes.Runeing);
+                Debug.Assert(
+                    _runeingController.StartOrchestratorCalls ==
+                    (
+                        (
+                            i != (int)BottingExecutorThreadedUpdate.Started &&
+                            i != (int)RuneingExecutorThreadedUpdate.Arrived
+                        ) ? 1 : 0
+                    )
+                );
+            }
+        }
+
+        /**
+         * @brief Verifies that the solving orchestrator is started when entering Solving
+         * state, but only if not already Started, Solved, or Failed
+         * 
+         * The solving orchestrator handles rune puzzle solving. When the macro executor
+         * transitions to Solving state, the orchestrator must be started to begin solving
+         * the puzzle. However, if the orchestrator is already Started (solving in progress),
+         * Solved (puzzle complete), or Failed (puzzle failed), no action is needed.
+         */
+        private void _testActivatorStartsSolvingOrchestrator()
+        {
+            for (int i = 0; i < (int)SolvingExecutorThreadedUpdate.MaxNum; i++)
+            {
+                var activator = _fixture();
+                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
+                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
+                _solvingController.GetStateReturn.Add(i);
+                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                activator.Activate(MacroExecutorStateTypes.Solving);
+                Debug.Assert(
+                    _solvingController.StartOrchestratorCalls ==
+                    (
+                        (
+                            i != (int)SolvingExecutorThreadedUpdate.Started &&
+                            i != (int)SolvingExecutorThreadedUpdate.Failed &&
+                            i != (int)SolvingExecutorThreadedUpdate.Solved
+                        ) ? 1 : 0
+                    )
+                );
+            }
+        }
+
+        /**
+         * @brief Verifies that the cash shop orchestrator is started when entering CashShop
+         * state, but only if not already Started or TimedOut
+         * 
+         * The cash shop orchestrator handles entering the cash shop to reset the map.
+         * When the macro executor transitions to CashShop state, the orchestrator must
+         * be started to begin the map reset operation. However, if the orchestrator is
+         * already Started (reset in progress) or TimedOut (reset failed), no action is
+         * needed. This prevents redundant reset attempts.
+         */
+        private void _testActivatorStartsCashShopOrchestrator()
+        {
+            for (int i = 0; i < (int)CashShopExecutorThreadedUpdate.MaxNum; i++)
+            {
+                var activator = _fixture();
+                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
+                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
+                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
+                _cashShopController.GetStateReturn.Add(i);
+                activator.Activate(MacroExecutorStateTypes.CashShop);
+                Debug.Assert(
+                    _cashShopController.StartOrchestratorCalls ==
+                    (
+                        (
+                            i != (int)CashShopExecutorThreadedUpdate.Started &&
+                            i != (int)CashShopExecutorThreadedUpdate.TimedOut
+                        ) ? 1 : 0
+                    )
+                );
+            }
+        }
+
+        public void Run()
+        {
+            _testActivatorStopsCashShopOrchestrator();
+            _testActivatorStopsSolvingOrchestrator();
+            _testActivatorStopsRuneingOrchestrator();
+            _testActivatorStopsBottingOrchestrator();
+            _testActivatorStartsBottingOrchestrator();
+            _testActivatorStartsRuneingOrchestrator();
+            _testActivatorStartsSolvingOrchestrator();
+            _testActivatorStartsCashShopOrchestrator();
+        }
+    }
+
+
+    public class MacroExecutorStateResetTests
+    {
+        private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
@@ -200,29 +521,40 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
 
         private AbstractBottingModel _bottingModel = new BottingModel();
 
+        private MockExecutorStateActivator _activator = new MockExecutorStateActivator();
+
         private AbstractExecutorState _fixture()
         {
-            _bottingController = new MockOrchestratorController();
-            _runeingController = new MockOrchestratorController();
-            _solvingController = new MockOrchestratorController();
             _bottingModel = new BottingModel();
             _context = new MacroExecutorThreadContext(
-                _bottingController,
-                _runeingController,
-                _solvingController,
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
                 new StopwatchTimestamp(),
                 new StopwatchTimestamp(),
                 MapIconInfo.Rune
             );
             _context.BottingModel = _bottingModel;
-            return new MacroExecutorStateReset(_context);
+            _activator = new MockExecutorStateActivator();
+            return new MacroExecutorStateReset(_context, _activator);
         }
 
-        private void _stopFixture()
+        /**
+         * @brief Verifies that after resetting, the macro executor transitions to the
+         * Idle state
+         * 
+         * When users stop automation or the system needs to reset, the macro executor
+         * should return to an idle state where no automation activity is running. This
+         * idle state allows the system to be restarted cleanly without any leftover
+         * state from previous operations, preventing overlapping automation routines.
+         */
+        private void _testExecutorActivatesResetState()
         {
-            _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-            _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-            _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
+            var macroExecutorStateReset = _fixture();
+            macroExecutorStateReset.Execute();
+            Debug.Assert(_activator.ActivateCalls == 1);
+            Debug.Assert(_activator.ActivateCallArg_stateType[0] == MacroExecutorStateTypes.Reset);
         }
 
         /**
@@ -236,7 +568,6 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         private void _testExecutorTransitionsToIdleState()
         {
             var macroExecutorStateReset = _fixture();
-            _stopFixture();
             var result = macroExecutorStateReset.Execute();
             Debug.Assert(result == (int)MacroExecutorStateTypes.Idle);
         }
@@ -253,110 +584,43 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         private void _testExecutorSetsActivationPeriod()
         {
             var macroExecutorStateReset = _fixture();
-            _stopFixture();
             _bottingModel.GetRuneModel().SetActivation(123);
             macroExecutorStateReset.Execute();
             Debug.Assert(_context.RuneActivationPeriodCurrent == 123);
         }
 
         /**
-         * @brief Verifies that when a macro system reset occurs, the botting orchestrator
-         * is stopped if it is currently in any state other than Stopped
+         * @brief Verifies that the reset process clears the missed rune counter
          * 
-         * When the button system needs to reset, the monster-killing orchestrator must be
-         * deactivated to prevent it from continuing to send keystrokes while the system
-         * transitions to idle or starts a different subroutine. If the orchestrator is
-         * already Stopped, no action is needed. If it is in any other state,
-         * the reset process calls to terminate it cleanly.
+         * When the macro system resets, the missed rune counter should be reset to zero.
+         * This counter tracks how many times a rune spawn has been missed or ignored
+         * before the bot decides to enter the cash shop or take alternative action.
+         * Resetting the counter ensures that after a successful reset, the bot starts
+         * fresh without carrying over previous missed rune counts that could trigger
+         * unintended behavior.
          */
-        private void _testExecutorStopsBottingOrchestrator()
+        private void _testExecutorResetsMissedRuneCount()
         {
-            for (int i = 0; i < (int)BottingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateReset = _fixture();
-                _bottingController.GetStateReturn.Add(i);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                macroExecutorStateReset.Execute();
-                Debug.Assert(
-                    _bottingController.StopOrchestratorCalls ==
-                    (i != (int)BottingExecutorThreadedUpdate.Stopped ? 1 : 0)
-                );
-            }
-        }
-
-        /**
-         * @brief Verifies that when a macro system reset occurs, the rune navigation
-         * orchestrator is stopped if it is currently in any state other than Stopped
-         * 
-         * When the bot system needs to reset, any active rune navigation subroutine
-         * must be deactivated. This ensures the character does not continue walking
-         * toward a rune after the rune. If the rune navigation orchestrator is already
-         * Stopped, no action is taken. If it is in any other state, the
-         * reset process calls to terminate it cleanly.
-         */
-        private void _testExecutorStopsRuneingOrchestrator()
-        {
-            for (int i = 0; i < (int)RuneingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateReset = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add(i);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                macroExecutorStateReset.Execute();
-                Debug.Assert(
-                    _runeingController.StopOrchestratorCalls ==
-                    (i != (int)RuneingExecutorThreadedUpdate.Stopped ? 1 : 0)
-                );
-            }
-        }
-
-        /**
-         * @brief Verifies that when a macro system reset occurs, the puzzle solving
-         * orchestrator is stopped if it is currently in any state other than Stopped
-         * 
-         * When the button system needs to reset, the puzzle solving orchestrator must
-         * be deactivated. This prevents the system from continuing to process puzzle
-         * inputs after the rune has already been completed. If the solving orchestrator
-         * is already Stopped, no action is needed. If it is in any other state, the
-         * reset process calls to terminate it cleanly.
-         */
-        private void _testExecutorStopsSolvingOrchestrator()
-        {
-            for (int i = 0; i < (int)SolvingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateReset = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add(i);
-                macroExecutorStateReset.Execute();
-                Debug.Assert(
-                    _solvingController.StopOrchestratorCalls ==
-                    (i != (int)SolvingExecutorThreadedUpdate.Stopped ? 1 : 0)
-                );
-            }
+            var macroExecutorStateReset = _fixture();
+            _context.MissedRuneCount = 1234;
+            macroExecutorStateReset.Execute();
+            Debug.Assert(_context.MissedRuneCount == 0);
         }
 
         public void Run()
         {
+            _testExecutorActivatesResetState();
             _testExecutorTransitionsToIdleState();
             _testExecutorSetsActivationPeriod();
-            _testExecutorStopsBottingOrchestrator();
-            _testExecutorStopsRuneingOrchestrator();
-            _testExecutorStopsSolvingOrchestrator();
+            _testExecutorResetsMissedRuneCount();
         }
     }
 
 
     public class MacroExecuteStateIdleTests
     {
-        private MockOrchestratorController _bottingController = new MockOrchestratorController();
-
-        private MockOrchestratorController _runeingController = new MockOrchestratorController();
-
-        private MockOrchestratorController _solvingController = new MockOrchestratorController();
-
         private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
@@ -367,28 +631,39 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
 
         private MockTimestamp _runeingStopwatch = new MockTimestamp();
 
+        private MockExecutorStateActivator _activator = new MockExecutorStateActivator();
+
         private AbstractExecutorState _fixture()
         {
-            _bottingController = new MockOrchestratorController();
-            _runeingController = new MockOrchestratorController();
-            _solvingController = new MockOrchestratorController();
             _runeingStopwatch = new MockTimestamp();
             _context = new MacroExecutorThreadContext(
-                _bottingController,
-                _runeingController,
-                _solvingController,
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
                 _runeingStopwatch,
                 new StopwatchTimestamp(),
                 MapIconInfo.Rune
             );
-            return new MacroExecutorStateIdle(_context);
+            _activator = new MockExecutorStateActivator();
+            return new MacroExecutorStateIdle(_context, _activator);
         }
 
-        private void _stopFixture()
+        /**
+         * @brief Verifies that the Idle state triggers the activator to transition the
+         * executor to the Reset state during initialization
+         * 
+         * When the macro executor enters the Idle state, it must first activate the
+         * Reset state through the activator. This ensures that all orchestrators are
+         * properly stopped and any residual state from previous operations is cleared
+         * before the system transitions to its next active state.
+         */
+        private void _testExecutorActivatesIdleState()
         {
-            _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-            _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-            _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
+            var macroExecutorStateIdle = _fixture();
+            macroExecutorStateIdle.Execute();
+            Debug.Assert(_activator.ActivateCalls == 1);
+            Debug.Assert(_activator.ActivateCallArg_stateType[0] == MacroExecutorStateTypes.Idle);
         }
 
         /**
@@ -403,7 +678,6 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         private void _testExecutorTransitionsToBottingState()
         {
             var macroExecutorStateIdle = _fixture();
-            _stopFixture();
             var result = macroExecutorStateIdle.Execute();
             Debug.Assert(result == (int)MacroExecutorStateTypes.Botting);
         }
@@ -419,92 +693,15 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         private void _testExecutorSetsRuneingStopwatch()
         {
             var macroExecutorStateIdle = _fixture();
-            _stopFixture();
             macroExecutorStateIdle.Execute();
             Debug.Assert(_runeingStopwatch.SetTimestampCalls == 1);
         }
 
-        /**
-         * @brief Verifies that when entering the Botting state from Idle, the botting
-         * orchestrator is stopped if it is currently in any state other than Stopped
-         * 
-         * When the macro system transitions from Idle to Botting, it ensures the botting
-         * orchestrator is fully stopped before starting a new botting session. If the
-         * botting orchestrator is already Stopped, no action is needed.
-         */
-        private void _testExecutorStopsBottingOrchestrator()
-        {
-            for (int i = 0; i < (int)BottingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateIdle = _fixture();
-                _bottingController.GetStateReturn.Add(i);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                macroExecutorStateIdle.Execute();
-                Debug.Assert(
-                    _bottingController.StopOrchestratorCalls ==
-                    (i != (int)BottingExecutorThreadedUpdate.Stopped ? 1 : 0)
-                );
-            }
-        }
-
-        /**
-         * @brief Verifies that when entering the Botting state from Idle, the rune navigation
-         * orchestrator is stopped if it is currently in any state other than Stopped
-         * 
-         * When the macro system transitions from Idle to Botting, it ensures the rune
-         * navigation orchestrator is fully stopped. This prevents any active rune approach
-         * behavior from continuing while the bot is trying to kill monsters. If the rune
-         * navigation orchestrator is already Stopped, no action is taken.
-         */
-        private void _testExecutorStopsRuneingOrchestrator()
-        {
-            for (int i = 0; i < (int)RuneingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateIdle = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add(i);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                macroExecutorStateIdle.Execute();
-                Debug.Assert(
-                    _runeingController.StopOrchestratorCalls ==
-                    (i != (int)RuneingExecutorThreadedUpdate.Stopped ? 1 : 0)
-                );
-            }
-        }
-
-        /**
-         * @brief Verifies that when entering the Botting state from Idle, the puzzle solving
-         * orchestrator is stopped if it is currently in any state other than Stopped
-         * 
-         * When the macro system transitions from Idle to Botting, it ensures the puzzle
-         * solving orchestrator is fully stopped. This prevents any leftover rune puzzle
-         * solving behavior from continuing while the bot is trying to kill monsters.
-         * If the solving orchestrator is already Stopped, no action is needed.
-         */
-        private void _testExecutorStopsSolvingOrchestrator()
-        {
-            for (int i = 0; i < (int)SolvingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateIdle = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add(i);
-                macroExecutorStateIdle.Execute();
-                Debug.Assert(
-                    _solvingController.StopOrchestratorCalls ==
-                    (i != (int)SolvingExecutorThreadedUpdate.Stopped ? 1 : 0)
-                );
-            }
-        }
-
         public void Run()
         {
+            _testExecutorActivatesIdleState();
             _testExecutorTransitionsToBottingState();
             _testExecutorSetsRuneingStopwatch();
-            _testExecutorStopsBottingOrchestrator();
-            _testExecutorStopsRuneingOrchestrator();
-            _testExecutorStopsSolvingOrchestrator();
         }
 
     }
@@ -512,13 +709,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
 
     public class MacroExecutorStateBottingTests
     {
-        private MockOrchestratorController _bottingController = new MockOrchestratorController();
-
-        private MockOrchestratorController _runeingController = new MockOrchestratorController();
-
-        private MockOrchestratorController _solvingController = new MockOrchestratorController();
-
         private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
@@ -529,29 +721,41 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
 
         private MockTimestamp _runeingStopwatch = new MockTimestamp();
 
+        private MockExecutorStateActivator _activator = new MockExecutorStateActivator();
+
         private AbstractExecutorState _fixture()
         {
-            _bottingController = new MockOrchestratorController();
-            _runeingController = new MockOrchestratorController();
-            _solvingController = new MockOrchestratorController();
             _runeingStopwatch = new MockTimestamp();
             _context = new MacroExecutorThreadContext(
-                _bottingController,
-                _runeingController,
-                _solvingController,
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
                 _runeingStopwatch,
                 new MockTimestamp(),
                 MapIconInfo.Rune
             );
             _context.BottingModel = new BottingModel();
-            return new MacroExecutorStateBotting(_context);
+            _activator = new MockExecutorStateActivator();
+            return new MacroExecutorStateBotting(_context, _activator);
         }
 
-        private void _stopFixture()
+        /**
+         * @brief Verifies that the Botting state triggers the activator to configure the
+         * executor for monster-killing operations
+         * 
+         * When the macro executor enters the Botting state to begin killing monsters,
+         * it must activate the Botting state through the activator. The activator then
+         * ensures the correct orchestrators are started and stopped for monster-killing
+         * operations.
+         */
+        private void _testExecutorActivatesBottingState()
         {
-            _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-            _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-            _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
+            var macroExecutorStateBotting = _fixture();
+            _runeingStopwatch.GetTimestampReturn.Add(123);
+            macroExecutorStateBotting.Execute();
+            Debug.Assert(_activator.ActivateCalls == 1);
+            Debug.Assert(_activator.ActivateCallArg_stateType[0] == MacroExecutorStateTypes.Botting);
         }
 
         /**
@@ -565,7 +769,6 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         private void _testExecutorTransitionsToBottingState()
         {
             var macroExecutorStateBotting = _fixture();
-            _stopFixture();
             _runeingStopwatch.GetTimestampReturn.Add(123);
             _context.RuneActivationPeriodCurrent = 1234;
             var result = macroExecutorStateBotting.Execute();
@@ -591,7 +794,6 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 var expected = expecteds[i];
                 var macroExecutorStateBotting = _fixture();
                 var mapModel = _context.BottingModel!.GetMapModel();
-                _stopFixture();
                 _runeingStopwatch.GetTimestampReturn.Add(1234);
                 _context.RuneActivationPeriodCurrent = 123;
                 mapModel.SetTemplatePosition(_context.RuneKey, position.X, position.Y);
@@ -600,103 +802,21 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             }
         }
 
-        /**
-         * @brief Verifies that when entering the Botting state, the botting orchestrator
-         * is started if it is not already in the Started state
-         * 
-         * When the macro system needs to begin or remain in monster-killing mode, it
-         * ensures the botting orchestrator is actively running. If the orchestrator is
-         * already Started, no action is taken. If it is in any other state, the Botting
-         * state starts the orchestrator to launch the monster-killing subroutine.
-         */
-        private void _testExecutorStartsBottingOrchestrator()
-        {
-            for (int i = 0; i < (int)BottingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateBotting = _fixture();
-                _bottingController.GetStateReturn.Add(i);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                _runeingStopwatch.GetTimestampReturn.Add(123);
-                macroExecutorStateBotting.Execute();
-                Debug.Assert(
-                    _bottingController.StartOrchestratorCalls ==
-                    (i != (int)BottingExecutorThreadedUpdate.Started ? 1 : 0)
-                );
-            }
-        }
-
-        /**
-         * @brief Verifies that when entering the Botting state, the rune navigation
-         * orchestrator is stopped to prevent conflicting behaviors
-         * 
-         * When the macro system enters or remains in Botting state for monster killing,
-         * it ensures the rune navigation orchestrator is fully stopped. This prevents
-         * the bot from simultaneously trying to approach a rune while killing monsters.
-         */
-        private void _testExecutorStopsRuneingOrchestrator()
-        {
-            for (int i = 0; i < (int)RuneingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateBotting = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add(i);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                _runeingStopwatch.GetTimestampReturn.Add(123);
-                macroExecutorStateBotting.Execute();
-                Debug.Assert(
-                    _runeingController.StopOrchestratorCalls ==
-                    (i != (int)RuneingExecutorThreadedUpdate.Stopped ? 1 : 0)
-                );
-            }
-        }
-
-        /**
-         * @brief Verifies that when entering the Botting state, the puzzle solving
-         * orchestrator is stopped to prevent conflicting behaviors
-         * 
-         * When the macro system enters or remains in Botting state for monster killing,
-         * it ensures the puzzle solving orchestrator is fully stopped. This prevents any
-         * leftover rune puzzle solving behavior from interfering with monster killing
-         * keystrokes.
-         */
-        private void _testExecutorStopsSolvingOrchestrator()
-        {
-            for (int i = 0; i < (int)SolvingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateBotting = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add(i);
-                _runeingStopwatch.GetTimestampReturn.Add(123);
-                macroExecutorStateBotting.Execute();
-                Debug.Assert(
-                    _solvingController.StopOrchestratorCalls ==
-                    (i != (int)SolvingExecutorThreadedUpdate.Stopped ? 1 : 0)
-                );
-            }
-        }
-
         public void Run()
         {
+            _testExecutorActivatesBottingState();
             _testExecutorTransitionsToBottingState();
             _testExecutorStaysBottingUntilRuneSpawns();
-            _testExecutorStartsBottingOrchestrator();
-            _testExecutorStopsRuneingOrchestrator();
-            _testExecutorStopsSolvingOrchestrator();
         }
     }
 
 
     public class MacroExecutorStateRuneingTests
     {
-        private MockOrchestratorController _bottingController = new MockOrchestratorController();
-
         private MockOrchestratorController _runeingController = new MockOrchestratorController();
 
-        private MockOrchestratorController _solvingController = new MockOrchestratorController();
-
         private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
@@ -705,20 +825,40 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             MapIconInfo.Rune
         );
 
+        private MockExecutorStateActivator _activator = new MockExecutorStateActivator();
+
         private AbstractExecutorState _fixture()
         {
-            _bottingController = new MockOrchestratorController();
             _runeingController = new MockOrchestratorController();
-            _solvingController = new MockOrchestratorController();
             _context = new MacroExecutorThreadContext(
-                _bottingController,
+                new MockOrchestratorController(),
                 _runeingController,
-                _solvingController,
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
                 new MockTimestamp(),
                 new MockTimestamp(),
                 MapIconInfo.Rune
             );
-            return new MacroExecutorStateRuneing(_context);
+            _activator = new MockExecutorStateActivator();
+            return new MacroExecutorStateRuneing(_context, _activator);
+        }
+
+        /**
+         * @brief Verifies that the Runeing state triggers the activator to configure the
+         * executor for rune navigation operations
+         * 
+         * When the macro executor enters the Runeing state to begin approaching a detected
+         * rune, it must activate the Runeing state through the activator. The activator
+         * then ensures the correct orchestrators are started and stopped for rune approach
+         * operations.
+         */
+        private void _testExecutorActivatesRuneingState()
+        {
+            var macroExecutorStateRuneing = _fixture();
+            _runeingController.GetStateReturn.Add(123);
+            macroExecutorStateRuneing.Execute();
+            Debug.Assert(_activator.ActivateCalls == 1);
+            Debug.Assert(_activator.ActivateCallArg_stateType[0] == MacroExecutorStateTypes.Runeing);
         }
 
         /**
@@ -736,9 +876,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             for (int i = 0; i < (int)RuneingExecutorThreadedUpdate.MaxNum; i++)
             {
                 var macroExecutorStateRuneing = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
                 _runeingController.GetStateReturn.Add(i);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
                 var result = macroExecutorStateRuneing.Execute();
                 Debug.Assert(
                     result ==
@@ -751,108 +889,20 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             }
         }
 
-        /**
-         * @brief Verifies that when entering the Runeing state, the rune navigation
-         * orchestrator is started if it is not already Started or Arrived
-         * 
-         * When the macro system needs to begin or continue navigating toward a rune,
-         * it ensures the rune navigation orchestrator is actively running. If the
-         * orchestrator is already Started or Arrived (meaning navigation is already in
-         * progress or complete), no action is taken. If it is in any other state
-         * the Runeing state calls StartOrchestrator to launch the rune approach
-         * subroutine.
-         */
-        private void _testExecutorStartsRuneingOrchestrator()
-        {
-            for (int i = 0; i < (int)RuneingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateRuneing = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add(i);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                macroExecutorStateRuneing.Execute();
-                Debug.Assert(
-                    _runeingController.StartOrchestratorCalls ==
-                    (
-                        (
-                            i != (int)RuneingExecutorThreadedUpdate.Started &&
-                            i != (int)RuneingExecutorThreadedUpdate.Arrived
-                        ) ? 1 : 0
-                    )
-                );
-            }
-        }
-
-        /**
-         * @brief Verifies that when entering the Runeing state, the botting orchestrator
-         * is stopped to prevent conflicting keystrokes during rune approach
-         * 
-         * When the macro system switches from monster killing to rune navigation, it
-         * ensures the botting orchestrator is fully stopped. This prevents the bot from
-         * simultaneously trying to kill monsters while approaching a rune, which could
-         * confuse the character and produce erratic behavior.
-         */
-        private void _testExecutorStopsBottingOrchestrator()
-        {
-            for (int i = 0; i < (int)BottingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateRuneing = _fixture();
-                _bottingController.GetStateReturn.Add(i);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                macroExecutorStateRuneing.Execute();
-                Debug.Assert(
-                    _bottingController.StopOrchestratorCalls ==
-                    (i != (int)BottingExecutorThreadedUpdate.Stopped ? 1 : 0)
-                );
-            }
-        }
-
-        /**
-         * @brief Verifies that when entering the Runeing state, the puzzle solving
-         * orchestrator is stopped to prevent duplicate rune interaction attempts
-         * 
-         * When the macro system begins rune navigation, it ensures the puzzle solving
-         * orchestrator is fully stopped. This prevents any previous solving attempts
-         * from interfering with the navigation to a new rune. If the solving orchestrator
-         * is already Stopped, no action is needed. If it is in any other state, the Runeing
-         * state calls the orchestrator to shut it down.
-         */
-        private void _testExecutorStopsSolvingOrchestrator()
-        {
-            for (int i = 0; i < (int)SolvingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateRuneing = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add(i);
-                macroExecutorStateRuneing.Execute();
-                Debug.Assert(
-                    _solvingController.StopOrchestratorCalls ==
-                    (i != (int)SolvingExecutorThreadedUpdate.Stopped ? 1 : 0)
-                );
-            }
-        }
-
         public void Run()
         {
+            _testExecutorActivatesRuneingState();
             _testExecutorTransitions();
-            _testExecutorStartsRuneingOrchestrator();
-            _testExecutorStopsBottingOrchestrator();
-            _testExecutorStopsSolvingOrchestrator();
         }
     }
 
 
     public class MacroExecutorStateSolvingTests
     {
-        private MockOrchestratorController _bottingController = new MockOrchestratorController();
-
-        private MockOrchestratorController _runeingController = new MockOrchestratorController();
-
         private MockOrchestratorController _solvingController = new MockOrchestratorController();
 
         private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
@@ -863,21 +913,41 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
 
         private MockTimestamp _solvingStopwatch = new MockTimestamp();
 
+        private MockExecutorStateActivator _activator = new MockExecutorStateActivator();
+
         private AbstractExecutorState _fixture()
         {
-            _bottingController = new MockOrchestratorController();
-            _runeingController = new MockOrchestratorController();
             _solvingController = new MockOrchestratorController();
             _solvingStopwatch = new MockTimestamp();
             _context = new MacroExecutorThreadContext(
-                _bottingController,
-                _runeingController,
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
                 _solvingController,
+                new MockOrchestratorController(),
                 new MockTimestamp(),
                 _solvingStopwatch,
                 MapIconInfo.Rune
             );
-            return new MacroExecutorStateSolving(_context);
+            _activator = new MockExecutorStateActivator();
+            return new MacroExecutorStateSolving(_context, _activator);
+        }
+
+        /**
+         * @brief Verifies that the Solving state triggers the activator to configure the
+         * executor for rune puzzle solving operations
+         * 
+         * When the macro executor enters the Solving state to begin solving a rune puzzle,
+         * it must activate the Solving state through the activator. The activator then
+         * ensures the correct orchestrators are started and stopped for puzzle solving
+         * operations.
+         */
+        private void _testExecutorActivatesSolvingState()
+        {
+            var macroExecutorStateRuneing = _fixture();
+            _solvingController.GetStateReturn.Add(123);
+            macroExecutorStateRuneing.Execute();
+            Debug.Assert(_activator.ActivateCalls == 1);
+            Debug.Assert(_activator.ActivateCallArg_stateType[0] == MacroExecutorStateTypes.Solving);
         }
 
         /**
@@ -894,8 +964,6 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             for (int i = 0; i < (int)SolvingExecutorThreadedUpdate.MaxNum; i++)
             {
                 var macroExecutorStateSolving = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add(i);
                 var result = macroExecutorStateSolving.Execute();
                 Debug.Assert(
@@ -924,8 +992,6 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             for (int i = 0; i < (int)SolvingExecutorThreadedUpdate.MaxNum; i++)
             {
                 var macroExecutorStateSolving = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add(i);
                 var result = macroExecutorStateSolving.Execute();
                 Debug.Assert(
@@ -939,105 +1005,19 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             }
         }
 
-        /**
-         * @brief Verifies that when entering the Solving state, the puzzle solving
-         * orchestrator is started if it is not already active or complete
-         * 
-         * When the bot arrives at a rune and needs to solve it, the system ensures the
-         * solving orchestrator is running. If the orchestrator is already Started or Solved,
-         * no action is taken. If it is in any other state, the Solving state starts the
-         * orchestrator to begin the puzzle-solving sequence.
-         */
-        private void _testExecutorStartsSolvingOrchestrator()
-        {
-            for (int i = 0; i < (int)SolvingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateSolving = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add(i);
-                macroExecutorStateSolving.Execute();
-                Debug.Assert(
-                    _solvingController.StartOrchestratorCalls ==
-                    (
-                        (
-                            i != (int)SolvingExecutorThreadedUpdate.Started &&
-                            i != (int)SolvingExecutorThreadedUpdate.Failed &&
-                            i != (int)SolvingExecutorThreadedUpdate.Solved
-                        ) ? 1 : 0
-                    )
-                );
-            }
-        }
-
-        /**
-         * @brief Verifies that when entering the Solving state, the botting orchestrator
-         * is stopped to prevent monster-killing keystrokes during puzzle solving
-         * 
-         * When the bot begins solving a rune puzzle, the system stops the monster-killing
-         * orchestrator. This prevents the bot from sending combat keystrokes while trying
-         * to solve the puzzle, which would interfere with solving and likely cause failure.
-         */
-        private void _testExecutorStopsBottingOrchestrator()
-        {
-            for (int i = 0; i < (int)BottingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateSolving = _fixture();
-                _bottingController.GetStateReturn.Add(i);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                macroExecutorStateSolving.Execute();
-                Debug.Assert(
-                    _bottingController.StopOrchestratorCalls ==
-                    (i != (int)BottingExecutorThreadedUpdate.Stopped ? 1 : 0)
-                );
-            }
-        }
-
-        /**
-         * @brief Verifies that when entering the Solving state, the rune navigation
-         * orchestrator is stopped to prevent continued movement during puzzle solving
-         * 
-         * When the bot reaches a rune and begins solving the puzzle, the system stops the
-         * rune navigation orchestrator. This prevents the bot from continuing to move
-         * toward the rune while already at it, which could disrupt the solving process.
-         */
-        private void _testExecutorStopsRuneingOrchestrator()
-        {
-            for (int i = 0; i < (int)RuneingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateSolving = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add(i);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                macroExecutorStateSolving.Execute();
-                Debug.Assert(
-                    _runeingController.StopOrchestratorCalls ==
-                    (i != (int)RuneingExecutorThreadedUpdate.Stopped ? 1 : 0)
-                );
-            }
-        }
-
         public void Run()
         {
+            _testExecutorActivatesSolvingState();
             _testExecutorTransitions();
             _testExecutorSetsSolvingStopwatch();
-            _testExecutorStartsSolvingOrchestrator();
-            _testExecutorStopsBottingOrchestrator();
-            _testExecutorStopsRuneingOrchestrator();
         }
     }
 
 
     public class MacroExecutorStateSolvedCheckTests
     {
-        private MockOrchestratorController _bottingController = new MockOrchestratorController();
-
-        private MockOrchestratorController _runeingController = new MockOrchestratorController();
-
-        private MockOrchestratorController _solvingController = new MockOrchestratorController();
-
         private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
@@ -1052,24 +1032,43 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
 
         private MockTimestamp _solvingStopwatch = new MockTimestamp();
 
+        private MockExecutorStateActivator _activator = new MockExecutorStateActivator();
+
         private AbstractExecutorState _fixture()
         {
-            _bottingController = new MockOrchestratorController();
-            _runeingController = new MockOrchestratorController();
-            _solvingController = new MockOrchestratorController();
             _runeingStopwatch = new MockTimestamp();
             _solvingStopwatch = new MockTimestamp();
             _bottingModel = new BottingModel();
             _context = new MacroExecutorThreadContext(
-                _bottingController,
-                _runeingController,
-                _solvingController,
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
                 _runeingStopwatch,
                 _solvingStopwatch,
                 MapIconInfo.Rune
             );
             _context.BottingModel = _bottingModel;
-            return new MacroExecutorStateSolvedCheck(_context);
+            _activator = new MockExecutorStateActivator();
+            return new MacroExecutorStateSolvedCheck(_context, _activator);
+        }
+
+        /**
+         * @brief Verifies that the Solved Check state triggers the activator to configure
+         * the executor for post-solution monitoring
+         * 
+         * When the macro executor enters the Solved Check state after solving a rune puzzle,
+         * it must activate the Solved Check state through the activator. The activator then
+         * ensures the correct orchestrators are stopped and the system is ready
+         * to monitor for the rune.
+         */
+        private void _testExecutorActivatesSolvedCheckState()
+        {
+            var macroExecutorStateRuneing = _fixture();
+            _solvingStopwatch.GetTimestampReturn.Add(123);
+            macroExecutorStateRuneing.Execute();
+            Debug.Assert(_activator.ActivateCalls == 1);
+            Debug.Assert(_activator.ActivateCallArg_stateType[0] == MacroExecutorStateTypes.SolvedCheck);
         }
 
         /**
@@ -1085,9 +1084,6 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         private void _testExecutorTransitionsToBottingOnTimeout()
         {
             var macroExecutorStateSolvedCheck = _fixture();
-            _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Started);
-            _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-            _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
             _solvingStopwatch.GetTimestampReturn.Add(123);
             _context.SolveCheckTimeout = 12;
             var result = macroExecutorStateSolvedCheck.Execute();
@@ -1106,14 +1102,44 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         private void _testExecutorTransitionsToRuneingOnDetectedRune()
         {
             var macroExecutorStateSolvedCheck = _fixture();
-            _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Started);
-            _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-            _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
             _solvingStopwatch.GetTimestampReturn.Add(12);
             _context.SolveCheckTimeout = 123;
+            _context.CashShopTolerance = 3;
             _bottingModel.GetMapModel().SetTemplatePosition(MapIconInfo.Rune, 12, 23);
             var result = macroExecutorStateSolvedCheck.Execute();
             Debug.Assert(result == (int)MacroExecutorStateTypes.Runeing);
+        }
+
+        /**
+         * @brief Verifies that when a rune is detected but repeatedly not solved or collected,
+         * the system transitions to Cash Shop state after reaching the missed rune tolerance
+         * threshold
+         * 
+         * When the bot detects a rune on the minimap but fails to successfully solve it, the
+         * system increments a missed rune counter. If the bot continues to solve runes but fails
+         * them, and the missed rune count reaches the configured tolerance threshold,
+         * the system transitions to the Cash Shop state. This allows the bot to take a break,
+         * before re-entering the map.
+         */
+        private void _testExecutorTransitionsToCashShopOnMissedRunes()
+        {
+            for (int i = 1; i < 10; i++)
+            {
+                var macroExecutorStateSolvedCheck = _fixture();
+                _context.SolveCheckTimeout = 123;
+                _context.CashShopTolerance = i;
+                _bottingModel.GetMapModel().SetTemplatePosition(MapIconInfo.Rune, 12, 23);
+                for (int j = 0; j < i; j++)
+                {
+                    _solvingStopwatch.GetTimestampReturn.Add(12);
+                    var result = macroExecutorStateSolvedCheck.Execute();
+                    Debug.Assert(
+                        (j < i - 1) ?
+                        result == (int)MacroExecutorStateTypes.Runeing :
+                        result == (int)MacroExecutorStateTypes.CashShop
+                    );
+                }
+            }
         }
 
         /**
@@ -1128,9 +1154,6 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         private void _testExecutorTransitionsToSolvedCheckOnNoRune()
         {
             var macroExecutorStateSolvedCheck = _fixture();
-            _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Started);
-            _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-            _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
             _solvingStopwatch.GetTimestampReturn.Add(12);
             _context.SolveCheckTimeout = 123;
             _bottingModel.GetMapModel().SetTemplatePosition(MapIconInfo.Rune, -1, -1);
@@ -1152,9 +1175,6 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             for (int i = 0; i < 2; i++)
             {
                 var macroExecutorStateSolvedCheck = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Started);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
                 _solvingStopwatch.GetTimestampReturn.Add(i == 1 ? 123 : 12);
                 _context.SolveCheckTimeout = i == 1 ? 12 : 123;
                 macroExecutorStateSolvedCheck.Execute();
@@ -1175,9 +1195,6 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             for (int i = 0; i < 2; i++)
             {
                 var macroExecutorStateSolvedCheck = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Started);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
                 _solvingStopwatch.GetTimestampReturn.Add(i == 1 ? 123 : 12);
                 _context.SolveCheckTimeout = i == 1 ? 12 : 123;
                 _context.RuneActivationPeriodCurrent = 1234;
@@ -1187,92 +1204,104 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             }
         }
 
-        /**
-         * @brief Verifies that when entering SolvedCheck state, the puzzle solving
-         * orchestrator is stopped to prevent continued solving after completion
-         * 
-         * After a rune puzzle has been solved, the system stops the solving orchestrator
-         * to prevent any leftover puzzle-solving keystrokes from being sent. This ensures
-         * the bot does not continue attempting to solve a puzzle that has already been
-         * completed.
-         */
-        private void _testExecutorStopsSolvingOrchestrator()
+        public void Run()
         {
-            for (int i = 0; i < (int)SolvingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateSolvedCheck = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add(i);
-                _solvingStopwatch.GetTimestampReturn.Add(123);
-                macroExecutorStateSolvedCheck.Execute();
-                Debug.Assert(
-                    _solvingController.StopOrchestratorCalls ==
-                    (i != (int)SolvingExecutorThreadedUpdate.Stopped ? 1 : 0)
-                );
-            }
+            _testExecutorActivatesSolvedCheckState();
+            _testExecutorTransitionsToBottingOnTimeout();
+            _testExecutorTransitionsToRuneingOnDetectedRune();
+            _testExecutorTransitionsToCashShopOnMissedRunes();
+            _testExecutorTransitionsToSolvedCheckOnNoRune();
+            _testExecutorSetsRuneingTimestampOnTimeout();
+            _testExecutorSetsRuneActivationPeriodOnTimeout();
+        }
+    }
+
+
+    public class MacroExecutorStateCashShopTests
+    {
+        private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new StopwatchTimestamp(),
+            new StopwatchTimestamp(),
+            MapIconInfo.Rune
+        );
+
+        private MockOrchestratorController _cashShopController = new MockOrchestratorController();
+
+        private MockExecutorStateActivator _activator = new MockExecutorStateActivator();
+
+        public AbstractExecutorState _fixture()
+        {
+            _cashShopController = new MockOrchestratorController();
+            _context = new MacroExecutorThreadContext(
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                _cashShopController,
+                new StopwatchTimestamp(),
+                new StopwatchTimestamp(),
+                MapIconInfo.Rune
+            );
+            _activator = new MockExecutorStateActivator();
+            return new MacroExecutorStateCashShop(
+                _context,
+                _activator
+            );
         }
 
         /**
-         * @brief Verifies that when entering SolvedCheck state, the botting orchestrator
-         * is started if it is not already active
+         * @brief Verifies that the CashShop state triggers the activator to configure the
+         * executor for cash shop map reset operations
          * 
-         * When the bot is waiting for a rune to be detected spawn (or timing out), the
-         * system ensures the botting orchestrator is operating to resume monster killing
-         * If the orchestrator is already Started, no action is taken. If it is in any other
-         * state, StartOrchestrator is called to start botting.
+         * When the macro executor enters the CashShop state to reset the map (after
+         * repeated missed runes or stuck puzzles), it must activate the CashShop state
+         * through the activator. The activator then ensures the correct orchestrators
+         * are stopped and the cash shop orchestrator is started to handle the map reset
+         * sequence.
          */
-        private void _testExecutorStartsBottingOrchestrator()
+        private void _testExecutorActivatesCashShopCheckState()
         {
-            for (int i = 0; i < (int)BottingExecutorThreadedUpdate.MaxNum; i++)
-            {
-                var macroExecutorStateSolvedCheck = _fixture();
-                _bottingController.GetStateReturn.Add(i);
-                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                _solvingStopwatch.GetTimestampReturn.Add(123);
-                macroExecutorStateSolvedCheck.Execute();
-                Debug.Assert(
-                    _bottingController.StartOrchestratorCalls ==
-                    (i != (int)BottingExecutorThreadedUpdate.Started ? 1 : 0)
-                );
-            }
+            var macroExecutorStateCashShop = _fixture();
+            _cashShopController.GetStateReturn.Add(123);
+            macroExecutorStateCashShop.Execute();
+            Debug.Assert(_activator.ActivateCalls == 1);
+            Debug.Assert(_activator.ActivateCallArg_stateType[0] == MacroExecutorStateTypes.CashShop);
         }
 
         /**
-         * @brief Verifies that when entering SolvedCheck state, the rune navigation
-         * orchestrator is stopped to prevent unwanted movement
+         * @brief Verifies that the macro executor transitions from Cash Shop state to
+         * Botting state when the map reset times out, allowing the character to resume
+         * monster killing while waiting for runes to respawn.
          * 
-         * After solving a rune, the system stops the rune navigation orchestrator to
-         * prevent the bot from continuing to approach a rune that has already been solved.
+         * Entering the cash shop forces the game map to reload, which resets any stuck
+         * rune puzzles. However, after exiting the cash shop, the map needs time for
+         * runes to respawn naturally. The Timed Out state indicates the cash shop map
+         * reset operation has completed, and the system should transition to Botting
+         * state so the character can resume killing monsters while waiting for new
+         * runes to appear.
          */
-        private void _testExecutorStopsRuneingOrchestrator()
+        private void _testExecutorTransitionsToBottingOnTimeout()
         {
-            for (int i = 0; i < (int)RuneingExecutorThreadedUpdate.MaxNum; i++)
+            foreach (var state in new[] { (int)CashShopExecutorThreadedUpdate.TimedOut, 123 })
             {
-                var macroExecutorStateSolvedCheck = _fixture();
-                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
-                _runeingController.GetStateReturn.Add(i);
-                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                _solvingStopwatch.GetTimestampReturn.Add(123);
-                macroExecutorStateSolvedCheck.Execute();
+                var macroExecutorStateCashShop = _fixture();
+                _cashShopController.GetStateReturn.Add(state);
+                var result = macroExecutorStateCashShop.Execute();
                 Debug.Assert(
-                    _runeingController.StopOrchestratorCalls ==
-                    (i != (int)RuneingExecutorThreadedUpdate.Stopped ? 1 : 0)
+                    state == (int)CashShopExecutorThreadedUpdate.TimedOut ?
+                    result == (int)MacroExecutorStateTypes.Botting :
+                    result == (int)MacroExecutorStateTypes.CashShop
                 );
             }
         }
 
         public void Run()
         {
+            _testExecutorActivatesCashShopCheckState();
             _testExecutorTransitionsToBottingOnTimeout();
-            _testExecutorTransitionsToRuneingOnDetectedRune();
-            _testExecutorTransitionsToSolvedCheckOnNoRune();
-            _testExecutorSetsRuneingTimestampOnTimeout();
-            _testExecutorSetsRuneActivationPeriodOnTimeout();
-            _testExecutorStopsSolvingOrchestrator();
-            _testExecutorStartsBottingOrchestrator();
-            _testExecutorStopsRuneingOrchestrator();
         }
     }
 
@@ -1287,7 +1316,10 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
 
         private MockOrchestratorController _solvingController = new MockOrchestratorController();
 
+        private MockOrchestratorController _cashShopController = new MockOrchestratorController();
+
         private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
@@ -1308,12 +1340,14 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             _bottingController = new MockOrchestratorController();
             _runeingController = new MockOrchestratorController();
             _solvingController = new MockOrchestratorController();
+            _cashShopController = new MockOrchestratorController();
             _sleeper = new MockMacroSleeper();
             _executeTimestamp = new MockTimestamp();
             _context = new MacroExecutorThreadContext(
                 _bottingController,
                 _runeingController,
                 _solvingController,
+                _cashShopController,
                 new StopwatchTimestamp(),
                 new StopwatchTimestamp(),
                 MapIconInfo.Rune
@@ -1602,6 +1636,32 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         }
 
         /**
+         * @brief Verifies that the cash shop orchestrator controller thread and state are
+         * properly injected into the state machine
+         * 
+         * When the bot initializes, it needs to provide the state machine with the thread
+         * that controls cash shop operations. The cash shop orchestrator handles
+         * automated interactions with in-game shops after repeated rune solve failures.
+         * This test ensures that the cash shop thread and its state object are correctly
+         * wired to the state machine's cash shop controller, allowing the state machine
+         * to start and stop cash shop routines when the system determines the bot needs
+         * to take a break from rune attempts.
+         */
+        private void _testInjectingCashShopControllerThreadDependency()
+        {
+            var stateMachine = _fixture();
+            var thread = new MockThread(new ThreadRunningState());
+            var state = new KeystrokeTransmitterThreadState(0, KeystrokeTransmitterThreadType.CashShop);
+            thread.ThreadStateReturn.Add(state);
+            stateMachine.Inject(SystemInjectType.ThreadDependency, thread);
+            Debug.Assert(_cashShopController.SetOrchestratorCalls == 1);
+            Debug.Assert(_cashShopController.SetOrchestratorCallArg_orchestrator[0] == thread);
+            Debug.Assert(_cashShopController.SetOrchestratorThreadStateCalls == 1);
+            Debug.Assert(_cashShopController.SetOrchestratorThreadStateCallArg_threadState[0] == state);
+        }
+
+
+        /**
          * @brief Verifies that bot configuration settings are properly injected into
          * the state machine's context
          * 
@@ -1658,6 +1718,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             _testInjectingBottingControllerThreadDependency();
             _testInjectingRuneingControllerThreadDependency();
             _testInjectingSolvingControllerThreadDependency();
+            _testInjectingCashShopControllerThreadDependency();
             _testInjectingConfiguration();
             _testInjectingBottingModel();
         }
@@ -2252,12 +2313,14 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         public void Run()
         {
             new OrchestratorControllerTests().Run();
+            new ExecutorStateActivatorTests().Run();
             new MacroExecutorStateResetTests().Run();
             new MacroExecuteStateIdleTests().Run();
             new MacroExecutorStateBottingTests().Run();
             new MacroExecutorStateRuneingTests().Run();
             new MacroExecutorStateSolvingTests().Run();
             new MacroExecutorStateSolvedCheckTests().Run();
+            new MacroExecutorStateCashShopTests().Run();
             new MacroExecutorThreadStateMachineTests().Run();
             new MacroExecutorThreadTests().Run();
             new MacroOrchestratorThreadTests().Run();

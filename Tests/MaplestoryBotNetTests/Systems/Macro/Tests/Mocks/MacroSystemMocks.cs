@@ -100,4 +100,20 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests.Mocks
             throw new IndexOutOfRangeException();
         }
     }
+
+
+    public class MockExecutorStateActivator : AbstractExecutorStateActivator
+    {
+        public List<string> CallOrder = [];
+
+        public int ActivateCalls = 0;
+        public List<MacroExecutorStateTypes> ActivateCallArg_stateType = [];
+        public override void Activate(MacroExecutorStateTypes stateType)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Activate";
+            CallOrder.Add(callReference);
+            ActivateCalls++;
+            ActivateCallArg_stateType.Add(stateType);
+        }
+    }
 }
