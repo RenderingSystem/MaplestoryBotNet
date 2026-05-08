@@ -1,5 +1,6 @@
 ﻿using MaplestoryBotNet.Systems;
 using System.Diagnostics;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace MaplestoryBotNet.ThreadingUtils
@@ -74,13 +75,13 @@ namespace MaplestoryBotNet.ThreadingUtils
     }
 
 
-    public abstract class AbstractTimedDispatch
+    public abstract class AbstractCompositionEventHandler
     {
         public abstract void Start();
 
         public abstract void Stop();
 
-        public abstract void Tick(EventHandler tickAction);
+        public abstract void EventHandler(EventHandler eventHandler);
     }
 
 
@@ -403,28 +404,38 @@ namespace MaplestoryBotNet.ThreadingUtils
     }
 
 
-    public class TimedDispatch : AbstractTimedDispatch
+    public class CompositionEventHandler : AbstractCompositionEventHandler
     {
-        private DispatcherTimer _dispatcherTimer;
+        private EventHandler? _eventHandler;
 
-        public TimedDispatch(TimeSpan interval)
+        private bool _started;
+
+        public CompositionEventHandler()
         {
-            _dispatcherTimer = new DispatcherTimer { Interval = interval };
+            _started = false;
+        }
+
+        public override void EventHandler(EventHandler eventHandler)
+        {
+            _eventHandler = eventHandler;
         }
 
         public override void Start()
         {
-            _dispatcherTimer.Start();
+            if (!_started && _eventHandler != null)
+            {
+                CompositionTarget.Rendering += _eventHandler;
+                _started = true;
+            }
         }
 
         public override void Stop()
         {
-            _dispatcherTimer.Stop();
-        }
-
-        public override void Tick(EventHandler tickAction)
-        {
-            _dispatcherTimer.Tick += tickAction;
+            if (_started && _eventHandler != null)
+            {
+                CompositionTarget.Rendering -= _eventHandler;
+                _started = false;
+            }
         }
     }
 }

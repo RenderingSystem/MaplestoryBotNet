@@ -378,26 +378,34 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private ListBox _ailmentsListBox;
 
-        private AbstractTimedDispatch _timedDispatch;
+        private AbstractCompositionEventHandler _compositionEventHandler;
 
         private AbstractSystemWindow _ailmentsWindow;
 
         private AbstractWindowStateModifier _ailmentsAnimationModifier;
 
+        private AbstractTimestamp _animationStopwatch;
+
+        private double _animationSpeed;
+
         public WindowAilmentsAnimationActionHandler(
             ListBox ailmentsListBox,
-            AbstractTimedDispatch timedDispatch,
+            AbstractCompositionEventHandler compositionEventHandler,
             AbstractSystemWindow ailmentsWindow,
-            AbstractWindowStateModifier ailmentsAnimationModifier
+            AbstractTimestamp animationStopwatch,
+            AbstractWindowStateModifier ailmentsAnimationModifier,
+            double animationSpeed
         )
         {
             _ailmentsListBox = ailmentsListBox;
-            _ailmentsListBox.SelectionChanged += OnEvent;
-            _timedDispatch = timedDispatch;
-            _timedDispatch.Tick(OnEvent);
+            _compositionEventHandler = compositionEventHandler;
             _ailmentsWindow = ailmentsWindow;
-            ((Window)_ailmentsWindow.GetWindow()!).IsVisibleChanged += OnDependencyEvent;
             _ailmentsAnimationModifier = ailmentsAnimationModifier;
+            _animationStopwatch = animationStopwatch;
+            _animationSpeed = animationSpeed;
+            _ailmentsListBox.SelectionChanged += OnEvent;
+            CompositionTarget.Rendering += OnEvent;
+            ((Window)_ailmentsWindow.GetWindow()!).IsVisibleChanged += OnDependencyEvent;
         }
 
         public override AbstractWindowStateModifier Modifier()
@@ -416,7 +424,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 listBoxItem.Tag is ListBoxAilmentsDataTag dataTag
             )
             {
-                _ailmentsAnimationModifier.Modify(dataTag.Images);
+                if (_animationStopwatch.GetTimestamp() >= _animationSpeed)
+                {
+                    _animationStopwatch.SetTimestamp();
+                    _ailmentsAnimationModifier.Modify(dataTag.Images);
+                }
             }
         }
 
@@ -426,11 +438,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         {
             if (_ailmentsWindow.Visible())
             {
-                _timedDispatch.Start();
+                _compositionEventHandler.Start();
             }
             else
             {
-                _timedDispatch.Stop();
+                _compositionEventHandler.Stop();
             }
         }
     }
@@ -442,15 +454,19 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public WindowAilmentsAnimationActionHandlerFacade(
             ListBox ailmentsListBox,
-            AbstractTimedDispatch timedDispatch,
-            AbstractSystemWindow ailmentsWindow
+            AbstractSystemWindow ailmentsWindow,
+            double animationSpeed
         )
         {
+            var compositionEventHandler = new CompositionEventHandler();
+            compositionEventHandler.EventHandler(OnEvent);
             _animationActionHandler = new WindowAilmentsAnimationActionHandler(
                 ailmentsListBox,
-                timedDispatch,
+                compositionEventHandler,
                 ailmentsWindow,
-                new WindowAilmentsAnimationModifier()
+                new StopwatchTimestamp(),
+                new WindowAilmentsAnimationModifier(),
+                animationSpeed
             );
         }
 

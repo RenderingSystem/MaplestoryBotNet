@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
+using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.ThreadingUtils;
 using SixLabors.ImageSharp;
@@ -576,7 +577,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     {
         private ListBox _ailmentsListBox = new ListBox();
 
-        private MockTimedDispatch _timedDispatch = new MockTimedDispatch();
+        private MockCompositionEventHandler _compositionEventHandler = new MockCompositionEventHandler();
+
+        private MockTimestamp _animationStopwatch = new MockTimestamp();
 
         private MockSystemWindow _ailmentsWindow = new MockSystemWindow();
 
@@ -585,7 +588,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private AbstractWindowActionHandler _fixture()
         {
             _ailmentsListBox = new ListBox();
-            _timedDispatch = new MockTimedDispatch();
+            _compositionEventHandler = new MockCompositionEventHandler();
+            _animationStopwatch = new MockTimestamp();
             _ailmentsWindow = new MockSystemWindow();
             _imageLists = [
                 [
@@ -618,39 +622,54 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 }
             );
             _ailmentsWindow.GetWindowReturn.Add(new Window());
-            return new WindowAilmentsAnimationActionHandlerFacade(
+            return new WindowAilmentsAnimationActionHandler(
                 _ailmentsListBox,
-                _timedDispatch,
-                _ailmentsWindow
+                _compositionEventHandler,
+                _ailmentsWindow,
+                _animationStopwatch,
+                new WindowAilmentsAnimationModifier(),
+                1.0 / 15.0
             );
         }
 
         /**
-         * @brief Verifies that when the timed dispatch event fires, exactly one animation
-         * frame image becomes visible for the currently selected ailment, cycling through
-         * frames in sequence
+         * @brief Verifies that the animation frame only updates when sufficient time
+         * has elapsed since the last update, and that the stopwatch timestamp is reset
+         * only when a frame update actually occurs
          * 
-         * When the animation timer ticks, the system must display the next animation frame
-         * for the selected status ailment. Only one frame should be visible at a time
-         * (cycling through each reference image in order), while all other frames for
-         * that ailment remain hidden. This creates the appearance of a looping animation
-         * that visualizes the status ailment effect. The test cycles through each image
-         * index, selecting an ailment and firing the dispatch event multiple times to
-         * verify the frame alternates correctly.
+         * When the animation timer ticks, the system should only advance to the next
+         * animation frame if enough time has passed since the last frame change. This
+         * prevents the animation from updating too rapidly when events fire faster than
+         * the intended frame rate (e.g., when the rendering interval is shorter than the
+         * desired 15fps frame duration). The test uses timestamps below and above the
+         * 1/15 second threshold to verify that updates occur only when the elapsed
+         * time meets or exceeds the frame interval.
          */
         private void _testDispatchEventModifiesVisibility()
         {
-            var handler = _fixture();
-            for (int i = 0; i < _imageLists.Count; i++)
-            for (int j = 0; j < _imageLists[i].Count + 1; j++)
+            foreach (var timestamp in new[] { 1.0 / 14.0, 1.0 / 15.0, 1.0 / 16.0 })
             {
-                _ailmentsListBox.SelectedIndex = i;
-                handler.OnEvent(null, new EventArgs());
-                var visibleList = _imageLists[i].FindAll(i => i.Visibility == Visibility.Visible).ToList();
-                Debug.Assert(visibleList.Count == 1);
-                Debug.Assert(_imageLists[i].IndexOf(
-                    visibleList[0]) == (j % _imageLists[i].Count)
-                );
+                var handler = _fixture();
+                var expectedSetTimestamps = 0;
+                for (int i = 0; i < _imageLists.Count; i++)
+                for (int j = 0; j < _imageLists[i].Count + 1; j++)
+                {
+                    _ailmentsListBox.SelectedIndex = i;
+                    _animationStopwatch.GetTimestampReturn.Add(timestamp);
+                    handler.OnEvent(null, new EventArgs());
+                    var visibleList = _imageLists[i].FindAll(i => i.Visibility == Visibility.Visible).ToList();
+                    if (timestamp >= 1.0 / 15.0)
+                    {
+                        Debug.Assert(visibleList.Count == 1);
+                        Debug.Assert(_imageLists[i].IndexOf(visibleList[0]) == (j % _imageLists[i].Count));
+                        Debug.Assert(_animationStopwatch.SetTimestampCalls == ++expectedSetTimestamps);
+                    }
+                    else
+                    {
+                        Debug.Assert(visibleList.Count == 0);
+                        Debug.Assert(_animationStopwatch.SetTimestampCalls == 0);
+                    }
+                }
             }
         }
 
@@ -671,8 +690,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 var handler = _fixture();
                 _ailmentsWindow.VisibleReturn.Add(visible);
                 handler.OnDependencyEvent(handler, new DependencyPropertyChangedEventArgs());
-                Debug.Assert(_timedDispatch.StartCalls == (visible ? 1 : 0));
-                Debug.Assert(_timedDispatch.StopCalls == (visible ? 0 : 1));
+                Debug.Assert(_compositionEventHandler.StartCalls == (visible ? 1 : 0));
+                Debug.Assert(_compositionEventHandler.StopCalls == (visible ? 0 : 1));
             }
         }
 

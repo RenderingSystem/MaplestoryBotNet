@@ -44,8 +44,8 @@ namespace MaplestoryBotNet
         {
             return new WindowAilmentsAnimationActionHandlerFacade(
                 AilmentsListBox,
-                new TimedDispatch(TimeSpan.FromSeconds(1.0/20.0)),
-                GetSystemWindow()
+                GetSystemWindow(),
+                1.0 / 15.0
             );
         }
 

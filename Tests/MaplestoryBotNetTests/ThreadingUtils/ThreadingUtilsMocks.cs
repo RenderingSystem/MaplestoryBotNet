@@ -1,5 +1,4 @@
-﻿using MaplestoryBotNet.Systems.ProcessWatchdog;
-using MaplestoryBotNet.ThreadingUtils;
+﻿using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.TestHelpers;
 using System.Diagnostics;
 
@@ -322,11 +321,12 @@ namespace MaplestoryBotNetTests.ThreadingUtils
     }
 
 
-    public class MockTimedDispatch : AbstractTimedDispatch
+    public class MockCompositionEventHandler : AbstractCompositionEventHandler
     {
         public List<string> CallOrder = [];
 
         public int StartCalls = 0;
+
         public override void Start()
         {
             var callReference = new TestUtilities().Reference(this) + "Start";
@@ -342,14 +342,14 @@ namespace MaplestoryBotNetTests.ThreadingUtils
             StopCalls++;
         }
 
-        public int TickCalls = 0;
-        public List<EventHandler> TickCallArg_tickAction = [];
-        public override void Tick(EventHandler tickAction)
+        public int EventHandlerCalls = 0;
+        public List<EventHandler> EventHandlerCallArg_tickAction = [];
+        public override void EventHandler(EventHandler tickAction)
         {
             var callReference = new TestUtilities().Reference(this) + "Stop";
             CallOrder.Add(callReference);
-            TickCalls++;
-            TickCallArg_tickAction.Add(tickAction);
+            EventHandlerCalls++;
+            EventHandlerCallArg_tickAction.Add(tickAction);
         }
     }
 }
