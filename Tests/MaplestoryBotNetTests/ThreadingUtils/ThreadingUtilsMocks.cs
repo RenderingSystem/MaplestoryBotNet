@@ -320,4 +320,36 @@ namespace MaplestoryBotNetTests.ThreadingUtils
             KillCallArg_waitMilliseconds.Add(waitMilliseconds);
         }
     }
+
+
+    public class MockTimedDispatch : AbstractTimedDispatch
+    {
+        public List<string> CallOrder = [];
+
+        public int StartCalls = 0;
+        public override void Start()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Start";
+            CallOrder.Add(callReference);
+            StartCalls++;
+        }
+
+        public int StopCalls = 0;
+        public override void Stop()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Stop";
+            CallOrder.Add(callReference);
+            StopCalls++;
+        }
+
+        public int TickCalls = 0;
+        public List<EventHandler> TickCallArg_tickAction = [];
+        public override void Tick(EventHandler tickAction)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Stop";
+            CallOrder.Add(callReference);
+            TickCalls++;
+            TickCallArg_tickAction.Add(tickAction);
+        }
+    }
 }

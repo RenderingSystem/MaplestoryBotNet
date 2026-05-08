@@ -28,12 +28,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             {
                 "ailments": {
                     "seal": {
-                        "active": true,
-                        "active_delay": 123,
-                        "threshold": 234,
-                        "macro_commands": ["123", "234", "345"],
-                        "image": "Systems/Configuration/Tests/TestData/ConfigurationImagesTestData1.gif",
-                        "static_rect": [ 345, 456, 567, 678 ]
+                        "image_directory": "Systems/Configuration/Tests/TestData/testData1",
                     }
                 },
                 "map_icons": {
@@ -128,11 +123,13 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         {
             var deserializer = new ConfigurationImagesDeserializer(
                 new MaplestoryBotImageLoader(),
+                new DirectoryFiles(),
                 new MaplestoryBotConfigurationDeserializer()
             );
             var result = (ConfigurationImages)deserializer.Deserialize(_fixture());
             var expected = _expected();
-            _assertPixels(result.AilmentImages["seal"].Frames[0].PixelBuffer, expected["seal"]);
+            Debug.Assert(result.AilmentImages["seal"].Count == 1);
+            _assertPixels(result.AilmentImages["seal"][0].Frames[0].PixelBuffer, expected["seal"]);
             _assertPixels(result.MapIconImages["character"].Frames[0].PixelBuffer, expected["character"]);
             _assertPixels(result.MapIconImages["rune"].Frames[0].PixelBuffer, expected["rune"]);
         }

@@ -1,5 +1,6 @@
 ﻿using MaplestoryBotNet.Systems;
 using System.Diagnostics;
+using System.Windows.Threading;
 
 namespace MaplestoryBotNet.ThreadingUtils
 {
@@ -70,6 +71,16 @@ namespace MaplestoryBotNet.ThreadingUtils
     public abstract class AbstractProcessMonitor
     {
         public abstract List<AbstractProcess> Running(string processName);
+    }
+
+
+    public abstract class AbstractTimedDispatch
+    {
+        public abstract void Start();
+
+        public abstract void Stop();
+
+        public abstract void Tick(EventHandler tickAction);
     }
 
 
@@ -390,5 +401,30 @@ namespace MaplestoryBotNet.ThreadingUtils
             }
         }
     }
-}
 
+
+    public class TimedDispatch : AbstractTimedDispatch
+    {
+        private DispatcherTimer _dispatcherTimer;
+
+        public TimedDispatch(TimeSpan interval)
+        {
+            _dispatcherTimer = new DispatcherTimer { Interval = interval };
+        }
+
+        public override void Start()
+        {
+            _dispatcherTimer.Start();
+        }
+
+        public override void Stop()
+        {
+            _dispatcherTimer.Stop();
+        }
+
+        public override void Tick(EventHandler tickAction)
+        {
+            _dispatcherTimer.Tick += tickAction;
+        }
+    }
+}

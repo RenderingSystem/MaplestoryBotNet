@@ -135,7 +135,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
     }
 
 
-    public abstract class AbstractGameMinimapPositionProcessor
+    public abstract class AbstractScreenPositionProcessor
     {
         public abstract Tuple<int, int>? Process(
             AbstractBitmapTemplateMatcher templateMatcher,
@@ -147,7 +147,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
     }
 
 
-    public class GameMinimapPositionProcessor : AbstractGameMinimapPositionProcessor
+    public class ScreenPositionProcessor : AbstractScreenPositionProcessor
     {
         public override Tuple<int, int>? Process(
             AbstractBitmapTemplateMatcher templateMatcher,
@@ -182,11 +182,11 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
     {
         private AbstractTimestamp _timestamp;
 
-        private AbstractGameMinimapPositionProcessor _positionProcessor;
+        private AbstractScreenPositionProcessor _positionProcessor;
 
         public GameMinimapProcessHandler(
             AbstractTimestamp timestamp,
-            AbstractGameMinimapPositionProcessor positionProcessor
+            AbstractScreenPositionProcessor positionProcessor
         )
         {
             _timestamp = timestamp;
@@ -241,7 +241,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
 
         private AbstractBitmapTemplateMatcherBuilder _templateMatcherBuilder;
 
-        private AbstractGameMinimapPositionCropper _cropper;
+        private AbstractImageCropper _cropper;
 
         private AbstractGameMinimapProcessHandler _processHandler;
 
@@ -257,7 +257,7 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
             AbstractThreadRunningState runningState,
             AbstractBitmapTemplateMatcherBuilder templateMatcherBuilder,
             AbstractRectangleMerger matchMerger,
-            AbstractGameMinimapPositionCropper cropper,
+            AbstractImageCropper cropper,
             AbstractGameMinimapProcessHandler processHandler,
             AbstractResetEvent threadResetEvent,
             AbstractGameMinimapProcessorThreadStateUpdater<
@@ -314,11 +314,9 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                 && value is ConfigurationImages configurationImages
             )
             {
-                var character = configurationImages.MapIconImages[_imageKey];
-                var templateBitmap = _cropper.Crop(
-                    configurationImages.MapIconImages[_imageKey],
-                    new Rect(0, 0, character.Width, character.Height)
-                );
+                var template = configurationImages.MapIconImages[_imageKey];
+                var templateRect = new Rect(0, 0, template.Width, template.Height);
+                var templateBitmap = _cropper.Crop(template, templateRect);
                 var templateMatcher = (
                     _templateMatcherBuilder
                         .with_templates([templateBitmap])
@@ -401,8 +399,8 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                 new ThreadRunningState(),
                 new BitmapTemplateMatcherBuilder(),
                 new RectangleMerger(),
-                new GameMinimapPositionCropper(new ImageSharpConverter()),
-                new GameMinimapProcessHandler(new StopwatchTimestamp(), new GameMinimapPositionProcessor()),
+                new ImageCropper(new ImageSharpConverter()),
+                new GameMinimapProcessHandler(new StopwatchTimestamp(), new ScreenPositionProcessor()),
                 new ExecutionEvent(),
                 new GameMinimapProcessorThreadStateUpdater(),
                 MapIconInfo.Character
@@ -418,8 +416,8 @@ namespace MaplestoryBotNet.Systems.ScreenProcessing.SubSystems
                 new ThreadRunningState(),
                 new BitmapTemplateMatcherBuilder(),
                 new RectangleMerger(),
-                new GameMinimapPositionCropper(new ImageSharpConverter()),
-                new GameMinimapProcessHandler(new StopwatchTimestamp(), new GameMinimapPositionProcessor()),
+                new ImageCropper(new ImageSharpConverter()),
+                new GameMinimapProcessHandler(new StopwatchTimestamp(), new ScreenPositionProcessor()),
                 new ExecutionEvent(),
                 new GameMinimapProcessorThreadStateUpdater(),
                 MapIconInfo.Rune

@@ -48,33 +48,51 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
 
     public class Ailment : AbstractConfiguration
     {
+        [JsonPropertyName("image_directory")]
+        public string ImageDirectory { get; set; } = "";
+
         [JsonPropertyName("active")]
-        public bool Active { get; set; } = false;
+        public int Active { get; set; } = 0;
 
         [JsonPropertyName("active_delay")]
         public int ActiveDelay { get; set; } = 0;
 
+        [JsonPropertyName("check_delay")]
+        public int CheckDelay { get; set; } = 0;
+
         [JsonPropertyName("threshold")]
         public int Threshold { get; set; } = 0;
 
-        [JsonPropertyName("macro_commands")]
-        public string[] MacroCommands { get; set; } = [];
-
-        [JsonPropertyName("image")]
-        public string Image { get; set; } = "";
+        [JsonPropertyName("overlap")]
+        public double Overlap { get; set; } = 0;
 
         [JsonPropertyName("static_rect")]
-        public int[] StaticRect { get; set; } = [];
+        public List<int>? StaticRect { get; set; } = null;
+
+        [JsonPropertyName("all_cure")]
+        public int AllCure { get; set; } = 0;
+
+        [JsonPropertyName("arrow_keys")]
+        public int ArrowKeys { get; set; } = 0;
+
+        [JsonPropertyName("stop_bot")]
+        public int StopBot { get; set; } = 0;
 
         public override AbstractConfiguration Copy()
         {
-            var ailment = new Ailment();
-            ailment.Active = Active;
-            ailment.ActiveDelay = ActiveDelay;
-            ailment.Threshold = Threshold;
-            MacroCommands.CopyTo(ailment.MacroCommands, 0);
-            ailment.Image = new string(Image);
-            StaticRect.CopyTo(ailment.StaticRect, 0);
+            var ailment = new Ailment
+            {
+                ImageDirectory = new string(ImageDirectory),
+                Active = Active,
+                ActiveDelay = ActiveDelay,
+                CheckDelay = CheckDelay,
+                Threshold = Threshold,
+                Overlap = Overlap,
+                StaticRect = StaticRect == null ? null : [.. StaticRect],
+                AllCure = AllCure,
+                ArrowKeys = ArrowKeys,
+                StopBot = StopBot
+            };
             return ailment;
         }
     }

@@ -67,7 +67,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Update="Systems\Configuration\Tests\TestData\ConfigurationImagesTestData1.gif">
+    <None Update="Systems\Configuration\Tests\TestData\testData1\ConfigurationImagesTestData1.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Systems\Configuration\Tests\ConfigurationImagesTestData1.png">

@@ -144,6 +144,7 @@ namespace MaplestoryBotNet.Systems.Configuration
                         "Configuration.json",
                         new ConfigurationImagesDeserializer(
                             new MaplestoryBotImageLoader(),
+                            new DirectoryFiles(),
                             new MaplestoryBotConfigurationDeserializer()
                         ),
                         null

@@ -6,7 +6,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
 {
     public class ConfigurationImages : AbstractConfiguration
     {
-        public Dictionary<string, Image<Bgra32>> AilmentImages = [];
+        public Dictionary<string, List<Image<Bgra32>>> AilmentImages = [];
 
         public Dictionary<string, Image<Bgra32>> MapIconImages = [];
 
@@ -14,7 +14,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         {
             var configurationImages = new ConfigurationImages();
             foreach (var image in AilmentImages)
-                configurationImages.AilmentImages.Add(image.Key, image.Value);
+                configurationImages.AilmentImages.Add(image.Key, [.. image.Value]);
             foreach (var image in MapIconImages)
                 configurationImages.MapIconImages.Add(image.Key, image.Value);
             return configurationImages;
@@ -32,14 +32,18 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
     {
         private AbstractMaplestoryBotImageLoader _imageLoader;
 
+        private AbstractDirectoryFiles _directoryFiles;
+
         private AbstractMaplestoryBotConfigurationDeserializer _configurationDeserializer;
 
         public ConfigurationImagesDeserializer(
             AbstractMaplestoryBotImageLoader imageLoader,
+            AbstractDirectoryFiles directoryFiles,
             AbstractMaplestoryBotConfigurationDeserializer configurationDeserializer
         )
         {
             _imageLoader = imageLoader;
+            _directoryFiles = directoryFiles;
             _configurationDeserializer = configurationDeserializer;
         }
 
@@ -54,8 +58,14 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
             var configurationImages = new ConfigurationImages();
             foreach (var ailment in configuration.Ailments)
             {
-                var image = _imageLoader.LoadImage(ailment.Value.Image);
-                configurationImages.AilmentImages.Add(ailment.Key, image);
+                var images = new List<Image<Bgra32>>();
+                var imageFileNames =_directoryFiles.Files(ailment.Value.ImageDirectory, "");
+                foreach (var imageFileName in imageFileNames)
+                {
+                    var fullImageFilePath = ailment.Value.ImageDirectory + "/" + imageFileName;
+                    images.Add(_imageLoader.LoadImage(fullImageFilePath));
+                }
+                configurationImages.AilmentImages.Add(ailment.Key, images);
             }
             foreach (var mapIcon in configuration.MapIcons)
             {

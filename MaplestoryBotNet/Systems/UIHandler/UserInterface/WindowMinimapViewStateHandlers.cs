@@ -387,17 +387,17 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     }
 
 
-    public abstract class AbstractGameMinimapPositionCropper
+    public abstract class AbstractImageCropper
     {
         public abstract Bitmap Crop(Image<Bgra32> fullImage, Rect cropRect);
     }
 
 
-    public class GameMinimapPositionCropper : AbstractGameMinimapPositionCropper
+    public class ImageCropper : AbstractImageCropper
     {
         private AbstractImageSharpConverter _converter;
 
-        public GameMinimapPositionCropper(
+        public ImageCropper(
             AbstractImageSharpConverter converter
         )
         {
@@ -433,7 +433,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
     public class GameMinimapProcessingSubscriber : AbstractScreenCaptureSubscriber
     {
-        protected AbstractGameMinimapPositionCropper _cropper;
+        protected AbstractImageCropper _cropper;
 
         protected volatile AbstractBottingModel? __bottingModel;
 
@@ -461,7 +461,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         ) : base(semaphore)
         {
             _templateKey = templateKey;
-            _cropper = new GameMinimapPositionCropper(new ImageSharpConverter());
+            _cropper = new ImageCropper(new ImageSharpConverter());
             _bottingModel = null;
             _processorThread = null;
         }

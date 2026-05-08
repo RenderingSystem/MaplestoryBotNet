@@ -57,6 +57,7 @@ void UnitTestSuite()
     new WindowMinimapPositionHandlersTestSuite().Run();
     new WindowRuneingEditorHandlersTestSuite().Run();
     new WindowRuneSolverEditorHandlersTestSuite().Run();
+    new WindowAilmentsMenuHandlersTestSuite().Run();
 }
 
 

@@ -20,6 +20,8 @@ namespace MaplestoryBotNet
 
         RuneSolverWindow? _runeSolverWindow = null;
 
+        AilmentsWindow? _ailmentsWindow = null;
+
         MacroBottingWindow? _windowMacroBottingPopup = null;
 
         MacroRuneingWindow? _windowMacroRuneingPopup = null;
@@ -39,6 +41,7 @@ namespace MaplestoryBotNet
             _windowMacroBottingPopup = new MacroBottingWindow(_bottingEditMenuState);
             _windowMacroRuneingPopup = new MacroRuneingWindow(_runeingEditMenuState);
             _runeSolverWindow = new RuneSolverWindow();
+            _ailmentsWindow = new AilmentsWindow();
             _mainApplication = new MainApplicationFacade();
             _mapWindow = new MapWindow(_bottingEditMenuState, _runeingEditMenuState);
             _splashScreen = new SplashScreen(_mainApplication.System());
@@ -68,12 +71,14 @@ namespace MaplestoryBotNet
                 .. _windowMacroBottingPopup!.InstantiateActionHandlers(),
                 .. _windowMacroRuneingPopup!.InstantiateActionHandlers(),
                 .. _runeSolverWindow!.InstantiateActionHandlers(),
+                .. _ailmentsWindow!.InstantiateActionHandlers(),
                 .. _splashScreen!.InstantiateActionHandlers(
                     _mainWindow!.GetSystemWindow()
                 ),
                 .. _mainWindow!.InstantiateActionHandlers(
                     _mapWindow!.GetSystemWindow(),
-                    _runeSolverWindow.GetSystemWindow()
+                    _runeSolverWindow.GetSystemWindow(),
+                    _ailmentsWindow.GetSystemWindow()
                 ),
                 .. _mapWindow!.InstantiateActionHandlers(
                     _windowMacroBottingPopup.GetSystemWindow(),
@@ -89,6 +94,7 @@ namespace MaplestoryBotNet
                 _windowMacroBottingPopup!.GetSystemWindow(),
                 _windowMacroRuneingPopup!.GetSystemWindow(),
                 _runeSolverWindow!.GetSystemWindow(),
+                _ailmentsWindow!.GetSystemWindow(),
                 _mapWindow!.GetSystemWindow()
             ];
         }

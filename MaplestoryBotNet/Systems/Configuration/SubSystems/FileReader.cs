@@ -25,6 +25,12 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
     }
 
 
+    public abstract class AbstractDirectoryFiles
+    {
+        public abstract List<string> Files(string directory, string searchPattern);
+    }
+
+
     public class FileReader : AbstractFileReader
     {
         public override string ReadFile(string filePath)
@@ -39,6 +45,20 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         public override void SaveFile(string filePath, string content)
         {
             File.WriteAllText(filePath, content);
+        }
+    }
+
+
+    public class DirectoryFiles : AbstractDirectoryFiles
+    {
+        public override List<string> Files(
+            string directory, string searchPattern = ""
+        )
+        {
+            var files = Directory.GetFiles(directory, searchPattern).ToList();
+            files = files.Select(Path.GetFileName).ToList()!;
+            files = files.OrderBy(f => f).ToList();
+            return files;
         }
     }
 }

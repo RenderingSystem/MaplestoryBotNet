@@ -76,20 +76,28 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 },
                 "ailments": {
                     "seal": {
-                        "active": true,
-                        "active_delay": 123,
+                        "image_directory": "some_image_1",
+                        "active": 1,
+                        "active_delay": 345,
+                        "check_delay": 123,
                         "threshold": 234,
-                        "macro_commands": ["123", "234", "345"],
-                        "image": "some_image_1",
-                        "static_rect": [ 345, 456, 567, 678 ]
+                        "overlap": 0.123,
+                        "static_rect": [ 345, 456, 567, 678 ],
+                        "all_cure": 111,
+                        "arrow_keys": 222,
+                        "stop_bot": 333
                     },
                     "weakness": {
-                        "active": false,
-                        "active_delay": 234,
+                        "image_directory": "some_image_2",
+                        "active": 0,
+                        "active_delay": 456,
+                        "check_delay": 234,
                         "threshold": 345,
-                        "macro_commands": ["234", "345", "456"],
-                        "image": "some_image_2",
-                        "static_rect": [ 456, 567, 678, 789 ]
+                        "overlap": 0.234,
+                        "static_rect": [ 456, 567, 678, 789 ],
+                        "all_cure": 222,
+                        "arrow_keys": 333,
+                        "stop_bot": 444
                     }
                 },
                 "map_icons": {
@@ -197,18 +205,26 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         {
             var deserializer = new MaplestoryBotConfigurationDeserializer();
             var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
-            Debug.Assert(output.Ailments["seal"].Active == true);
-            Debug.Assert(output.Ailments["seal"].ActiveDelay == 123);
+            Debug.Assert(output.Ailments["seal"].Active == 1);
+            Debug.Assert(output.Ailments["seal"].ActiveDelay == 345);
+            Debug.Assert(output.Ailments["seal"].CheckDelay == 123);
             Debug.Assert(output.Ailments["seal"].Threshold == 234);
-            Debug.Assert(output.Ailments["seal"].MacroCommands.SequenceEqual(["123", "234", "345"]));
-            Debug.Assert(output.Ailments["seal"].Image == "some_image_1");
-            Debug.Assert(output.Ailments["seal"].StaticRect.SequenceEqual([345, 456, 567, 678]));
-            Debug.Assert(output.Ailments["weakness"].Active == false);
-            Debug.Assert(output.Ailments["weakness"].ActiveDelay == 234);
+            Debug.Assert(output.Ailments["seal"].ImageDirectory == "some_image_1");
+            Debug.Assert(output.Ailments["seal"].Overlap == 0.123);
+            Debug.Assert(output.Ailments["seal"].StaticRect!.SequenceEqual([345, 456, 567, 678]));
+            Debug.Assert(output.Ailments["seal"].AllCure == 111);
+            Debug.Assert(output.Ailments["seal"].ArrowKeys == 222);
+            Debug.Assert(output.Ailments["seal"].StopBot == 333);
+            Debug.Assert(output.Ailments["weakness"].Active == 0);
+            Debug.Assert(output.Ailments["weakness"].ActiveDelay == 456);
+            Debug.Assert(output.Ailments["weakness"].CheckDelay == 234);
             Debug.Assert(output.Ailments["weakness"].Threshold == 345);
-            Debug.Assert(output.Ailments["weakness"].MacroCommands.SequenceEqual(["234", "345", "456"]));
-            Debug.Assert(output.Ailments["weakness"].Image == "some_image_2");
-            Debug.Assert(output.Ailments["weakness"].StaticRect.SequenceEqual([456, 567, 678, 789]));
+            Debug.Assert(output.Ailments["weakness"].ImageDirectory == "some_image_2");
+            Debug.Assert(output.Ailments["weakness"].Overlap == 0.234);
+            Debug.Assert(output.Ailments["weakness"].StaticRect!.SequenceEqual([456, 567, 678, 789]));
+            Debug.Assert(output.Ailments["weakness"].AllCure == 222);
+            Debug.Assert(output.Ailments["weakness"].ArrowKeys == 333);
+            Debug.Assert(output.Ailments["weakness"].StopBot == 444);
             Debug.Assert(output.MacroKeySettings.AilmentsAllcureKey == "some_allcure_key");
         }
 
@@ -413,21 +429,30 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 Ailments={
                     ["seal"] = new Ailment
                     {
-                        Active=true,
+                        ImageDirectory = "some_image_1",
+                        Active=1,
                         ActiveDelay=123,
+                        CheckDelay=345,
                         Threshold=234,
-                        MacroCommands = ["123", "234", "345"],
-                        Image="some_image_1",
-                        StaticRect = [345, 456, 567, 678]
+                        Overlap=.123,
+                        StaticRect = [345, 456, 567, 678],
+                        AllCure = 111,
+                        ArrowKeys = 222,
+                        StopBot = 333
+
                     },
                     ["weakness"] = new Ailment
                     {
-                        Active=false,
+                        ImageDirectory="some_image_2",
+                        Active=0,
                         ActiveDelay=234,
+                        CheckDelay=456,
                         Threshold=345,
-                        MacroCommands = ["234", "345", "456"],
-                        Image="some_image_2",
-                        StaticRect = [456, 567, 678, 789]
+                        Overlap=.234,
+                        StaticRect = [456, 567, 678, 789],
+                        AllCure = 222,
+                        ArrowKeys = 333,
+                        StopBot = 444
                     }
                 },
                 MapIcons =
@@ -539,38 +564,38 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 },
                 "ailments": {
                     "seal": {
-                        "active": true,
+                        "image_directory": "some_image_1",
+                        "active": 1,
                         "active_delay": 123,
+                        "check_delay": 345,
                         "threshold": 234,
-                        "macro_commands": [
-                            "123",
-                            "234",
-                            "345"
-                        ],
-                        "image": "some_image_1",
+                        "overlap": 0.123,
                         "static_rect": [
                             345,
                             456,
                             567,
                             678
-                        ]
+                        ],
+                        "all_cure": 111,
+                        "arrow_keys": 222,
+                        "stop_bot": 333
                     },
                     "weakness": {
-                        "active": false,
+                        "image_directory": "some_image_2",
+                        "active": 0,
                         "active_delay": 234,
+                        "check_delay": 456,
                         "threshold": 345,
-                        "macro_commands": [
-                            "234",
-                            "345",
-                            "456"
-                        ],
-                        "image": "some_image_2",
+                        "overlap": 0.234,
                         "static_rect": [
                             456,
                             567,
                             678,
                             789
-                        ]
+                        ],
+                        "all_cure": 222,
+                        "arrow_keys": 333,
+                        "stop_bot": 444
                     }
                 },
                 "map_icons": {

@@ -22,10 +22,10 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
     public class GameMinimapProcessorTests
     {
         private MockBitmapTemplateMatcher _templateMatcher = new MockBitmapTemplateMatcher();
-        private AbstractGameMinimapPositionProcessor _fixture()
+        private AbstractScreenPositionProcessor _fixture()
         {
             _templateMatcher = new MockBitmapTemplateMatcher();
-            return new GameMinimapPositionProcessor();
+            return new ScreenPositionProcessor();
         }
 
         /**
@@ -161,7 +161,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests
                 _runningState,
                 new BitmapTemplateMatcherBuilder(),
                 new RectangleMerger(),
-                new GameMinimapPositionCropper(new ImageSharpConverter()),
+                new ImageCropper(new ImageSharpConverter()),
                 _processHandler,
                 _resetEvent,
                 mockUpdater ? _threadStateUpdater : new GameMinimapProcessorThreadStateUpdater(),

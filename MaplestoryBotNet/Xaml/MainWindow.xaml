@@ -25,10 +25,11 @@
             </MenuItem>
             <Separator/>
             <MenuItem Header="Edit">
-                <MenuItem Header="Ailments"/>
                 <MenuItem Header="Auto-potion"/>
+                <MenuItem Header="Consumables"/>
                 <MenuItem Header="Petfood"/>
                 <MenuItem Header="Skills"/>
+                <MenuItem x:Name="AilmentsMenuItem" Header="Ailments"/>
                 <MenuItem x:Name="RuneSolverMenuItem" Header="Rune solver"/>
             </MenuItem>
             <Separator/>

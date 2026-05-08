@@ -24,68 +24,77 @@
     },
     "ailments": {
         "seal": {
-            "active": true,
-            "active_delay": 0,
+            "image_directory": "images/ailments/silence",
+            "active": 1,
+            "active_delay": 100,
+            "check_delay": 100,
             "threshold": 800,
-            "macro_commands": [],
-            "image": "images/ailments/silence.gif",
-            "static_rect": [ 0, 0, 0, 0 ]
+            "overlap": 0.9,
+            "all_cure": 1
         },
         "weakness": {
-            "active": true,
-            "active_delay": 0,
+            "image_directory": "images/ailments/weakness",
+            "active": 1,
+            "active_delay": 100,
+            "check_delay": 100,
             "threshold": 800,
-            "macro_commands": [],
-            "image": "images/ailments/weakness.gif",
-            "static_rect": [ 0, 0, 0, 0 ]
+            "overlap": 0.9,
+            "all_cure": 1
         },
         "blind": {
-            "active": true,
-            "active_delay": 0,
+            "image_directory": "images/ailments/blind",
+            "active": 1,
+            "active_delay": 100,
+            "check_delay": 100,
             "threshold": 800,
-            "macro_commands": [],
-            "image": "images/ailments/blind.gif",
-            "static_rect": [ 0, 0, 0, 0 ]
+            "overlap": 0.9,
+            "all_cure": 1
         },
         "curse": {
-            "active": true,
-            "active_delay": 0,
+            "image_directory": "images/ailments/curse",
+            "active": 1,
+            "active_delay": 100,
+            "check_delay": 100,
             "threshold": 800,
-            "macro_commands": [],
-            "image": "images/ailments/curse.gif",
-            "static_rect": [ 0, 0, 0, 0 ]
+            "overlap": 0.9,
+            "all_cure": 1
         },
         "poison": {
-            "active": true,
-            "active_delay": 0,
+            "image_directory": "images/ailments/poison",
+            "active": 1,
+            "active_delay": 100,
+            "check_delay": 100,
             "threshold": 800,
-            "macro_commands": [],
-            "image": "images/ailments/poison.gif",
-            "static_rect": [ 0, 0, 0, 0 ]
+            "overlap": 0.9,
+            "all_cure": 1
         },
         "confusion": {
-            "active": true,
-            "active_delay": 4000,
+            "image_directory": "images/ailments/confusion",
+            "active": 1,
+            "check_delay": 100,
             "threshold": 800,
-            "macro_commands": [],
-            "image": "images/ailments/confusion.gif",
-            "static_rect": [ 0, 0, 0, 0 ]
+            "overlap": 0.9,
+            "all_cure": 1
         },
         "petrification": {
-            "active": true,
-            "active_delay": 4000,
+            "image_directory": "images/ailments/petrification",
+            "active": 1,
+            "active_delay": 100,
+            "check_delay": 100,
             "threshold": 800,
-            "macro_commands": [],
-            "image": "images/ailments/petrification.gif",
-            "static_rect": [ 0, 0, 0, 0 ]
+            "overlap": 0.9,
+            "all_cure": 0,
+            "arrow_keys": 1
         },
         "death": {
-            "active": true,
-            "active_delay": 0,
+            "image_directory": "images/ailments/death",
+            "active": 1,
+            "active_delay": 100,
+            "check_delay": 100,
             "threshold": 800,
-            "macro_commands": [],
-            "image": "images/ailments/death.gif",
-            "static_rect": [ 0, 0, 1280, 720 ]
+            "overlap": 0.9,
+            "static_rect": [ 0, 0, 1280, 720 ],
+            "stop_bot": 1
         }
     },
     "map_icons": {
@@ -108,7 +117,7 @@
         "check_frequency": 2.0,
         "solve_check_timeout": 3.0,
         "cash_shop_tolerance": 3,
-        "cash_shop_timeout": 60
+        "cash_shop_timeout": 15
     },
     "rune_detection": {
         "ip_address": "http://localhost",

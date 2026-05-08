@@ -120,7 +120,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests.Mocks
     }
 
 
-    public class MockGameMinimapPositionProcessor : AbstractGameMinimapPositionProcessor
+    public class MockGameMinimapPositionProcessor : AbstractScreenPositionProcessor
     {
         public List<string> CallOrder = [];
 
