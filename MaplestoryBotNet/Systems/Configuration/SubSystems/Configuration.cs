@@ -70,13 +70,13 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         public List<int>? StaticRect { get; set; } = null;
 
         [JsonPropertyName("all_cure")]
-        public int AllCure { get; set; } = 0;
+        public int? AllCure { get; set; } = null;
 
         [JsonPropertyName("arrow_keys")]
-        public int ArrowKeys { get; set; } = 0;
+        public int? ArrowKeys { get; set; } = null;
 
         [JsonPropertyName("stop_bot")]
-        public int StopBot { get; set; } = 0;
+        public int? StopBot { get; set; } = null;
 
         public override AbstractConfiguration Copy()
         {

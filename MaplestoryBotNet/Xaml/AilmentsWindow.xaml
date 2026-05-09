@@ -87,7 +87,7 @@
                 Orientation="Vertical"
                 Margin="165,30,10,14"
             >
-                <Grid Height="50">
+                <Grid x:Name="MacroDelayGrid" Height="50">
                     <Label
                         Content="Macro delay:"
                         FontFamily="Courier New"
@@ -106,7 +106,7 @@
                         TabIndex="5"
                         />
                 </Grid>
-                <Grid Height="50">
+                <Grid x:Name="CheckDelayGrid" Height="50">
                     <Label
                         Content="Check delay:"
                         FontFamily="Courier New"
@@ -125,7 +125,7 @@
                         TabIndex="5"
                     />
                 </Grid>
-                <Grid Height="50">
+                <Grid x:Name="DetectThresholdGrid" Height="50">
                     <Label
                         Content="Detect threshold:"
                         FontFamily="Courier New"
@@ -144,7 +144,7 @@
                         TabIndex="5"
                     />
                 </Grid>
-                <Grid Height="50">
+                <Grid x:Name="AllCureKeyGrid" Height="50">
                     <Label
                         Content="All-cure key:"
                         FontFamily="Courier New"
@@ -163,7 +163,7 @@
                         TabIndex="5"
                         />
                 </Grid>
-                <Grid Height="150">
+                <Grid x:Name="DetectRectangleGrid" Height="150">
                     <Label
                         Content="Detect rectangle:"
                         FontFamily="Courier New"

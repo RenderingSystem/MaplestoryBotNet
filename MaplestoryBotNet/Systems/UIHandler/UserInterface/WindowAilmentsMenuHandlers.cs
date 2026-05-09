@@ -48,7 +48,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 var checkBox = new CheckBox { IsChecked = ailment.Value.Active != 0 };
                 var tag = new ListBoxAilmentsDataTag
                 {
-                    Ailment = (Ailment)ailment.Value.Copy()
+                    Ailment = ailment.Value
                 };
                 var textBlock = new TextBlock
                 {
@@ -369,7 +369,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 _imageIndex = 0;
             }
-
         }
     }
 
@@ -404,7 +403,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _animationStopwatch = animationStopwatch;
             _animationSpeed = animationSpeed;
             _ailmentsListBox.SelectionChanged += OnEvent;
-            CompositionTarget.Rendering += OnEvent;
+            compositionEventHandler.EventHandler(OnEvent);
             ((Window)_ailmentsWindow.GetWindow()!).IsVisibleChanged += OnDependencyEvent;
         }
 
@@ -480,9 +479,710 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _animationActionHandler.OnEvent(sender, e);
         }
 
-        public override void OnDependencyEvent(object sender, DependencyPropertyChangedEventArgs e)
+        public override void OnDependencyEvent(
+            object sender, DependencyPropertyChangedEventArgs e
+        )
         {
             _animationActionHandler.OnDependencyEvent(sender, e);
+        }
+    }
+
+
+    public class WindowAilmentsSaveConfigurationModifier : AbstractWindowStateModifier
+    {
+        private TextBox _macroDelayTextBox;
+
+        private TextBox _checkDelayTextBox;
+
+        private TextBox _detectThresholdTextBox;
+
+        private TextBox _allCureKeyTextBox;
+
+        private TextBox _detectRectangleLeft;
+
+        private TextBox _detectRectangleTop;
+
+        private TextBox _detectRectangleRight;
+
+        private TextBox _detectRectangleBottom;
+
+        public WindowAilmentsSaveConfigurationModifier(
+            TextBox macroDelayTextBox,
+            TextBox checkDelayTextBox,
+            TextBox detectThresholdTextBox,
+            TextBox allCureKeyTextBox,
+            TextBox detectRectangleLeft,
+            TextBox detectRectangleTop,
+            TextBox detectRectangleRight,
+            TextBox detectRectangleBottom
+        )
+        {
+            _macroDelayTextBox = macroDelayTextBox;
+            _checkDelayTextBox = checkDelayTextBox;
+            _detectThresholdTextBox = detectThresholdTextBox;
+            _allCureKeyTextBox = allCureKeyTextBox;
+            _detectRectangleLeft = detectRectangleLeft;
+            _detectRectangleTop = detectRectangleTop;
+            _detectRectangleRight = detectRectangleRight;
+            _detectRectangleBottom = detectRectangleBottom;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value == null)
+            {
+                return;
+            }
+            dynamic parameters = value;
+            if (
+                parameters.Configuration is not MaplestoryBotConfiguration configuration ||
+                parameters.RemovedItem is not ListBoxItem listBoxItem
+            )
+            {
+                return;
+            }
+            var dataTag = (ListBoxAilmentsDataTag)listBoxItem.Tag;
+            dataTag.Ailment.ActiveDelay = int.TryParse(_macroDelayTextBox.Text, out int a) ? a : 0;
+            dataTag.Ailment.CheckDelay = int.TryParse(_checkDelayTextBox.Text, out int c) ? c : 0;
+            dataTag.Ailment.Threshold = int.TryParse(_detectThresholdTextBox.Text, out int th) ? th : 0;
+            configuration.MacroKeySettings.AilmentsAllcureKey = _allCureKeyTextBox.Text;
+            if (dataTag.Ailment.StaticRect != null)
+            {
+                dataTag.Ailment.StaticRect = [];
+                dataTag.Ailment.StaticRect.Add(int.TryParse(_detectRectangleLeft.Text, out int l) ? l : 0);
+                dataTag.Ailment.StaticRect.Add(int.TryParse(_detectRectangleTop.Text, out int t) ? t : 0);
+                dataTag.Ailment.StaticRect.Add(int.TryParse(_detectRectangleRight.Text, out int r) ? r : 0);
+                dataTag.Ailment.StaticRect.Add(int.TryParse(_detectRectangleBottom.Text, out int b) ? b : 0);
+            }
+        }
+    }
+
+
+    public class WindowAilmentsSaveConfigurationActionHandler : AbstractWindowActionHandler
+    {
+        private ListBox _ailmentsListBox;
+
+        private AbstractWindowStateModifier _ailmentsConfigurationModifier;
+
+        private AbstractConfiguration? _configuration;
+
+        public WindowAilmentsSaveConfigurationActionHandler(
+            ListBox ailmentsListBox,
+            AbstractWindowStateModifier ailmentsConfigurationModifier
+        )
+        {
+            _ailmentsListBox = ailmentsListBox;
+            _ailmentsConfigurationModifier = ailmentsConfigurationModifier;
+            _ailmentsListBox.SelectionChanged += OnEvent;
+            _configuration = null;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _ailmentsConfigurationModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (
+                e is SelectionChangedEventArgs selectionArgs &&
+                selectionArgs.RemovedItems.Count > 0
+            )
+            {
+                _ailmentsConfigurationModifier.Modify(
+                    new
+                    {
+                        Configuration = _configuration,
+                        RemovedItem = selectionArgs.RemovedItems[0]
+                    }
+                );
+            }
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (
+                dataType is SystemInjectType.ConfigurationUpdate &&
+                data is MaplestoryBotConfiguration configuration
+            )
+            {
+                _configuration = configuration;
+            }
+        }
+    }
+
+
+    public class WindowAilmentsSaveConfigurationActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _ailmentsConfigurationActionHandler;
+
+        public WindowAilmentsSaveConfigurationActionHandlerFacade(
+            TextBox macroDelayTextBox,
+            TextBox checkDelayTextBox,
+            TextBox detectThresholdTextBox,
+            TextBox allCureKeyTextBox,
+            TextBox detectRectangleLeft,
+            TextBox detectRectangleTop,
+            TextBox detectRectangleRight,
+            TextBox detectRectangleBottom,
+            ListBox ailmentsListBox
+        )
+        {
+            _ailmentsConfigurationActionHandler = (
+                new WindowAilmentsSaveConfigurationActionHandler(
+                    ailmentsListBox,
+                    new WindowAilmentsSaveConfigurationModifier(
+                        macroDelayTextBox,
+                        checkDelayTextBox,
+                        detectThresholdTextBox,
+                        allCureKeyTextBox,
+                        detectRectangleLeft,
+                        detectRectangleTop,
+                        detectRectangleRight,
+                        detectRectangleBottom
+                    )
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _ailmentsConfigurationActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _ailmentsConfigurationActionHandler.OnEvent(sender, e);
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _ailmentsConfigurationActionHandler.Inject(dataType, data);
+        }
+    }
+
+
+    public class WindowAilmentsLoadConfigurationModifier : AbstractWindowStateModifier
+    {
+        private TextBox _macroDelayTextBox;
+
+        private TextBox _checkDelayTextBox;
+
+        private TextBox _detectThresholdTextBox;
+
+        private TextBox _allCureKeyTextBox;
+
+        private TextBox _detectRectangleLeft;
+
+        private TextBox _detectRectangleTop;
+
+        private TextBox _detectRectangleRight;
+
+        private TextBox _detectRectangleBottom;
+        public WindowAilmentsLoadConfigurationModifier(
+            TextBox macroDelayTextBox,
+            TextBox checkDelayTextBox,
+            TextBox detectThresholdTextBox,
+            TextBox allCureKeyTextBox,
+            TextBox detectRectangleLeft,
+            TextBox detectRectangleTop,
+            TextBox detectRectangleRight,
+            TextBox detectRectangleBottom
+        )
+        {
+            _macroDelayTextBox = macroDelayTextBox;
+            _checkDelayTextBox = checkDelayTextBox;
+            _detectThresholdTextBox = detectThresholdTextBox;
+            _allCureKeyTextBox = allCureKeyTextBox;
+            _detectRectangleLeft = detectRectangleLeft;
+            _detectRectangleTop = detectRectangleTop;
+            _detectRectangleRight = detectRectangleRight;
+            _detectRectangleBottom = detectRectangleBottom;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value == null)
+            {
+                return;
+            }
+            dynamic parameters = value;
+            if (
+                parameters?.Configuration is not MaplestoryBotConfiguration configuration ||
+                parameters?.AddedItem is not ListBoxItem listBoxItem
+            )
+            {
+                return;
+            }
+            var dataTag = (ListBoxAilmentsDataTag)listBoxItem.Tag;
+            var stackPanel = (StackPanel)listBoxItem.Content;
+            _macroDelayTextBox.Text = dataTag.Ailment.ActiveDelay.ToString();
+            _checkDelayTextBox.Text = dataTag.Ailment.CheckDelay.ToString();
+            _detectThresholdTextBox.Text = dataTag.Ailment.Threshold.ToString();
+            _allCureKeyTextBox.Text = configuration.MacroKeySettings.AilmentsAllcureKey;
+            _detectRectangleLeft.Text = (
+                dataTag.Ailment.StaticRect?.Count >= 1 ?
+                dataTag.Ailment.StaticRect[0].ToString() : ""
+            );
+            _detectRectangleTop.Text = (
+                dataTag.Ailment.StaticRect?.Count >= 2 ?
+                dataTag.Ailment.StaticRect[1].ToString() : ""
+            );
+            _detectRectangleRight.Text = (
+                dataTag.Ailment.StaticRect?.Count >= 3 ?
+                dataTag.Ailment.StaticRect[2].ToString() : ""
+            );
+            _detectRectangleBottom.Text = (
+                dataTag.Ailment.StaticRect?.Count >= 4 ?
+                dataTag.Ailment.StaticRect[3].ToString() : ""
+            );
+        }
+    }
+
+
+    public class WindowAilmentsLoadConfigurationActionHandler : AbstractWindowActionHandler
+    {
+        private ListBox _ailmentsListBox;
+
+        private AbstractWindowStateModifier _ailmentsLoadConfigurationModifier;
+
+        private AbstractConfiguration? _configuration;
+
+        public WindowAilmentsLoadConfigurationActionHandler(
+            ListBox ailmentsListBox,
+            AbstractWindowStateModifier ailmentsLoadConfigurationModifier
+        )
+        {
+            _ailmentsListBox = ailmentsListBox;
+            _ailmentsLoadConfigurationModifier = ailmentsLoadConfigurationModifier;
+            _ailmentsListBox.SelectionChanged += OnEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _ailmentsLoadConfigurationModifier;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (
+                dataType is SystemInjectType.ConfigurationUpdate &&
+                data is MaplestoryBotConfiguration configuration
+            )
+            {
+                _configuration = configuration;
+            }
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (
+                e is SelectionChangedEventArgs selectionArgs &&
+                selectionArgs.AddedItems.Count > 0
+            )
+            {
+                _ailmentsLoadConfigurationModifier.Modify(
+                    new
+                    {
+                        Configuration = _configuration,
+                        AddedItem = selectionArgs.AddedItems[0]
+                    }
+                );
+            }
+        }
+    }
+
+
+    public class WindowAilmentsLoadConfigurationActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _ailmentsLoadConfigurationActionHandler;
+
+        public WindowAilmentsLoadConfigurationActionHandlerFacade(
+            TextBox macroDelayTextBox,
+            TextBox checkDelayTextBox,
+            TextBox detectThresholdTextBox,
+            TextBox allCureKeyTextBox,
+            TextBox detectRectangleLeft,
+            TextBox detectRectangleTop,
+            TextBox detectRectangleRight,
+            TextBox detectRectangleBottom,
+            ListBox ailmentsListBox
+        )
+        {
+            _ailmentsLoadConfigurationActionHandler = (
+                new WindowAilmentsLoadConfigurationActionHandler(
+                    ailmentsListBox,
+                    new WindowAilmentsLoadConfigurationModifier(
+                        macroDelayTextBox,
+                        checkDelayTextBox,
+                        detectThresholdTextBox,
+                        allCureKeyTextBox,
+                        detectRectangleLeft,
+                        detectRectangleTop,
+                        detectRectangleRight,
+                        detectRectangleBottom
+                    )
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _ailmentsLoadConfigurationActionHandler.Modifier();
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _ailmentsLoadConfigurationActionHandler.Inject(dataType, data);
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _ailmentsLoadConfigurationActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowAilmentsCollapseModifier : AbstractWindowStateModifier
+    {
+        private Grid _macroDelayGrid;
+
+        private Grid _checkDelayGrid;
+
+        private Grid _detectThresholdGrid;
+
+        private Grid _allCureKeyGrid;
+
+        private Grid _detectRectangleGrid;
+
+        public WindowAilmentsCollapseModifier(
+            Grid macroDelayGrid,
+            Grid checkDelayGrid,
+            Grid detectThresholdGrid,
+            Grid allCureKeyGrid,
+            Grid detectRectangleGrid
+            
+        )
+        {
+            _macroDelayGrid = macroDelayGrid;
+            _checkDelayGrid = checkDelayGrid;
+            _detectThresholdGrid = detectThresholdGrid;
+            _allCureKeyGrid = allCureKeyGrid;
+            _detectRectangleGrid = detectRectangleGrid;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is not ListBoxItem listBoxItem)
+            {
+                return;
+            }
+            var dataTag = (ListBoxAilmentsDataTag)listBoxItem.Tag;
+            var ailment = dataTag.Ailment;
+            _macroDelayGrid.Visibility = Visibility.Visible;
+            _checkDelayGrid.Visibility = Visibility.Visible;
+            _detectThresholdGrid.Visibility = Visibility.Visible;
+            if (ailment.StopBot != null && ailment.StopBot != 0)
+            {
+                _allCureKeyGrid.Visibility = Visibility.Collapsed;
+                _detectRectangleGrid.Visibility = Visibility.Visible;
+            }
+            else if (ailment.ArrowKeys != null && ailment.ArrowKeys != 0)
+            {
+                _allCureKeyGrid.Visibility = Visibility.Collapsed;
+                _detectRectangleGrid.Visibility = Visibility.Collapsed;
+            }
+            else if (ailment.AllCure != null && ailment.AllCure != 0)
+            {
+                _allCureKeyGrid.Visibility = Visibility.Visible;
+                _detectRectangleGrid.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                _allCureKeyGrid.Visibility = Visibility.Visible;
+                _detectRectangleGrid.Visibility = Visibility.Visible;
+            }
+        }
+    }
+
+
+    public class WindowAilmentsCollapseActionHandler : AbstractWindowActionHandler
+    {
+        private ListBox _ailmentsListBox;
+
+        private AbstractWindowStateModifier _ailmentsCollapseModifier;
+
+        public WindowAilmentsCollapseActionHandler(
+            ListBox ailmentsListBox,
+            AbstractWindowStateModifier ailmentsCollapseModifier
+        )
+        {
+            _ailmentsListBox = ailmentsListBox;
+            _ailmentsCollapseModifier = ailmentsCollapseModifier;
+            _ailmentsListBox.SelectionChanged += OnEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _ailmentsCollapseModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            if (
+                e is SelectionChangedEventArgs selectionArgs &&
+                selectionArgs.AddedItems.Count > 0
+            )
+            {
+                _ailmentsCollapseModifier.Modify(selectionArgs.AddedItems[0]);
+            }
+        }
+    }
+
+
+    public class WindowAilmentsCollapseActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _ailmentsCollapseActionHandler;
+
+        public WindowAilmentsCollapseActionHandlerFacade(
+            Grid macroDelayGrid,
+            Grid checkDelayGrid,
+            Grid detectThresholdGrid,
+            Grid allCureKeyGrid,
+            Grid detectRectangleGrid,
+            ListBox ailmentsListBox
+        )
+        {
+            _ailmentsCollapseActionHandler = new WindowAilmentsCollapseActionHandler(
+                ailmentsListBox,
+                new WindowAilmentsCollapseModifier(
+                    macroDelayGrid,
+                    checkDelayGrid,
+                    detectThresholdGrid,
+                    allCureKeyGrid,
+                    detectRectangleGrid
+                )
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _ailmentsCollapseActionHandler.Modifier();
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _ailmentsCollapseActionHandler.OnEvent(sender, e);
+        }
+    }
+
+
+    public class WindowAilmentsSaveModifier : AbstractWindowStateModifier
+    {
+
+        public override void Modify(object? value)
+        {
+            if (value == null)
+            {
+                return;
+            }
+            dynamic parameters = value;
+            if (
+                parameters.InjectAction is AbstractInjectAction injectAction
+                && parameters.Configuration is MaplestoryBotConfiguration configuration
+            )
+            {
+                var action = injectAction.GetAction();
+                action(SystemInjectType.ConfigurationUpdate, configuration);
+                action(SystemInjectType.ConfigurationSave, configuration);
+            }
+        }
+    }
+
+
+    public class WindowAilmentsSaveActionHandler : AbstractWindowActionHandler
+    {
+        private ListBox _ailmentsListBox;
+
+        private AbstractSystemWindow _ailmentsWindow;
+
+        private AbstractWindowStateModifier _ailmentsSaveModifier;
+
+        private AbstractInjectAction? _injectAction;
+
+        private AbstractConfiguration? _maplestoryBotConfiguration;
+
+        public WindowAilmentsSaveActionHandler(
+            ListBox ailmentsListBox,
+            AbstractSystemWindow ailmentsWindow,
+            AbstractWindowStateModifier ailmentsSaveModifier
+        )
+        {
+            _ailmentsListBox = ailmentsListBox;
+            _ailmentsWindow = ailmentsWindow;
+            _ailmentsSaveModifier = ailmentsSaveModifier;
+            _injectAction = null;
+            _maplestoryBotConfiguration = null;
+            ((Window)_ailmentsWindow.GetWindow()!).IsVisibleChanged += OnDependencyEvent;
+        }
+
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _ailmentsSaveModifier;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (
+                dataType is SystemInjectType.ConfigurationUpdate &&
+                data is MaplestoryBotConfiguration maplestoryBotConfiguration
+            )
+            {
+                _maplestoryBotConfiguration = maplestoryBotConfiguration;
+            }
+            if (
+                dataType is SystemInjectType.InjectAction
+                && data is AbstractInjectAction injectAction
+            )
+            {
+                _injectAction = injectAction;
+            }
+        }
+
+        public override void OnDependencyEvent(
+            object sender, DependencyPropertyChangedEventArgs e
+        )
+        {
+            if (!_ailmentsWindow.Visible())
+            {
+                _ailmentsListBox.SelectedIndex = -1;
+                _ailmentsSaveModifier.Modify(
+                    new
+                    {
+                        Configuration = _maplestoryBotConfiguration,
+                        InjectAction = _injectAction
+                    }
+                );
+            }
+        }
+    }
+
+
+    public class WindowAilmentsSaveActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _ailmentsSaveActionHandler;
+
+        public WindowAilmentsSaveActionHandlerFacade(
+            ListBox ailmentsListBox,
+            AbstractSystemWindow ailmentsWindow
+        )
+        {
+            _ailmentsSaveActionHandler = new WindowAilmentsSaveActionHandler(
+                ailmentsListBox,
+                ailmentsWindow,
+                new WindowAilmentsSaveModifier()
+            );
+        }
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _ailmentsSaveActionHandler.Modifier();
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _ailmentsSaveActionHandler.Inject(dataType, data);
+        }
+
+        public override void OnDependencyEvent(
+            object sender, DependencyPropertyChangedEventArgs e
+        )
+        {
+            _ailmentsSaveActionHandler.OnDependencyEvent(sender, e);
+        }
+    }
+
+
+    public class WindowAilmentsSaveCheckboxModifier : AbstractWindowStateModifier
+    {
+        private ListBox _ailmentsListBox;
+
+        public WindowAilmentsSaveCheckboxModifier(ListBox ailmentsListBox)
+        {
+            _ailmentsListBox = ailmentsListBox;
+        }
+
+        public override void Modify(object? value)
+        {
+            foreach (ListBoxItem listBoxItem in _ailmentsListBox.Items)
+            {
+                var stackPanel = (StackPanel)listBoxItem.Content;
+                var tag = (ListBoxAilmentsDataTag)listBoxItem.Tag;
+                var checkBox = stackPanel.Children.OfType<CheckBox>().First()!;
+                tag.Ailment.Active = (bool)checkBox.IsChecked! ? 1 : 0;
+            }
+        }
+    }
+
+
+    public class WindowAilmentsSaveCheckboxActionHandler : AbstractWindowActionHandler
+    {
+        private AbstractSystemWindow _ailmentsWindow;
+
+        private AbstractWindowStateModifier _ailmentsSaveCheckboxModifier;
+
+        public WindowAilmentsSaveCheckboxActionHandler(
+            AbstractSystemWindow ailmentsWindow,
+            AbstractWindowStateModifier ailmentsSaveCheckboxModifier
+        )
+        {
+            _ailmentsWindow = ailmentsWindow;
+            _ailmentsSaveCheckboxModifier = ailmentsSaveCheckboxModifier;
+            ((Window)_ailmentsWindow.GetWindow()!).IsVisibleChanged += OnDependencyEvent;
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _ailmentsSaveCheckboxModifier;
+        }
+
+        public override void OnDependencyEvent(
+            object sender, DependencyPropertyChangedEventArgs e
+        )
+        {
+            if (!_ailmentsWindow.Visible())
+            {
+                _ailmentsSaveCheckboxModifier.Modify(null);
+            }
+        }
+    }
+
+
+    public class WindowAilmentsSaveCheckboxActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _ailmentsSaveCheckboxActionHandler;
+
+        public WindowAilmentsSaveCheckboxActionHandlerFacade(
+            ListBox ailmentsListBox,
+            AbstractSystemWindow ailmentsWindow
+        )
+        {
+            _ailmentsSaveCheckboxActionHandler = new WindowAilmentsSaveCheckboxActionHandler(
+                ailmentsWindow,
+                new WindowAilmentsSaveCheckboxModifier(ailmentsListBox)
+            );
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _ailmentsSaveCheckboxActionHandler.Modifier();
+        }
+
+        public override void OnDependencyEvent(
+            object sender, DependencyPropertyChangedEventArgs e
+        )
+        {
+            _ailmentsSaveCheckboxActionHandler.OnDependencyEvent(sender, e);
         }
     }
 }

@@ -703,6 +703,620 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    public class WindowAilmentsSaveConfigurationActionHandlerTests
+    {
+        private TextBox _macroDelayTextBox = new TextBox();
+
+        private TextBox _checkDelayTextBox = new TextBox();
+
+        private TextBox _detectThresholdTextBox = new TextBox();
+
+        private TextBox _allCureKeyTextBox = new TextBox();
+
+        private TextBox _detectRectangleLeft = new TextBox();
+
+        private TextBox _detectRectangleTop = new TextBox();
+
+        private TextBox _detectRectangleRight = new TextBox();
+
+        private TextBox _detectRectangleBottom = new TextBox();
+
+        private ListBox _ailmentsListBox = new ListBox();
+
+        private MaplestoryBotConfiguration _maplestoryBotConfiguration = new MaplestoryBotConfiguration();
+
+        private List<ListBoxAilmentsDataTag> _dataTags = [];
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _macroDelayTextBox = new TextBox();
+            _checkDelayTextBox = new TextBox();
+            _detectThresholdTextBox = new TextBox();
+            _allCureKeyTextBox = new TextBox();
+            _detectRectangleLeft = new TextBox();
+            _detectRectangleTop = new TextBox();
+            _detectRectangleRight = new TextBox();
+            _detectRectangleBottom = new TextBox();
+            _ailmentsListBox = new ListBox();
+            _maplestoryBotConfiguration = new MaplestoryBotConfiguration();
+            var handler = new WindowAilmentsSaveConfigurationActionHandlerFacade(
+                _macroDelayTextBox,
+                _checkDelayTextBox,
+                _detectThresholdTextBox,
+                _allCureKeyTextBox,
+                _detectRectangleLeft,
+                _detectRectangleTop,
+                _detectRectangleRight,
+                _detectRectangleBottom,
+                _ailmentsListBox
+            );
+            handler.Inject(
+                SystemInjectType.ConfigurationUpdate,
+                _maplestoryBotConfiguration
+            );
+            _dataTags = [
+                new ListBoxAilmentsDataTag{ Ailment = new Ailment{ StaticRect = [] } },
+                new ListBoxAilmentsDataTag{ Ailment = new Ailment{ StaticRect = [] } },
+                new ListBoxAilmentsDataTag{ Ailment = new Ailment{ StaticRect = null } }
+            ];
+            _ailmentsListBox.Items.Add(new ListBoxItem { Tag = _dataTags[0] });
+            _ailmentsListBox.Items.Add(new ListBoxItem { Tag = _dataTags[1] });
+            _ailmentsListBox.Items.Add(new ListBoxItem { Tag = _dataTags[2] });
+            return handler;
+        }
+
+        /**
+         * @brief Verifies that when the user deselects an ailment (either by selecting
+         * a different ailment or clearing the selection), the current UI values are
+         * saved to that ailment's configuration data and global settings
+         * 
+         * When users edit an ailment's settings (active delay, check delay, threshold,
+         * all-cure key, and detection rectangle) and then move to a different ailment or
+         * deselect entirely, the system must persist those changes to the corresponding
+         * ailment data tag. This ensures configuration changes are not lost when
+         * navigating between ailments.
+         */
+        private void _testDeselectingAilmentSavesConfiguration()
+        {
+            dynamic testData = new[]
+            {
+                new
+                {
+                    ActiveDelay = 12,
+                    CheckDelay = 23,
+                    Threshold = 34,
+                    AilmentsAllCureKey = "A",
+                    StaticRect = new[] {45, 56, 67, 78},
+                },
+                new
+                {
+                    ActiveDelay = 23,
+                    CheckDelay = 34,
+                    Threshold = 45,
+                    AilmentsAllCureKey = "B",
+                    StaticRect = new[] {56, 67, 78, 89},
+                },
+                new
+                {
+                    ActiveDelay = 12,
+                    CheckDelay = 23,
+                    Threshold = 34,
+                    AilmentsAllCureKey = "C",
+                    StaticRect = new[] {67, 78, 89, 90},
+                }
+            };
+            var handler = _fixture();
+            _ailmentsListBox.SelectedIndex = 0;
+            for (int i = 0; i < testData.Length; i++)
+            {
+                _macroDelayTextBox.Text = testData[i].ActiveDelay.ToString();
+                _checkDelayTextBox.Text = testData[i].CheckDelay.ToString();
+                _detectThresholdTextBox.Text = testData[i].Threshold.ToString();
+                _allCureKeyTextBox.Text = testData[i].AilmentsAllCureKey;
+                _detectRectangleLeft.Text = testData[i].StaticRect[0].ToString();
+                _detectRectangleTop.Text = testData[i].StaticRect[1].ToString();
+                _detectRectangleRight.Text = testData[i].StaticRect[2].ToString();
+                _detectRectangleBottom.Text = testData[i].StaticRect[3].ToString();
+                var index = (i + 1 == testData.Length) ? -1 : i + 1;
+                var ailment = _dataTags[i].Ailment;
+                var keySettings = _maplestoryBotConfiguration.MacroKeySettings;
+                _ailmentsListBox.SelectedIndex = index;
+                Debug.Assert(ailment.ActiveDelay == (int)testData[i].ActiveDelay);
+                Debug.Assert(ailment.CheckDelay == (int)testData[i].CheckDelay);
+                Debug.Assert(ailment.Threshold == (int)testData[i].Threshold);
+                Debug.Assert(keySettings.AilmentsAllcureKey == (string)testData[i].AilmentsAllCureKey);
+                for (int j = 0; j < 4; j++)
+                {
+                    Debug.Assert(
+                        index == -1 ?
+                        ailment.StaticRect == null :
+                        ailment.StaticRect![j] == (int)testData[i].StaticRect[j]
+                    );
+                }
+            }
+        }
+
+        public void Run()
+        {
+            _testDeselectingAilmentSavesConfiguration();
+        }
+    }
+
+
+    public class WindowAilmentsLoadConfigurationActionHandlerTests
+    {
+        private TextBox _macroDelayTextBox = new TextBox();
+
+        private TextBox _checkDelayTextBox = new TextBox();
+
+        private TextBox _detectThresholdTextBox = new TextBox();
+
+        private TextBox _allCureKeyTextBox = new TextBox();
+
+        private TextBox _detectRectangleLeft = new TextBox();
+
+        private TextBox _detectRectangleTop = new TextBox();
+
+        private TextBox _detectRectangleRight = new TextBox();
+
+        private TextBox _detectRectangleBottom = new TextBox();
+
+        private ListBox _ailmentsListBox = new ListBox();
+
+        private MaplestoryBotConfiguration _maplestoryBotConfiguration = (
+            new MaplestoryBotConfiguration()
+        );
+
+        private List<ListBoxAilmentsDataTag> _dataTags = [];
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _macroDelayTextBox = new TextBox();
+            _checkDelayTextBox = new TextBox();
+            _detectThresholdTextBox = new TextBox();
+            _allCureKeyTextBox = new TextBox();
+            _detectRectangleLeft = new TextBox();
+            _detectRectangleTop = new TextBox();
+            _detectRectangleRight = new TextBox();
+            _detectRectangleBottom = new TextBox();
+            _ailmentsListBox = new ListBox();
+            _maplestoryBotConfiguration = new MaplestoryBotConfiguration
+            {
+                MacroKeySettings = new MacroKeySettings
+                {
+                    AilmentsAllcureKey = "meow"
+                }
+            };
+            var handler = (
+                new WindowAilmentsLoadConfigurationActionHandlerFacade(
+                    _macroDelayTextBox,
+                    _checkDelayTextBox,
+                    _detectThresholdTextBox,
+                    _allCureKeyTextBox,
+                    _detectRectangleLeft,
+                    _detectRectangleTop,
+                    _detectRectangleRight,
+                    _detectRectangleBottom,
+                    _ailmentsListBox
+                )
+            );
+            handler.Inject(
+                SystemInjectType.ConfigurationUpdate,
+                _maplestoryBotConfiguration
+            );
+            _dataTags = [
+                new ListBoxAilmentsDataTag
+                {
+                    Ailment = new Ailment
+                    {
+                        ActiveDelay = 123,
+                        CheckDelay = 234,
+                        Threshold = 345,
+                        StaticRect = [12, 23, 34, 45]
+                    }
+                },
+                new ListBoxAilmentsDataTag
+                {
+                    Ailment = new Ailment
+                    {
+                        ActiveDelay = 234,
+                        CheckDelay = 345,
+                        Threshold = 456,
+                        StaticRect = [23, 34, 45, 56]
+                    }
+                },
+                new ListBoxAilmentsDataTag
+                {
+                    Ailment = new Ailment
+                    {
+                        ActiveDelay = 345,
+                        CheckDelay = 456,
+                        Threshold = 567,
+                        StaticRect = null
+                    }
+                }
+            ];
+            _ailmentsListBox.Items.Add(new ListBoxItem { Tag = _dataTags[0] });
+            _ailmentsListBox.Items.Add(new ListBoxItem { Tag = _dataTags[1] });
+            _ailmentsListBox.Items.Add(new ListBoxItem { Tag = _dataTags[2] });
+            return handler;
+        }
+
+        /**
+         * @brief Verifies that when the user selects an ailment from the list box, the
+         * UI text boxes are populated with that ailment's saved configuration values
+         * 
+         * When users click on a status ailment in the ailments list, the system must
+         * load that ailment's settings (active delay, check delay, detection threshold,
+         * and detection rectangle coordinates) into the corresponding input fields.
+         * Global settings like the all-cure key are also loaded from the botting model
+         * configuration. This allows users to view and edit the configuration for each
+         * ailment individually. If an ailment has no valid detection rectangle (StaticRect
+         * is null), the rectangle coordinate fields should be cleared.
+         */
+        private void _testSelectingAilmentLoadsConfiguration()
+        {
+            var handler = _fixture();
+            _ailmentsListBox.SelectedIndex = 0;
+            for (int i = 0; i < _ailmentsListBox.Items.Count; i++)
+            {
+                _ailmentsListBox.SelectedIndex = i;
+                var ailment = _dataTags[i].Ailment;
+                Debug.Assert(_macroDelayTextBox.Text == ailment.ActiveDelay.ToString());
+                Debug.Assert(_checkDelayTextBox.Text == ailment.CheckDelay.ToString());
+                Debug.Assert(_detectThresholdTextBox.Text == ailment.Threshold.ToString());
+                Debug.Assert(_allCureKeyTextBox.Text == "meow");
+                if (i != 2)
+                {
+                    Debug.Assert(_detectRectangleLeft.Text == ailment.StaticRect![0].ToString());
+                    Debug.Assert(_detectRectangleTop.Text == ailment.StaticRect[1].ToString());
+                    Debug.Assert(_detectRectangleRight.Text == ailment.StaticRect[2].ToString());
+                    Debug.Assert(_detectRectangleBottom.Text == ailment.StaticRect[3].ToString());
+                }
+                else
+                {
+                    Debug.Assert(_detectRectangleLeft.Text == "");
+                    Debug.Assert(_detectRectangleTop.Text == "");
+                    Debug.Assert(_detectRectangleRight.Text == "");
+                    Debug.Assert(_detectRectangleBottom.Text == "");
+                }
+            }
+        }
+
+        public void Run()
+        {
+            _testSelectingAilmentLoadsConfiguration();
+        }
+    }
+
+
+    public class WindowAilmentsCollapseActionHandlerTests
+    {
+        private Grid _macroDelayGrid = new Grid();
+
+        private Grid _checkDelayGrid = new Grid();
+
+        private Grid _detectThresholdGrid = new Grid();
+
+        private Grid _allCureKeyGrid = new Grid();
+
+        private Grid _detectRectangleGrid = new Grid();
+
+        private ListBox _ailmentsListBox = new ListBox();
+
+        private List<ListBoxItem> _listBoxItems()
+        {
+            return [
+                new ListBoxItem
+                {
+                    Tag = new ListBoxAilmentsDataTag
+                    {
+                        Ailment = new Ailment { StopBot = 123 }
+                    }
+                },
+                new ListBoxItem
+                {
+                    Tag = new ListBoxAilmentsDataTag
+                    {
+                        Ailment = new Ailment { ArrowKeys = 123 }
+                    }
+                },
+                new ListBoxItem
+                {
+                    Tag = new ListBoxAilmentsDataTag
+                    {
+                        Ailment = new Ailment { AllCure = 123 }
+                    }
+                },
+                new ListBoxItem
+                {
+                    Tag = new ListBoxAilmentsDataTag()
+                }
+            ];
+        }
+
+        private List<dynamic> _expecteds()
+        {
+            return [
+                new
+                {
+                    MacroDelayGrid = Visibility.Visible,
+                    CheckDelayGrid = Visibility.Visible,
+                    DetectThresholdGrid = Visibility.Visible,
+                    AllCureKeyGrid = Visibility.Collapsed,
+                    DetectRectangleGrid = Visibility.Visible
+                },
+                new
+                {
+                    MacroDelayGrid = Visibility.Visible,
+                    CheckDelayGrid = Visibility.Visible,
+                    DetectThresholdGrid = Visibility.Visible,
+                    AllCureKeyGrid = Visibility.Collapsed,
+                    DetectRectangleGrid = Visibility.Collapsed
+                },
+                new
+                {
+                    MacroDelayGrid = Visibility.Visible,
+                    CheckDelayGrid = Visibility.Visible,
+                    DetectThresholdGrid = Visibility.Visible,
+                    AllCureKeyGrid = Visibility.Visible,
+                    DetectRectangleGrid = Visibility.Collapsed
+                },
+                new
+                {
+                    MacroDelayGrid = Visibility.Visible,
+                    CheckDelayGrid = Visibility.Visible,
+                    DetectThresholdGrid = Visibility.Visible,
+                    AllCureKeyGrid = Visibility.Visible,
+                    DetectRectangleGrid = Visibility.Visible
+                }
+            ];
+        }
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _macroDelayGrid = new Grid();
+            _checkDelayGrid = new Grid();
+            _detectThresholdGrid = new Grid();
+            _allCureKeyGrid = new Grid();
+            _detectRectangleGrid = new Grid();
+            _ailmentsListBox = new ListBox();
+            return new WindowAilmentsCollapseActionHandlerFacade(
+                _macroDelayGrid,
+                _checkDelayGrid,
+                _detectThresholdGrid,
+                _allCureKeyGrid,
+                _detectRectangleGrid,
+                _ailmentsListBox
+            );
+        }
+
+        /**
+         * @brief Verifies that the visibility of configuration panels collapses or expands
+         * based on the selected ailment's properties (StopBot, ArrowKeys, AllCure)
+         * 
+         * When users select different status ailments in the list box, certain configuration
+         * panels should be shown or hidden depending on which special handling properties
+         * the ailment supports:
+         * 
+         * - StopBot: When set, indicates the bot should stop when this ailment is detected
+         * - ArrowKeys: When set, indicates arrow key inputs are required to cure the ailment
+         * - AllCure: When set, indicates the all-cure key should be used to cleanse the ailment
+         */
+        private void _testAilmentsCollapse()
+        {
+            var listBoxItems = _listBoxItems();
+            var expecteds = _expecteds();
+            for (int i = 0; i < listBoxItems.Count; i++)
+            {
+                var listBoxItem = listBoxItems[i];
+                var expected = expecteds[i];
+                var handler = _fixture();
+                _ailmentsListBox.Items.Add(listBoxItem);
+                _ailmentsListBox.SelectedIndex = 0;
+                Debug.Assert(_macroDelayGrid.Visibility == (Visibility)expected.MacroDelayGrid);
+                Debug.Assert(_checkDelayGrid.Visibility == (Visibility)expected.CheckDelayGrid);
+                Debug.Assert(_detectThresholdGrid.Visibility == (Visibility)expected.DetectThresholdGrid);
+                Debug.Assert(_allCureKeyGrid.Visibility == (Visibility)expected.AllCureKeyGrid);
+                Debug.Assert(_detectRectangleGrid.Visibility == (Visibility)expected.DetectRectangleGrid);
+            }
+        }
+
+        public void Run()
+        {
+            _testAilmentsCollapse();
+        }
+    }
+
+
+    public class WindowAilmentsSaveActionHandlerTest
+    {
+        private ListBox _ailmentsListBox = new ListBox();
+
+        private MockSystemWindow _ailmentsWindow = new MockSystemWindow();
+
+        private MaplestoryBotConfiguration _maplestoryBotConfiguration = (
+            new MaplestoryBotConfiguration()
+        );
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _ailmentsListBox = new ListBox();
+            _ailmentsWindow = new MockSystemWindow();
+            _ailmentsWindow.GetWindowReturn.Add(new Window());
+            var handler = new WindowAilmentsSaveActionHandlerFacade(
+                _ailmentsListBox,
+                _ailmentsWindow
+            );
+            handler.Inject(
+                SystemInjectType.ConfigurationUpdate,
+                _maplestoryBotConfiguration
+            );
+            return handler;
+        }
+
+        /**
+         * @brief Verifies that when the ailments window is closed or hidden, the current
+         * configuration is saved to the botting model and persisted to disk.
+         * 
+         * When users finish editing status ailment settings and close the configuration
+         * window, the system must save all changes to the botting model and trigger a
+         * configuration save to disk.
+         */
+        private void _testAilmentsSavesToSystem()
+        {
+            foreach (var visible in new[] { true, false })
+            {
+                var handler = _fixture();
+                var injectTypes = new List<object>();
+                var configurations = new List<object>();
+                var injectAction = new InjectAction(
+                    (_, __) => { injectTypes.Add(_); configurations.Add(__); }
+                );
+                handler.Inject(SystemInjectType.InjectAction, injectAction);
+                _ailmentsListBox.Items.Add(new ListBoxItem());
+                _ailmentsListBox.SelectedIndex = 0;
+                _ailmentsWindow.VisibleReturn.Add(visible);
+                handler.OnDependencyEvent(
+                    _ailmentsWindow,
+                    new DependencyPropertyChangedEventArgs()
+                );
+                if (!visible)
+                {
+                    Debug.Assert(_ailmentsListBox.SelectedIndex == -1);
+                    Debug.Assert(injectTypes.Count == 2);
+                    Debug.Assert(injectTypes[0] is SystemInjectType.ConfigurationUpdate);
+                    Debug.Assert(injectTypes[1] is SystemInjectType.ConfigurationSave);
+                    Debug.Assert(configurations[0] == _maplestoryBotConfiguration);
+                    Debug.Assert(configurations[1] == _maplestoryBotConfiguration);
+                }
+                else
+                {
+                    Debug.Assert(_ailmentsListBox.SelectedIndex == 0);
+                    Debug.Assert(injectTypes.Count == 0);
+                }
+            }
+        }
+
+        public void Run()
+        {
+            _testAilmentsSavesToSystem();
+        }
+    }
+
+
+    public class WindowAilmentsSaveCheckboxActionHandlerTests
+    {
+        private ListBox _ailmentsListBox = new ListBox();
+
+        private MockSystemWindow _ailmentsWindow = new MockSystemWindow();
+
+        public AbstractWindowActionHandler _fixture()
+        {
+            _ailmentsListBox = new ListBox();
+            _ailmentsWindow = new MockSystemWindow();
+            _ailmentsWindow.GetWindowReturn.Add(new Window());
+            return new WindowAilmentsSaveCheckboxActionHandlerFacade(
+                _ailmentsListBox,
+                _ailmentsWindow
+            );
+        }
+
+        private ListBoxItem _createListBoxItem(bool isChecked, Ailment ailment)
+        {
+            return new ListBoxItem
+            {
+                Content = new StackPanel
+                {
+                    Children = {
+                        new CheckBox { IsChecked = isChecked }
+                    }
+                },
+                Tag = new ListBoxAilmentsDataTag
+                {
+                    Ailment = ailment
+                }
+            };
+        }
+
+        private List<Ailment> _ailments()
+        {
+            return [
+                new Ailment{ Active = 123 },
+                new Ailment{ Active = 234 },
+                new Ailment{ Active = 345 },
+                new Ailment{ Active = 456 },
+                new Ailment{ Active = 567 },
+            ];
+        }
+
+        private List<ListBoxItem> _listBoxItems(
+            List<Ailment> ailments
+        )
+        {
+            return [
+                _createListBoxItem(true, ailments[0]),
+                _createListBoxItem(false, ailments[1]),
+                _createListBoxItem(true, ailments[2]),
+                _createListBoxItem(false, ailments[3]),
+                _createListBoxItem(false, ailments[4])
+            ];
+        }
+
+        /**
+         * @brief Verifies that when the ailments window is closed or hidden, the checkbox
+         * states (enabled/disabled) are saved to the corresponding ailment's Active flag
+         * 
+         * When users toggle the checkboxes next to each status ailment in the configuration
+         * window, these checkboxes indicate whether automatic response should be active
+         * for that ailment (e.g., whether the bot should attempt to cure Seal when detected).
+         * When the window is closed or hidden, the system must persist these checkbox states
+         * to the ailment's Active property (1 for checked, 0 for unchecked). When the window
+         * is simply shown (not closed), the checkbox states should not override the existing
+         * configuration values.
+         */
+        private void _testAilmentsSavesCheckboxesOnClose()
+        {
+            foreach (var visible in new[] { true, false })
+            {
+                var handler = _fixture();
+                var ailments = _ailments();
+                var listBoxItems = _listBoxItems(ailments);
+                foreach (var listBoxItem in listBoxItems)
+                {
+                    _ailmentsListBox.Items.Add(listBoxItem);
+                }
+                _ailmentsWindow.VisibleReturn.Add(visible);
+                handler.OnDependencyEvent(
+                    handler,
+                    new DependencyPropertyChangedEventArgs()
+                );
+                if (!visible)
+                {
+                    Debug.Assert(ailments[0].Active == 1);
+                    Debug.Assert(ailments[1].Active == 0);
+                    Debug.Assert(ailments[2].Active == 1);
+                    Debug.Assert(ailments[3].Active == 0);
+                    Debug.Assert(ailments[4].Active == 0);
+                }
+                else
+                {
+                    Debug.Assert(ailments[0].Active == 123);
+                    Debug.Assert(ailments[1].Active == 234);
+                    Debug.Assert(ailments[2].Active == 345);
+                    Debug.Assert(ailments[3].Active == 456);
+                    Debug.Assert(ailments[4].Active == 567);
+                }
+            }
+        }
+
+        public void Run()
+        {
+            _testAilmentsSavesCheckboxesOnClose();
+        }
+    }
+
+
     public class WindowAilmentsMenuHandlersTestSuite
     {
         public void Run()
@@ -710,6 +1324,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowAilmentsLoadActionHandlerTests().Run();
             new WindowAilmentsLoadImageActionHandlerTests().Run();
             new WindowAilmentsAnimationActionHandlerTests().Run();
+            new WindowAilmentsSaveConfigurationActionHandlerTests().Run();
+            new WindowAilmentsLoadConfigurationActionHandlerTests().Run();
+            new WindowAilmentsCollapseActionHandlerTests().Run();
+            new WindowAilmentsSaveActionHandlerTest().Run();
+            new WindowAilmentsSaveCheckboxActionHandlerTests().Run();
         }
     }
 }

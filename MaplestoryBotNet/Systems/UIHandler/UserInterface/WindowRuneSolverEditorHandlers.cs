@@ -428,7 +428,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private AbstractSystemWindow _systemWindow;
 
-        private AbstractWindowStateModifier _roboflowAPIInjectModifier;
+        private AbstractWindowStateModifier _runeSolverAPIInjectModifier;
 
         private AbstractInjectAction? _injectAction;
 
@@ -440,7 +440,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         )
         {
             _systemWindow = systemWindow;
-            _roboflowAPIInjectModifier = roboflowAPIInjectModifier;
+            _runeSolverAPIInjectModifier = roboflowAPIInjectModifier;
             _injectAction = null;
             _maplestoryBotConfiguration = null;
             ((Window)_systemWindow.GetWindow()!).IsVisibleChanged += OnDependencyEvent;
@@ -448,7 +448,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public override AbstractWindowStateModifier Modifier()
         {
-            return _roboflowAPIInjectModifier;
+            return _runeSolverAPIInjectModifier;
         }
 
         public override void Inject(object dataType, object? data)
@@ -475,7 +475,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         {
             if (!_systemWindow.Visible())
             {
-                _roboflowAPIInjectModifier.Modify(
+                _runeSolverAPIInjectModifier.Modify(
                     new WindowRuneSolverAPIInjectModifierParameters
                     {
                         InjectAction = _injectAction,
