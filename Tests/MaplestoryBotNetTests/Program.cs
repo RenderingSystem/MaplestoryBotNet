@@ -4,6 +4,7 @@ using MaplestoryBotNetTests.Systems.GPUSelector.Tests;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests;
 using MaplestoryBotNetTests.Systems.Macro.Tests;
 using MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests;
+using MaplestoryBotNetTests.Systems.ScreenAilments.Tests;
 using MaplestoryBotNetTests.Systems.ScreenCapture.Tests;
 using MaplestoryBotNetTests.Systems.ScreenProcessing.Tests;
 using MaplestoryBotNetTests.Systems.Tests;
@@ -28,6 +29,7 @@ void UnitTestSuite()
     new ScreenCaptureSystemTestSuite().Run();
     new ScreenProcesstingTestSuite().Run();
     new ScreenProcessingSystemTestSuite().Run();
+    new ScreenAilmentsSystemTestSuite().Run();
     // Test the keyboard system
     new KeyboardDeviceDetectorTestSuite().Run();
     new KeystrokeTransmitterCommandsTestSuite().Run();

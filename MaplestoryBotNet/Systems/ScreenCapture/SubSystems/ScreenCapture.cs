@@ -327,28 +327,13 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
 
         public override Image<Bgra32>? Capture(nint windowHandle)
         {
-            var monitorInfo = _captureMonitorHelper.GetMonitorInfo(windowHandle);
-            if (monitorInfo == null)
-            {
-                return null;
-            }
-            var captureArea = _screenCaptureHelper.GetCaptureArea(windowHandle, monitorInfo);
-            if (captureArea == null)
-            {
-                return null;
-            }
-            var screenCapture = _screenCaptureHelper.GetScreenCapture(windowHandle, monitorInfo);
-            if (screenCapture == null)
-            {
-                return null;
-            }
-            var captureZone = _screenCaptureHelper.UpdateCaptureZone(screenCapture, captureArea);
-            if (captureZone == null)
-            {
-                return null;
-            }
-            screenCapture.CaptureScreen();
-            return _captureImageGenerator.GenerateImage(captureZone);
+            return (
+                _captureMonitorHelper.GetMonitorInfo(windowHandle) is MONITORINFOEX monitorInfo &&
+                _screenCaptureHelper.GetCaptureArea(windowHandle, monitorInfo) is Tuple<int, int, int, int> captureArea &&
+                _screenCaptureHelper.GetScreenCapture(windowHandle, monitorInfo) is IScreenCapture screenCapture &&
+                _screenCaptureHelper.UpdateCaptureZone(screenCapture, captureArea) is ICaptureZone captureZone &&
+                screenCapture.CaptureScreen()
+            ) ? _captureImageGenerator.GenerateImage(captureZone) : null;
         }
     }
 

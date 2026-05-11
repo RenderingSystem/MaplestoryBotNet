@@ -3,7 +3,9 @@ using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Keyboard;
 using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.Systems.ProcessWatchdog;
+using MaplestoryBotNet.Systems.ScreenAilmentsProcessing;
 using MaplestoryBotNet.Systems.ScreenCapture;
+using MaplestoryBotNet.Systems.ScreenProcessing;
 using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
@@ -447,7 +449,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var subSystemInfoList = new MainSubSystemInfoList();
             var subSystemInfo = subSystemInfoList.GetSubSystemInfo();
-            Debug.Assert(subSystemInfo.Count == 8);
+            Debug.Assert(subSystemInfo.Count == 9);
         }
 
         /**
@@ -507,7 +509,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
                 info => info.SystemBuilder is ConfigurationSystemBuilder
             );
             Debug.Assert(configInfo != null);
-            Debug.Assert(configInfo.BuildDependencies.Count == 6);
+            Debug.Assert(configInfo.BuildDependencies.Count == 7);
             Debug.Assert(
                 configInfo.BuildDependencies.Any(
                     dep => dep.SystemBuilder is GameScreenCaptureSystemBuilder
@@ -525,12 +527,22 @@ namespace MaplestoryBotNetTests.Systems.Tests
             );
             Debug.Assert(
                 configInfo.BuildDependencies.Any(
+                    dep => dep.SystemBuilder is ScreenProcessingSystemBuilder
+                )
+            );
+            Debug.Assert(
+                configInfo.BuildDependencies.Any(
                     dep => dep.SystemBuilder is MacroSystemBuilder
                 )
             );
             Debug.Assert(
                 configInfo.BuildDependencies.Any(
                     dep => dep.SystemBuilder is ProcessWatchdogSystemBuilder
+                )
+            );
+            Debug.Assert(
+                configInfo.BuildDependencies.Any(
+                    dep => dep.SystemBuilder is ScreenAilmentsSystemBuilder
                 )
             );
             Debug.Assert(configInfo.InitializationPriority == 0);

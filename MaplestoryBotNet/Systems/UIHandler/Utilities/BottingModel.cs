@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using System.Collections.Concurrent;
 using System.Windows;
+using System.Windows.Navigation;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.Utilities
@@ -173,9 +174,25 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         public abstract AbstractRuneModel GetRuneModel();
 
+        public abstract AbstractAilmentsModel GetAilmentsModel();
+
         public abstract void SetBottingModel(AbstractBottingModel model);
 
         public abstract AbstractBottingModel Copy();
+    }
+
+
+    public abstract class AbstractAilmentsModel
+    {
+        public abstract void SetAilmentsModel(AbstractAilmentsModel model);
+
+        public abstract List<Tuple<string, int>> GetAilments();
+
+        public abstract int GetAilment(string ailment);
+
+        public abstract void SetAilment(string ailment, int status);
+
+        public abstract AbstractAilmentsModel Copy();
     }
 
 
@@ -187,11 +204,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
 
         private volatile AbstractRuneModel _runeModel;
 
+        private volatile AbstractAilmentsModel _ailmentsModel;
+
         public BottingModel()
         {
             _macroModel = new MacroModel();
             _mapModel = new MapModel();
             _runeModel = new RuneModel();
+            _ailmentsModel = new AilmentsModel();
         }
 
         public override AbstractMacroModel GetMacroModel()
@@ -209,11 +229,17 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             return _runeModel;
         }
 
+        public override AbstractAilmentsModel GetAilmentsModel()
+        {
+            return _ailmentsModel;
+        }
+
         public override void SetBottingModel(AbstractBottingModel model)
         {
             _macroModel.SetMacroModel(model.GetMacroModel().Copy());
             _mapModel.SetMapModel(model.GetMapModel().Copy());
             _runeModel.SetRuneModel(model.GetRuneModel().Copy());
+            _ailmentsModel.SetAilmentsModel(model.GetAilmentsModel().Copy());
         }
 
         public override AbstractBottingModel Copy()
@@ -222,7 +248,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             {
                 _macroModel = _macroModel.Copy(),
                 _mapModel = _mapModel.Copy(),
-                _runeModel = _runeModel.Copy()
+                _runeModel = _runeModel.Copy(),
+                _ailmentsModel = _ailmentsModel.Copy()
             };
         }
 
@@ -1083,6 +1110,44 @@ namespace MaplestoryBotNet.Systems.UIHandler.Utilities
             finally
             {
                 _runeFrameLock.ExitReadLock();
+            }
+        }
+    }
+
+
+    public class AilmentsModel : AbstractAilmentsModel
+    {
+        private ConcurrentDictionary<string, int> _ailmentDetected = [];
+
+        public override AbstractAilmentsModel Copy()
+        {
+            var ailmentsModel = new AilmentsModel();
+            ailmentsModel.SetAilmentsModel(this);
+            return ailmentsModel;
+        }
+
+        public override int GetAilment(string ailment)
+        {
+            return _ailmentDetected[ailment];
+        }
+
+        public override List<Tuple<string, int>> GetAilments()
+        {
+            return _ailmentDetected.Select(
+                (kv) => new Tuple<string, int>(kv.Key, kv.Value)
+            ).ToList();
+        }
+
+        public override void SetAilment(string ailment, int status)
+        {
+            _ailmentDetected[ailment] = status;
+        }
+
+        public override void SetAilmentsModel(AbstractAilmentsModel model)
+        {
+            foreach (var ailment in model.GetAilments())
+            {
+                _ailmentDetected[ailment.Item1] = ailment.Item2;
             }
         }
     }

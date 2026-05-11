@@ -1,5 +1,6 @@
 ﻿using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.TestHelpers;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 
 
@@ -350,6 +351,38 @@ namespace MaplestoryBotNetTests.ThreadingUtils
             CallOrder.Add(callReference);
             EventHandlerCalls++;
             EventHandlerCallArg_tickAction.Add(tickAction);
+        }
+    }
+
+
+    public class MockThreadsBuilder : AbstractThreadsBuilder
+    {
+        public List<string> CallOrder = [];
+
+        public int BuildCalls = 0;
+        public int BuildIndex = 0;
+        public List<ConcurrentDictionary<string, AbstractThread>> BuildReturn = [];
+        public override ConcurrentDictionary<string, AbstractThread>? Build()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Build";
+            CallOrder.Add(callReference);
+            BuildCalls++;
+            if (BuildIndex < BuildReturn.Count)
+            {
+                return BuildReturn[BuildIndex++];
+            }
+            throw new IndexOutOfRangeException();
+        }
+
+        public int WithArgCalls = 0;
+        public List<object?> WithArgCallArg_arg = [];
+        public override AbstractThreadsBuilder WithArg(object? arg)
+        {
+            var callReference = new TestUtilities().Reference(this) + "WithArg";
+            CallOrder.Add(callReference);
+            WithArgCalls++;
+            WithArgCallArg_arg.Add(arg);
+            return this;
         }
     }
 }

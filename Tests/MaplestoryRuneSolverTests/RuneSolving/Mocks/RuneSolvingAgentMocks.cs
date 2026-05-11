@@ -1,7 +1,5 @@
 ﻿using MaplestoryRuneSolver.RuneSolving;
 using MaplestoryRuneSolverTests.TestHelpers;
-using System.Collections.Generic;
-using System;
 
 
 namespace MaplestoryRuneSolverTests.RuneSolving.Mocks

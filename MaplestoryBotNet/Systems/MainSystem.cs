@@ -5,6 +5,7 @@ using MaplestoryBotNet.Systems.Keyboard;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
 using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.Systems.ProcessWatchdog;
+using MaplestoryBotNet.Systems.ScreenAilmentsProcessing;
 using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.Systems.ScreenProcessing;
 using MaplestoryBotNet.Systems.UIHandler;
@@ -180,12 +181,12 @@ namespace MaplestoryBotNet.Systems
                 new GameScreenCaptureSystemBuilder(),
                 [],
                 [
-                    new NullScreenCaptureSubscriber(semaphore),
                     new GameScreenCaptureSubscriber(semaphore),
                     new GameScreenCaptureMinimapSubscriber(semaphore),
                     new GameMinimapProcessingSubscriber(semaphore, MapIconInfo.Character),
                     new GameMinimapProcessingSubscriber(semaphore, MapIconInfo.Rune),
                     new SolvingScreenCaptureSubscriber(semaphore),
+                    new ScreenCaptureAilmentsSubscriber(semaphore)
                 ],
                 1,
                 1,
@@ -265,6 +266,18 @@ namespace MaplestoryBotNet.Systems
             );
         }
 
+        private SystemInformation _screenAilmentsSystemInfo()
+        {
+            return new SystemInformation(
+                new ScreenAilmentsSystemBuilder(),
+                [],
+                [],
+                8,
+                8,
+                8
+            );
+        }
+
         public override List<SystemInformation> GetSubSystemInfo()
         {
             var keyboardInfo = _keyboardInfo();
@@ -274,6 +287,7 @@ namespace MaplestoryBotNet.Systems
             var screenProcessingInfo = _screenProcessingInfo();
             var macroSystemInfo = _macroSystemInfo();
             var processWatchdogSystemInfo = _processWatchdogSystemInfo();
+            var screenAilmentsSystemInfo = _screenAilmentsSystemInfo();
             var configInfo = _configInfo(
                 [
                     keyboardInfo,
@@ -281,7 +295,8 @@ namespace MaplestoryBotNet.Systems
                     uiHandlerInfo,
                     screenProcessingInfo,
                     macroSystemInfo,
-                    processWatchdogSystemInfo
+                    processWatchdogSystemInfo,
+                    screenAilmentsSystemInfo,
                 ]
             );
             return [
@@ -292,7 +307,8 @@ namespace MaplestoryBotNet.Systems
                 uiHandlerInfo,
                 screenProcessingInfo,
                 macroSystemInfo,
-                processWatchdogSystemInfo
+                processWatchdogSystemInfo,
+                screenAilmentsSystemInfo
             ];
         }
     }

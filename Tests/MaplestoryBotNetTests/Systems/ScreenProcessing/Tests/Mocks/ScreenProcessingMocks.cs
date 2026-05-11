@@ -74,7 +74,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests.Mocks
 
         public int calculatePointerCalls = 0;
         public int calculatePointerIndex = 0;
-        public List<UIntPtr> calcualtePointerCallArg_image = [];
+        public List<UIntPtr> calculatePointerCallArg_image = [];
         public List<int> calculatePointerCallArg_image_width = [];
         public List<int> calculatePointerCallArg_image_height = [];
         public List<int> calculatePointerCallArg_image_stride = [];
@@ -91,7 +91,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenProcessing.Tests.Mocks
             var callReference = new TestUtilities().Reference(this) + "calculatePointer";
             CallOrder.Add(callReference);
             calculatePointerCalls++;
-            calcualtePointerCallArg_image.Add(new UIntPtr(image));
+            calculatePointerCallArg_image.Add(new UIntPtr(image));
             calculatePointerCallArg_image_width.Add(image_width);
             calculatePointerCallArg_image_height.Add(image_height);
             calculatePointerCallArg_image_stride.Add(image_stride);

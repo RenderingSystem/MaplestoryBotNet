@@ -1,5 +1,7 @@
-﻿using MaplestoryBotNet.Systems;
+﻿using ArrayFireNCC;
+using MaplestoryBotNet.Systems;
 using MaplestoryBotNetTests.TestHelpers;
+using System.Drawing;
 
 
 namespace MaplestoryBotNetTests.Systems.Tests
@@ -287,6 +289,41 @@ namespace MaplestoryBotNetTests.Systems.Tests
                 return GetActionReturn[GetActionIndex++];
             }
             throw new IndexOutOfRangeException();
+        }
+    }
+
+
+    public class MockBitmapTemplateMatcherBuilder : AbstractBitmapTemplateMatcherBuilder
+    {
+        public List<string> CallOrder = [];
+
+        public int BuildCalls = 0;
+        public int BuildIndex = 0;
+        public List<AbstractBitmapTemplateMatcher> BuildReturn = [];
+        public override AbstractBitmapTemplateMatcher build()
+        {
+            var callReference = new TestUtilities().Reference(this) + "build";
+            CallOrder.Add(callReference);
+            BuildCalls++;
+            if (BuildIndex < BuildReturn.Count)
+            {
+                return BuildReturn[BuildIndex++];
+            }
+            throw new IndexOutOfRangeException();
+        }
+
+        public int WithTemplatesCalls = 0;
+        public int WithTemplatesIndex = 0;
+        public List<List<Bitmap>> WithTemplatesCallArg_templates = [];
+        public override AbstractBitmapTemplateMatcherBuilder with_templates(
+            List<Bitmap> templates
+        )
+        {
+            var callReference = new TestUtilities().Reference(this) + "with_templates";
+            CallOrder.Add(callReference);
+            WithTemplatesCalls++;
+            WithTemplatesCallArg_templates.Add(templates);
+            return this;
         }
     }
 }
