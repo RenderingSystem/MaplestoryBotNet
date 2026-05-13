@@ -116,4 +116,38 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests.Mocks
             ActivateCallArg_stateType.Add(stateType);
         }
     }
+
+
+    public class MockMacroExecutorThreadTransitionHandler : AbstractMacroExecutorThreadTransitionHandler
+    {
+        public List<string> CallOrder = [];
+
+        public int InjectCalls = 0;
+        public List<object> InjectCallArg_dataType = [];
+        public List<object?> InjectCallArg_data = [];
+        public override void Inject(object dataType, object? data)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Inject";
+            CallOrder.Add(callReference);
+            InjectCalls++;
+            InjectCallArg_dataType.Add(dataType);
+            InjectCallArg_data.Add(data);
+        }
+
+        public int ProcessStateCalls = 0;
+        public int ProcessStateIndex = 0;
+        public List<int> ProcessStateCallArg_currentState = [];
+        public List<int> ProcessStateReturn = [];
+        public override int ProcessState(int currentState)
+        {
+            var callReference = new TestUtilities().Reference(this) + "ProcessState";
+            CallOrder.Add(callReference);
+            ProcessStateCallArg_currentState.Add(currentState);
+            if (ProcessStateIndex < ProcessStateReturn.Count)
+            {
+                return ProcessStateReturn[ProcessStateIndex++];
+            }
+            throw new IndexOutOfRangeException();
+        }
+    }
 }

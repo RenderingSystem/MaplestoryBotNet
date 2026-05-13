@@ -147,15 +147,18 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
         public override void Inject(object dataType, object? data)
         {
             if (
-                dataType is SystemInjectType.KeystrokeTransmitter
-                && data is AbstractKeystrokeTransmitter keystrokeTransmitter
+                dataType is SystemInjectType.KeystrokeTransmitter &&
+                data is AbstractKeystrokeTransmitter keystrokeTransmitter
             )
             {
                 _macroCommandsExecutor = _macroCommandsExecutorBuilder
                     .WithArg(keystrokeTransmitter)
                     .Build();
             }
-            else if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel)
+            else if (
+                dataType is SystemInjectType.BottingModel &&
+                data is AbstractBottingModel bottingModel
+            )
             {
                 _bottingModel = bottingModel;
             }
@@ -254,7 +257,8 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     }
 
 
-    public class BottingOrchestratorThread : AbstractOrchestratorThread<BottingOrchestratorThreadInjectType>
+    public class BottingOrchestratorThread : 
+        AbstractOrchestratorThread<BottingOrchestratorThreadInjectType>
     {
         public BottingOrchestratorThread(
             AbstractThread bottingExecutorThread,

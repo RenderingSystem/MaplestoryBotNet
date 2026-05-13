@@ -204,11 +204,16 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private MockThread _mockThread = new MockThread(new ThreadRunningState());
 
+        private MockDispatcher _dispatcher = new MockDispatcher();
+
         private AbstractWindowActionHandler _fixture()
         {
             _menuItem = new MenuItem();
             _mockThread = new MockThread(new ThreadRunningState());
-            return new WindowMenuItemStartActionHandlerFacade(_menuItem);
+            _dispatcher = new MockDispatcher();
+            return new WindowMenuItemStartActionHandlerFacade(
+                _menuItem, _dispatcher
+            );
         }
 
         /**
@@ -229,6 +234,9 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             startActionHandler.Inject(SystemInjectType.ThreadDependency, _mockThread);
             _menuItem.Header = WindowMenuItemStartTextTypes.Start;
             _menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            Debug.Assert(_dispatcher.DispatchCalls == 1);
+            Debug.Assert(_mockThread.InjectCalls == 0);
+            _dispatcher.DispatchCallArg_action[0]();
             Debug.Assert(_mockThread.InjectCalls == 1);
             Debug.Assert(
                 (int) _mockThread.InjectCallArg_dataType[0]
@@ -237,7 +245,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Ensures start command is only sent to the orchestrator thread, not other threads
+         * @brief Ensures start command is only sent to the orchestrator thread, not
+         * other threads
          * 
          * The system may have multiple threads that can be injected as dependencies.
          * Only the orchestrator thread should respond to start/stop commands. This test
@@ -252,6 +261,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             startActionHandler.Inject(SystemInjectType.ThreadDependency, _mockThread);
             _menuItem.Header = WindowMenuItemStartTextTypes.Start;
             _menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            _dispatcher.DispatchCallArg_action[0]();
             Debug.Assert(_mockThread.InjectCalls == 0);
         }
 
@@ -273,6 +283,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             startActionHandler.Inject(SystemInjectType.ThreadDependency, _mockThread);
             _menuItem.Header = WindowMenuItemStartTextTypes.Stop;
             _menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            _dispatcher.DispatchCallArg_action[0]();
             Debug.Assert(_mockThread.InjectCalls == 1);
             Debug.Assert(
                 (int)_mockThread.InjectCallArg_dataType[0]
@@ -296,6 +307,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             startActionHandler.Inject(SystemInjectType.ThreadDependency, _mockThread);
             _menuItem.Header = WindowMenuItemStartTextTypes.Stop;
             _menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            _dispatcher.DispatchCallArg_action[0]();
             Debug.Assert(_mockThread.InjectCalls == 0);
         }
 
@@ -317,6 +329,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             startActionHandler.Inject(SystemInjectType.ThreadDependency, _mockThread);
             _menuItem.Header = "meow";
             _menuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+            _dispatcher.DispatchCallArg_action[0]();
             Debug.Assert(_mockThread.InjectCalls == 0);
         }
 

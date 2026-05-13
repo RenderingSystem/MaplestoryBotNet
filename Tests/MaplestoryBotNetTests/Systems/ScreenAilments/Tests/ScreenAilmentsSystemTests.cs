@@ -263,6 +263,48 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
             }
         }
 
+
+        /**
+         * @brief Verifies that the detection thread correctly crops the input image to
+         * the StaticRect region defined in the ailment configuration before performing
+         * template matching
+         * 
+         * When an ailment has a StaticRect configured (x, y, width, height), the detection
+         * thread must crop the captured screen image to that exact region before passing
+         * it to the template matcher. This improves detection accuracy by focusing only
+         * on the relevant area of the screen where the ailment icon appears, reducing
+         * false positives from other UI elements. The cropping operation must preserve
+         * the exact pixel values within the cropped region.
+         */
+        private void _testThreadCropsToStaticRect()
+        {
+            var thread = _fixture();
+            var ailmentsModel = _bottingModel.GetAilmentsModel();
+            var detectedAilments = new List<Tuple<int, int, int, int, float>>();
+            _ailment.Active = 1;
+            _ailment.StaticRect = [1, 1, 2, 2];
+            _runningState.IsRunningReturn.Add(true);
+            _helper.ShouldCheckReturn.Add(true);
+            _helper.AilmentDetectedReturn.Add(detectedAilments);
+            _runningState.IsRunningReturn.Add(false);
+            _image = new Image<Bgra32>(5, 5);
+            _image[1, 1] = new Bgra32( 1,  2,  3,  4);
+            _image[1, 2] = new Bgra32( 5,  6,  7,  8);
+            _image[2, 1] = new Bgra32( 9, 10, 11, 12);
+            _image[2, 2] = new Bgra32(13, 14, 15, 16);
+            thread.Inject(0, _image);
+            thread.Start();
+            thread.Join(10000);
+            var expectedOrder = new List<string>();
+            var imageToProcess = _helper.AilmentDetectedCallArg_image[0];
+            Debug.Assert(imageToProcess.Width == 2);
+            Debug.Assert(imageToProcess.Height == 2);
+            Debug.Assert(imageToProcess[0, 0].PackedValue == new Bgra32( 1,  2,  3,  4).PackedValue);
+            Debug.Assert(imageToProcess[0, 1].PackedValue == new Bgra32( 5,  6,  7,  8).PackedValue);
+            Debug.Assert(imageToProcess[1, 0].PackedValue == new Bgra32( 9, 10, 11, 12).PackedValue);
+            Debug.Assert(imageToProcess[1, 1].PackedValue == new Bgra32(13, 14, 15, 16).PackedValue);
+        }
+
         /**
          * @brief Verifies that the detection thread completely skips processing for
          * ailments marked as inactive, regardless of other conditions
@@ -439,6 +481,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
         {
             _testInjectingImageSetsAutoEvent();
             _testThreadDetectsAilmentStatus();
+            _testThreadCropsToStaticRect();
             _testThreadDoesntCheckInactiveAilments();
             _testThreadDoesntCheckWhenLessThanCheckDelay();
             _testThreadSetsAilmentStatus();

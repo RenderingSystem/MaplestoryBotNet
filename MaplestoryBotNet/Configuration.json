@@ -25,63 +25,64 @@
     "ailments": {
         "seal": {
             "image_directory": "images/ailments/silence",
-            "active": 1,
-            "active_delay": 100,
-            "check_delay": 100,
-            "threshold": 800,
+            "active": 0,
+            "active_delay": 0,
+            "check_delay": 0,
+            "threshold": 700,
             "overlap": 0.9,
             "all_cure": 1
         },
         "weakness": {
             "image_directory": "images/ailments/weakness",
-            "active": 1,
-            "active_delay": 100,
-            "check_delay": 100,
-            "threshold": 800,
+            "active": 0,
+            "active_delay": 0,
+            "check_delay": 0,
+            "threshold": 700,
             "overlap": 0.9,
             "all_cure": 1
         },
         "blind": {
             "image_directory": "images/ailments/blind",
-            "active": 1,
-            "active_delay": 100,
-            "check_delay": 100,
-            "threshold": 800,
+            "active": 0,
+            "active_delay": 0,
+            "check_delay": 0,
+            "threshold": 700,
             "overlap": 0.9,
             "all_cure": 1
         },
         "curse": {
             "image_directory": "images/ailments/curse",
-            "active": 1,
-            "active_delay": 100,
-            "check_delay": 100,
-            "threshold": 800,
+            "active": 0,
+            "active_delay": 0,
+            "check_delay": 0,
+            "threshold": 700,
             "overlap": 0.9,
             "all_cure": 1
         },
         "poison": {
             "image_directory": "images/ailments/poison",
-            "active": 1,
-            "active_delay": 100,
-            "check_delay": 100,
-            "threshold": 800,
+            "active": 0,
+            "active_delay": 0,
+            "check_delay": 0,
+            "threshold": 700,
             "overlap": 0.9,
             "all_cure": 1
         },
         "confusion": {
             "image_directory": "images/ailments/confusion",
-            "active": 1,
-            "check_delay": 100,
-            "threshold": 800,
+            "active": 0,
+            "active_delay": 0,
+            "check_delay": 0,
+            "threshold": 700,
             "overlap": 0.9,
             "all_cure": 1
         },
         "petrification": {
             "image_directory": "images/ailments/petrification",
             "active": 1,
-            "active_delay": 100,
-            "check_delay": 100,
-            "threshold": 800,
+            "active_delay": 1000,
+            "check_delay": 1000,
+            "threshold": 900,
             "overlap": 0.9,
             "all_cure": 0,
             "arrow_keys": 1
@@ -89,11 +90,16 @@
         "death": {
             "image_directory": "images/ailments/death",
             "active": 1,
-            "active_delay": 100,
-            "check_delay": 100,
-            "threshold": 800,
+            "active_delay": 1000,
+            "check_delay": 1000,
+            "threshold": 900,
             "overlap": 0.9,
-            "static_rect": [ 0, 0, 1280, 720 ],
+            "static_rect": [
+                496,
+                311,
+                540,
+                354
+            ],
             "stop_bot": 1
         }
     },
@@ -114,7 +120,7 @@
     "frame_movements_directory": "./FrameMovements",
     "map_directory": "./Maps",
     "macro_check_frequency": {
-        "check_frequency": 2.0,
+        "check_frequency": 0.0,
         "solve_check_timeout": 3.0,
         "cash_shop_tolerance": 3,
         "cash_shop_timeout": 15

@@ -95,6 +95,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
         Solving,
         Macro,
         CashShop,
+        Ailment,
         MaxNum
     }
 
@@ -123,7 +124,10 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
     {
         public override void Sleep(int milliseconds)
         {
-            Thread.Sleep(milliseconds);
+            if (milliseconds > 0)
+            {
+                Thread.Sleep(milliseconds);
+            }
         }
     }
 

@@ -114,6 +114,16 @@
                 HorizontalAlignment="Right"
                 FontSize="20"
             />
+            <TextBlock
+                x:Name="AilmentsText"
+                Text="Ailments"
+                Margin="0,510,10,0"
+                FontFamily="Courier New"
+                Foreground="#FF00FF00"
+                HorizontalAlignment="Right"
+                FontSize="20"
+                Visibility="Hidden"
+            />
         </Grid>
     </DockPanel>
 </Window>

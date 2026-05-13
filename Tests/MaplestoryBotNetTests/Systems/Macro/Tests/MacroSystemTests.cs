@@ -3,14 +3,17 @@ using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
 using MaplestoryBotNet.Systems.Macro;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.Macro.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.Tests;
+using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 
@@ -191,7 +194,10 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
 
         private MockOrchestratorController _cashShopController = new MockOrchestratorController();
 
+        private MockOrchestratorController _ailmentsController = new MockOrchestratorController();
+
         private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
@@ -207,11 +213,13 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             _runeingController = new MockOrchestratorController();
             _solvingController = new MockOrchestratorController();
             _cashShopController = new MockOrchestratorController();
+            _ailmentsController = new MockOrchestratorController();
             _context = new MacroExecutorThreadContext(
                 _bottingController,
                 _runeingController,
                 _solvingController,
                 _cashShopController,
+                _ailmentsController,
                 new MockTimestamp(),
                 new MockTimestamp(),
                 MapIconInfo.Rune
@@ -238,6 +246,8 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 MacroExecutorStateTypes.Runeing,
                 MacroExecutorStateTypes.Solving,
                 MacroExecutorStateTypes.SolvedCheck,
+                MacroExecutorStateTypes.Ailments,
+                MacroExecutorStateTypes.MaxNum,
             };
             foreach (var stopState in stopStates)
             for (int i = 0; i < (int)CashShopExecutorThreadedUpdate.MaxNum; i++)
@@ -246,6 +256,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
+                _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 _cashShopController.GetStateReturn.Add(i);
                 activator.Activate(stopState);
                 Debug.Assert(
@@ -273,7 +284,9 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 MacroExecutorStateTypes.Botting,
                 MacroExecutorStateTypes.Runeing,
                 MacroExecutorStateTypes.SolvedCheck,
-                MacroExecutorStateTypes.CashShop
+                MacroExecutorStateTypes.CashShop,
+                MacroExecutorStateTypes.Ailments,
+                MacroExecutorStateTypes.MaxNum,
             };
             foreach (var stopState in stopStates)
             for (int i = 0; i < (int)SolvingExecutorThreadedUpdate.MaxNum; i++)
@@ -283,6 +296,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add(i);
                 _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 activator.Activate(stopState);
                 Debug.Assert(
                     _solvingController.StopOrchestratorCalls ==
@@ -310,7 +324,9 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 MacroExecutorStateTypes.Botting,
                 MacroExecutorStateTypes.Solving,
                 MacroExecutorStateTypes.SolvedCheck,
-                MacroExecutorStateTypes.CashShop
+                MacroExecutorStateTypes.CashShop,
+                MacroExecutorStateTypes.Ailments,
+                MacroExecutorStateTypes.MaxNum,
             };
             foreach (var stopState in stopStates)
             for (int i = 0; i < (int)RuneingExecutorThreadedUpdate.MaxNum; i++)
@@ -320,6 +336,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _runeingController.GetStateReturn.Add(i);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
                 _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 activator.Activate(stopState);
                 Debug.Assert(
                     _runeingController.StopOrchestratorCalls ==
@@ -346,7 +363,9 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 MacroExecutorStateTypes.Reset,
                 MacroExecutorStateTypes.Runeing,
                 MacroExecutorStateTypes.Solving,
-                MacroExecutorStateTypes.CashShop
+                MacroExecutorStateTypes.CashShop,
+                MacroExecutorStateTypes.Ailments,
+                MacroExecutorStateTypes.MaxNum,
             };
             foreach (var stopState in stopStates)
             for (int i = 0; i < (int)BottingExecutorThreadedUpdate.MaxNum; i++)
@@ -356,10 +375,52 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
                 _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 activator.Activate(stopState);
                 Debug.Assert(
                     _bottingController.StopOrchestratorCalls ==
                     (i != (int)BottingExecutorThreadedUpdate.Stopped ? 1 : 0)
+                );
+            }
+        }
+
+        /**
+         * @brief Verifies that the ailments orchestrator is stopped in all macro states
+         * except the Ailments state
+         * 
+         * The ailments orchestrator handles detecting and responding to status ailments
+         * (e.g., seal, weakness, curse). This should only be active during the Ailments
+         * state when the bot is specifically checking for and curing negative status effects.
+         * In all other states (Idle, Reset, Botting, Runeing, Solving, CashShop), the
+         * ailments orchestrator must be stopped to prevent status checks from interfering
+         * with other automation routines like monster killing or rune navigation.
+         */
+        private void _testActivatorStopsAilmentsOrchestrator()
+        {
+            var stopStates = new[]
+            {
+                MacroExecutorStateTypes.Idle,
+                MacroExecutorStateTypes.Reset,
+                MacroExecutorStateTypes.Botting,
+                MacroExecutorStateTypes.Runeing,
+                MacroExecutorStateTypes.Solving,
+                MacroExecutorStateTypes.SolvedCheck,
+                MacroExecutorStateTypes.CashShop,
+                MacroExecutorStateTypes.MaxNum,
+            };
+            foreach (var stopState in stopStates)
+            for (int i = 0; i < (int)AilmentExecutorThreadedUpdate.MaxNum; i++)
+            {
+                var activator = _fixture();
+                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
+                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
+                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
+                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _ailmentsController.GetStateReturn.Add(i);
+                activator.Activate(stopState);
+                Debug.Assert(
+                    _ailmentsController.StopOrchestratorCalls ==
+                    (i != (int)AilmentExecutorThreadedUpdate.Stopped ? 1 : 0)
                 );
             }
         }
@@ -389,6 +450,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
                 _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 activator.Activate(startState);
                 Debug.Assert(
                     _bottingController.StartOrchestratorCalls ==
@@ -416,6 +478,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _runeingController.GetStateReturn.Add(i);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
                 _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 activator.Activate(MacroExecutorStateTypes.Runeing);
                 Debug.Assert(
                     _runeingController.StartOrchestratorCalls ==
@@ -447,6 +510,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add(i);
                 _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 activator.Activate(MacroExecutorStateTypes.Solving);
                 Debug.Assert(
                     _solvingController.StartOrchestratorCalls ==
@@ -480,6 +544,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
                 _cashShopController.GetStateReturn.Add(i);
+                _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 activator.Activate(MacroExecutorStateTypes.CashShop);
                 Debug.Assert(
                     _cashShopController.StartOrchestratorCalls ==
@@ -493,16 +558,52 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             }
         }
 
+        /**
+         * @brief Verifies that the ailments orchestrator is started when entering the
+         * Ailments state, but only if not already Started, Cured, or in StopBot mode
+         * 
+         * When the macro executor transitions to the Ailments state to handle status
+         * ailments, the orchestrator must be started to begin executing cure commands.
+         * However, if the orchestrator is already Started (detection in progress),
+         * Cured (no ailments active), or in StopBot mode (critical ailment requiring
+         * bot shutdown), no action is needed to avoid redundant detection attempts.
+         */
+        private void _testActivatorStartsAilmentsOrchestrator()
+        {
+            for (int i = 0; i < (int)AilmentExecutorThreadedUpdate.MaxNum; i++)
+            {
+                var activator = _fixture();
+                _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
+                _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
+                _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
+                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _ailmentsController.GetStateReturn.Add(i);
+                activator.Activate(MacroExecutorStateTypes.Ailments);
+                Debug.Assert(
+                    _ailmentsController.StartOrchestratorCalls ==
+                    (
+                        (
+                            i != (int)AilmentExecutorThreadedUpdate.Started &&
+                            i != (int)AilmentExecutorThreadedUpdate.Cured &&
+                            i != (int)AilmentExecutorThreadedUpdate.StopBot
+                        ) ? 1 : 0
+                    )
+                );
+            }
+        }
+
         public void Run()
         {
             _testActivatorStopsCashShopOrchestrator();
             _testActivatorStopsSolvingOrchestrator();
             _testActivatorStopsRuneingOrchestrator();
             _testActivatorStopsBottingOrchestrator();
+            _testActivatorStopsAilmentsOrchestrator();
             _testActivatorStartsBottingOrchestrator();
             _testActivatorStartsRuneingOrchestrator();
             _testActivatorStartsSolvingOrchestrator();
             _testActivatorStartsCashShopOrchestrator();
+            _testActivatorStartsAilmentsOrchestrator();
         }
     }
 
@@ -510,6 +611,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
     public class MacroExecutorStateResetTests
     {
         private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
@@ -527,6 +629,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         {
             _bottingModel = new BottingModel();
             _context = new MacroExecutorThreadContext(
+                new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 new MockOrchestratorController(),
@@ -624,6 +727,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
+            new MockOrchestratorController(),
             new StopwatchTimestamp(),
             new StopwatchTimestamp(),
             MapIconInfo.Rune
@@ -637,6 +741,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         {
             _runeingStopwatch = new MockTimestamp();
             _context = new MacroExecutorThreadContext(
+                new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 new MockOrchestratorController(),
@@ -714,6 +819,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
+            new MockOrchestratorController(),
             new StopwatchTimestamp(),
             new StopwatchTimestamp(),
             MapIconInfo.Rune
@@ -727,6 +833,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         {
             _runeingStopwatch = new MockTimestamp();
             _context = new MacroExecutorThreadContext(
+                new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 new MockOrchestratorController(),
@@ -820,6 +927,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
+            new MockOrchestratorController(),
             new StopwatchTimestamp(),
             new StopwatchTimestamp(),
             MapIconInfo.Rune
@@ -833,6 +941,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             _context = new MacroExecutorThreadContext(
                 new MockOrchestratorController(),
                 _runeingController,
+                new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 new MockTimestamp(),
@@ -906,6 +1015,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
+            new MockOrchestratorController(),
             new StopwatchTimestamp(),
             new StopwatchTimestamp(),
             MapIconInfo.Rune
@@ -923,6 +1033,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 _solvingController,
+                new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 new MockTimestamp(),
                 _solvingStopwatch,
@@ -1021,6 +1132,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
+            new MockOrchestratorController(),
             new StopwatchTimestamp(),
             new StopwatchTimestamp(),
             MapIconInfo.Rune
@@ -1040,6 +1152,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             _solvingStopwatch = new MockTimestamp();
             _bottingModel = new BottingModel();
             _context = new MacroExecutorThreadContext(
+                new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 new MockOrchestratorController(),
@@ -1224,6 +1337,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
+            new MockOrchestratorController(),
             new StopwatchTimestamp(),
             new StopwatchTimestamp(),
             MapIconInfo.Rune
@@ -1241,6 +1355,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 _cashShopController,
+                new MockOrchestratorController(),
                 new StopwatchTimestamp(),
                 new StopwatchTimestamp(),
                 MapIconInfo.Rune
@@ -1306,19 +1421,10 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
     }
 
 
-    public class MacroExecutorThreadStateMachineTests
+    public class MacroExecutorStateAilmentsTests
     {
-        private List<AbstractExecutorState> _executorStates = [];
-
-        private MockOrchestratorController _bottingController = new MockOrchestratorController();
-
-        private MockOrchestratorController _runeingController = new MockOrchestratorController();
-
-        private MockOrchestratorController _solvingController = new MockOrchestratorController();
-
-        private MockOrchestratorController _cashShopController = new MockOrchestratorController();
-
         private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
             new MockOrchestratorController(),
@@ -1328,38 +1434,289 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             MapIconInfo.Rune
         );
 
-        private MockMacroSleeper _sleeper = new MockMacroSleeper();
+        private MockOrchestratorController _ailmentController = new MockOrchestratorController();
 
-        private MockTimestamp _executeTimestamp = new MockTimestamp();
+        private MockExecutorStateActivator _activator = new MockExecutorStateActivator();
 
-        private List<string> _callOrder = [];
-
-        private AbstractKeystrokeTransmitterThreadHelper _fixture()
+        public AbstractExecutorState _fixture()
         {
-            _executorStates = [];
-            _bottingController = new MockOrchestratorController();
-            _runeingController = new MockOrchestratorController();
-            _solvingController = new MockOrchestratorController();
-            _cashShopController = new MockOrchestratorController();
-            _sleeper = new MockMacroSleeper();
-            _executeTimestamp = new MockTimestamp();
+            _ailmentController = new MockOrchestratorController();
             _context = new MacroExecutorThreadContext(
-                _bottingController,
-                _runeingController,
-                _solvingController,
-                _cashShopController,
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                _ailmentController,
                 new StopwatchTimestamp(),
                 new StopwatchTimestamp(),
                 MapIconInfo.Rune
-            );
-            _callOrder = [];
-            return new MacroExecutorThreadStateMachine(
-                _executorStates,
+            )
+            {
+                StopMenuActionHandler = new MockWindowActionHandler()
+            };
+            _activator = new MockExecutorStateActivator();
+            return new MacroExecutorStateAilments(
                 _context,
-                _sleeper,
-                _executeTimestamp,
-                (int)MacroExecutorStateTypes.Idle
+                _activator
             );
+        }
+
+        /**
+         * @brief Verifies that the Ailments state triggers the activator to configure
+         * the executor for status ailment detection and response operations
+         * 
+         * When the macro executor enters the Ailments state to handle status ailments
+         * (e.g., seal, weakness, curse, petrification), it must activate the Ailments
+         * state through the activator. The activator then ensures the correct orchestrators
+         * are stopped (botting, runeing, solving, cash shop) and the ailments orchestrator
+         * is started to begin monitoring for status effects and sending cure keystrokes.
+         */
+        private void _testExecutorActivatesAilmentCheckState()
+        {
+            var macroExecutorStateAilments = _fixture();
+            _ailmentController.GetStateReturn.Add(123);
+            macroExecutorStateAilments.Execute();
+            Debug.Assert(_activator.ActivateCalls == 1);
+            Debug.Assert(
+                _activator.ActivateCallArg_stateType[0] ==
+                MacroExecutorStateTypes.Ailments
+            );
+        }
+
+        /**
+         * @brief Verifies that when the ailments orchestrator is in any state other than
+         * Cured, the macro executor remains in the Ailments state to continue
+         * monitoring for and responding to status ailments
+         * 
+         * When the bot is actively checking for status ailments (e.g., scanning for
+         * curses, seals, or petrification), the system should stay in Ailments state
+         * as long as the orchestrator is still processing. This ensures the bot continues
+         * to monitor for ailments until they are cured or a critical state is reached.
+         */
+        private void _testExecutorTransitionsToAilments()
+        {
+            var macroExecutorStateAilments = _fixture();
+            _ailmentController.GetStateReturn.Add(123);
+            Debug.Assert(
+                macroExecutorStateAilments.Execute() ==
+                (int)MacroExecutorStateTypes.Ailments
+            );
+        }
+
+        /**
+         * @brief Verifies that when the ailments orchestrator reports that all status
+         * effects have been cured, the macro executor transitions back to Botting state
+         * to resume normal monster killing operations
+         * 
+         * Once the bot has successfully cured all status ailments (e.g., all curses
+         * removed, character no longer petrified), the system should return to Botting
+         * state. This allows the bot to resume its normal monster-killing routine until
+         * another ailment is detected or a rune spawns.
+         */
+        private void _testExecutorTransitionsToBottingOnCured()
+        {
+            var macroExecutorStateAilments = _fixture();
+            _ailmentController.GetStateReturn.Add(
+                (int)AilmentExecutorThreadedUpdate.Cured
+            );
+            Debug.Assert(
+                macroExecutorStateAilments.Execute() ==
+                (int)MacroExecutorStateTypes.Botting
+            );
+        }
+
+        /**
+         * @brief Verifies that when the ailments orchestrator reports a critical StopBot
+         * condition (e.g., an ailment that cannot be cured or requires immediate bot
+         * shutdown), the macro executor clicks the stop menu button and sets the stop flag
+         * 
+         * When a critical status ailment is detected that requires the bot to stop
+         * operating, the system must trigger the stop menu action handler and mark the stop
+         * flag. This ensures the bot halts all automation to prevent further actions until
+         * the user intervenes.
+         */
+        private void _testExecutorClicksStopMenuButtonOnStopBot()
+        {
+            var macroExecutorStateAilments = _fixture();
+            var stopMenuActionHandler = (
+                (MockWindowActionHandler)_context.StopMenuActionHandler!
+            );
+            for (int i = 0; i < 2; i++)
+            {
+                _ailmentController.GetStateReturn.Add(
+                    (int)AilmentExecutorThreadedUpdate.StopBot
+                );
+                macroExecutorStateAilments.Execute();
+                Debug.Assert(stopMenuActionHandler.OnEventCalls == 1);
+                Debug.Assert(_context.StopCalled);
+            }
+        }
+
+        public void Run()
+        {
+            _testExecutorActivatesAilmentCheckState();
+            _testExecutorTransitionsToAilments();
+            _testExecutorTransitionsToBottingOnCured();
+            _testExecutorClicksStopMenuButtonOnStopBot();
+        }
+    }
+
+
+    public class MacroExecutorThreadAilmentTransitionHandlerTests
+    {
+        private MacroExecutorThreadContext _context = (
+                new MacroExecutorThreadContext(
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new StopwatchTimestamp(),
+                new StopwatchTimestamp(),
+                MapIconInfo.Rune
+            )
+        );
+
+        private MockExecutorStateActivator _activator = new MockExecutorStateActivator();
+
+        private AbstractMacroExecutorThreadTransitionHandler _fixture()
+        {
+            _context = new MacroExecutorThreadContext(
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new StopwatchTimestamp(),
+                new StopwatchTimestamp(),
+                MapIconInfo.Rune
+            )
+            {
+                BottingModel = new BottingModel()
+            };
+            _activator = (
+                new MockExecutorStateActivator()
+            );
+            return new MacroExecutorThreadAilmentTransitionHandler(
+                _context, _activator
+            );
+        }
+
+        /**
+         * @brief Verifies that when active ailments are detected, the transition handler
+         * clears the orchestrator state by activating MaxNum before transitioning
+         * 
+         * When the macro system needs to switch to the Ailments state to handle status
+         * ailments, the transition handler must first reset/clear the current orchestrator
+         * state by activating MaxNum. This ensures a clean state before entering the
+         * Ailments state, preventing any residual operations from interfering with
+         * ailment detection and response. When no ailments are detected, no activation
+         * occurs.
+         */
+        private void _testAilmentTransitionActivatorClear()
+        {
+            foreach (var matchCount in new[] { 123, 0 })
+            {
+                var handler = _fixture();
+                var ailmentsModel = _context.BottingModel!.GetAilmentsModel();
+                ailmentsModel.SetAilment("meow1", matchCount);
+                ailmentsModel.SetAilment("meow2", 0);
+                handler.ProcessState(123);
+                if (matchCount > 0)
+                {
+                    Debug.Assert(_activator.ActivateCalls == 1);
+                    Debug.Assert(_activator.ActivateCallArg_stateType[0] == MacroExecutorStateTypes.MaxNum);
+                }
+                else
+                {
+                    Debug.Assert(_activator.ActivateCalls == 0);
+                }
+            }
+        }
+
+        /**
+         * @brief Verifies that when active ailments are detected, the transition handler
+         * broadcasts the Ailments state notification to all registered inject action listeners
+         * 
+         * When the macro system transitions to the Ailments state, the handler must notify
+         * any registered inject actions (e.g., UI update components, logging systems) that
+         * the macro executor is now in the Ailments state. This allows other components
+         * to react appropriately.
+         */
+        private void _testAilmentTransitionInjectAction()
+        {
+            foreach (var matchCount in new[] { 123, 0 })
+            {
+                var handler = _fixture();
+                var ailmentsModel = _context.BottingModel!.GetAilmentsModel();
+                var injectType = new List<object>();
+                var injectAction = new InjectAction((_, __) => { injectType.Add(_); });
+                ailmentsModel.SetAilment("meow1", matchCount);
+                ailmentsModel.SetAilment("meow2", 0);
+                handler.Inject(SystemInjectType.InjectAction, injectAction);
+                Debug.Assert(injectType.Count == 0);
+                handler.ProcessState(123);
+                if (matchCount > 0)
+                {
+                    Debug.Assert(injectType.Count == 1);
+                    Debug.Assert(injectType[0] is MacroExecutorStateTypes.Ailments);
+                }
+                else
+                {
+                    Debug.Assert(injectType.Count == 0);
+                }
+            }
+        }
+
+        /**
+         * @brief Verifies that the transition handler returns the Ailments state when
+         * active ailments are detected, or returns the current state when none are found
+         * 
+         * When the macro system checks for status ailments, the transition handler must
+         * evaluate whether any active ailments are present. If active ailments are detected
+         * (detection count > 0), the handler should return the Ailments state to trigger
+         * the transition. If no ailments are detected, it should return the current state
+         * unchanged, allowing normal botting operations to continue.
+         */
+        private void _testAilmentTransition()
+        {
+            foreach (var matchCount in new[] { 123, 0 })
+            {
+                var handler = _fixture();
+                var ailmentsModel = _context.BottingModel!.GetAilmentsModel();
+                ailmentsModel.SetAilment("meow1", matchCount);
+                ailmentsModel.SetAilment("meow2", 0);
+                if (matchCount > 0)
+                {
+                    Debug.Assert(handler.ProcessState(123) == (int)MacroExecutorStateTypes.Ailments);
+                }
+                else
+                {
+                    Debug.Assert(handler.ProcessState(123) == 123);
+                }
+            }
+        }
+
+        public void Run()
+        {
+            _testAilmentTransitionActivatorClear();
+            _testAilmentTransitionInjectAction();
+            _testAilmentTransition();
+        }
+    }
+
+
+    public class MacroExecutorThreadMacroTransitionHandlerTests
+    {
+        private List<AbstractExecutorState> _executorStates = [];
+
+        private List<string> _callOrder = [];
+
+        private AbstractMacroExecutorThreadTransitionHandler _fixture()
+        {
+            _executorStates = [];
+            _callOrder = [];
+            return new MacroExecutorThreadMacroTransitionHandler(_executorStates);
         }
 
         private void _setupExecutorStates()
@@ -1374,62 +1731,10 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             ((MockExecutorState)_executorStates[4]).ExecuteReturn.Add(1);
             ((MockExecutorState)_executorStates[1]).ExecuteReturn.Add(3);
             ((MockExecutorState)_executorStates[3]).ExecuteReturn.Add(0);
-            _executeTimestamp.GetTimestampReturn.Add(0);
-            _executeTimestamp.GetTimestampReturn.Add(0);
-            _executeTimestamp.GetTimestampReturn.Add(0);
-            _executeTimestamp.GetTimestampReturn.Add(0);
-            _executeTimestamp.GetTimestampReturn.Add(0);
             foreach (var executorState in _executorStates)
             {
                 ((MockExecutorState)executorState).CallOrder = _callOrder;
             }
-        }
-
-        /**
-         * @brief Verifies that resetting the state machine triggers execution of the
-         * Reset state, preparing the system for a fresh automation cycle
-         * 
-         * When the bot needs to start a new automation session, the state machine resets
-         * to its initial state. This executes any cleanup or initialization logic in the
-         * Reset state, ensuring the bot starts fresh without leftover state from
-         * previous operations.
-         */
-        private void _testResettingStateMachineExecutesAtReset()
-        {
-            var stateMachine = _fixture();
-            _setupExecutorStates();
-            stateMachine.Reset();
-            var executorState = (MockExecutorState)
-                _executorStates[(int)MacroExecutorStateTypes.Reset];
-            Debug.Assert(executorState.ExecuteCalls == 1);
-        }
-
-        /**
-         * @brief Verifies that when the state machine resets, the Reset state's return
-         * value (the next state ID) is broadcast to all registered inject action listeners
-         * 
-         * When the macro system resets (e.g., after loading a new configuration or
-         * stopping automation), the state machine executes the Reset state to perform
-         * cleanup and determine the next state (typically Idle). This test ensures that
-         * the return value from the Reset state is properly captured and injected as a
-         * notification to any listeners, allowing the UI or other components to update
-         * their displays based on the new state.
-         */
-        private void _testResettingStateMachineInjectsExecuteState()
-        {
-            var typeList = new List<object>();
-            var injectAction = new InjectAction((type, data) => { typeList.Add(type); });
-            var reset = (int)MacroExecutorStateTypes.Reset;
-            var stateMachine = _fixture();
-            stateMachine.Inject(SystemInjectType.InjectAction, injectAction);
-            for (int i = 0; i <= reset; i++)
-            {
-                _executorStates.Add(new MockExecutorState());
-            }
-            ((MockExecutorState)_executorStates[reset]).ExecuteReturn.Add(123);
-            stateMachine.Reset();
-            Debug.Assert(typeList.Count == 1);
-            Debug.Assert((int)typeList[0] == 123);
         }
 
         /**
@@ -1446,9 +1751,10 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         {
             var stateMachine = _fixture();
             _setupExecutorStates();
+            var currentState = (int)MacroExecutorStateTypes.Idle;
             for (int i = 0; i < _executorStates.Count; i++)
             {
-                stateMachine.Transmit();
+                currentState = stateMachine.ProcessState(currentState);
             }
             var ref0 = new TestUtilities().Reference(_executorStates[0]);
             var ref1 = new TestUtilities().Reference(_executorStates[1]);
@@ -1485,10 +1791,10 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 for (int i = 0; i < (int)MacroExecutorStateTypes.MaxNum; i++)
                 {
                     _executorStates.Add(new MockExecutorState());
-                    _executeTimestamp.GetTimestampReturn.Add(0);
                 }
                 ((MockExecutorState)_executorStates[idle]).ExecuteReturn.Add((int)state);
-                stateMachine.Transmit();
+                var currentState = (int)MacroExecutorStateTypes.Idle;
+                currentState = stateMachine.ProcessState(currentState);
                 if (state is not MacroExecutorStateTypes.Idle)
                 {
                     Debug.Assert(typeList.Count == 1);
@@ -1501,69 +1807,179 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             }
         }
 
-        /**
-         * @brief Verifies that the state machine sleeps for the remaining time needed
-         * to maintain the configured execution frequency
-         * 
-         * To prevent the bot from overwhelming the system, the state machine limits
-         * how often it executes states. This test sets an execution frequency
-         * and verifies that if the last execution was too recent, the state machine
-         * sleeps for the appropriate amount of time to maintain the desired frequency.
-         */
-        private void _testTransmittingStateMachineSleepsRemaining()
+        public void Run()
         {
-            var stateMachine = _fixture();
-            _executorStates.Add(new MockExecutorState());
-            _executorStates.Add(new MockExecutorState());
-            ((MockExecutorState)_executorStates[0]).ExecuteReturn.Add(0);
-            ((MockExecutorState)_executorStates[1]).ExecuteReturn.Add(1);
-            _executeTimestamp.GetTimestampReturn.Add(87);
-            _context.ExecutionFrequency = 0.01;
-            stateMachine.Transmit();
-            Debug.Assert(_sleeper.SleepCalls == 1);
-            Debug.Assert(_sleeper.SleepCallArg_milliseconds[0] == 13000);
+            _testTransmittingStateMachineRunsNextStates();
+            _testTransmittingStateMachineInjectsNewExecuteState();
+        }
+    }
+
+
+    public class MacroExecutorThreadResetTransitionHandlerTests
+    {
+        private List<AbstractExecutorState> _executorStates = [];
+
+        private MacroExecutorThreadContext _context = (
+                new MacroExecutorThreadContext(
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new StopwatchTimestamp(),
+                new StopwatchTimestamp(),
+                MapIconInfo.Rune
+            )
+        );
+
+        private AbstractMacroExecutorThreadTransitionHandler _fixture()
+        {
+            _executorStates = [];
+            _context = new MacroExecutorThreadContext(
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new StopwatchTimestamp(),
+                new StopwatchTimestamp(),
+                MapIconInfo.Rune
+            );
+            return new MacroExecutorThreadResetTransitionHandler(
+                _context,
+                _executorStates
+            ); ;
         }
 
         /**
-         * @brief Verifies that the state machine does not sleep when the execution
-         * time already exceeds the configured frequency period
+         * @brief Verifies that resetting the state machine triggers execution of the
+         * Reset state, preparing the system for a fresh automation cycle
          * 
-         * If the bot's state execution takes longer than the configured frequency
-         * period (meaning it's already "behind schedule"), the state machine should
-         * not add any additional delay. This prevents the bot from falling further
-         * behind and ensures maximum responsiveness when processing is slow.
+         * When the bot needs to start a new automation session, the state machine resets
+         * to its initial state. This executes any cleanup or initialization logic in the
+         * Reset state, ensuring the bot starts fresh without leftover state from
+         * previous operations.
          */
-        private void _testTransmittingStateMachineDoesntSleepWhenDelayed()
+        private void _testResettingStateMachineExecutesAtReset()
         {
             var stateMachine = _fixture();
-            _executorStates.Add(new MockExecutorState());
-            _executorStates.Add(new MockExecutorState());
-            ((MockExecutorState)_executorStates[0]).ExecuteReturn.Add(0);
-            ((MockExecutorState)_executorStates[1]).ExecuteReturn.Add(1);
-            _executeTimestamp.GetTimestampReturn.Add(101);
-            _context.ExecutionFrequency = 0.01;
-            stateMachine.Transmit();
-            Debug.Assert(_sleeper.SleepCalls == 0);
+            var reset = (int)MacroExecutorStateTypes.Reset;
+            for (int i = 0; i <= reset; i++)
+            {
+                _executorStates.Add(new MockExecutorState());
+            }
+            var executorState = (MockExecutorState)_executorStates[reset];
+            executorState.ExecuteReturn.Add(123);
+            var result = stateMachine.ProcessState(234);
+            Debug.Assert(executorState.ExecuteCalls == 1);
+            Debug.Assert(result == 123);
         }
 
         /**
-         * @brief Verifies that the state machine does not attempt to sleep when the
-         * execution frequency is set to zero (disabled)
+         * @brief Verifies that resetting the state machine clears the StopCalled flag
+         * to prevent duplicate stop operations when a critical ailment is detected
          * 
-         * If the bot's configuration has execution frequency set to zero (meaning no
-         * rate limiting), the state machine should not add any sleep delays.
+         * When a critical ailment triggers the StopBot condition, the macro system sets
+         * the StopCalled flag to true to indicate that the stop button has already been
+         * clicked. This flag prevents the bot from attempting to stop multiple times
+         * (which could cause errors or unintended behavior).
          */
-        private void _testTransmittingStateMachineDoesntSleepWhenInvalidFrequency()
+        private void _testResettingStateMachineUnflagsStopCalled()
         {
+            var injectAction = new InjectAction((_, __) => { });
             var stateMachine = _fixture();
-            _executorStates.Add(new MockExecutorState());
-            _executorStates.Add(new MockExecutorState());
-            ((MockExecutorState)_executorStates[0]).ExecuteReturn.Add(0);
-            ((MockExecutorState)_executorStates[1]).ExecuteReturn.Add(1);
-            _executeTimestamp.GetTimestampReturn.Add(101);
-            _context.ExecutionFrequency = 0;
-            stateMachine.Transmit();
-            Debug.Assert(_sleeper.SleepCalls == 0);
+            var reset = (int)MacroExecutorStateTypes.Reset;
+            stateMachine.Inject(SystemInjectType.InjectAction, injectAction);
+            for (int i = 0; i <= reset; i++)
+            {
+                _executorStates.Add(new MockExecutorState());
+            }
+            _context.StopCalled = true;
+            var executorState = (MockExecutorState)_executorStates[reset];
+            executorState.ExecuteReturn.Add(123);
+            stateMachine.ProcessState(234);
+            Debug.Assert(!_context.StopCalled);
+        }
+
+        /**
+         * @brief Verifies that when the state machine resets, the Reset state's return
+         * value (the next state ID) is broadcast to all registered inject action listeners
+         * 
+         * When the macro system resets (e.g., after loading a new configuration or
+         * stopping automation), the state machine executes the Reset state to perform
+         * cleanup and determine the next state (typically Idle). This test ensures that
+         * the return value from the Reset state is properly captured and injected as a
+         * notification to any listeners, allowing the UI or other components to update
+         * their displays based on the new state.
+         */
+        private void _testResettingStateMachineInjectsExecuteState()
+        {
+            var typeList = new List<object>();
+            var injectAction = new InjectAction((type, data) => { typeList.Add(type); });
+            var reset = (int)MacroExecutorStateTypes.Reset;
+            var stateMachine = _fixture();
+            stateMachine.Inject(SystemInjectType.InjectAction, injectAction);
+            for (int i = 0; i <= reset; i++)
+            {
+                _executorStates.Add(new MockExecutorState());
+            }
+            var executorState = (MockExecutorState)_executorStates[reset];
+            executorState.ExecuteReturn.Add(123);
+            stateMachine.ProcessState(234);
+            Debug.Assert(typeList.Count == 1);
+            Debug.Assert((int)typeList[0] == 123);
+        }
+
+        public void Run()
+        {
+            _testResettingStateMachineExecutesAtReset();
+            _testResettingStateMachineUnflagsStopCalled();
+            _testResettingStateMachineInjectsExecuteState();
+        }
+    }
+
+
+    public class MacroExecutorThreadContextTransitionHandlerTests
+    {
+        private MockOrchestratorController _bottingController = new MockOrchestratorController();
+
+        private MockOrchestratorController _runeingController = new MockOrchestratorController();
+
+        private MockOrchestratorController _solvingController = new MockOrchestratorController();
+
+        private MockOrchestratorController _cashShopController = new MockOrchestratorController();
+
+        private MockOrchestratorController _ailmentsController = new MockOrchestratorController();
+
+        private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new StopwatchTimestamp(),
+            new StopwatchTimestamp(),
+            MapIconInfo.Rune
+        );
+
+        private AbstractMacroExecutorThreadTransitionHandler _fixture()
+        {
+            _bottingController = new MockOrchestratorController();
+            _runeingController = new MockOrchestratorController();
+            _solvingController = new MockOrchestratorController();
+            _cashShopController = new MockOrchestratorController();
+            _ailmentsController = new MockOrchestratorController();
+            _context = new MacroExecutorThreadContext(
+                _bottingController,
+                _runeingController,
+                _solvingController,
+                _cashShopController,
+                _ailmentsController,
+                new StopwatchTimestamp(),
+                new StopwatchTimestamp(),
+                MapIconInfo.Rune
+            );
+            return new MacroExecutorThreadContextTransitionHandler(_context); ;
         }
 
         /**
@@ -1660,6 +2076,31 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             Debug.Assert(_cashShopController.SetOrchestratorThreadStateCallArg_threadState[0] == state);
         }
 
+        /**
+         * @brief Verifies that the ailments orchestrator controller thread and state are
+         * properly injected into the state machine's context
+         * 
+         * When the bot initializes, it needs to provide the state machine with the thread
+         * that controls status ailment detection and response operations. The ailments
+         * orchestrator monitors for active status effects (e.g., seal, weakness, curse,
+         * petrification) and coordinates the appropriate cure responses (all-cure key
+         * presses, alternating arrow keys for petrification, or stop signals). This test
+         * ensures that the ailments thread and its state object are correctly wired to
+         * the state machine's ailments controller, allowing the state machine to start
+         * and stop ailment monitoring when the bot enters or exits the Ailments state.
+         */
+        private void _testInjectingAilmentControllerThreadDependency()
+        {
+            var stateMachine = _fixture();
+            var thread = new MockThread(new ThreadRunningState());
+            var state = new KeystrokeTransmitterThreadState(0, KeystrokeTransmitterThreadType.Ailment);
+            thread.ThreadStateReturn.Add(state);
+            stateMachine.Inject(SystemInjectType.ThreadDependency, thread);
+            Debug.Assert(_ailmentsController.SetOrchestratorCalls == 1);
+            Debug.Assert(_ailmentsController.SetOrchestratorCallArg_orchestrator[0] == thread);
+            Debug.Assert(_ailmentsController.SetOrchestratorThreadStateCalls == 1);
+            Debug.Assert(_ailmentsController.SetOrchestratorThreadStateCallArg_threadState[0] == state);
+        }
 
         /**
          * @brief Verifies that bot configuration settings are properly injected into
@@ -1706,21 +2147,227 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             Debug.Assert(_context.BottingModel == data);
         }
 
+        /**
+         * @brief Verifies that the start menu action handler is properly injected into
+         * the state machine's context for coordinating stop operations
+         * 
+         * When a critical ailment (StopBot) is detected, the macro system needs to
+         * trigger the stop menu action to halt automation. The stop menu action handler
+         * provides this capability. This test ensures that the action handler is correctly
+         * stored in the context, allowing the Ailments state to invoke it when a StopBot
+         * condition occurs.
+         */
+        private void _testInjectingStartActionHandler()
+        {
+            var stateMachine = _fixture();
+            var actionHandler = new WindowMenuItemStartActionHandler(
+                new System.Windows.Controls.MenuItem(),
+                new MockWindowStateModifier()
+            );
+            stateMachine.Inject(SystemInjectType.ActionHandler, actionHandler);
+            Debug.Assert(_context.StopMenuActionHandler == actionHandler);
+        }
+
         public void Run()
         {
-            _testResettingStateMachineExecutesAtReset();
-            _testResettingStateMachineInjectsExecuteState();
-            _testTransmittingStateMachineRunsNextStates();
-            _testTransmittingStateMachineInjectsNewExecuteState();
-            _testTransmittingStateMachineSleepsRemaining();
-            _testTransmittingStateMachineDoesntSleepWhenDelayed();
-            _testTransmittingStateMachineDoesntSleepWhenInvalidFrequency();
             _testInjectingBottingControllerThreadDependency();
             _testInjectingRuneingControllerThreadDependency();
             _testInjectingSolvingControllerThreadDependency();
             _testInjectingCashShopControllerThreadDependency();
+            _testInjectingAilmentControllerThreadDependency();
             _testInjectingConfiguration();
             _testInjectingBottingModel();
+            _testInjectingStartActionHandler();
+        }
+    }
+
+
+    public class MacroExecutorThreadStateMachineTests
+    {
+
+        private MockMacroSleeper _sleeper = new MockMacroSleeper();
+
+        private MockTimestamp _executeTimestamp = new MockTimestamp();
+
+        private List<string> _callOrder = [];
+
+        private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new MockOrchestratorController(),
+            new StopwatchTimestamp(),
+            new StopwatchTimestamp(),
+            MapIconInfo.Rune
+        );
+
+        private MockMacroExecutorThreadTransitionHandler _ailmentTransition = (
+            new MockMacroExecutorThreadTransitionHandler()
+        );
+
+        private MockMacroExecutorThreadTransitionHandler _macroTransition = (
+            new MockMacroExecutorThreadTransitionHandler()
+        );
+
+        private MockMacroExecutorThreadTransitionHandler _resetTransition = (
+            new MockMacroExecutorThreadTransitionHandler()
+        );
+
+        private MockMacroExecutorThreadTransitionHandler _contextTransition = (
+            new MockMacroExecutorThreadTransitionHandler()
+        );
+
+        private AbstractKeystrokeTransmitterThreadHelper _fixture(
+            int initialState = (int)MacroExecutorStateTypes.Idle
+        )
+        {
+            _sleeper = new MockMacroSleeper();
+            _executeTimestamp = new MockTimestamp();
+            _callOrder = [];
+            _context = new MacroExecutorThreadContext(
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new MockOrchestratorController(),
+                new StopwatchTimestamp(),
+                new StopwatchTimestamp(),
+                MapIconInfo.Rune
+            );
+            _ailmentTransition = new MockMacroExecutorThreadTransitionHandler();
+            _macroTransition = new MockMacroExecutorThreadTransitionHandler();
+            _resetTransition = new MockMacroExecutorThreadTransitionHandler();
+            _contextTransition = new MockMacroExecutorThreadTransitionHandler();
+            return new MacroExecutorThreadStateMachine(
+                _context,
+                _ailmentTransition,
+                _macroTransition,
+                _resetTransition,
+                _contextTransition,
+                _sleeper,
+                _executeTimestamp,
+                initialState
+            );
+        }
+
+        /**
+         * @brief Verifies the complete transmission sequence including timestamp reset,
+         * ailment state processing, macro state processing, and sleep calculation
+         * 
+         * When the macro executor runs its main loop, the Transmit method must execute a
+         * precise sequence of operations in order: reset the execution timestamp to measure
+         * the start of this cycle, process any pending ailment state transitions, process
+         * the current macro state, calculate the elapsed time, and sleep for the remaining
+         * portion of the configured frequency period to maintain consistent execution timing.
+         */
+        private void _testTransmittingProcess()
+        {
+            var stateMachine = _fixture();
+            _executeTimestamp.CallOrder = _callOrder;
+            _ailmentTransition.CallOrder = _callOrder;
+            _macroTransition.CallOrder = _callOrder;
+            _sleeper.CallOrder = _callOrder;
+            _ailmentTransition.ProcessStateReturn.Add(123);
+            _macroTransition.ProcessStateReturn.Add(234);
+            _executeTimestamp.GetTimestampReturn.Add(345);
+            var timestampRef = new TestUtilities().Reference(_executeTimestamp);
+            var ailmentRef = new TestUtilities().Reference(_ailmentTransition);
+            var macroRef = new TestUtilities().Reference(_macroTransition);
+            var sleeperRef = new TestUtilities().Reference(_sleeper);
+            stateMachine.Transmit();
+            Debug.Assert(_callOrder.Count == 5);
+            Debug.Assert(_callOrder[0] == timestampRef + "SetTimestamp");
+            Debug.Assert(_callOrder[1] == ailmentRef + "ProcessState");
+            Debug.Assert(_callOrder[2] == macroRef + "ProcessState");
+            Debug.Assert(_callOrder[3] == timestampRef + "GetTimestamp");
+            Debug.Assert(_callOrder[4] == sleeperRef + "Sleep");
+        }
+
+        /**
+         * @brief Verifies that the ailment state and macro state transition handlers
+         * are called with the correct current state values, and that the returned next
+         * states are correctly passed as inputs to subsequent handlers
+         * 
+         * When the macro executor runs successive cycles, the state machine must properly
+         * chain the results of each transition handler. The ailment transition handler
+         * receives the current macro state and returns the next state (or same if no
+         * transition). That returned value becomes the input to the macro transition
+         * handler, which then returns the final state for the next cycle. This chaining
+         * ensures state changes flow correctly through the system.
+         */
+        private void _testTransmittingProcessStates()
+        {
+            var stateMachine = _fixture(12);
+            _ailmentTransition.ProcessStateReturn.Add(23);
+            _macroTransition.ProcessStateReturn.Add(34);
+            _executeTimestamp.GetTimestampReturn.Add(0);
+            _ailmentTransition.ProcessStateReturn.Add(45);
+            _macroTransition.ProcessStateReturn.Add(56);
+            _executeTimestamp.GetTimestampReturn.Add(0);
+            stateMachine.Transmit();
+            stateMachine.Transmit();
+            Debug.Assert(_ailmentTransition.ProcessStateCallArg_currentState[0] == 12);
+            Debug.Assert(_macroTransition.ProcessStateCallArg_currentState[0] == 23);
+            Debug.Assert(_ailmentTransition.ProcessStateCallArg_currentState[1] == 34);
+            Debug.Assert(_macroTransition.ProcessStateCallArg_currentState[1] == 45);
+        }
+
+        /**
+         * @brief Verifies that the state machine sleeps for the remaining time needed
+         * to maintain the configured execution frequency
+         * 
+         * To prevent the bot from overwhelming the system, the state machine limits
+         * how often it executes states. This test sets an execution frequency
+         * and verifies that if the last execution was too recent, the state machine
+         * sleeps for the appropriate amount of time to maintain the desired frequency.
+         */
+        private void _testTransmittingStateMachineSleepsRemaining()
+        {
+            var stateMachine = _fixture();
+            _ailmentTransition.ProcessStateReturn.Add(123);
+            _macroTransition.ProcessStateReturn.Add(234);
+            _executeTimestamp.GetTimestampReturn.Add(87);
+            _context.ExecutionFrequency = 0.01;
+            stateMachine.Transmit();
+            Debug.Assert(_sleeper.SleepCalls == 1);
+            Debug.Assert(_sleeper.SleepCallArg_milliseconds[0] == 13000);
+        }
+
+        /**
+         * @brief Verifies that injections (configuration updates, dependencies, etc.) are
+         * properly forwarded to all four transition handlers (ailment, macro, reset, and context)
+         * 
+         * When the macro system receives an injection (e.g., configuration updates, keystroke
+         * transmitter dependencies, inject actions), the state machine must forward these
+         * injections to every registered transition handler. This ensures all handlers stay
+         * synchronized with the current bot configuration and dependencies, allowing them
+         * to make correct state transition decisions based on the latest settings.
+         */
+        private void _testInjectingToTransitions()
+        {
+            var stateMachine = _fixture();
+            stateMachine.Inject(123, 234);
+            Debug.Assert(_ailmentTransition.InjectCalls == 1);
+            Debug.Assert((int)_ailmentTransition.InjectCallArg_dataType[0] == 123);
+            Debug.Assert((int)_ailmentTransition.InjectCallArg_data[0]! == 234);
+            Debug.Assert(_macroTransition.InjectCalls == 1);
+            Debug.Assert((int)_macroTransition.InjectCallArg_dataType[0] == 123);
+            Debug.Assert((int)_macroTransition.InjectCallArg_data[0]! == 234);
+            Debug.Assert(_resetTransition.InjectCalls == 1);
+            Debug.Assert((int)_resetTransition.InjectCallArg_dataType[0] == 123);
+            Debug.Assert((int)_resetTransition.InjectCallArg_data[0]! == 234);
+            Debug.Assert(_contextTransition.InjectCalls == 1);
+            Debug.Assert((int)_contextTransition.InjectCallArg_dataType[0] == 123);
+            Debug.Assert((int)_contextTransition.InjectCallArg_data[0]! == 234);
+        }
+
+        public void Run()
+        {
+            _testTransmittingProcess();
+            _testTransmittingProcessStates();
+            _testTransmittingStateMachineSleepsRemaining();
+            _testInjectingToTransitions();
         }
     }
 
@@ -2321,6 +2968,11 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             new MacroExecutorStateSolvingTests().Run();
             new MacroExecutorStateSolvedCheckTests().Run();
             new MacroExecutorStateCashShopTests().Run();
+            new MacroExecutorStateAilmentsTests().Run();
+            new MacroExecutorThreadAilmentTransitionHandlerTests().Run();
+            new MacroExecutorThreadMacroTransitionHandlerTests().Run();
+            new MacroExecutorThreadResetTransitionHandlerTests().Run();
+            new MacroExecutorThreadContextTransitionHandlerTests().Run();
             new MacroExecutorThreadStateMachineTests().Run();
             new MacroExecutorThreadTests().Run();
             new MacroOrchestratorThreadTests().Run();

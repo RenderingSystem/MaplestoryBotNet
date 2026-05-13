@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
+using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using MaplestoryBotNet.ThreadingUtils;
 using System.Collections.Concurrent;
@@ -36,6 +37,7 @@ namespace MaplestoryBotNet.Systems.Macro
         Solving,
         SolvedCheck,
         CashShop,
+        Ailments,
         MaxNum
     }
 
@@ -66,6 +68,15 @@ namespace MaplestoryBotNet.Systems.Macro
     {
         public abstract int Execute();
     }
+
+
+    public abstract class AbstractMacroExecutorThreadTransitionHandler : IDataInjectable
+    {
+        public abstract int ProcessState(int currentState);
+
+        public abstract void Inject(object dataType, object? data);
+    }
+
 
 
     public class ExecutorStateActivator : AbstractExecutorStateActivator
@@ -146,6 +157,22 @@ namespace MaplestoryBotNet.Systems.Macro
             );
         }
 
+        private void _updateAilmentsOrchestrator(MacroExecutorStateTypes stateType)
+        {
+            _updateOrchestrator(
+                shouldRun: stateType == MacroExecutorStateTypes.Ailments,
+                stoppedStates: [
+                    (int)AilmentExecutorThreadedUpdate.Stopped
+                ],
+                runningStates: [
+                    (int)AilmentExecutorThreadedUpdate.Started,
+                    (int)AilmentExecutorThreadedUpdate.Cured,
+                    (int)AilmentExecutorThreadedUpdate.StopBot
+                ],
+                controller: _context.AilmentController
+            );
+        }
+
         private void _updateOrchestrator(
             bool shouldRun,
             int[] stoppedStates,
@@ -175,6 +202,7 @@ namespace MaplestoryBotNet.Systems.Macro
             _updateRuneingOrchestrator(stateType);
             _updateSolvingOrchestrator(stateType);
             _updateCashShopOrchestrator(stateType);
+            _updateAilmentsOrchestrator(stateType);
             foreach (var _ in _stopActions) _();
             foreach (var _ in _startActions) _();
         }
@@ -430,7 +458,6 @@ namespace MaplestoryBotNet.Systems.Macro
                     && (tuple.Item1 > -1 || tuple.Item2 > -1)
                 )
                 {
-
                     if (++_context.MissedRuneCount < _context.CashShopTolerance)
                     {
                         return (int)MacroExecutorStateTypes.Runeing;
@@ -495,6 +522,42 @@ namespace MaplestoryBotNet.Systems.Macro
     }
 
 
+    public class MacroExecutorStateAilments : AbstractExecutorState
+    {
+        private MacroExecutorThreadContext _context;
+
+        private AbstractExecutorStateActivator _activator;
+
+        public MacroExecutorStateAilments(
+            MacroExecutorThreadContext context,
+            AbstractExecutorStateActivator activator
+        )
+        {
+            _context = context;
+            _activator = activator;
+        }
+
+        public override int Execute()
+        {
+            _activator.Activate(MacroExecutorStateTypes.Ailments);
+            var ailment = _context.AilmentController.GetState();
+            if (ailment == (int)AilmentExecutorThreadedUpdate.Cured)
+            {
+                return (int)MacroExecutorStateTypes.Botting;
+            }
+            else if (ailment == (int)AilmentExecutorThreadedUpdate.StopBot)
+            {
+                if (!_context.StopCalled)
+                {
+                    _context.StopMenuActionHandler?.OnEvent(null, new EventArgs());
+                    _context.StopCalled = true;
+                }
+            }
+            return (int)MacroExecutorStateTypes.Ailments;
+        }
+    }
+
+
     public class MacroExecutorThreadContext
     {
         public AbstractOrchestratorController BottingController;
@@ -504,6 +567,8 @@ namespace MaplestoryBotNet.Systems.Macro
         public AbstractOrchestratorController SolvingController;
 
         public AbstractOrchestratorController CashShopController;
+
+        public AbstractOrchestratorController AilmentController;
 
         public AbstractBottingModel? BottingModel;
 
@@ -523,11 +588,16 @@ namespace MaplestoryBotNet.Systems.Macro
 
         public int MissedRuneCount;
 
+        public AbstractWindowActionHandler? StopMenuActionHandler;
+
+        public bool StopCalled = false;
+
         public MacroExecutorThreadContext(
             AbstractOrchestratorController bottingController,
             AbstractOrchestratorController runeingController,
             AbstractOrchestratorController solvingController,
             AbstractOrchestratorController cashShopController,
+            AbstractOrchestratorController ailmentController,
             AbstractTimestamp runeingStopwatch,
             AbstractTimestamp solvingStopwatch,
             string runeKey
@@ -537,6 +607,7 @@ namespace MaplestoryBotNet.Systems.Macro
             RuneingController = runeingController;
             SolvingController = solvingController;
             CashShopController = cashShopController;
+            AilmentController = ailmentController;
             BottingModel = null;
             RuneingStopwatch = runeingStopwatch;
             SolvingStopwatch = solvingStopwatch;
@@ -546,74 +617,154 @@ namespace MaplestoryBotNet.Systems.Macro
             ExecutionFrequency = 0.0;
             CashShopTolerance = 0;
             MissedRuneCount = 0;
+            StopMenuActionHandler = null;
+            StopCalled = false;
         }
     }
 
 
-    public class MacroExecutorThreadStateMachine : AbstractKeystrokeTransmitterThreadHelper
+    public class MacroExecutorThreadAilmentTransitionHandler :
+        AbstractMacroExecutorThreadTransitionHandler
     {
-        private List<AbstractExecutorState> _executorStates;
-
         private MacroExecutorThreadContext _context;
 
-        private AbstractMacroSleeper _sleeper;
-
-        private AbstractTimestamp _executeTimestamp;
+        private AbstractExecutorStateActivator _activator;
 
         private AbstractInjectAction? _threadedInjectAction;
 
-        private int _macroExecutorState;
-
-        public MacroExecutorThreadStateMachine(
-            List<AbstractExecutorState> executorStates,
+        public MacroExecutorThreadAilmentTransitionHandler(
             MacroExecutorThreadContext context,
-            AbstractMacroSleeper sleeper,
-            AbstractTimestamp sleepTimesamp,
-            int macroExecutorState
+            AbstractExecutorStateActivator activator
+        )
+        {
+            _context = context;
+            _activator = activator;
+            _threadedInjectAction = null;
+        }
+
+        public override int ProcessState(int currentState)
+        {
+            if (
+                currentState is not (int)MacroExecutorStateTypes.Ailments &&
+                _context.BottingModel is AbstractBottingModel bottingModel &&
+                bottingModel.GetAilmentsModel() is AbstractAilmentsModel ailmentsModel &&
+                ailmentsModel.GetAilments() is List<Tuple<string, int>> ailmentsList &&
+                ailmentsList.FindAll(t => t.Item2 > 0).Count > 0
+            )
+            {
+                _activator.Activate(MacroExecutorStateTypes.MaxNum);
+                _threadedInjectAction?.GetAction()(MacroExecutorStateTypes.Ailments, 0);
+                return (int)MacroExecutorStateTypes.Ailments;
+            }
+            return currentState;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (
+                dataType is SystemInjectType.InjectAction &&
+                data is AbstractInjectAction injectAction
+            )
+            {
+                _threadedInjectAction = injectAction;
+            }
+        }
+    }
+
+
+    public class MacroExecutorThreadMacroTransitionHandler :
+        AbstractMacroExecutorThreadTransitionHandler
+    {
+        private List<AbstractExecutorState> _executorStates;
+
+        private AbstractInjectAction? _threadedInjectAction;
+
+        public MacroExecutorThreadMacroTransitionHandler(
+            List<AbstractExecutorState> executorStates
         )
         {
             _executorStates = executorStates;
-            _context = context;
-            _sleeper = sleeper;
-            _executeTimestamp = sleepTimesamp;
-            _macroExecutorState = macroExecutorState;
+            _threadedInjectAction = null;
         }
 
-        private void _transmit()
+        public override int ProcessState(int currentState)
         {
-            _executeTimestamp.SetTimestamp();
-            var nextState = _executorStates[_macroExecutorState].Execute();
-            if (nextState != _macroExecutorState)
+            var nextState = _executorStates[currentState].Execute();
+            if (nextState != currentState)
             {
                 _threadedInjectAction?.GetAction()((MacroExecutorStateTypes)nextState, 0);
             }
-            _macroExecutorState = nextState;
+            return nextState;
         }
 
-        private void _transmitSleep()
+        public override void Inject(object dataType, object? data)
         {
-            var freq = _context.ExecutionFrequency;
-            var period = freq > 0.00001 ? (1 / freq) : 0;
-            var elapsed = _executeTimestamp.GetTimestamp();
-            var sleep = (period - elapsed) * 1000;
-            if (sleep > 0)
+            if (
+                dataType is SystemInjectType.InjectAction &&
+                data is AbstractInjectAction injectAction
+            )
             {
-                _sleeper.Sleep((int)sleep);
+                _threadedInjectAction = injectAction;
             }
         }
+    }
 
-        public override bool Transmit()
+
+    public class MacroExecutorThreadResetTransitionHandler :
+        AbstractMacroExecutorThreadTransitionHandler
+    {
+        private MacroExecutorThreadContext _context;
+
+        private List<AbstractExecutorState> _executorStates;
+
+        private AbstractInjectAction? _threadedInjectAction;
+
+        public MacroExecutorThreadResetTransitionHandler(
+            MacroExecutorThreadContext context,
+            List<AbstractExecutorState> executorStates
+        )
         {
-            _transmit();
-            _transmitSleep();
-            return true;
+            _context = context;
+            _executorStates = executorStates;
+            _threadedInjectAction = null;
         }
 
-        public override void Reset()
+        public override int ProcessState(int currentState)
         {
-            _macroExecutorState = (int)MacroExecutorStateTypes.Reset;
-            _macroExecutorState = _executorStates[_macroExecutorState].Execute();
-            _threadedInjectAction?.GetAction()((MacroExecutorStateTypes)_macroExecutorState, 0);
+            _context.StopCalled = false;
+            var nextState = _executorStates[(int)MacroExecutorStateTypes.Reset].Execute();
+            _threadedInjectAction?.GetAction()((MacroExecutorStateTypes)nextState, 0);
+            return nextState;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (
+                dataType is SystemInjectType.InjectAction &&
+                data is AbstractInjectAction injectAction
+            )
+            {
+                _threadedInjectAction = injectAction;
+            }
+        }
+    }
+
+
+    public class MacroExecutorThreadContextTransitionHandler :
+        AbstractMacroExecutorThreadTransitionHandler
+    {
+        private MacroExecutorThreadContext _context;
+
+        public MacroExecutorThreadContextTransitionHandler(
+            MacroExecutorThreadContext context
+        )
+        {
+            _context = context;
+        }
+
+        public override int ProcessState(int currentState)
+        {
+            return currentState;
         }
 
         public override void Inject(object dataType, object? data)
@@ -644,6 +795,11 @@ namespace MaplestoryBotNet.Systems.Macro
                     _context.CashShopController.SetOrchestrator(thread);
                     _context.CashShopController.SetOrchestratorThreadState(state);
                 }
+                if (state.Type() is KeystrokeTransmitterThreadType.Ailment)
+                {
+                    _context.AilmentController.SetOrchestrator(thread);
+                    _context.AilmentController.SetOrchestratorThreadState(state);
+                }
             }
             if (
                 dataType is SystemInjectType.Configuration
@@ -655,15 +811,97 @@ namespace MaplestoryBotNet.Systems.Macro
                 _context.SolveCheckTimeout = macroSettings.SolveCheckTimeout;
                 _context.CashShopTolerance = macroSettings.CashShopTolerance;
             }
-            if (dataType is SystemInjectType.BottingModel && data is AbstractBottingModel bottingModel
+            if (
+                dataType is SystemInjectType.BottingModel &&
+                data is AbstractBottingModel bottingModel
             )
             {
                 _context.BottingModel = bottingModel;
             }
-            if (dataType is SystemInjectType.InjectAction && data is AbstractInjectAction injectAction)
+            if (
+                dataType is SystemInjectType.ActionHandler &&
+                data is WindowMenuItemStartActionHandler stopActionHandler
+            )
             {
-                _threadedInjectAction = injectAction;
+                _context.StopMenuActionHandler = stopActionHandler;
             }
+        }
+    }
+
+
+    public class MacroExecutorThreadStateMachine : AbstractKeystrokeTransmitterThreadHelper
+    {
+        private MacroExecutorThreadContext _context;
+
+        private AbstractMacroExecutorThreadTransitionHandler _ailmentTransition;
+
+        private AbstractMacroExecutorThreadTransitionHandler _macroTransition;
+
+        private AbstractMacroExecutorThreadTransitionHandler _resetTransition;
+
+        private AbstractMacroExecutorThreadTransitionHandler _contextTransition;
+
+        private AbstractMacroSleeper _sleeper;
+
+        private AbstractTimestamp _executeTimestamp;
+
+        private int _macroExecutorState;
+
+        public MacroExecutorThreadStateMachine(
+            MacroExecutorThreadContext context,
+            AbstractMacroExecutorThreadTransitionHandler ailmentTransition,
+            AbstractMacroExecutorThreadTransitionHandler macroTransition,
+            AbstractMacroExecutorThreadTransitionHandler resetTransition,
+            AbstractMacroExecutorThreadTransitionHandler contextTransition,
+            AbstractMacroSleeper sleeper,
+            AbstractTimestamp executeTimestamp,
+            int macroExecutorState
+        )
+        {
+            _context = context;
+            _ailmentTransition = ailmentTransition;
+            _macroTransition = macroTransition;
+            _resetTransition = resetTransition;
+            _contextTransition = contextTransition;
+            _sleeper = sleeper;
+            _executeTimestamp = executeTimestamp;
+            _macroExecutorState = macroExecutorState;
+        }
+
+        private void _transmit()
+        {
+            _executeTimestamp.SetTimestamp();
+            _macroExecutorState = _ailmentTransition.ProcessState(_macroExecutorState);
+            _macroExecutorState = _macroTransition.ProcessState(_macroExecutorState);
+        }
+
+        private void _transmitSleep()
+        {
+            var freq = _context.ExecutionFrequency;
+            var period = freq > 0.00001 ? (1 / freq) : 0;
+            var elapsed = _executeTimestamp.GetTimestamp();
+            var sleep = (int)((period - elapsed) * 1000);
+            _sleeper.Sleep(sleep);
+        }
+
+        public override bool Transmit()
+        {
+            _transmit();
+            _transmitSleep();
+            return true;
+        }
+
+        public override void Reset()
+        {
+            _macroExecutorState = _resetTransition.ProcessState(_macroExecutorState);
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            _ailmentTransition.Inject(dataType, data);
+            _macroTransition.Inject(dataType, data);
+            _resetTransition.Inject(dataType, data);
+            _contextTransition.Inject(dataType, data);
         }
     }
 
@@ -717,10 +955,7 @@ namespace MaplestoryBotNet.Systems.Macro
         private void _threadedStateUpdate(MacroExecutorThreadedUpdate newState)
         {
             _threadState.SetState((int)newState);
-            if (_threadedInjectAction != null)
-            {
-                _threadedInjectAction.GetAction()(newState, 0);
-            }
+            _threadedInjectAction?.GetAction()(newState, 0);
         }
 
         public override void Stop()
@@ -756,7 +991,10 @@ namespace MaplestoryBotNet.Systems.Macro
             else
             {
                 _macroExecutorThreadHelper.Inject(dataType, value);
-                if (dataType is SystemInjectType.InjectAction && value is AbstractInjectAction injectAction)
+                if (
+                    dataType is SystemInjectType.InjectAction &&
+                    value is AbstractInjectAction injectAction
+                )
                 {
                     _threadedInjectAction = injectAction;
                 }
@@ -822,30 +1060,52 @@ namespace MaplestoryBotNet.Systems.Macro
                     CashShopOrchestratorThreadInjectType.Stop,
                     CashShopExecutorThreadedUpdate.Stopped
                 ),
+                new OrchestratorController<
+                    AilmentOrchestratorThreadInjectType,
+                    AilmentExecutorThreadedUpdate
+                >(
+                    AilmentOrchestratorThreadInjectType.Start,
+                    AilmentExecutorThreadedUpdate.Started,
+                    AilmentOrchestratorThreadInjectType.Stop,
+                    AilmentExecutorThreadedUpdate.Stopped
+                ),
                 new StopwatchTimestamp(),
                 new StopwatchTimestamp(),
                 MapIconInfo.Rune
             );
         }
 
+        private List<AbstractExecutorState> _macroStates(
+            MacroExecutorThreadContext threadContext,
+            AbstractExecutorStateActivator activator
+        )
+        {
+            return [
+                new MacroExecutorStateReset(threadContext, activator),
+                new MacroExecutorStateIdle(threadContext, activator),
+                new MacroExecutorStateBotting(threadContext, activator),
+                new MacroExecutorStateRuneing(threadContext, activator),
+                new MacroExecutorStateSolving(threadContext, activator),
+                new MacroExecutorStateSolvedCheck(threadContext, activator),
+                new MacroExecutorStateCashShop(threadContext, activator),
+                new MacroExecutorStateAilments(threadContext, activator)
+            ];
+        }
+
         public override AbstractThread CreateThread()
         {
             var threadContext = _threadContext();
             var activator = new ExecutorStateActivator(threadContext);
+            var executorStates = _macroStates(threadContext, activator);
             return new MacroOrchestratorThread(
                 new MacroExecutorThread(
                     new ExecutionEvent(),
                     new MacroExecutorThreadStateMachine(
-                        [
-                            new MacroExecutorStateReset(threadContext, activator),
-                            new MacroExecutorStateIdle(threadContext, activator),
-                            new MacroExecutorStateBotting(threadContext, activator),
-                            new MacroExecutorStateRuneing(threadContext, activator),
-                            new MacroExecutorStateSolving(threadContext, activator),
-                            new MacroExecutorStateSolvedCheck(threadContext, activator),
-                            new MacroExecutorStateCashShop(threadContext, activator),
-                        ],
                         threadContext,
+                        new MacroExecutorThreadAilmentTransitionHandler(threadContext, activator),
+                        new MacroExecutorThreadMacroTransitionHandler(executorStates),
+                        new MacroExecutorThreadResetTransitionHandler(threadContext, executorStates),
+                        new MacroExecutorThreadContextTransitionHandler(threadContext),
                         new MacroSleeper(),
                         new StopwatchTimestamp(),
                         (int)MacroExecutorStateTypes.Idle

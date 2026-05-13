@@ -312,7 +312,7 @@ namespace MaplestoryBotNet.Systems.ProcessWatchdog
         {
             var elapsed = (int)(_pingStopwatch.GetTimestamp() * 1000);
             var timeout = runeServerSettings.ClientWatchdogTimeout;
-            _sleeper.Sleep(Math.Max(0, timeout - elapsed));
+            _sleeper.Sleep(timeout - elapsed);
         }
     }
 

@@ -591,12 +591,11 @@ namespace MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests
          * remaining portion of the configured timeout. If the health check took 1.5 seconds
          * and the timeout is 1.5 seconds, it should sleep for 0 milliseconds (immediate next check).
          * If the timeout is longer than elapsed time, it should sleep for the difference.
-         * A negative remaining time is capped at 0 (no sleep).
          */
         private void _testSleepRemainingWaitTime()
         {
             var timeouts = new[] { 1503, 1502, 1501, 1500, 1499 };
-            var expected = new[] { 3, 2, 1, 0, 0 };
+            var expected = new[] { 3, 2, 1, 0, -1 };
             for (int i = 0; i < timeouts.Length; i++)
             {
                 var helper = _fixture();

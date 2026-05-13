@@ -42,6 +42,7 @@ void UnitTestSuite()
     new RuneingTransmitterTestSuite().Run();
     new SolvingTransmitterTestSuite().Run();
     new CashShopTransmitterTestSuite().Run();
+    new AilmentTransmitterTestSuite().Run();
     new MacroSystemTestSuite().Run();
     // Test the main system
     new MainSystemTestSuite().Run();

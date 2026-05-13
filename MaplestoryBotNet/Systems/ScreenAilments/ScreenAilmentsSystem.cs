@@ -6,9 +6,11 @@ using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using MaplestoryBotNet.ThreadingUtils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using System.Collections.Concurrent;
 using System.Drawing;
 using System.Windows;
+using Rectangle = SixLabors.ImageSharp.Rectangle;
 
 
 namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
@@ -122,7 +124,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
     {
         private string _ailmentKey;
 
-        private Ailment? _ailment;
+        private volatile Ailment? _ailment;
 
         private AbstractResetEvent _resetEvent;
 
@@ -149,6 +151,19 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
             _image = null;
         }
 
+        private Image<Bgra32> _cropIfNeeded(Image<Bgra32> image, Ailment ailment)
+        {
+            int rectX = ailment.StaticRect![0];
+            int rectY = ailment.StaticRect[1];
+            int rectW = ailment.StaticRect[2];
+            int rectH = ailment.StaticRect[3];
+            int x = Math.Clamp(rectX, 0, image.Width - 1);
+            int y = Math.Clamp(rectY, 0, image.Height - 1);
+            int w = Math.Clamp(rectW, 1, image.Width - x);
+            int h = Math.Clamp(rectH, 1, image.Height - y);
+            return image.Clone(ctx => ctx.Crop(new Rectangle(x, y, w, h)));
+        }
+
         public override void ThreadLoop()
         {
             while(_runningState.IsRunning())
@@ -161,7 +176,12 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
                     _helper.ShouldCheck(ailment.CheckDelay / 1000.0f)
                 )
                 {
-                    var detected = _helper.AilmentDetected(image, ailment.Threshold / 1000.0f);
+                    Image<Bgra32>? imageToProcess = image;
+                    if (ailment.StaticRect != null)
+                    {
+                        imageToProcess = _cropIfNeeded(imageToProcess, ailment);
+                    }
+                    var detected = _helper.AilmentDetected(imageToProcess, ailment.Threshold / 1000.0f);
                     var ailmentsModel = _bottingModel.GetAilmentsModel();
                     ailmentsModel.SetAilment(_ailmentKey, detected.Count);
                 }
@@ -183,6 +203,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
                 var configuration = (MaplestoryBotConfiguration)maplestoryBotConfiguration.Copy();
                 if (configuration.Ailments.ContainsKey(_ailmentKey))
                 {
+
                     _ailment = (Ailment)configuration.Ailments[_ailmentKey].Copy();
                 }
             }
@@ -581,12 +602,14 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
         public override AbstractSystem Build()
         {
             return new ScreenAilmentsSystem(
-                new ScreenAilmentDetectionThreadsBuilder(
-                    new ImagesharpTemplateMatcherBuilder(
-                        new ImageCropper(new ImageSharpConverter()),
-                        new BitmapTemplateMatcherBuilder()
-                    ),
-                    new SingleAilmentThreadBuilder()
+                new LazyScreenAilmentsDetectionThreadBuilder(
+                    new ScreenAilmentDetectionThreadsBuilder(
+                        new ImagesharpTemplateMatcherBuilder(
+                            new ImageCropper(new ImageSharpConverter()),
+                            new BitmapTemplateMatcherBuilder()
+                        ),
+                        new SingleAilmentThreadBuilder()
+                    )
                 ),
                 new ScreenAilmentDetectionThreadStarter()
             );

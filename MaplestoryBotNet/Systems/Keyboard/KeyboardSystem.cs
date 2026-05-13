@@ -104,6 +104,8 @@ namespace MaplestoryBotNet.Systems.Keyboard
 
         private AbstractSystemBuilder _cashShopOrchestratorSystemBuilder;
 
+        private AbstractSystemBuilder _ailmentOrchestratorSystemBuilder;
+
         public KeyboardSystemBuilder()
         {
             _keyboardDeviceDetectorSystemBuilder = new KeyboardDeviceDetectorSystemBuilder();
@@ -111,6 +113,7 @@ namespace MaplestoryBotNet.Systems.Keyboard
             _runeingOrchestratorSystemBuilder = new RuneingOrchestratorSystemBuilder();
             _solvingOrchestratorSystemBuilder = new SolvingOrchestratorSystemBuilder();
             _cashShopOrchestratorSystemBuilder = new CashShopOrchestratorSystemBuilder();
+            _ailmentOrchestratorSystemBuilder = new AilmentOrchestratorSystemBuilder();
         }
 
         public override AbstractSystem Build()
@@ -121,7 +124,8 @@ namespace MaplestoryBotNet.Systems.Keyboard
                     _bottingOrchestratorSystemBuilder.Build(),
                     _runeingOrchestratorSystemBuilder.Build(),
                     _solvingOrchestratorSystemBuilder.Build(),
-                    _cashShopOrchestratorSystemBuilder.Build()
+                    _cashShopOrchestratorSystemBuilder.Build(),
+                    _ailmentOrchestratorSystemBuilder.Build()
                 ],
                 new KeystrokeTransmitterBuilder()
             );

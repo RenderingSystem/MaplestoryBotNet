@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
@@ -152,20 +153,22 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             int x, int y, AbstractMapModel mapModel, string templateKey
         )
         {
-            var sourceImage = _mapImage.Source;
-            var (mapX, mapY) = (x >= 0 && y >= 0) ? (
-                _converter.Convert(
-                    x,
-                    y,
-                    sourceImage.Width,
-                    sourceImage.Height,
-                    _mapImage.Width,
-                    _mapImage.Height
-                )
-            ) : (x, y);
-            mapModel.SetTemplatePosition(templateKey, mapX, mapY);
-            _textBoxX.Text = mapX.ToString();
-            _textBoxY.Text = mapY.ToString();
+            if (_mapImage.Source is ImageSource sourceImage)
+            {
+                var (mapX, mapY) = (x >= 0 && y >= 0) ? (
+                    _converter.Convert(
+                        x,
+                        y,
+                        sourceImage.Width,
+                        sourceImage.Height,
+                        _mapImage.Width,
+                        _mapImage.Height
+                    )
+                ) : (x, y);
+                mapModel.SetTemplatePosition(templateKey, mapX, mapY);
+                _textBoxX.Text = mapX.ToString();
+                _textBoxY.Text = mapY.ToString();
+            }
         }
     }
 
@@ -410,7 +413,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             var bitmap = new Bitmap(
                 croppedImage.Width,
                 croppedImage.Height,
-                PixelFormat.Format32bppArgb
+                System.Drawing.Imaging.PixelFormat.Format32bppArgb
             );
             var bitmapData = bitmap.LockBits(
                 new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height),

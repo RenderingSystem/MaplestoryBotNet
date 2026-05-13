@@ -247,29 +247,45 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private MenuItem _startMenuItem;
 
-        public WindowMenuItemStartModifier(MenuItem startMenuItem)
+        private AbstractDispatcher _startMenuDispatcher;
+
+        public WindowMenuItemStartModifier(
+            MenuItem startMenuItem,
+            AbstractDispatcher startMenuDispatcher
+        )
         {
             _startMenuItem = startMenuItem;
+            _startMenuDispatcher = startMenuDispatcher;
         }
 
         public override void Modify(object? value)
         {
-            if (value is not AbstractThread orchestratorThread)
-            {
-                return;
-            }
-            var header = (string)_startMenuItem.Header;
-            var injectType = (
-                (header == WindowMenuItemStartTextTypes.Start) ?
-                MacroOrchestratorThreadInjectType.Start :
-                (header == WindowMenuItemStartTextTypes.Stop) ?
-                MacroOrchestratorThreadInjectType.Stop :
-                MacroOrchestratorThreadInjectType.MaxNum
+            _startMenuDispatcher.Dispatch(
+                () =>
+                {
+                    if (value is not AbstractThread orchestratorThread)
+                    {
+                        return;
+                    }
+                    var header = (string)_startMenuItem.Header;
+                    var injectType = (
+                        (header == WindowMenuItemStartTextTypes.Start) ?
+                        MacroOrchestratorThreadInjectType.Start :
+                        (header == WindowMenuItemStartTextTypes.Stop) ?
+                        MacroOrchestratorThreadInjectType.Stop :
+                        MacroOrchestratorThreadInjectType.MaxNum
+                    );
+                    if (injectType != MacroOrchestratorThreadInjectType.MaxNum)
+                    {
+                        orchestratorThread!.Inject(injectType, 0);
+                    }
+                }
             );
-            if (injectType != MacroOrchestratorThreadInjectType.MaxNum)
-            {
-                orchestratorThread!.Inject(injectType, 0);
-            }
+        }
+
+        public override object? State(int stateType)
+        {
+            return base.State(stateType);
         }
     }
 
@@ -314,6 +330,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 _orchestratorThread = orchestratorThread;
             }
+            if (
+                dataType is SystemInjectType.InjectAction
+                && data is AbstractInjectAction injectAction
+            )
+            {
+                injectAction.GetAction()(SystemInjectType.ActionHandler, this);
+            }
         }
     }
 
@@ -322,10 +345,17 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private AbstractWindowActionHandler _windowMenuItemStartACtionHandler;
 
-        public WindowMenuItemStartActionHandlerFacade(MenuItem startMenuItem)
+        public WindowMenuItemStartActionHandlerFacade(
+            MenuItem startMenuItem,
+            AbstractDispatcher startMenuDispatcher
+        )
         {
             _windowMenuItemStartACtionHandler = new WindowMenuItemStartActionHandler(
-                startMenuItem, new WindowMenuItemStartModifier(startMenuItem)
+                startMenuItem,
+                new WindowMenuItemStartModifier(
+                    startMenuItem,
+                    startMenuDispatcher
+                )
             );
         }
 

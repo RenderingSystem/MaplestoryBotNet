@@ -1,7 +1,6 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Threading;
 
 
@@ -70,7 +69,13 @@ namespace MaplestoryBotNet
 
         private AbstractWindowActionHandler _instantiateWindowMenuItemStartActionHandler()
         {
-            return new WindowMenuItemStartActionHandlerFacade(StartMenuItem);
+            return new WindowMenuItemStartActionHandlerFacade(
+                StartMenuItem,
+                new SystemAsyncDispatcher(
+                    Dispatcher,
+                    DispatcherPriority.Background
+                )
+            );
         }
 
         private AbstractWindowActionHandler _instantiateWindowBottingTextStatusActionHandler()
@@ -83,7 +88,8 @@ namespace MaplestoryBotNet
                     RuneingText,
                     SolvingText,
                     SolvedCheckText,
-                    CashShopText
+                    CashShopText,
+                    AilmentsText
                 ],
                 new SystemAsyncDispatcher(
                     Dispatcher,
