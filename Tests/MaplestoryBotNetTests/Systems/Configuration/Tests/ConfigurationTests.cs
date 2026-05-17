@@ -65,15 +65,33 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     "pixel": [234, 345],
                     "rgb": [345, 456, 567],
                     "key": "meow_1",
-                    "active": true
+                    "tolerance": [456, 567, 678],
+                    "active": 123
                 },
                 "mp": {
                     "rect": [ 234, 345, 567, 678 ],
                     "pixel": [345, 456],
                     "rgb": [456, 567, 678],
+                    "tolerance": [567, 678, 789],
                     "key": "meow_2",
-                    "active": false
+                    "active": 234
                 },
+                "consumables": [
+                    {
+                        "name": "123",
+                        "min_delay": 234,
+                        "max_delay": 345,
+                        "key": "456",
+                        "active":  567
+                    },
+                    {
+                        "name": "234",
+                        "min_delay": 345,
+                        "max_delay": 456,
+                        "key": "567",
+                        "active":  678
+                    }
+                ],
                 "ailments": {
                     "seal": {
                         "image_directory": "some_image_1",
@@ -116,7 +134,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     "check_frequency": 0.123,
                     "solve_check_timeout": 0.234,
                     "cash_shop_tolerance": 1234,
-                    "cash_shop_timeout": 2345
+                    "cash_shop_timeout": 2345,
+                    "potion_frequency": 0.3456,
                 },
                 "rune_detection": {
                     "ip_address": "12",
@@ -172,8 +191,9 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(output.Hp.Rect.SequenceEqual([123, 234, 345, 456]));
             Debug.Assert(output.Hp.Pixel.SequenceEqual([234, 345]));
             Debug.Assert(output.Hp.Rgb.SequenceEqual([345, 456, 567]));
+            Debug.Assert(output.Hp.Tolerance.SequenceEqual([456, 567, 678]));
             Debug.Assert(output.Hp.Key == "meow_1");
-            Debug.Assert(output.Hp.Active == true);
+            Debug.Assert(output.Hp.Active == 123);
         }
 
         /**
@@ -190,8 +210,9 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(output.Mp.Rect.SequenceEqual([234, 345, 567, 678]));
             Debug.Assert(output.Mp.Pixel.SequenceEqual([345, 456]));
             Debug.Assert(output.Mp.Rgb.SequenceEqual([456, 567, 678]));
+            Debug.Assert(output.Mp.Tolerance.SequenceEqual([567, 678, 789]));
             Debug.Assert(output.Mp.Key == "meow_2");
-            Debug.Assert(output.Mp.Active == false);
+            Debug.Assert(output.Mp.Active == 234);
         }
 
         /**
@@ -317,6 +338,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             Debug.Assert(output.MacroSettings.SolveCheckTimeout == 0.234);
             Debug.Assert(output.MacroSettings.CashShopTolerance == 1234);
             Debug.Assert(output.MacroSettings.CashShopTimeout == 2345);
+            Debug.Assert(output.MacroSettings.PotionFrequency == 0.3456);
         }
 
         /**
@@ -363,6 +385,31 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         }
 
         /**
+         * @brief Tests correct parsing of consumable item configuration settings
+         * 
+         * Validates that the bot will correctly load the configuration for consumable
+         * items  from the configuration file. These settings control how the bot manages
+         * item usage during automation, including which keys to press, how often to use
+         * them, and whether the consumable is active for the current automation session.
+         */
+        private void _testDeserializeConsumables()
+        {
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
+            Debug.Assert(output.Consumables.Count == 2);
+            Debug.Assert(output.Consumables[0].Name == "123");
+            Debug.Assert(output.Consumables[0].MinDelay == 234);
+            Debug.Assert(output.Consumables[0].MaxDelay == 345);
+            Debug.Assert(output.Consumables[0].Key == "456");
+            Debug.Assert(output.Consumables[0].Active == 567);
+            Debug.Assert(output.Consumables[1].Name == "234");
+            Debug.Assert(output.Consumables[1].MinDelay == 345);
+            Debug.Assert(output.Consumables[1].MaxDelay == 456);
+            Debug.Assert(output.Consumables[1].Key == "567");
+            Debug.Assert(output.Consumables[1].Active == 678);
+        }
+
+        /**
          * @brief Executes all configuration parsing tests
          * 
          * Runs the complete test suite to ensure the bot will correctly
@@ -383,6 +430,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             _testDeserializeMacroSettings();
             _testDeserializeRuneDetection();
             _testDeserializeRuneServerSettings();
+            _testDeserializeConsumables();
         }
     }
 
@@ -416,16 +464,36 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     Rect=[123, 234, 345, 456],
                     Pixel=[234, 345],
                     Rgb=[345, 456, 567],
+                    Tolerance=[456, 567, 678],
                     Key="meow_1",
-                    Active=true
+                    Active=123
                 },
                 Mp={
                     Rect=[234, 345, 456, 567],
                     Pixel=[345, 456],
                     Rgb=[456, 567, 678],
+                    Tolerance=[567, 678, 789],
                     Key="meow_2",
-                    Active=false
+                    Active=234
                 },
+                Consumables = [
+                    new Consumable
+                    {
+                        Name = "123",
+                        MinDelay = 234,
+                        MaxDelay = 345,
+                        Key = "456",
+                        Active = 567
+                    },
+                    new Consumable
+                    {
+                        Name = "234",
+                        MinDelay = 345,
+                        MaxDelay = 456,
+                        Key = "567",
+                        Active = 678
+                    }
+                ],
                 Ailments={
                     ["seal"] = new Ailment
                     {
@@ -479,7 +547,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     CheckFrequency=0.123,
                     SolveCheckTimeout=0.234,
                     CashShopTolerance=1234,
-                    CashShopTimeout=2345
+                    CashShopTimeout=2345,
+                    PotionFrequency=0.3456
                 },
                 RuneDetection = new RuneDetection
                 {
@@ -540,8 +609,13 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                         456,
                         567
                     ],
+                    "tolerance": [
+                        456,
+                        567,
+                        678
+                    ],
                     "key": "meow_1",
-                    "active": true
+                    "active": 123
                 },
                 "mp": {
                     "rect": [
@@ -559,9 +633,30 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                         567,
                         678
                     ],
+                    "tolerance": [
+                        567,
+                        678,
+                        789
+                    ],
                     "key": "meow_2",
-                    "active": false
+                    "active": 234
                 },
+                "consumables": [
+                    {
+                        "name": "123",
+                        "min_delay": 234,
+                        "max_delay": 345,
+                        "key": "456",
+                        "active":  567
+                    },
+                    {
+                        "name": "234",
+                        "min_delay": 345,
+                        "max_delay": 456,
+                        "key": "567",
+                        "active":  678
+                    }
+                ],
                 "ailments": {
                     "seal": {
                         "image_directory": "some_image_1",
@@ -618,7 +713,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                     "check_frequency": 0.123,
                     "solve_check_timeout": 0.234,
                     "cash_shop_tolerance": 1234,
-                    "cash_shop_timeout": 2345
+                    "cash_shop_timeout": 2345,
+                    "potion_frequency": 0.3456
                 },
                 "rune_detection": {
                     "ip_address": "12",

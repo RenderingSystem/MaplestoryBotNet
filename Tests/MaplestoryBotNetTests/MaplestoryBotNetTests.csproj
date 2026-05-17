@@ -10,14 +10,6 @@
   </PropertyGroup>
 	
   <ItemGroup>
-    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\blind.gif" Link="Images\Ailments\blind.gif" />
-    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\confusion.gif" Link="Images\Ailments\confusion.gif" />
-    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\curse.gif" Link="Images\Ailments\curse.gif" />
-    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\death.gif" Link="Images\Ailments\death.gif" />
-    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\petrification.gif" Link="Images\Ailments\petrification.gif" />
-    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\poison.gif" Link="Images\Ailments\poison.gif" />
-    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\silence.gif" Link="Images\Ailments\silence.gif" />
-    <Content Include="..\..\MaplestoryBotNet\Images\Ailments\weakness.gif" Link="Images\Ailments\weakness.gif" />
     <Content Include="..\..\MaplestoryBotNet\Images\MapIcons\character.png" Link="Images\MapIcons\character.png" />
     <Content Include="..\..\MaplestoryBotNet\Images\MapIcons\rune.png" Link="Images\MapIcons\rune.png" />
   </ItemGroup>

@@ -176,7 +176,7 @@ namespace MaplestoryBotNet.Systems
 
         private SystemInformation _screenCaptureInfo()
         {
-            var semaphore = new SemaphoreSlim(0, 6);
+            var semaphore = new SemaphoreSlim(0, 7);
             return new SystemInformation(
                 new GameScreenCaptureSystemBuilder(),
                 [],
@@ -186,7 +186,8 @@ namespace MaplestoryBotNet.Systems
                     new GameMinimapProcessingSubscriber(semaphore, MapIconInfo.Character),
                     new GameMinimapProcessingSubscriber(semaphore, MapIconInfo.Rune),
                     new SolvingScreenCaptureSubscriber(semaphore),
-                    new ScreenCaptureAilmentsSubscriber(semaphore)
+                    new ScreenCaptureAilmentsSubscriber(semaphore),
+                    new PotionsMenuScreenCaptureSubscriber(semaphore)
                 ],
                 1,
                 1,

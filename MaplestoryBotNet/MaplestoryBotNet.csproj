@@ -264,6 +264,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Xaml\Use_Pet_Food.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Systems\UIHandler\UserInterface\WindowMenuItemPopupHandlers.cs">
       <Generator>MSBuild:Compile</Generator>
     </Compile>

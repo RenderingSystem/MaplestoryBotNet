@@ -61,6 +61,7 @@ void UnitTestSuite()
     new WindowRuneingEditorHandlersTestSuite().Run();
     new WindowRuneSolverEditorHandlersTestSuite().Run();
     new WindowAilmentsMenuHandlersTestSuite().Run();
+    new WindowPotionsMenuHandlersTests().Run();
 }
 
 

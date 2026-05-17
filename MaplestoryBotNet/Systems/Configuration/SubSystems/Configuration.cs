@@ -27,11 +27,14 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("rgb")]
         public int[] Rgb { get; set; } = [0, 0, 0];
 
+        [JsonPropertyName("tolerance")]
+        public int[] Tolerance { get; set; } = [0, 0, 0];
+
         [JsonPropertyName("key")]
         public string Key { get; set; } = "";
 
         [JsonPropertyName("active")]
-        public bool Active { get; set; } = false;
+        public int Active { get; set; } = 0;
 
         public override AbstractConfiguration Copy()
         {
@@ -42,6 +45,37 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
             resource.Key = new string(Key);
             resource.Active = Active;
             return resource;
+        }
+    }
+
+
+    public class Consumable : AbstractConfiguration
+    {
+        [JsonPropertyName("name")]
+        public string Name { set; get; } = "";
+
+        [JsonPropertyName("min_delay")]
+        public int MinDelay { set; get; } = 0;
+
+        [JsonPropertyName("max_delay")]
+        public int MaxDelay { set; get; } = 0;
+
+        [JsonPropertyName("key")]
+        public string Key { set; get; } = "";
+
+        [JsonPropertyName("active")]
+        public int Active { get; set; } = 0;
+
+        public override AbstractConfiguration Copy()
+        {
+            return new Consumable
+            {
+                Name = Name,
+                MinDelay = MinDelay,
+                MaxDelay = MaxDelay,
+                Key = Key,
+                Active = Active
+            };
         }
     }
 
@@ -134,6 +168,9 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("cash_shop_timeout")]
         public int CashShopTimeout { set; get; } = 60;
 
+        [JsonPropertyName("potion_frequency")]
+        public double PotionFrequency { set; get; } = 2.0;
+
         public override AbstractConfiguration Copy()
         {
             return new MacroSettings
@@ -141,7 +178,8 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
                 CheckFrequency = CheckFrequency,
                 SolveCheckTimeout = SolveCheckTimeout,
                 CashShopTolerance = CashShopTolerance,
-                CashShopTimeout = CashShopTimeout
+                CashShopTimeout = CashShopTimeout,
+                PotionFrequency = PotionFrequency,
             };
         }
     }
@@ -255,6 +293,9 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("mp")]
         public Resource Mp { get; set; } = new Resource();
 
+        [JsonPropertyName("consumables")]
+        public List<Consumable> Consumables { get; set; } = [];
+
         [JsonPropertyName("ailments")]
         public Dictionary<string, Ailment> Ailments { get; set; } = new Dictionary<string, Ailment>();
 
@@ -287,14 +328,18 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
 
         public override AbstractConfiguration Copy()
         {
-            var configuration = new MaplestoryBotConfiguration();
-            configuration.ProcessName = new string(ProcessName);
-            configuration.Hp = (Resource)Hp.Copy();
-            configuration.Mp = (Resource)Mp.Copy();
+            var configuration = new MaplestoryBotConfiguration()
+            {
+                ProcessName = new string(ProcessName),
+                Hp = (Resource)Hp.Copy(),
+                Mp = (Resource)Mp.Copy()
+            };
             foreach (var item in Ailments)
                 configuration.Ailments.Add(new string(item.Key), (Ailment)item.Value.Copy());
             foreach (var item in MapIcons)
                 configuration.MapIcons.Add(new string(item.Key), (MapIcon)item.Value.Copy());
+            foreach (var consumable in Consumables)
+                configuration.Consumables.Add((Consumable)consumable.Copy());
             configuration.MacroDirectory = new string(MacroDirectory);
             configuration.FramePointsDirectory = new string(FramePointsDirectory);
             configuration.FrameMovementsDirectory = new string(FrameMovementsDirectory);

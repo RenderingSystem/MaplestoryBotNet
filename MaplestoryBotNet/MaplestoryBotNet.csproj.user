@@ -11,6 +11,9 @@
     <Compile Update="Xaml\MapWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Xaml\PotionsWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Xaml\RuneSolverWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

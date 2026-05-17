@@ -1,27 +1,62 @@
 {
     "process_name": "MapleStory",
     "hp": {
-        "rect": [ 526, 668, 171, 13 ],
-        "pixel": [155, 10],
-        "rgb": [
-            246,
-            72,
-            118
+        "rect": [
+            588,
+            712,
+            786,
+            731
         ],
-        "key": " ",
-        "active": false
+        "pixel": [
+            155,
+            10
+        ],
+        "rgb": [
+            249,
+            72,
+            133
+        ],
+        "tolerance": [
+            5,
+            5,
+            5
+        ],
+        "key": "PAGE_UP",
+        "active": 0
     },
     "mp": {
-        "rect": [ 526, 684, 171, 13 ],
-        "pixel": [155, 10],
-        "rgb": [
-            99,
-            224,
-            251
+        "rect": [
+            588,
+            733,
+            786,
+            752
         ],
-        "key": "page up",
-        "active": false
+        "pixel": [
+            15,
+            10
+        ],
+        "rgb": [
+            40,
+            166,
+            216
+        ],
+        "tolerance": [
+            5,
+            5,
+            5
+        ],
+        "key": "PAGE_DOWN",
+        "active": 0
     },
+    "consumables": [
+        {
+            "name": "petfood",
+            "min_delay": 290,
+            "max_delay": 310,
+            "key": "END",
+            "active": 0
+        }
+    ],
     "ailments": {
         "seal": {
             "image_directory": "images/ailments/silence",
@@ -73,7 +108,7 @@
             "active": 0,
             "active_delay": 0,
             "check_delay": 0,
-            "threshold": 700,
+            "threshold": 900,
             "overlap": 0.9,
             "all_cure": 1
         },
@@ -82,7 +117,7 @@
             "active": 1,
             "active_delay": 1000,
             "check_delay": 1000,
-            "threshold": 900,
+            "threshold": 990,
             "overlap": 0.9,
             "all_cure": 0,
             "arrow_keys": 1
@@ -92,7 +127,7 @@
             "active": 1,
             "active_delay": 1000,
             "check_delay": 1000,
-            "threshold": 900,
+            "threshold": 990,
             "overlap": 0.9,
             "static_rect": [
                 496,
@@ -106,24 +141,25 @@
     "map_icons": {
         "character": {
             "image": "images/mapicons/character.png",
-            "check_frequency": 10.0,
-            "overlap":  0.9
+            "check_frequency": 10,
+            "overlap": 0.9
         },
         "rune": {
             "image": "images/mapicons/rune.png",
-            "check_frequency": 10.0,
-            "overlap":  0.9
+            "check_frequency": 10,
+            "overlap": 0.9
         }
     },
     "macro_directory": "./Macros",
-    "frame_points_directory":  "./FramePoints",
+    "frame_points_directory": "./FramePoints",
     "frame_movements_directory": "./FrameMovements",
     "map_directory": "./Maps",
     "macro_check_frequency": {
-        "check_frequency": 0.0,
-        "solve_check_timeout": 3.0,
+        "check_frequency": 2,
+        "solve_check_timeout": 3,
         "cash_shop_tolerance": 3,
-        "cash_shop_timeout": 15
+        "cash_shop_timeout": 15,
+        "potion_frequency": 2
     },
     "rune_detection": {
         "ip_address": "http://localhost",
@@ -136,15 +172,15 @@
         "down": "down"
     },
     "rune_server_settings": {
-        "server_executable": "RuneSolver/\"Chips Ahoy\"",
+        "server_executable": "RuneSolver/\u0022Chips Ahoy\u0022",
         "client_watchdog_timeout": 2000,
         "server_rune_model": "best.onnx",
         "server_rune_model_console": 0,
         "server_watchdog_timeout": 2000
     },
     "macro_key_settings": {
+        "ailments_allcure_key": "c",
         "rune_interact_key": " ",
-        "cash_shop_key": "\\",
-        "ailments_allcure_key": "c"
+        "cash_shop_key": "\\"
     }
 }

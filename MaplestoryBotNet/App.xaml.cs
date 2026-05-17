@@ -22,6 +22,8 @@ namespace MaplestoryBotNet
 
         AilmentsWindow? _ailmentsWindow = null;
 
+        PotionsWindow? _potionsWindow = null;
+
         MacroBottingWindow? _windowMacroBottingPopup = null;
 
         MacroRuneingWindow? _windowMacroRuneingPopup = null;
@@ -42,6 +44,7 @@ namespace MaplestoryBotNet
             _windowMacroRuneingPopup = new MacroRuneingWindow(_runeingEditMenuState);
             _runeSolverWindow = new RuneSolverWindow();
             _ailmentsWindow = new AilmentsWindow();
+            _potionsWindow = new PotionsWindow();
             _mainApplication = new MainApplicationFacade();
             _mapWindow = new MapWindow(_bottingEditMenuState, _runeingEditMenuState);
             _splashScreen = new SplashScreen(_mainApplication.System());
@@ -72,13 +75,15 @@ namespace MaplestoryBotNet
                 .. _windowMacroRuneingPopup!.InstantiateActionHandlers(),
                 .. _runeSolverWindow!.InstantiateActionHandlers(),
                 .. _ailmentsWindow!.InstantiateActionHandlers(),
+                .. _potionsWindow!.InstantiateActionHandlers(),
                 .. _splashScreen!.InstantiateActionHandlers(
                     _mainWindow!.GetSystemWindow()
                 ),
                 .. _mainWindow!.InstantiateActionHandlers(
                     _mapWindow!.GetSystemWindow(),
                     _runeSolverWindow.GetSystemWindow(),
-                    _ailmentsWindow.GetSystemWindow()
+                    _ailmentsWindow.GetSystemWindow(),
+                    _potionsWindow.GetSystemWindow()
                 ),
                 .. _mapWindow!.InstantiateActionHandlers(
                     _windowMacroBottingPopup.GetSystemWindow(),
@@ -95,7 +100,8 @@ namespace MaplestoryBotNet
                 _windowMacroRuneingPopup!.GetSystemWindow(),
                 _runeSolverWindow!.GetSystemWindow(),
                 _ailmentsWindow!.GetSystemWindow(),
-                _mapWindow!.GetSystemWindow()
+                _mapWindow!.GetSystemWindow(),
+                _potionsWindow!.GetSystemWindow()
             ];
         }
 

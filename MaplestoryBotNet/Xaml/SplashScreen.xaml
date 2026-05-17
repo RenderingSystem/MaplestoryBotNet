@@ -27,7 +27,6 @@
                 <RowDefinition Height="80"/>
             </Grid.RowDefinitions>
             <Image
-                Grid.Row="0" 
                 Source="/Xaml/SplashScreenImage.jpg"
                 Stretch="Uniform"
                 Height="370"
