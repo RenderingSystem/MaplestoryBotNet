@@ -1990,7 +1990,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 return;
             }
             var selectedIndex = _consumableListBox.SelectedIndex;
-            var consumable = new Consumable { Name = "potion" };
+            var consumable = new Consumable { Name = "petfood" };
             var stackPanel = _consumableStackPanelFactory.Create();
             var textBox = stackPanel.Children.OfType<TextBox>().First();
             var listBoxItem = new ListBoxItem
@@ -2123,6 +2123,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             );
             configuration.Consumables.RemoveAt(selectedIndex);
             _consumableListBox.Items.RemoveAt(selectedIndex);
+            _consumableListBox.SelectedIndex = selectedIndex;
         }
     }
 

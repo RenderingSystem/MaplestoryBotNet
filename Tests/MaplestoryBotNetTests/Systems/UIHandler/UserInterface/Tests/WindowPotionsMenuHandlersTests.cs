@@ -2058,7 +2058,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
          * to ensure a consistent, professional appearance. This includes the stack panel
          * orientation, focusability, checkbox alignment, text box dimensions, background
          * colors, foreground colors, and font family. The text box should display a default
-         * name like "potion" to guide the user.
+         * name like "petfood" to guide the user.
          */
         private void _testAddingConsumableProperties()
         {
@@ -2094,7 +2094,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             Debug.Assert(foreground.Color.B == foregroundTemplate.Color.B);
             Debug.Assert(foreground.Color.A == foregroundTemplate.Color.A);
             Debug.Assert(textBox.FontFamily.ToString() == textBoxTemplate.FontFamily.ToString());
-            Debug.Assert(textBox.Text == "potion");
+            Debug.Assert(textBox.Text == "petfood");
         }
 
         public void Run()
@@ -2178,6 +2178,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             Debug.Assert(_maplestoryBotConfiguration.Consumables.Count == 2);
             Debug.Assert(_consumableListBox.Items.IndexOf(fillerObjects[1]) == -1);
             Debug.Assert(_maplestoryBotConfiguration.Consumables.IndexOf(consumableObjects[1]) == -1);
+            Debug.Assert(_consumableListBox.SelectedIndex == 1);
         }
 
         /**
@@ -2206,6 +2207,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             Debug.Assert(_maplestoryBotConfiguration.Consumables.Count == 2);
             Debug.Assert(_consumableListBox.Items.IndexOf(fillerObjects[2]) == -1);
             Debug.Assert(_maplestoryBotConfiguration.Consumables.IndexOf(consumableObjects[2]) == -1);
+            Debug.Assert(_consumableListBox.SelectedIndex == -1);
         }
 
         public void Run()
