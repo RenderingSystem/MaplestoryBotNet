@@ -14,8 +14,6 @@ namespace MaplestoryBotNet.Systems.Consumables
     {
         Resource = 0,
         Consumable,
-        HealthThreshold,
-        ManaThreshold,
         MaxNum
     }
 
@@ -169,8 +167,8 @@ namespace MaplestoryBotNet.Systems.Consumables
                 {
                     var hpThreshold = _resourceThreshold.Threshold(hpResource, currentImage);
                     var mpThreshold = _resourceThreshold.Threshold(mpResource, currentImage);
-                    consumptionThread.Inject(PotionThreadType.HealthThreshold, hpThreshold);
-                    consumptionThread.Inject(PotionThreadType.ManaThreshold, mpThreshold);
+                    consumptionThread.Inject(PotionResourceType.Health, hpThreshold);
+                    consumptionThread.Inject(PotionResourceType.Mana, mpThreshold);
                 }
             }
         }

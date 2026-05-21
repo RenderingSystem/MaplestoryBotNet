@@ -413,12 +413,12 @@ namespace MaplestoryBotNetTests.Systems.Consumption
             thread.Join(10000);
             Debug.Assert(_consumptionThread.InjectCalls == 2);
             Debug.Assert(
-                (PotionThreadType)_consumptionThread.InjectCallArg_dataType[0] ==
-                PotionThreadType.HealthThreshold
+                (PotionResourceType)_consumptionThread.InjectCallArg_dataType[0] ==
+                PotionResourceType.Health
             );
             Debug.Assert(
-                (PotionThreadType)_consumptionThread.InjectCallArg_dataType[1] ==
-                PotionThreadType.ManaThreshold
+                (PotionResourceType)_consumptionThread.InjectCallArg_dataType[1] ==
+                PotionResourceType.Mana
             );
             Debug.Assert((int)_consumptionThread.InjectCallArg_data[0]! == 123);
             Debug.Assert((int)_consumptionThread.InjectCallArg_data[1]! == 234);
