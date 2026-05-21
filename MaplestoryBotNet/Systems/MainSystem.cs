@@ -1,5 +1,6 @@
 ﻿using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.Systems.Consumables;
 using MaplestoryBotNet.Systems.GPUSelector;
 using MaplestoryBotNet.Systems.Keyboard;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
@@ -176,7 +177,7 @@ namespace MaplestoryBotNet.Systems
 
         private SystemInformation _screenCaptureInfo()
         {
-            var semaphore = new SemaphoreSlim(0, 7);
+            var semaphore = new SemaphoreSlim(0, 8);
             return new SystemInformation(
                 new GameScreenCaptureSystemBuilder(),
                 [],
@@ -187,7 +188,8 @@ namespace MaplestoryBotNet.Systems
                     new GameMinimapProcessingSubscriber(semaphore, MapIconInfo.Rune),
                     new SolvingScreenCaptureSubscriber(semaphore),
                     new ScreenCaptureAilmentsSubscriber(semaphore),
-                    new PotionsMenuScreenCaptureSubscriber(semaphore)
+                    new PotionsMenuScreenCaptureSubscriber(semaphore),
+                    new ResourceStatusScreenCaptureSubscriber(semaphore)
                 ],
                 1,
                 1,
@@ -309,7 +311,7 @@ namespace MaplestoryBotNet.Systems
                 screenProcessingInfo,
                 macroSystemInfo,
                 processWatchdogSystemInfo,
-                screenAilmentsSystemInfo
+                screenAilmentsSystemInfo,
             ];
         }
     }

@@ -46,7 +46,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _keyboardSubSystems.Add(new BottingOrchestratorSystem(_keyboardSubSystemsThreadFactories[1]));
             _keyboardSubSystems.Add(new RuneingOrchestratorSystem(_keyboardSubSystemsThreadFactories[2]));
             _keyboardSubSystems.Add(new SolvingOrchestratorSystem(_keyboardSubSystemsThreadFactories[3]));
-            _keyboardSubSystems.Add(new CashShopOrchestratorSystem(_keyboardSubSystemsThreadFactories[4]));
+            _keyboardSubSystems.Add(new LoginOrchestratorSystem(_keyboardSubSystemsThreadFactories[4]));
             _keyboardSubSystemsThreads = [];
             for (int i = 0; i < _keyboardSubSystems.Count; i++)
             for (int j = 0; j < _keyboardSubSystemsThreadFactories[i].Count; j++)

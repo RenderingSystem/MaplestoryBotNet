@@ -31,9 +31,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private TextBox _interactKeyTextBox = new TextBox();
 
-        private TextBox _cashShopKeyTextBox = new TextBox();
-
-        private TextBox _cashShopTimeoutTextBox = new TextBox();
+        private TextBox _loginTimeoutTextBox = new TextBox();
 
         private TextBox _runeRetriesTextBox = new TextBox();
 
@@ -54,8 +52,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _rightArrowTextBox = new TextBox();
             _downArrowTextBox = new TextBox();
             _interactKeyTextBox = new TextBox();
-            _cashShopKeyTextBox = new TextBox();
-            _cashShopTimeoutTextBox = new TextBox();
+            _loginTimeoutTextBox = new TextBox();
             _runeRetriesTextBox = new TextBox();
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration
             {
@@ -72,13 +69,12 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 },
                 MacroKeySettings = new MacroKeySettings
                 {
-                    RuneInteractKey = "00",
-                    CashShopKey = "234"
+                    RuneInteractKey = "00"
                 },
                 MacroSettings = new MacroSettings
                 {
-                    CashShopTimeout = 567,
-                    CashShopTolerance = 24,
+                    LoginTimeout = 567,
+                    LoginTolerance = 24,
                 }
             };
             var handler = new WindowRuneSolverAPILoadActionHandlerFacade(
@@ -92,8 +88,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _rightArrowTextBox,
                 _downArrowTextBox,
                 _interactKeyTextBox,
-                _cashShopKeyTextBox,
-                _cashShopTimeoutTextBox,
+                _loginTimeoutTextBox,
                 _runeRetriesTextBox
             );
             handler.Inject(
@@ -132,8 +127,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 Debug.Assert(_rightArrowTextBox.Text == (visible ? "90" : ""));
                 Debug.Assert(_downArrowTextBox.Text == (visible ? "01" : ""));
                 Debug.Assert(_interactKeyTextBox.Text == (visible ? "00" : ""));
-                Debug.Assert(_cashShopKeyTextBox.Text == (visible ? "234" : ""));
-                Debug.Assert(_cashShopTimeoutTextBox.Text == (visible ? "567" : ""));
+                Debug.Assert(_loginTimeoutTextBox.Text == (visible ? "567" : ""));
                 Debug.Assert(_runeRetriesTextBox.Text == (visible ? "24" : ""));
             }
         }
@@ -167,9 +161,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private TextBox _interactKeyTextBox = new TextBox();
 
-        private TextBox _cashShopKeyTextBox = new TextBox();
-
-        private TextBox _cashShopTimeoutTextBox = new TextBox();
+        private TextBox _loginTimeoutTextBox = new TextBox();
 
         private TextBox _runeRetriesTextBox = new TextBox();
 
@@ -190,8 +182,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _rightArrowTextBox = new TextBox { Text = "90" };
             _downArrowTextBox = new TextBox { Text = "01" };
             _interactKeyTextBox = new TextBox { Text = "00" };
-            _cashShopKeyTextBox = new TextBox { Text = "234" };
-            _cashShopTimeoutTextBox = new TextBox { Text = "567" };
+            _loginTimeoutTextBox = new TextBox { Text = "567" };
             _runeRetriesTextBox = new TextBox { Text = "24" };
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration();
             var handler = new WindowRuneSolverAPISaveActionHandlerFacade(
@@ -205,8 +196,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 _rightArrowTextBox,
                 _downArrowTextBox,
                 _interactKeyTextBox,
-                _cashShopKeyTextBox,
-                _cashShopTimeoutTextBox,
+                _loginTimeoutTextBox,
                 _runeRetriesTextBox
             );
             handler.Inject(
@@ -248,9 +238,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
                 Debug.Assert(runeDetection.Right == (!visible ? "90" : ""));
                 Debug.Assert(runeDetection.Down == (!visible ? "01" : ""));
                 Debug.Assert(macroKeySettings.RuneInteractKey == (!visible ? "00" : ""));
-                Debug.Assert(macroKeySettings.CashShopKey == (!visible ? "234" : ""));
-                Debug.Assert(macroSettings.CashShopTimeout == (!visible ? 567 : 60));
-                Debug.Assert(macroSettings.CashShopTolerance == (!visible ? 24 : 3));
+                Debug.Assert(macroSettings.LoginTimeout == (!visible ? 567 : 60));
+                Debug.Assert(macroSettings.LoginTolerance == (!visible ? 24 : 3));
             }
         }
 

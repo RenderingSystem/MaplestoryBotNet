@@ -93,8 +93,8 @@
                 Visibility="Hidden"
             />
             <TextBlock
-                x:Name="CashShopText"
-                Text="Cash shop"
+                x:Name="LoginText"
+                Text="Login"
                 Margin="0,510,10,0"
                 FontFamily="Courier New"
                 Foreground="#FF00FF00"

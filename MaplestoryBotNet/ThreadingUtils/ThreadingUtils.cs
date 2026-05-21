@@ -64,6 +64,12 @@ namespace MaplestoryBotNet.ThreadingUtils
     }
 
 
+    public abstract class AbstractTimestampFactory
+    {
+        public abstract AbstractTimestamp Create();
+    }
+
+
     public abstract class AbstractProcess
     {
         public abstract void Kill(int waitMilliseconds);
@@ -141,6 +147,15 @@ namespace MaplestoryBotNet.ThreadingUtils
         {
             _startTicks = Stopwatch.GetTimestamp();
             _isSet = true;
+        }
+    }
+
+
+    public class StopwatchTimestampFactory : AbstractTimestampFactory
+    {
+        public override AbstractTimestamp Create()
+        {
+            return new StopwatchTimestamp();
         }
     }
 

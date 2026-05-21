@@ -98,7 +98,7 @@ namespace MaplestoryBotNet
                     RuneingText,
                     SolvingText,
                     SolvedCheckText,
-                    CashShopText,
+                    LoginText,
                     AilmentsText
                 ],
                 new SystemAsyncDispatcher(

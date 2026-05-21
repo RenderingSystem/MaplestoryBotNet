@@ -385,4 +385,21 @@ namespace MaplestoryBotNetTests.ThreadingUtils
             return this;
         }
     }
+
+
+    public class MockTimestampFactory : AbstractTimestampFactory
+    {
+        public int CreateCalls = 0;
+        public int CreateIndex = 0;
+        public List<AbstractTimestamp> CreateReturn = [];
+        public override AbstractTimestamp Create()
+        {
+            CreateCalls++;
+            if (CreateIndex < CreateReturn.Count)
+            {
+                return CreateReturn[CreateIndex++];
+            }
+            throw new IndexOutOfRangeException();
+        }
+    }
 }

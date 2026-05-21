@@ -261,54 +261,6 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
-        private AbstractWindowActionHandler _instantiateHpConfigurationUpdateActionHandler()
-        {
-            return (
-                new WindowPotionsMenuConfigurationUpdateActionHandlerFacade(
-                    PotionResourceType.Health,
-                    HealthPixelThresholdColorRTextBox,
-                    HealthPixelThresholdColorGTextBox,
-                    HealthPixelThresholdColorBTextBox,
-                    HealthPixelToleranceRTextBox,
-                    HealthPixelToleranceGTextBox,
-                    HealthPixelToleranceBTextBox,
-                    HealthPixelXTextBox,
-                    HealthPixelYTextBox,
-                    HealthLeftTextBox,
-                    HealthTopTextBox,
-                    HealthRightTextBox,
-                    HealthBotTextBox,
-                    HealthKeyTextBox,
-                    HealthActiveCheckBox,
-                    _hpPotionsMenuState
-                )
-            );
-        }
-
-        private AbstractWindowActionHandler _instantiateMpConfigurationUpdateActionHandler()
-        {
-            return (
-                new WindowPotionsMenuConfigurationUpdateActionHandlerFacade(
-                    PotionResourceType.Mana,
-                    ManaPixelThresholdColorRTextBox,
-                    ManaPixelThresholdColorGTextBox,
-                    ManaPixelThresholdColorBTextBox,
-                    ManaPixelToleranceRTextBox,
-                    ManaPixelToleranceGTextBox,
-                    ManaPixelToleranceBTextBox,
-                    ManaPixelXTextBox,
-                    ManaPixelYTextBox,
-                    ManaLeftTextBox,
-                    ManaTopTextBox,
-                    ManaRightTextBox,
-                    ManaBotTextBox,
-                    ManaKeyTextBox,
-                    ManaActiveCheckBox,
-                    _mpPotionsMenuState
-                )
-            );
-        }
-
         private AbstractWindowActionHandler _instantiateSaveConfigurationActionHandler()
         {
             return (
@@ -390,7 +342,6 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateNumericTextBoxPropertyPasteActionHandler(HealthTopTextBox, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(HealthRightTextBox, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(HealthBotTextBox, 9999),
-                _instantiateNumericTextBoxPropertyPasteActionHandler(HealthKeyTextBox, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(ManaPixelThresholdColorRTextBox, 255),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(ManaPixelThresholdColorGTextBox, 255),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(ManaPixelThresholdColorBTextBox, 255),
@@ -403,7 +354,6 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateNumericTextBoxPropertyPasteActionHandler(ManaTopTextBox, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(ManaRightTextBox, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(ManaBotTextBox, 9999),
-                _instantiateNumericTextBoxPropertyPasteActionHandler(ManaKeyTextBox, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(ConsumableMinDelayTextBox, 9999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(ConsumableMaxDelayTextBox, 9999),
                 _instantiateNumericTextBoxPropertyActionHandler(HealthPixelThresholdColorRTextBox, 255),
@@ -418,7 +368,6 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateNumericTextBoxPropertyActionHandler(HealthTopTextBox, 9999),
                 _instantiateNumericTextBoxPropertyActionHandler(HealthRightTextBox, 9999),
                 _instantiateNumericTextBoxPropertyActionHandler(HealthBotTextBox, 9999),
-                _instantiateNumericTextBoxPropertyActionHandler(HealthKeyTextBox, 9999),
                 _instantiateNumericTextBoxPropertyActionHandler(ManaPixelThresholdColorRTextBox, 255),
                 _instantiateNumericTextBoxPropertyActionHandler(ManaPixelThresholdColorGTextBox, 255),
                 _instantiateNumericTextBoxPropertyActionHandler(ManaPixelThresholdColorBTextBox, 255),
@@ -431,7 +380,6 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateNumericTextBoxPropertyActionHandler(ManaTopTextBox, 9999),
                 _instantiateNumericTextBoxPropertyActionHandler(ManaRightTextBox, 9999),
                 _instantiateNumericTextBoxPropertyActionHandler(ManaBotTextBox, 9999),
-                _instantiateNumericTextBoxPropertyActionHandler(ManaKeyTextBox, 9999),
                 _instantiateNumericTextBoxPropertyActionHandler(ConsumableMinDelayTextBox, 9999),
                 _instantiateNumericTextBoxPropertyActionHandler(ConsumableMaxDelayTextBox, 9999),
                 _instantiateWindowMenuItemHideActionHandler(),
@@ -447,8 +395,6 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateMpRGBLabelActionHandler(),
                 _instantiateHpRGBFrameActionHandler(),
                 _instantiateMpRGBFrameActionHandler(),
-                _instantiateHpConfigurationUpdateActionHandler(),
-                _instantiateMpConfigurationUpdateActionHandler(),
                 _instantiateLoadingConsumablesActionHandler(),
                 _instantiateConsumableDeselectedActionHandler(),
                 _instantiateConsumableSelectedActionHandler(),

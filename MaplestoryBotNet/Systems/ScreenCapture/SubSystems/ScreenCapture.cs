@@ -18,7 +18,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
 
 
     public abstract class AbstractCaptureMonitorHelper
-    {
+    {   
         public abstract MONITORINFOEX? GetMonitorInfo(nint windowHandle);
     }
 
@@ -80,9 +80,12 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             var processes = Process.GetProcessesByName(processName);
             foreach (Process process in processes)
             {
-                if (process.MainWindowHandle != nint.Zero)
+                using (process)
                 {
-                    return process.MainWindowHandle;
+                    if (process.MainWindowHandle != nint.Zero)
+                    {
+                        return process.MainWindowHandle;
+                    }
                 }
             }
             return nint.Zero;
@@ -140,24 +143,19 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
 
         public override void RegisterScreenCaptures(IEnumerable<Display> displays)
         {
-            for (int i = 0; i < _screenCaptures.Count; i++)
+            if (_screenCaptures.Count == 0)
             {
-                var capture = _screenCaptures[i];
-                var captureZone = _screenCaptureZones[i];
-                capture.UnregisterCaptureZone(captureZone);
-            }
-            _screenCaptures.Clear();
-            _screenCaptureZones.Clear();
-            for (int i = 0; i < displays.Count(); i++)
-            {
-                var display = displays.ElementAt(i);
-                if (display.Width > 0 && display.Height > 0)
+                for (int i = 0; i < displays.Count(); i++)
                 {
-                    var capture = _screenCaptureService.GetScreenCapture(display);
-                    var captureZone = capture.RegisterCaptureZone(0, 0, display.Width, display.Height);
-                    captureZone.AutoUpdate = true;
-                    _screenCaptures.Add(capture);
-                    _screenCaptureZones.Add(captureZone);
+                    var display = displays.ElementAt(i);
+                    if (display.Width > 0 && display.Height > 0)
+                    {
+                        var capture = _screenCaptureService.GetScreenCapture(display);
+                        var captureZone = capture.RegisterCaptureZone(0, 0, display.Width, display.Height);
+                        captureZone.AutoUpdate = true;
+                        _screenCaptures.Add(capture);
+                        _screenCaptureZones.Add(captureZone);
+                    }
                 }
             }
         }
@@ -208,7 +206,6 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             )
             {
                 capture.UpdateCaptureZone(captureZone, x, y, width, height);
-                capture.CaptureScreen();
             }
             return captureZone;
         }
@@ -366,13 +363,17 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
             {
                 _windowHandle = _windowHandleHelper.FindByProcess(processName);
                 if (_windowsLibrary.IsWindow(_windowHandle))
+                {
                     _screenCaptureModule.Initialize();
+                }
             }
             if (_windowsLibrary.IsWindow(_windowHandle))
             {
                 var capture = _screenCaptureModule.Capture(_windowHandle);
                 if (capture == null)
+                {
                     _windowHandle = nint.Zero;
+                }
                 return capture;
             }
             return null;

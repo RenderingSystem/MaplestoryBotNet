@@ -1,4 +1,5 @@
 ﻿using MaplestoryBotNet.Systems.Configuration;
+using MaplestoryBotNet.Systems.Consumables;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
 
@@ -102,9 +103,11 @@ namespace MaplestoryBotNet.Systems.Keyboard
 
         private AbstractSystemBuilder _solvingOrchestratorSystemBuilder;
 
-        private AbstractSystemBuilder _cashShopOrchestratorSystemBuilder;
+        private AbstractSystemBuilder _loginOrchestratorSystemBuilder;
 
         private AbstractSystemBuilder _ailmentOrchestratorSystemBuilder;
+
+        private AbstractSystemBuilder _consumptionSystemBuilder;
 
         public KeyboardSystemBuilder()
         {
@@ -112,8 +115,9 @@ namespace MaplestoryBotNet.Systems.Keyboard
             _bottingOrchestratorSystemBuilder = new BottingOrchestratorSystemBuilder();
             _runeingOrchestratorSystemBuilder = new RuneingOrchestratorSystemBuilder();
             _solvingOrchestratorSystemBuilder = new SolvingOrchestratorSystemBuilder();
-            _cashShopOrchestratorSystemBuilder = new CashShopOrchestratorSystemBuilder();
+            _loginOrchestratorSystemBuilder = new LoginOrchestratorSystemBuilder();
             _ailmentOrchestratorSystemBuilder = new AilmentOrchestratorSystemBuilder();
+            _consumptionSystemBuilder = new ConsumptionSystemBuilder();
         }
 
         public override AbstractSystem Build()
@@ -124,8 +128,9 @@ namespace MaplestoryBotNet.Systems.Keyboard
                     _bottingOrchestratorSystemBuilder.Build(),
                     _runeingOrchestratorSystemBuilder.Build(),
                     _solvingOrchestratorSystemBuilder.Build(),
-                    _cashShopOrchestratorSystemBuilder.Build(),
-                    _ailmentOrchestratorSystemBuilder.Build()
+                    _loginOrchestratorSystemBuilder.Build(),
+                    _ailmentOrchestratorSystemBuilder.Build(),
+                    _consumptionSystemBuilder.Build()
                 ],
                 new KeystrokeTransmitterBuilder()
             );

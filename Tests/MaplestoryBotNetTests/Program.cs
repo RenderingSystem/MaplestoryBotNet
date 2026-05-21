@@ -1,6 +1,8 @@
 ﻿using ArrayFireNCCTests;
 using MaplestoryBotNetTests.Systems.Configuration.Tests;
+using MaplestoryBotNetTests.Systems.Consumption;
 using MaplestoryBotNetTests.Systems.GPUSelector.Tests;
+using MaplestoryBotNetTests.Systems.Keyboard;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests;
 using MaplestoryBotNetTests.Systems.Macro.Tests;
 using MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests;
@@ -41,8 +43,9 @@ void UnitTestSuite()
     new BottingTransmitterTestSuite().Run();
     new RuneingTransmitterTestSuite().Run();
     new SolvingTransmitterTestSuite().Run();
-    new CashShopTransmitterTestSuite().Run();
+    new LoginTransmitterTestSuite().Run();
     new AilmentTransmitterTestSuite().Run();
+    new ConsumptionSystemTestSuite().Run();
     new MacroSystemTestSuite().Run();
     // Test the main system
     new MainSystemTestSuite().Run();

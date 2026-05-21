@@ -157,8 +157,8 @@
     "macro_check_frequency": {
         "check_frequency": 2,
         "solve_check_timeout": 3,
-        "cash_shop_tolerance": 3,
-        "cash_shop_timeout": 15,
+        "login_tolerance": 3,
+        "login_timeout": 15,
         "potion_frequency": 2
     },
     "rune_detection": {
@@ -181,6 +181,6 @@
     "macro_key_settings": {
         "ailments_allcure_key": "c",
         "rune_interact_key": " ",
-        "cash_shop_key": "\\"
+        "login_key": "\\"
     }
 }

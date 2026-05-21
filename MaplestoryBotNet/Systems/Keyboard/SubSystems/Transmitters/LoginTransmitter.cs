@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 
 namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
 {
-    public enum CashShopOrchestratorThreadInjectType
+    public enum LoginOrchestratorThreadInjectType
     {
         None = 0,
         Stop,
@@ -14,7 +14,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     }
 
 
-    public enum CashShopExecutorThreadedUpdate
+    public enum LoginExecutorThreadedUpdate
     {
         Stopping = 0,
         Stopped,
@@ -25,41 +25,37 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     }
 
 
-    public class CashShopExecutorThreadHelper : AbstractKeystrokeTransmitterThreadHelper
+    public class LoginScreenExecutorThreadHelper : AbstractKeystrokeTransmitterThreadHelper
     {
-        private AbstractTimestamp _cashShopStopwatch;
+        private AbstractTimestamp _loginStopwatch;
 
         private AbstractKeystrokeTransmitterThreadState _threadState;
 
         private AbstractMacroCommandsExecutorBuilder _macroCommandsExecutorBuilder;
 
-        private double _cashShopAttemptDelay;
-
         private AbstractMacroCommandsExecutor? _macroCommandsExecutor;
 
-        private int _cashShopTimeout;
+        private int _loginTimeout;
 
-        private string _cashShopKey;
+        private bool _loggedIn;
 
-        public CashShopExecutorThreadHelper(
-            AbstractTimestamp cashShopStopwatch,
+        public LoginScreenExecutorThreadHelper(
+            AbstractTimestamp loginStopwatch,
             AbstractKeystrokeTransmitterThreadState threadState,
-            AbstractMacroCommandsExecutorBuilder executorBuilder,
-            double cashShopAttemptDelay
+            AbstractMacroCommandsExecutorBuilder executorBuilder
         )
         {
-            _cashShopStopwatch = cashShopStopwatch;
+            _loginStopwatch = loginStopwatch;
             _threadState = threadState;
             _macroCommandsExecutorBuilder = executorBuilder;
-            _cashShopAttemptDelay = cashShopAttemptDelay;
             _macroCommandsExecutor = null;
-            _cashShopTimeout = 0;
-            _cashShopKey = "";
+            _loginTimeout = 0;
+            _loggedIn = true;
         }
 
         public override void Reset()
         {
-            _cashShopStopwatch.SetTimestamp();
+            _loginStopwatch.SetTimestamp();
         }
 
         public override bool Transmit()
@@ -68,18 +64,28 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
             {
                 return true;
             }
-            var timestamp = _cashShopStopwatch.GetTimestamp();
-            if (timestamp < _cashShopAttemptDelay)
+            var timestamp = _loginStopwatch.GetTimestamp();
+            if (_loggedIn)
             {
-                _macroCommandsExecutor.Execute(["key press {" + _cashShopKey + "} {100} {150}"]);
-                _macroCommandsExecutor.Execute(["wait {100} {150}"]);
+                _macroCommandsExecutor.Execute(
+                    [
+                        "key press {ESCAPE} {100} {200}",
+                        "wait {350} {350}",
+                        "key press {ARROW_UP} {100} {200}",
+                        "wait {350} {350}",
+                        "key press {ENTER} {100} {200}",
+                        "wait {350} {350}",
+                        "key press {ENTER} {100} {200}",
+                        "wait {350} {350}"
+                    ]
+                );
+                _loggedIn = false;
             }
-            else if (timestamp > (_cashShopAttemptDelay + _cashShopTimeout))
+            else if (timestamp > _loginTimeout)
             {
-                _macroCommandsExecutor.Execute(["key press {ESCAPE} {100} {150}"]);
-                _macroCommandsExecutor.Execute(["wait {900} {1100}"]);
-                _macroCommandsExecutor.Execute(["key press {ENTER} {100} {150}"]);
-                _threadState.SetState((int)CashShopExecutorThreadedUpdate.TimedOut);
+                _macroCommandsExecutor.Execute(["key press {ENTER} {100} {200}"]);
+                _threadState.SetState((int)LoginExecutorThreadedUpdate.TimedOut);
+                _loggedIn = true;
             }
             else
             {
@@ -91,6 +97,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
         public override void Inject(object dataType, object? data)
         {
             if (
+
                 dataType is SystemInjectType.KeystrokeTransmitter
                 && data is AbstractKeystrokeTransmitter keystrokeTransmitter
             )
@@ -104,33 +111,32 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
                 data is MaplestoryBotConfiguration maplestoryBotConfiguration
             )
             {
-                _cashShopTimeout = maplestoryBotConfiguration.MacroSettings.CashShopTimeout;
-                _cashShopKey = maplestoryBotConfiguration.MacroKeySettings.CashShopKey;
+                _loginTimeout = maplestoryBotConfiguration.MacroSettings.LoginTimeout;
             }
         }
     }
 
 
-    public class CashShopExecutorThread : AbstractThread
+    public class LoginExecutorThread : AbstractThread
     {
         private AbstractResetEvent _executionEvent;
 
-        private AbstractKeystrokeTransmitterThreadHelper _cashShopExecutorThreadHelper;
+        private AbstractKeystrokeTransmitterThreadHelper _loginExecutorThreadHelper;
 
         private AbstractKeystrokeTransmitterThreadState _threadState;
 
         private AbstractThreadRunningState _transmittingState;
 
-        public CashShopExecutorThread(
+        public LoginExecutorThread(
             AbstractResetEvent executionEvent,
-            AbstractKeystrokeTransmitterThreadHelper cashShopExecutorThreadHelpers,
+            AbstractKeystrokeTransmitterThreadHelper loginExecutorThreadHelpers,
             AbstractKeystrokeTransmitterThreadState threadState,
             AbstractThreadRunningState transmittingState,
             AbstractThreadRunningState runningState
         ) : base(runningState)
         {
             _executionEvent = executionEvent;
-            _cashShopExecutorThreadHelper = cashShopExecutorThreadHelpers;
+            _loginExecutorThreadHelper = loginExecutorThreadHelpers;
             _threadState = threadState;
             _transmittingState = transmittingState;
         }
@@ -141,15 +147,15 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
             {
                 _executionEvent.WaitOne();
                 _transmittingState.SetRunning(true);
-                _cashShopExecutorThreadHelper.Reset();
-                while (_threadState.GetState() == (int)CashShopExecutorThreadedUpdate.Started)
+                _loginExecutorThreadHelper.Reset();
+                while (_threadState.GetState() == (int)LoginExecutorThreadedUpdate.Started)
                 {
-                    if (!_cashShopExecutorThreadHelper.Transmit())
+                    if (!_loginExecutorThreadHelper.Transmit())
                     {
                         break;
                     }
                 }
-                _cashShopExecutorThreadHelper.Reset();
+                _loginExecutorThreadHelper.Reset();
                 _transmittingState.SetRunning(false);
             }
         }
@@ -157,36 +163,36 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
         public override void Stop()
         {
             base.Stop();
-            Inject(CashShopOrchestratorThreadInjectType.Stop, null);
+            Inject(LoginOrchestratorThreadInjectType.Stop, null);
         }
 
         public override void Inject(object dataType, object? value)
         {
-            if (dataType is CashShopOrchestratorThreadInjectType injectType)
+            if (dataType is LoginOrchestratorThreadInjectType injectType)
             {
-                if (injectType == CashShopOrchestratorThreadInjectType.Start)
+                if (injectType == LoginOrchestratorThreadInjectType.Start)
                 {
-                    _threadState.SetState((int)CashShopExecutorThreadedUpdate.Starting);
+                    _threadState.SetState((int)LoginExecutorThreadedUpdate.Starting);
                     while (_transmittingState.IsRunning())
                     {
                         Thread.Yield();
                     }
-                    _threadState.SetState((int)CashShopExecutorThreadedUpdate.Started);
+                    _threadState.SetState((int)LoginExecutorThreadedUpdate.Started);
                     _executionEvent.Set();
                 }
-                else if (injectType == CashShopOrchestratorThreadInjectType.Stop)
+                else if (injectType == LoginOrchestratorThreadInjectType.Stop)
                 {
-                    _threadState.SetState((int)CashShopExecutorThreadedUpdate.Stopping);
+                    _threadState.SetState((int)LoginExecutorThreadedUpdate.Stopping);
                     while (_transmittingState.IsRunning())
                     {
                         Thread.Yield();
                     }
-                    _threadState.SetState((int)CashShopExecutorThreadedUpdate.Stopped);
+                    _threadState.SetState((int)LoginExecutorThreadedUpdate.Stopped);
                 }
             }
             else
             {
-                _cashShopExecutorThreadHelper.Inject(dataType, value);
+                _loginExecutorThreadHelper.Inject(dataType, value);
             }
         }
 
@@ -197,33 +203,32 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     }
 
 
-    public class CashShopOrchestratorThread : AbstractOrchestratorThread<CashShopOrchestratorThreadInjectType>
+    public class LoginOrchestratorThread : AbstractOrchestratorThread<LoginOrchestratorThreadInjectType>
     {
-        public CashShopOrchestratorThread(
-            AbstractThread cashShopExecutorThread,
+        public LoginOrchestratorThread(
+            AbstractThread loginExecutorThread,
             AbstractThreadRunningState runningState,
             BlockingCollection<int> threadStates
-        ) : base(cashShopExecutorThread, runningState, threadStates)
+        ) : base(loginExecutorThread, runningState, threadStates)
         { }
     }
 
 
-    public class CashShopOrchestratorThreadFactory : AbstractThreadFactory
+    public class LoginOrchestratorThreadFactory : AbstractThreadFactory
     {
         public override AbstractThread CreateThread()
         {
             var threadState = new KeystrokeTransmitterThreadState(
-                (int)CashShopExecutorThreadedUpdate.Stopped,
-                KeystrokeTransmitterThreadType.CashShop
+                (int)LoginExecutorThreadedUpdate.Stopped,
+                KeystrokeTransmitterThreadType.Login
             );
-            return new CashShopOrchestratorThread(
-                new CashShopExecutorThread(
+            return new LoginOrchestratorThread(
+                new LoginExecutorThread(
                     new ExecutionEvent(),
-                    new CashShopExecutorThreadHelper(
+                    new LoginScreenExecutorThreadHelper(
                         new StopwatchTimestamp(),
                         threadState,
-                        new MacroCommandsExecutorBuilder(),
-                        6
+                        new MacroCommandsExecutorBuilder()
                     ),
                     threadState,
                     new ThreadRunningState(),
@@ -236,21 +241,21 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     }
 
 
-    public class CashShopOrchestratorSystem : AbstractOrchestratorSystem
+    public class LoginOrchestratorSystem : AbstractOrchestratorSystem
     {
-        public CashShopOrchestratorSystem(
+        public LoginOrchestratorSystem(
             List<AbstractThreadFactory> threadFactories
         ) : base(threadFactories)
         { }
     }
 
 
-    public class CashShopOrchestratorSystemBuilder : AbstractSystemBuilder
+    public class LoginOrchestratorSystemBuilder : AbstractSystemBuilder
     {
         public override AbstractSystem Build()
         {
-            return new CashShopOrchestratorSystem(
-                [new CashShopOrchestratorThreadFactory()]
+            return new LoginOrchestratorSystem(
+                [new LoginOrchestratorThreadFactory()]
             );
         }
 

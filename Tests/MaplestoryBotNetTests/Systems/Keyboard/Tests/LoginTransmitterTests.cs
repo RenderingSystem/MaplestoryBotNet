@@ -13,14 +13,14 @@ using System.Diagnostics;
 
 namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 {
-    public class CashShopExecutorThreadHelperTests
+    public class LoginExecutorThreadHelperTests
     {
-        private MockTimestamp _cashShopStopwatch = new MockTimestamp();
+        private MockTimestamp _loginStopwatch = new MockTimestamp();
 
         private AbstractKeystrokeTransmitterThreadState _threadState = (
             new KeystrokeTransmitterThreadState(
-                (int)CashShopExecutorThreadedUpdate.Stopped,
-                KeystrokeTransmitterThreadType.CashShop
+                (int)LoginExecutorThreadedUpdate.Stopped,
+                KeystrokeTransmitterThreadType.Login
             )
         );
 
@@ -34,27 +34,26 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 
         private MockKeystrokeTransmitter _keystrokeTransmitter = new MockKeystrokeTransmitter();
 
-        private AbstractKeystrokeTransmitterThreadHelper _fixture(double delay, int timeout)
+        private AbstractKeystrokeTransmitterThreadHelper _fixture(int timeout)
         {
-            _cashShopStopwatch = new MockTimestamp();
+            _loginStopwatch = new MockTimestamp();
             _threadState = new KeystrokeTransmitterThreadState(
-                (int)CashShopExecutorThreadedUpdate.Stopped,
-                KeystrokeTransmitterThreadType.CashShop
+                (int)LoginExecutorThreadedUpdate.Stopped,
+                KeystrokeTransmitterThreadType.Login
             );
             _macroCommandsExecutor = new MockMacroCommandsExecutor();
             _macroCommandsExecutorBuilder = new MockMacroCommandsExecutorBuilder();
             _macroCommandsExecutorBuilder.BuildReturn.Add(_macroCommandsExecutor);
             _maplestoryBotConfiguration = new MaplestoryBotConfiguration
             {
-                MacroSettings = new MacroSettings { CashShopTimeout = timeout },
-                MacroKeySettings = new MacroKeySettings { CashShopKey = "meow" }
+                MacroSettings = new MacroSettings { LoginTimeout = timeout },
+                MacroKeySettings = new MacroKeySettings()
             };
             _keystrokeTransmitter = new MockKeystrokeTransmitter();
-            var helper = new CashShopExecutorThreadHelper(
-                _cashShopStopwatch,
+            var helper = new LoginScreenExecutorThreadHelper(
+                _loginStopwatch,
                 _threadState,
-                _macroCommandsExecutorBuilder,
-                delay
+                _macroCommandsExecutorBuilder
             );
             helper.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             helper.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);
@@ -62,92 +61,103 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         }
 
         /**
-         * @brief Verifies that resetting the cash shop executor updates the timestamp
-         * used to track when the character should enter the cash shop
+         * @brief Verifies that resetting the login executor updates the timestamp
+         * used to track when the character should enter the login
          * 
-         * When the cash shop executor begins a new map reset cycle, it must reset the
+         * When the login executor begins a new map reset cycle, it must reset the
          * stopwatch that tracks the elapsed time since the reset was triggered. This
-         * timestamp is used to determine when to send keystrokes to enter the cash shop.
+         * timestamp is used to determine when to send keystrokes to enter the login.
          */
         private void _testExecutorResetSetsTimestamp()
         {
-            var helper = _fixture(10, 10);
+            var helper = _fixture(10);
             helper.Reset();
-            Debug.Assert(_cashShopStopwatch.SetTimestampCalls == 1);
+            Debug.Assert(_loginStopwatch.SetTimestampCalls == 1);
+        }
+
+
+        /**
+         * @brief Verifies that the executor sends the complete keystroke sequence to
+         * enter the login screen, and that the sequence is sent only once regardless
+         * of how many times Transmit is called while still within the timeout period
+         * 
+         * When the bot needs to log into MapleStory, the executor sends a specific
+         * sequence of keystrokes: Escape (open options menu), wait, Arrow Up (select
+         * exit menu), wait, Enter (select), wait, Enter (confirm), wait. This sequence
+         * navigates through the login interface and confirms the character selection.
+         * The executor should send the full sequence only once per login attempt,
+         * even if Transmit is called multiple times while still waiting for the login
+         * to complete. Subsequent Transmit calls should not resend the sequence until
+         * the timeout expires.
+         */
+        private void _testExecutorAttemptsToEnterLogin()
+        {
+            var helper = _fixture(10);
+            var commands = _macroCommandsExecutor.ExecuteCallArg_macroCommands;
+            _loginStopwatch.GetTimestampReturn.Add(0);
+            Debug.Assert(helper.Transmit());
+            Debug.Assert(_macroCommandsExecutor.ExecuteCalls == 1);
+            Debug.Assert(commands[0].Count == 8);
+            Debug.Assert(commands[0][0] == "key press {ESCAPE} {100} {200}");
+            Debug.Assert(commands[0][1] == "wait {350} {350}");
+            Debug.Assert(commands[0][2] == "key press {ARROW_UP} {100} {200}");
+            Debug.Assert(commands[0][3] == "wait {350} {350}");
+            Debug.Assert(commands[0][4] == "key press {ENTER} {100} {200}");
+            Debug.Assert(commands[0][5] == "wait {350} {350}");
+            Debug.Assert(commands[0][6] == "key press {ENTER} {100} {200}");
+            Debug.Assert(commands[0][7] == "wait {350} {350}");
+            _loginStopwatch.GetTimestampReturn.Add(0);
+            Debug.Assert(helper.Transmit());
+            Debug.Assert(_macroCommandsExecutor.ExecuteCalls == 1);
         }
 
         /**
-         * @brief Verifies that the executor sends keystrokes to enter the cash shop when
-         * the elapsed time is less than or equal to the configured delay
+         * @brief Verifies that the executor sends the full exit sequence to return to
+         * the character selection screen after timeout, then presses Enter to reconnect
+         * the previously played character back into the game
          * 
-         * When the macro system decides to perform a map reset via the cash shop, the
-         * executor should send cash shop entrance keystrokes as long as the elapsed time
-         * has not exceeded the configured delay. The test checks three scenarios:
-         * - Elapsed time less than delay (delta negative) → send keystrokes
-         * - Elapsed time exactly equal to delay (delta zero) → send keystrokes
-         * - Elapsed time greater than delay (delta positive) → do NOT send keystrokes
+         * When the bot decides that the character should be logged out for a while
+         * (e.g., during maintenance breaks, after completing a session, or when switching
+         * accounts), the executor must first send the complete exit sequence to navigate
+         * from the game world back to the character selection screen. After the timeout
+         * period, the executor presses Enter to reconnect the previously played character
+         * back into the game, allowing the bot to resume automation without needing to
+         * manually select the character again.
          */
-        private void _testExecutorAttemptsToEnterCashShop()
+        private void _testExecutorAttemptsToEnterAndExitLogin()
         {
-            for (int delay = 5; delay < 10; delay++)
-            foreach (var delta in new[] { -0.01, 0.0, 0.01 })
-            {
-                var helper = _fixture(delay, 10);
-                _cashShopStopwatch.GetTimestampReturn.Add(delay + delta);
-                Debug.Assert(helper.Transmit());
-                if (delta < 0)
-                {
-                    var commands = _macroCommandsExecutor.ExecuteCallArg_macroCommands;
-                    Debug.Assert(_macroCommandsExecutor.ExecuteCalls == 2);
-                    Debug.Assert(commands[0].Count == 1);
-                    Debug.Assert(commands[0][0] == "key press {meow} {100} {150}");
-                    Debug.Assert(commands[1].Count == 1);
-                    Debug.Assert(commands[1][0] == "wait {100} {150}");
-                }
-                else
-                {
-                    Debug.Assert(_macroCommandsExecutor.ExecuteCalls == 0);
-                }
-            }
-        }
-
-        /**
-         * @brief Verifies that the executor sends keystrokes to exit the cash shop and
-         * updates the thread state to TimedOut when the elapsed time exceeds the timeout
-         * 
-         * Once the character has entered the cash shop, the executor must wait for the
-         * full timeout period to elapse before attempting to exit. After sending the exit
-         * keystrokes (Escape, wait, Enter), the thread state is updated to TimedOut to
-         * signal that the map reset operation has completed and the character is returning
-         * to the normal map.
-         */
-        private void _testExecutorAttemptsToExitCashShop()
-        {
-            for (int delay = 5; delay < 10; delay++)
             for (int timeout = 5; timeout < 10; timeout++)
             foreach (var delta in new[] {-0.01, 0.0, 0.01})
             {
-                var helper = _fixture(delay, timeout);
-                var timedOutState = (int)CashShopExecutorThreadedUpdate.TimedOut;
+                var helper = _fixture(timeout);
+                var commands = _macroCommandsExecutor.ExecuteCallArg_macroCommands;
+                var timedOutState = (int)LoginExecutorThreadedUpdate.TimedOut;
                 var currState = 123;
-                _cashShopStopwatch.GetTimestampReturn.Add(delay + timeout + delta);
+                _loginStopwatch.GetTimestampReturn.Add(0);
                 _threadState.SetState(currState);
+                Debug.Assert(helper.Transmit());
+                Debug.Assert(commands[0].Count == 8);
+                Debug.Assert(commands[0][0] == "key press {ESCAPE} {100} {200}");
+                Debug.Assert(commands[0][1] == "wait {350} {350}");
+                Debug.Assert(commands[0][2] == "key press {ARROW_UP} {100} {200}");
+                Debug.Assert(commands[0][3] == "wait {350} {350}");
+                Debug.Assert(commands[0][4] == "key press {ENTER} {100} {200}");
+                Debug.Assert(commands[0][5] == "wait {350} {350}");
+                Debug.Assert(commands[0][6] == "key press {ENTER} {100} {200}");
+                Debug.Assert(commands[0][7] == "wait {350} {350}");
+                Debug.Assert(_threadState.GetState() == currState);
+                _loginStopwatch.GetTimestampReturn.Add(timeout + delta);
                 Debug.Assert(helper.Transmit());
                 if (delta > 0)
                 {
-                    var commands = _macroCommandsExecutor.ExecuteCallArg_macroCommands;
-                    Debug.Assert(_macroCommandsExecutor.ExecuteCalls == 3);
-                    Debug.Assert(commands[0].Count == 1);
-                    Debug.Assert(commands[0][0] == "key press {ESCAPE} {100} {150}");
+                    Debug.Assert(_macroCommandsExecutor.ExecuteCalls == 2);
                     Debug.Assert(commands[1].Count == 1);
-                    Debug.Assert(commands[1][0] == "wait {900} {1100}");
-                    Debug.Assert(commands[2].Count == 1);
-                    Debug.Assert(commands[2][0] == "key press {ENTER} {100} {150}");
+                    Debug.Assert(commands[1][0] == "key press {ENTER} {100} {200}");
                     Debug.Assert(_threadState.GetState() == timedOutState);
                 }
                 else
                 {
-                    Debug.Assert(_macroCommandsExecutor.ExecuteCalls == 0);
+                    Debug.Assert(_macroCommandsExecutor.ExecuteCalls == 1);
                     Debug.Assert(_threadState.GetState() == currState);
                 }
             }
@@ -156,13 +166,13 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         public void Run()
         {
             _testExecutorResetSetsTimestamp();
-            _testExecutorAttemptsToEnterCashShop();
-            _testExecutorAttemptsToExitCashShop();
+            _testExecutorAttemptsToEnterLogin();
+            _testExecutorAttemptsToEnterAndExitLogin();
         }
     }
 
 
-    public class CashShopExecutorThreadTests
+    public class LoginExecutorThreadTests
     {
         private MockKeystrokeTransmitterThreadHelper _executorThreadHelper = new();
 
@@ -174,8 +184,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 
         private AbstractKeystrokeTransmitterThreadState _threadState = (
             new KeystrokeTransmitterThreadState(
-                (int)CashShopExecutorThreadedUpdate.Stopped,
-                KeystrokeTransmitterThreadType.CashShop
+                (int)LoginExecutorThreadedUpdate.Stopped,
+                KeystrokeTransmitterThreadType.Login
             )
         );
 
@@ -237,7 +247,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                 () =>
                 {
                     abstractThread.Inject(
-                        CashShopOrchestratorThreadInjectType.Stop, null
+                        LoginOrchestratorThreadInjectType.Stop, null
                     );
                 },
                 () =>
@@ -264,7 +274,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _setupRunningState();
             _setupTransmit(transmitCount);
             _setupReferences();
-            return new CashShopExecutorThread(
+            return new LoginExecutorThread(
                 _executionEvent,
                 _executorThreadHelper,
                 _threadState,
@@ -274,14 +284,14 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         }
 
         /**
-         * @brief Verifies the handshake sequence when the cash shop executor starts its
+         * @brief Verifies the handshake sequence when the login executor starts its
          * map reset transmission routine
          * 
-         * When the macro system determines that the character needs to enter the cash shop
+         * When the macro system determines that the character needs to enter the login
          * to reset the map (due to repeated missed runes or stuck puzzles), the orchestrator
          * signals the executor to start its transmission routine. The executor performs a
          * coordinated startup handshake with the keystroke transmitter to ensure the transmitter
-         * is ready before any cash shop navigation keystrokes are sent to MapleStory.
+         * is ready before any login navigation keystrokes are sent to MapleStory.
          */
         private void _testExecutorStartingHandshake()
         {
@@ -294,7 +304,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                     _transmittingState.IsRunningReturn.Add(true);
                 }
                 _transmittingState.IsRunningReturn.Add(false);
-                keystrokeTransmitterExecutorThread.Inject(CashShopOrchestratorThreadInjectType.Start, 0);
+                keystrokeTransmitterExecutorThread.Inject(LoginOrchestratorThreadInjectType.Start, 0);
                 Debug.Assert(_callOrder.Count == (i + 4));
                 Debug.Assert(_callOrder[0] == _threadStateRef + "SetState");
                 for (int j = 1; j <= i + 1; j++)
@@ -307,12 +317,12 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         }
 
         /**
-         * @brief Verifies thread state changes correctly when the cash shop executor begins
+         * @brief Verifies thread state changes correctly when the login executor begins
          * map reset operations
          * 
-         * When the macro system initiates a cash shop map reset, the executor thread transitions
+         * When the macro system initiates a login map reset, the executor thread transitions
          * through proper states: Starting → Started. This ensures the rest of the system knows
-         * the executor is actively processing cash shop navigation and can coordinate other
+         * the executor is actively processing login navigation and can coordinate other
          * activities accordingly.
          */
         private void _testExecutorStartingHandshakeSetsThreadStates()
@@ -321,17 +331,17 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             var keystrokeTransmitterExecutorThread = _fixture(1, threadState);
             _transmittingState.IsRunningReturn.Add(false);
             keystrokeTransmitterExecutorThread.Inject(
-                CashShopOrchestratorThreadInjectType.Start, 0
+                LoginOrchestratorThreadInjectType.Start, 0
             );
-            Debug.Assert(threadState.SetStateCallArg_state[0] == (int)CashShopExecutorThreadedUpdate.Starting);
-            Debug.Assert(threadState.SetStateCallArg_state[1] == (int)CashShopExecutorThreadedUpdate.Started);
+            Debug.Assert(threadState.SetStateCallArg_state[0] == (int)LoginExecutorThreadedUpdate.Starting);
+            Debug.Assert(threadState.SetStateCallArg_state[1] == (int)LoginExecutorThreadedUpdate.Started);
         }
 
         /**
-         * @brief Verifies the handshake sequence when the cash shop executor stops its
+         * @brief Verifies the handshake sequence when the login executor stops its
          * map reset transmission routine
          * 
-         * When the macro system needs to stop the cash shop map reset operation (e.g., the
+         * When the macro system needs to stop the login map reset operation (e.g., the
          * reset is complete or timed out), the orchestrator signals the executor to stop
          * sending keystrokes. The executor performs a coordinated shutdown handshake to ensure
          * keystrokes stop cleanly before the routine exits, preventing stray inputs during
@@ -348,7 +358,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                     _transmittingState.IsRunningReturn.Add(true);
                 }
                 _transmittingState.IsRunningReturn.Add(false);
-                keystrokeTransmitterExecutorThread.Inject(CashShopOrchestratorThreadInjectType.Stop, 0);
+                keystrokeTransmitterExecutorThread.Inject(LoginOrchestratorThreadInjectType.Stop, 0);
                 Debug.Assert(_callOrder.Count == (i + 3));
                 Debug.Assert(_callOrder[0] == _threadStateRef + "SetState");
                 for (int j = 1; j <= i + 1; j++)
@@ -360,9 +370,9 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         }
 
         /**
-         * @brief Verifies thread state changes correctly when the cash shop executor stops
+         * @brief Verifies thread state changes correctly when the login executor stops
          * 
-         * When cash shop map reset operations complete or time out, the executor thread
+         * When login map reset operations complete or time out, the executor thread
          * transitions through proper shutdown states: Started → Stopping → Stopped. This ensures
          * the system accurately reflects that map reset is no longer active and botting can
          * safely resume.
@@ -376,18 +386,18 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                 _transmittingState.IsRunningReturn.Add(false);
                 var stopLambdas = _stopLambdas(keystrokeTransmitterExecutorThread);
                 stopLambdas[i]();
-                Debug.Assert(threadState.SetStateCallArg_state[0] == (int)CashShopExecutorThreadedUpdate.Stopping);
-                Debug.Assert(threadState.SetStateCallArg_state[1] == (int)CashShopExecutorThreadedUpdate.Stopped);
+                Debug.Assert(threadState.SetStateCallArg_state[0] == (int)LoginExecutorThreadedUpdate.Stopping);
+                Debug.Assert(threadState.SetStateCallArg_state[1] == (int)LoginExecutorThreadedUpdate.Stopped);
             }
         }
 
         /**
-         * @brief Verifies the executor continuously transmits cash shop navigation commands
+         * @brief Verifies the executor continuously transmits login navigation commands
          * while the map reset operation is active
          * 
-         * When the macro system is actively performing a cash shop map reset (entering the
-         * cash shop, waiting, exiting), the executor thread must continuously send the
-         * appropriate keystrokes to navigate the character through the cash shop interface
+         * When the macro system is actively performing a login map reset (entering the
+         * login, waiting, exiting), the executor thread must continuously send the
+         * appropriate keystrokes to navigate the character through the login interface
          * and trigger the map reload. This test ensures that once started, the thread
          * repeatedly calls the transmit method to send navigation commands without stopping
          * until the reset is complete.
@@ -397,11 +407,11 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             for (int i = 1; i < 10; i++)
             {
                 var threadState = new KeystrokeTransmitterThreadState(
-                    (int)CashShopExecutorThreadedUpdate.Stopped,
-                    KeystrokeTransmitterThreadType.CashShop
+                    (int)LoginExecutorThreadedUpdate.Stopped,
+                    KeystrokeTransmitterThreadType.Login
                 );
                 var keystrokeTransmitterExecutorThread = _fixture(i, threadState);
-                var start = CashShopOrchestratorThreadInjectType.Start;
+                var start = LoginOrchestratorThreadInjectType.Start;
                 _transmittingState.IsRunningReturn.Add(false);
                 keystrokeTransmitterExecutorThread.Inject(start, 0);
                 keystrokeTransmitterExecutorThread.Start();
@@ -411,12 +421,12 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         }
 
         /**
-         * @brief Verifies keystroke transmission stops immediately when cash shop map reset
+         * @brief Verifies keystroke transmission stops immediately when login map reset
          * is stopped or times out
          * 
-         * When the cash shop map reset operation completes successfully or times out, the
+         * When the login map reset operation completes successfully or times out, the
          * executor thread must stop sending navigation keystrokes immediately. This prevents
-         * the character from continuing to navigate the cash shop interface after the reset
+         * the character from continuing to navigate the login interface after the reset
          * is already complete.
          */
         private void _testExecutorThreadLoopDoesntTransmitWhenStopped()
@@ -424,11 +434,11 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             for (int i = 1; i < 10; i++)
             {
                 var threadState = new KeystrokeTransmitterThreadState(
-                    (int)CashShopExecutorThreadedUpdate.Started,
-                    KeystrokeTransmitterThreadType.CashShop
+                    (int)LoginExecutorThreadedUpdate.Started,
+                    KeystrokeTransmitterThreadType.Login
                 );
                 var keystrokeTransmitterExecutorThread = _fixture(i, threadState);
-                var stop = CashShopOrchestratorThreadInjectType.Stop;
+                var stop = LoginOrchestratorThreadInjectType.Stop;
                 _transmittingState.IsRunningReturn.Add(false);
                 keystrokeTransmitterExecutorThread.Inject(stop, 0);
                 keystrokeTransmitterExecutorThread.Start();
@@ -439,9 +449,9 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
 
         /**
          * @brief Verifies that the executor thread helper is reset before and after each
-         * cash shop operation cycle
+         * login operation cycle
          * 
-         * When the cash shop executor processes map reset commands, the thread helper must
+         * When the login executor processes map reset commands, the thread helper must
          * be reset to a clean state before sending keystrokes for the current operation.
          * This prevents stale command data from previous operations from affecting the
          * current navigation. After the keystroke transmission completes, the helper is reset
@@ -452,13 +462,13 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             for (int i = 1; i < 10; i++)
             {
                 var threadState = new KeystrokeTransmitterThreadState(
-                    (int)CashShopExecutorThreadedUpdate.Stopped,
-                    KeystrokeTransmitterThreadType.CashShop
+                    (int)LoginExecutorThreadedUpdate.Stopped,
+                    KeystrokeTransmitterThreadType.Login
                 );
                 var keystrokeTransmitterExecutorThread = _fixture(i, threadState);
                 var callOrder = _executorThreadHelper.CallOrder;
                 _transmittingState.IsRunningReturn.Add(false);
-                var start = CashShopOrchestratorThreadInjectType.Start;
+                var start = LoginOrchestratorThreadInjectType.Start;
                 keystrokeTransmitterExecutorThread.Inject(start, 0);
                 keystrokeTransmitterExecutorThread.Start();
                 keystrokeTransmitterExecutorThread.Join(10000);
@@ -485,11 +495,11 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
     }
 
 
-    public class CashShopOrchestratorThreadTests
+    public class LoginOrchestratorThreadTests
     {
         private AbstractKeystrokeTransmitterThreadState _threadState = (
             new KeystrokeTransmitterThreadState(
-                0, KeystrokeTransmitterThreadType.CashShop
+                0, KeystrokeTransmitterThreadType.Login
             )
         );
 
@@ -516,7 +526,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                 mockThreadState.CallOrder = _callOrder;
             }
             _threadRef = new TestUtilities().Reference(_thread);
-            return new CashShopOrchestratorThread(
+            return new LoginOrchestratorThread(
                 _thread,
                 _runningState,
                 _threadStates
@@ -540,18 +550,18 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         }
 
         /**
-         * @brief Verifies that starting the cash shop orchestrator also starts the
-         * underlying executor thread that processes cash shop operations
+         * @brief Verifies that starting the login orchestrator also starts the
+         * underlying executor thread that processes login operations
          * 
-         * The cash shop orchestrator manages entering and exiting the cash shop to
+         * The login orchestrator manages entering and exiting the login to
          * reset the game map. When the orchestrator starts, it must also start the
          * executor thread that actually performs the keystroke transmissions for
-         * navigating the cash shop interface and map reset sequence.
+         * navigating the login interface and map reset sequence.
          */
         private void _testStartingOrchestratorStartsExecutorThread()
         {
             var threadState = new KeystrokeTransmitterThreadState(
-                0, KeystrokeTransmitterThreadType.CashShop
+                0, KeystrokeTransmitterThreadType.Login
             );
             var transmitterOrchestratorThread = _fixture(threadState);
             _runningState.IsRunningReturn.Add(false);
@@ -561,16 +571,16 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         }
 
         /**
-         * @brief Verifies that stopping the cash shop orchestrator stops the underlying
+         * @brief Verifies that stopping the login orchestrator stops the underlying
          * executor thread and adds a stop signal to the thread state collection
          * 
-         * When the cash shop orchestrator is stopped, it must shut down its executor
-         * thread to prevent any ongoing cash shop operations from continuing.
+         * When the login orchestrator is stopped, it must shut down its executor
+         * thread to prevent any ongoing login operations from continuing.
          */
         private void _testStoppingOrchestratorStopsExecutorThread()
         {
             var threadState = new KeystrokeTransmitterThreadState(
-                0, KeystrokeTransmitterThreadType.CashShop
+                0, KeystrokeTransmitterThreadType.Login
             );
             var transmitterOrchestratorThread = _fixture(threadState);
             _runningState.IsRunningReturn.Add(true);
@@ -587,22 +597,22 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
          * @brief Verifies that injecting an orchestrator command adds the corresponding
          * thread state to the collection for processing
          * 
-         * When the macro system injects a command into the cash shop orchestrator
+         * When the macro system injects a command into the login orchestrator
          * the orchestrator adds the integer representation of that command to the
          * thread state collection. The executor thread consumes these states and executes
-         * the appropriate cash shop operations.
+         * the appropriate login operations.
          */
         private void _testInjectingOrchestratorCommandAssignsThreadState()
         {
             var threadState = new KeystrokeTransmitterThreadState(
-                123, KeystrokeTransmitterThreadType.CashShop
+                123, KeystrokeTransmitterThreadType.Login
             );
             var transmitterOrchestratorThread = _fixture(threadState);
-            var max = CashShopOrchestratorThreadInjectType.MaxNum;
+            var max = LoginOrchestratorThreadInjectType.MaxNum;
             for (int i = 0; i < (int)max; i++)
             {
                 transmitterOrchestratorThread.Inject(
-                    (CashShopOrchestratorThreadInjectType)i, 0
+                    (LoginOrchestratorThreadInjectType)i, 0
                 );
                 Debug.Assert(_threadStates.Count == 1);
                 Debug.Assert(_threadStates.Take() == i);
@@ -616,16 +626,16 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
          * This test validates that all possible orchestrator command types (from 0 to
          * MaxNum) are properly converted to integers and added to the thread state
          * collection when injected. The executor thread uses these integer states to
-         * determine which cash shop operation to execute.
+         * determine which login operation to execute.
          */
         private void _testInjectOrchestratorCommand()
         {
-            var max = CashShopOrchestratorThreadInjectType.MaxNum;
+            var max = LoginOrchestratorThreadInjectType.MaxNum;
             for (int i = 0; i < (int)max; i++)
             {
                 var threadState = new MockKeystrokeTransmitterThreadState();
                 var transmitterOrchestratorThread = _fixture(threadState);
-                transmitterOrchestratorThread.Inject((CashShopOrchestratorThreadInjectType)i, 0);
+                transmitterOrchestratorThread.Inject((LoginOrchestratorThreadInjectType)i, 0);
                 Debug.Assert(_threadStates.Count == 1);
                 Debug.Assert(_threadStates.Take() == i);
             }
@@ -635,7 +645,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
          * @brief Verifies that non-orchestrator injections (e.g., configuration updates,
          * dependency injections) are passed through to the executor thread
          * 
-         * When the macro system injects data types that are not cash shop orchestrator
+         * When the macro system injects data types that are not login orchestrator
          * commands (such as configuration settings or keystroke transmitter dependencies),
          * the orchestrator must forward these injections to the underlying executor
          * thread without modification.
@@ -689,7 +699,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
          * 
          * When commands are added to the thread state collection, the orchestrator's
          * main loop consumes them sequentially and injects each command into the
-         * executor thread. This ensures that cash shop operations (starting the map
+         * executor thread. This ensures that login operations (starting the map
          * reset, timing out, stopping) are processed in the order they were requested.
          */
         private void _testThreadLoopInjectsCommands()
@@ -697,7 +707,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             for (int i = 1; i < 10; i++)
             {
                 var threadState = new KeystrokeTransmitterThreadState(
-                    123, KeystrokeTransmitterThreadType.CashShop
+                    123, KeystrokeTransmitterThreadType.Login
                 );
                 var transmitterOrchestratorThread = _fixture(threadState);
                 _setTransmitFixture(i);
@@ -726,13 +736,13 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
     }
 
 
-    public class CashShopTransmitterTestSuite
+    public class LoginTransmitterTestSuite
     {
         public void Run()
         {
-            new CashShopExecutorThreadHelperTests().Run();
-            new CashShopExecutorThreadTests().Run();
-            new CashShopOrchestratorThreadTests().Run();
+            new LoginExecutorThreadHelperTests().Run();
+            new LoginExecutorThreadTests().Run();
+            new LoginOrchestratorThreadTests().Run();
         }
     }
 }

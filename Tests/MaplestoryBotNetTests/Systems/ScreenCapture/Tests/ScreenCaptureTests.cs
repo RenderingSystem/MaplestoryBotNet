@@ -148,7 +148,6 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             var mockCaptureRef = new TestUtilities().Reference(mockCapture);
             var result = helper.UpdateCaptureZone(capture, captureArea);
             var updateCaptureZoneIndex = mockCapture.CallOrder.IndexOf(mockCaptureRef + "UpdateCaptureZone");
-            var captureScreenIndex = mockCapture.CallOrder.IndexOf(mockCaptureRef + "CaptureScreen");
             Debug.Assert(result == captureZone);
             Debug.Assert(mockCapture.UpdateCaptureZoneCalls == 1);
             Debug.Assert(mockCapture.UpdateCaptureZoneCallArg_captureZone[0] == captureZone);
@@ -156,7 +155,6 @@ namespace MaplestoryBotNetTests.Systems.ScreenCapture.Tests
             Debug.Assert(mockCapture.UpdateCaptureZoneCallArg_y[0] == 23);
             Debug.Assert(mockCapture.UpdateCaptureZoneCallArg_width[0] == 34);
             Debug.Assert(mockCapture.UpdateCaptureZoneCallArg_height[0] == 45);
-            Debug.Assert(updateCaptureZoneIndex + 1 == captureScreenIndex);
         }
 
         /**

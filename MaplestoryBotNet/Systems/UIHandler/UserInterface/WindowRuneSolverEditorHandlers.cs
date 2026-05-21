@@ -25,9 +25,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBox _interactKeyTextBox;
 
-        private TextBox _cashShopKeyTextBox;
-
-        private TextBox _cashShopTimeoutTextBox;
+        private TextBox _loginTimeoutTextBox;
 
         private TextBox _runeRetriesTextBox;
 
@@ -41,8 +39,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox rightArrowTextBox,
             TextBox downArrowTextBox,
             TextBox interactKeyTextBox,
-            TextBox cashShopKeyTextBox,
-            TextBox cashShopTimeoutTextBox,
+            TextBox loginTimeoutTextBox,
             TextBox runeRetriesTextBox
         )
         {
@@ -55,8 +52,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _rightArrowTextBox = rightArrowTextBox;
             _downArrowTextBox = downArrowTextBox;
             _interactKeyTextBox = interactKeyTextBox;
-            _cashShopKeyTextBox = cashShopKeyTextBox;
-            _cashShopTimeoutTextBox = cashShopTimeoutTextBox;
+            _loginTimeoutTextBox = loginTimeoutTextBox;
             _runeRetriesTextBox = runeRetriesTextBox;
         }
 
@@ -78,9 +74,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 _rightArrowTextBox.Text = runeDetection.Right;
                 _downArrowTextBox.Text = runeDetection.Down;
                 _interactKeyTextBox.Text = macroKeySettings.RuneInteractKey;
-                _cashShopKeyTextBox.Text = macroKeySettings.CashShopKey;
-                _cashShopTimeoutTextBox.Text = macroSettings.CashShopTimeout.ToString();
-                _runeRetriesTextBox.Text = macroSettings.CashShopTolerance.ToString();
+                _loginTimeoutTextBox.Text = macroSettings.LoginTimeout.ToString();
+                _runeRetriesTextBox.Text = macroSettings.LoginTolerance.ToString();
             }
         }
     }
@@ -147,8 +142,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox rightArrowTextBox,
             TextBox downArrowTextBox,
             TextBox interactKeyTextBox,
-            TextBox cashShopKeyTextBox,
-            TextBox cashShopTimeoutTextBox,
+            TextBox loginTimeoutTextBox,
             TextBox runeRetriesTextBox
         )
         {
@@ -165,8 +159,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                         rightArrowTextBox,
                         downArrowTextBox,
                         interactKeyTextBox,
-                        cashShopKeyTextBox,
-                        cashShopTimeoutTextBox,
+                        loginTimeoutTextBox,
                         runeRetriesTextBox
                     )
                 )
@@ -220,9 +213,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBox _interactKeyTextBox;
 
-        private TextBox _cashShopKeyTextBox;
-
-        private TextBox _cashShopTimeoutTextBox;
+        private TextBox _loginTimeoutTextBox;
 
         private TextBox _runeRetriesTextBox;
 
@@ -236,8 +227,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox rightArrowTextBox,
             TextBox downArrowTextBox,
             TextBox interactKeyTextBox,
-            TextBox cashShopKeyTextBox,
-            TextBox cashShopTimeoutTextBox,
+            TextBox loginTimeoutTextBox,
             TextBox runeRetriesTextBox
         )
         {
@@ -250,8 +240,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             _rightArrowTextBox = rightArrowTextBox;
             _downArrowTextBox = downArrowTextBox;
             _interactKeyTextBox = interactKeyTextBox;
-            _cashShopKeyTextBox = cashShopKeyTextBox;
-            _cashShopTimeoutTextBox = cashShopTimeoutTextBox;
+            _loginTimeoutTextBox = loginTimeoutTextBox;
             _runeRetriesTextBox = runeRetriesTextBox;
         }
 
@@ -275,16 +264,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 maplestoryBotConfiguration.MacroKeySettings.RuneInteractKey = (
                     _interactKeyTextBox.Text
                 );
-                maplestoryBotConfiguration.MacroKeySettings.CashShopKey = (
-                    _cashShopKeyTextBox.Text
-                );
-                if (int.TryParse(_cashShopTimeoutTextBox.Text, out int cashShopTimeout))
+                if (int.TryParse(_loginTimeoutTextBox.Text, out int loginTimeout))
                 {
-                    maplestoryBotConfiguration.MacroSettings.CashShopTimeout = cashShopTimeout;
+                    maplestoryBotConfiguration.MacroSettings.LoginTimeout = loginTimeout;
                 }
                 if (int.TryParse(_runeRetriesTextBox.Text, out int runeRetries))
                 {
-                    maplestoryBotConfiguration.MacroSettings.CashShopTolerance = runeRetries;
+                    maplestoryBotConfiguration.MacroSettings.LoginTolerance = runeRetries;
                 }
             }
         }
@@ -352,8 +338,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             TextBox rightArrowTextBox,
             TextBox downArrowTextBox,
             TextBox interactKeyTextBox,
-            TextBox cashShopKeyTextBox,
-            TextBox cashShopTimeoutTextBox,
+            TextBox loginTimeoutTextBox,
             TextBox runeRetriesTextBox
         )
         {
@@ -370,8 +355,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                         rightArrowTextBox,
                         downArrowTextBox,
                         interactKeyTextBox,
-                        cashShopKeyTextBox,
-                        cashShopTimeoutTextBox,
+                        loginTimeoutTextBox,
                         runeRetriesTextBox
                     )
                 )

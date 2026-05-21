@@ -36,7 +36,7 @@ namespace MaplestoryBotNet.Systems.Macro
         Runeing,
         Solving,
         SolvedCheck,
-        CashShop,
+        Login,
         Ailments,
         MaxNum
     }
@@ -142,18 +142,18 @@ namespace MaplestoryBotNet.Systems.Macro
             );
         }
 
-        private void _updateCashShopOrchestrator(MacroExecutorStateTypes stateType)
+        private void _updateLoginOrchestrator(MacroExecutorStateTypes stateType)
         {
             _updateOrchestrator(
-                shouldRun: stateType == MacroExecutorStateTypes.CashShop,
+                shouldRun: stateType == MacroExecutorStateTypes.Login,
                 stoppedStates: [
-                    (int)CashShopExecutorThreadedUpdate.Stopped
+                    (int)LoginExecutorThreadedUpdate.Stopped
                 ],
                 runningStates: [
-                    (int)CashShopExecutorThreadedUpdate.Started,
-                    (int)CashShopExecutorThreadedUpdate.TimedOut
+                    (int)LoginExecutorThreadedUpdate.Started,
+                    (int)LoginExecutorThreadedUpdate.TimedOut
                 ],
-                controller: _context.CashShopController
+                controller: _context.LoginController
             );
         }
 
@@ -201,7 +201,7 @@ namespace MaplestoryBotNet.Systems.Macro
             _updateBottingOrchestrator(stateType);
             _updateRuneingOrchestrator(stateType);
             _updateSolvingOrchestrator(stateType);
-            _updateCashShopOrchestrator(stateType);
+            _updateLoginOrchestrator(stateType);
             _updateAilmentsOrchestrator(stateType);
             foreach (var _ in _stopActions) _();
             foreach (var _ in _startActions) _();
@@ -458,14 +458,14 @@ namespace MaplestoryBotNet.Systems.Macro
                     && (tuple.Item1 > -1 || tuple.Item2 > -1)
                 )
                 {
-                    if (++_context.MissedRuneCount < _context.CashShopTolerance)
+                    if (++_context.MissedRuneCount < _context.LoginTolerance)
                     {
                         return (int)MacroExecutorStateTypes.Runeing;
                     }
                     else
                     {
                         _context.MissedRuneCount = 0;
-                        return (int)MacroExecutorStateTypes.CashShop;
+                        return (int)MacroExecutorStateTypes.Login;
                     }
                 }
                 else
@@ -491,13 +491,13 @@ namespace MaplestoryBotNet.Systems.Macro
     }
 
 
-    public class MacroExecutorStateCashShop : AbstractExecutorState
+    public class MacroExecutorStateLogin : AbstractExecutorState
     {
         private MacroExecutorThreadContext _context;
 
         private AbstractExecutorStateActivator _activator;
 
-        public MacroExecutorStateCashShop(
+        public MacroExecutorStateLogin(
             MacroExecutorThreadContext context,
             AbstractExecutorStateActivator activator
         )
@@ -508,15 +508,15 @@ namespace MaplestoryBotNet.Systems.Macro
 
         public override int Execute()
         {
-            _activator.Activate(MacroExecutorStateTypes.CashShop);
-            var cashShop = _context.CashShopController.GetState();
-            if (cashShop == (int)CashShopExecutorThreadedUpdate.TimedOut)
+            _activator.Activate(MacroExecutorStateTypes.Login);
+            var login = _context.LoginController.GetState();
+            if (login == (int)LoginExecutorThreadedUpdate.TimedOut)
             {
                 return (int)MacroExecutorStateTypes.Botting;
             }
             else
             {
-                return (int)MacroExecutorStateTypes.CashShop;
+                return (int)MacroExecutorStateTypes.Login;
             }
         }
     }
@@ -566,7 +566,7 @@ namespace MaplestoryBotNet.Systems.Macro
 
         public AbstractOrchestratorController SolvingController;
 
-        public AbstractOrchestratorController CashShopController;
+        public AbstractOrchestratorController LoginController;
 
         public AbstractOrchestratorController AilmentController;
 
@@ -584,7 +584,7 @@ namespace MaplestoryBotNet.Systems.Macro
 
         public double SolveCheckTimeout;
 
-        public int CashShopTolerance;
+        public int LoginTolerance;
 
         public int MissedRuneCount;
 
@@ -596,7 +596,7 @@ namespace MaplestoryBotNet.Systems.Macro
             AbstractOrchestratorController bottingController,
             AbstractOrchestratorController runeingController,
             AbstractOrchestratorController solvingController,
-            AbstractOrchestratorController cashShopController,
+            AbstractOrchestratorController loginController,
             AbstractOrchestratorController ailmentController,
             AbstractTimestamp runeingStopwatch,
             AbstractTimestamp solvingStopwatch,
@@ -606,7 +606,7 @@ namespace MaplestoryBotNet.Systems.Macro
             BottingController = bottingController;
             RuneingController = runeingController;
             SolvingController = solvingController;
-            CashShopController = cashShopController;
+            LoginController = loginController;
             AilmentController = ailmentController;
             BottingModel = null;
             RuneingStopwatch = runeingStopwatch;
@@ -615,7 +615,7 @@ namespace MaplestoryBotNet.Systems.Macro
             RuneActivationPeriodCurrent = 0;
             SolveCheckTimeout = 0.0;
             ExecutionFrequency = 0.0;
-            CashShopTolerance = 0;
+            LoginTolerance = 0;
             MissedRuneCount = 0;
             StopMenuActionHandler = null;
             StopCalled = false;
@@ -790,10 +790,10 @@ namespace MaplestoryBotNet.Systems.Macro
                     _context.SolvingController.SetOrchestrator(thread);
                     _context.SolvingController.SetOrchestratorThreadState(state);
                 }
-                if (state.Type() is KeystrokeTransmitterThreadType.CashShop)
+                if (state.Type() is KeystrokeTransmitterThreadType.Login)
                 {
-                    _context.CashShopController.SetOrchestrator(thread);
-                    _context.CashShopController.SetOrchestratorThreadState(state);
+                    _context.LoginController.SetOrchestrator(thread);
+                    _context.LoginController.SetOrchestratorThreadState(state);
                 }
                 if (state.Type() is KeystrokeTransmitterThreadType.Ailment)
                 {
@@ -809,7 +809,7 @@ namespace MaplestoryBotNet.Systems.Macro
             {
                 _context.ExecutionFrequency = macroSettings.CheckFrequency;
                 _context.SolveCheckTimeout = macroSettings.SolveCheckTimeout;
-                _context.CashShopTolerance = macroSettings.CashShopTolerance;
+                _context.LoginTolerance = macroSettings.LoginTolerance;
             }
             if (
                 dataType is SystemInjectType.BottingModel &&
@@ -1052,13 +1052,13 @@ namespace MaplestoryBotNet.Systems.Macro
                     SolvingExecutorThreadedUpdate.Stopped
                 ),
                 new OrchestratorController<
-                    CashShopOrchestratorThreadInjectType,
-                    CashShopExecutorThreadedUpdate
+                    LoginOrchestratorThreadInjectType,
+                    LoginExecutorThreadedUpdate
                 >(
-                    CashShopOrchestratorThreadInjectType.Start,
-                    CashShopExecutorThreadedUpdate.Started,
-                    CashShopOrchestratorThreadInjectType.Stop,
-                    CashShopExecutorThreadedUpdate.Stopped
+                    LoginOrchestratorThreadInjectType.Start,
+                    LoginExecutorThreadedUpdate.Started,
+                    LoginOrchestratorThreadInjectType.Stop,
+                    LoginExecutorThreadedUpdate.Stopped
                 ),
                 new OrchestratorController<
                     AilmentOrchestratorThreadInjectType,
@@ -1087,7 +1087,7 @@ namespace MaplestoryBotNet.Systems.Macro
                 new MacroExecutorStateRuneing(threadContext, activator),
                 new MacroExecutorStateSolving(threadContext, activator),
                 new MacroExecutorStateSolvedCheck(threadContext, activator),
-                new MacroExecutorStateCashShop(threadContext, activator),
+                new MacroExecutorStateLogin(threadContext, activator),
                 new MacroExecutorStateAilments(threadContext, activator)
             ];
         }
@@ -1129,7 +1129,9 @@ namespace MaplestoryBotNet.Systems.Macro
         public MacroSystem(
             List<AbstractThreadFactory> threadFactories
         ) : base(threadFactories)
-        { }
+        {
+        
+        }
     }
 
 
@@ -1137,9 +1139,7 @@ namespace MaplestoryBotNet.Systems.Macro
     {
         public override AbstractSystem Build()
         {
-            return new MacroSystem(
-                [new MacroOrchestratorThreadFactory()]
-            );
+            return new MacroSystem([new MacroOrchestratorThreadFactory()]);
         }
 
         public override AbstractSystemBuilder WithArg(object arg)

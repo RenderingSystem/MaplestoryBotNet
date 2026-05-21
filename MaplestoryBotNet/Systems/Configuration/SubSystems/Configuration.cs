@@ -42,6 +42,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
             Rect.CopyTo(resource.Rect, 0);
             Pixel.CopyTo(resource.Pixel, 0);
             Rgb.CopyTo(resource.Rgb, 0);
+            Tolerance.CopyTo(resource.Tolerance, 0);
             resource.Key = new string(Key);
             resource.Active = Active;
             return resource;
@@ -162,11 +163,11 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("solve_check_timeout")]
         public double SolveCheckTimeout { set; get; } = 3;
 
-        [JsonPropertyName("cash_shop_tolerance")]
-        public int CashShopTolerance { set; get; } = 3;
+        [JsonPropertyName("login_tolerance")]
+        public int LoginTolerance { set; get; } = 3;
 
-        [JsonPropertyName("cash_shop_timeout")]
-        public int CashShopTimeout { set; get; } = 60;
+        [JsonPropertyName("login_timeout")]
+        public int LoginTimeout { set; get; } = 60;
 
         [JsonPropertyName("potion_frequency")]
         public double PotionFrequency { set; get; } = 2.0;
@@ -177,8 +178,8 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
             {
                 CheckFrequency = CheckFrequency,
                 SolveCheckTimeout = SolveCheckTimeout,
-                CashShopTolerance = CashShopTolerance,
-                CashShopTimeout = CashShopTimeout,
+                LoginTolerance = LoginTolerance,
+                LoginTimeout = LoginTimeout,
                 PotionFrequency = PotionFrequency,
             };
         }
@@ -267,16 +268,12 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("rune_interact_key")]
         public string RuneInteractKey { get; set; } = "";
 
-        [JsonPropertyName("cash_shop_key")]
-        public string CashShopKey { get; set; } = "";
-
         public override AbstractConfiguration Copy()
         {
             return new MacroKeySettings
             {
                 AilmentsAllcureKey = AilmentsAllcureKey,
                 RuneInteractKey = RuneInteractKey,
-                CashShopKey = CashShopKey
             };
         }
     }

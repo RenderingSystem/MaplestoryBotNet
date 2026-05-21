@@ -192,7 +192,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
 
         private MockOrchestratorController _solvingController = new MockOrchestratorController();
 
-        private MockOrchestratorController _cashShopController = new MockOrchestratorController();
+        private MockOrchestratorController _loginController = new MockOrchestratorController();
 
         private MockOrchestratorController _ailmentsController = new MockOrchestratorController();
 
@@ -212,13 +212,13 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             _bottingController = new MockOrchestratorController();
             _runeingController = new MockOrchestratorController();
             _solvingController = new MockOrchestratorController();
-            _cashShopController = new MockOrchestratorController();
+            _loginController = new MockOrchestratorController();
             _ailmentsController = new MockOrchestratorController();
             _context = new MacroExecutorThreadContext(
                 _bottingController,
                 _runeingController,
                 _solvingController,
-                _cashShopController,
+                _loginController,
                 _ailmentsController,
                 new MockTimestamp(),
                 new MockTimestamp(),
@@ -228,15 +228,15 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         }
 
         /**
-         * @brief Verifies that the cash shop orchestrator is stopped in all macro states
-         * except CashShop state
+         * @brief Verifies that the login orchestrator is stopped in all macro states
+         * except Login state
          * 
-         * The cash shop orchestrator controls entering the cash shop to reset the map.
-         * This operation should only occur in the CashShop state. In all other states,
-         * the cash shop orchestrator must be stopped to prevent accidental map resets
+         * The login orchestrator controls entering the login to reset the map.
+         * This operation should only occur in the Login state. In all other states,
+         * the login orchestrator must be stopped to prevent accidental map resets
          * that would disrupt automation.
          */
-        private void _testActivatorStopsCashShopOrchestrator()
+        private void _testActivatorStopsLoginOrchestrator()
         {
             var stopStates = new[]
             {
@@ -250,18 +250,18 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 MacroExecutorStateTypes.MaxNum,
             };
             foreach (var stopState in stopStates)
-            for (int i = 0; i < (int)CashShopExecutorThreadedUpdate.MaxNum; i++)
+            for (int i = 0; i < (int)LoginExecutorThreadedUpdate.MaxNum; i++)
             {
                 var activator = _fixture();
                 _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
                 _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
-                _cashShopController.GetStateReturn.Add(i);
+                _loginController.GetStateReturn.Add(i);
                 activator.Activate(stopState);
                 Debug.Assert(
-                    _cashShopController.StopOrchestratorCalls ==
-                    (i != (int)CashShopExecutorThreadedUpdate.Stopped ? 1 : 0)
+                    _loginController.StopOrchestratorCalls ==
+                    (i != (int)LoginExecutorThreadedUpdate.Stopped ? 1 : 0)
                 );
             }
         }
@@ -284,7 +284,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 MacroExecutorStateTypes.Botting,
                 MacroExecutorStateTypes.Runeing,
                 MacroExecutorStateTypes.SolvedCheck,
-                MacroExecutorStateTypes.CashShop,
+                MacroExecutorStateTypes.Login,
                 MacroExecutorStateTypes.Ailments,
                 MacroExecutorStateTypes.MaxNum,
             };
@@ -295,7 +295,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add(i);
-                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _loginController.GetStateReturn.Add((int)LoginExecutorThreadedUpdate.Stopped);
                 _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 activator.Activate(stopState);
                 Debug.Assert(
@@ -324,7 +324,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 MacroExecutorStateTypes.Botting,
                 MacroExecutorStateTypes.Solving,
                 MacroExecutorStateTypes.SolvedCheck,
-                MacroExecutorStateTypes.CashShop,
+                MacroExecutorStateTypes.Login,
                 MacroExecutorStateTypes.Ailments,
                 MacroExecutorStateTypes.MaxNum,
             };
@@ -335,7 +335,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
                 _runeingController.GetStateReturn.Add(i);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _loginController.GetStateReturn.Add((int)LoginExecutorThreadedUpdate.Stopped);
                 _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 activator.Activate(stopState);
                 Debug.Assert(
@@ -353,7 +353,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
          * active only during Botting and SolvedCheck states (where the bot may still
          * need to kill monsters while waiting for rune spawns). In all other states,
          * the botting orchestrator must be stopped to prevent combat keystrokes during
-         * navigation, puzzle solving, or cash shop operations.
+         * navigation, puzzle solving, or login operations.
          */
         private void _testActivatorStopsBottingOrchestrator()
         {
@@ -363,7 +363,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 MacroExecutorStateTypes.Reset,
                 MacroExecutorStateTypes.Runeing,
                 MacroExecutorStateTypes.Solving,
-                MacroExecutorStateTypes.CashShop,
+                MacroExecutorStateTypes.Login,
                 MacroExecutorStateTypes.Ailments,
                 MacroExecutorStateTypes.MaxNum,
             };
@@ -374,7 +374,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _bottingController.GetStateReturn.Add(i);
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _loginController.GetStateReturn.Add((int)LoginExecutorThreadedUpdate.Stopped);
                 _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 activator.Activate(stopState);
                 Debug.Assert(
@@ -391,7 +391,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
          * The ailments orchestrator handles detecting and responding to status ailments
          * (e.g., seal, weakness, curse). This should only be active during the Ailments
          * state when the bot is specifically checking for and curing negative status effects.
-         * In all other states (Idle, Reset, Botting, Runeing, Solving, CashShop), the
+         * In all other states (Idle, Reset, Botting, Runeing, Solving, Login), the
          * ailments orchestrator must be stopped to prevent status checks from interfering
          * with other automation routines like monster killing or rune navigation.
          */
@@ -405,7 +405,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 MacroExecutorStateTypes.Runeing,
                 MacroExecutorStateTypes.Solving,
                 MacroExecutorStateTypes.SolvedCheck,
-                MacroExecutorStateTypes.CashShop,
+                MacroExecutorStateTypes.Login,
                 MacroExecutorStateTypes.MaxNum,
             };
             foreach (var stopState in stopStates)
@@ -415,7 +415,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _loginController.GetStateReturn.Add((int)LoginExecutorThreadedUpdate.Stopped);
                 _ailmentsController.GetStateReturn.Add(i);
                 activator.Activate(stopState);
                 Debug.Assert(
@@ -449,7 +449,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _bottingController.GetStateReturn.Add(i);
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _loginController.GetStateReturn.Add((int)LoginExecutorThreadedUpdate.Stopped);
                 _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 activator.Activate(startState);
                 Debug.Assert(
@@ -477,7 +477,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
                 _runeingController.GetStateReturn.Add(i);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _loginController.GetStateReturn.Add((int)LoginExecutorThreadedUpdate.Stopped);
                 _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 activator.Activate(MacroExecutorStateTypes.Runeing);
                 Debug.Assert(
@@ -509,7 +509,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add(i);
-                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _loginController.GetStateReturn.Add((int)LoginExecutorThreadedUpdate.Stopped);
                 _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
                 activator.Activate(MacroExecutorStateTypes.Solving);
                 Debug.Assert(
@@ -526,32 +526,32 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         }
 
         /**
-         * @brief Verifies that the cash shop orchestrator is started when entering CashShop
+         * @brief Verifies that the login orchestrator is started when entering Login
          * state, but only if not already Started or TimedOut
          * 
-         * The cash shop orchestrator handles entering the cash shop to reset the map.
-         * When the macro executor transitions to CashShop state, the orchestrator must
+         * The login orchestrator handles entering the login to reset the map.
+         * When the macro executor transitions to Login state, the orchestrator must
          * be started to begin the map reset operation. However, if the orchestrator is
          * already Started (reset in progress) or TimedOut (reset failed), no action is
          * needed. This prevents redundant reset attempts.
          */
-        private void _testActivatorStartsCashShopOrchestrator()
+        private void _testActivatorStartsLoginOrchestrator()
         {
-            for (int i = 0; i < (int)CashShopExecutorThreadedUpdate.MaxNum; i++)
+            for (int i = 0; i < (int)LoginExecutorThreadedUpdate.MaxNum; i++)
             {
                 var activator = _fixture();
                 _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                _cashShopController.GetStateReturn.Add(i);
+                _loginController.GetStateReturn.Add(i);
                 _ailmentsController.GetStateReturn.Add((int)AilmentExecutorThreadedUpdate.Stopped);
-                activator.Activate(MacroExecutorStateTypes.CashShop);
+                activator.Activate(MacroExecutorStateTypes.Login);
                 Debug.Assert(
-                    _cashShopController.StartOrchestratorCalls ==
+                    _loginController.StartOrchestratorCalls ==
                     (
                         (
-                            i != (int)CashShopExecutorThreadedUpdate.Started &&
-                            i != (int)CashShopExecutorThreadedUpdate.TimedOut
+                            i != (int)LoginExecutorThreadedUpdate.Started &&
+                            i != (int)LoginExecutorThreadedUpdate.TimedOut
                         ) ? 1 : 0
                     )
                 );
@@ -576,7 +576,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 _bottingController.GetStateReturn.Add((int)BottingExecutorThreadedUpdate.Stopped);
                 _runeingController.GetStateReturn.Add((int)RuneingExecutorThreadedUpdate.Stopped);
                 _solvingController.GetStateReturn.Add((int)SolvingExecutorThreadedUpdate.Stopped);
-                _cashShopController.GetStateReturn.Add((int)CashShopExecutorThreadedUpdate.Stopped);
+                _loginController.GetStateReturn.Add((int)LoginExecutorThreadedUpdate.Stopped);
                 _ailmentsController.GetStateReturn.Add(i);
                 activator.Activate(MacroExecutorStateTypes.Ailments);
                 Debug.Assert(
@@ -594,7 +594,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
 
         public void Run()
         {
-            _testActivatorStopsCashShopOrchestrator();
+            _testActivatorStopsLoginOrchestrator();
             _testActivatorStopsSolvingOrchestrator();
             _testActivatorStopsRuneingOrchestrator();
             _testActivatorStopsBottingOrchestrator();
@@ -602,7 +602,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             _testActivatorStartsBottingOrchestrator();
             _testActivatorStartsRuneingOrchestrator();
             _testActivatorStartsSolvingOrchestrator();
-            _testActivatorStartsCashShopOrchestrator();
+            _testActivatorStartsLoginOrchestrator();
             _testActivatorStartsAilmentsOrchestrator();
         }
     }
@@ -697,7 +697,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
          * 
          * When the macro system resets, the missed rune counter should be reset to zero.
          * This counter tracks how many times a rune spawn has been missed or ignored
-         * before the bot decides to enter the cash shop or take alternative action.
+         * before the bot decides to enter the login or take alternative action.
          * Resetting the counter ensures that after a successful reset, the bot starts
          * fresh without carrying over previous missed rune counts that could trigger
          * unintended behavior.
@@ -1217,7 +1217,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             var macroExecutorStateSolvedCheck = _fixture();
             _solvingStopwatch.GetTimestampReturn.Add(12);
             _context.SolveCheckTimeout = 123;
-            _context.CashShopTolerance = 3;
+            _context.LoginTolerance = 3;
             _bottingModel.GetMapModel().SetTemplatePosition(MapIconInfo.Rune, 12, 23);
             var result = macroExecutorStateSolvedCheck.Execute();
             Debug.Assert(result == (int)MacroExecutorStateTypes.Runeing);
@@ -1225,22 +1225,22 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
 
         /**
          * @brief Verifies that when a rune is detected but repeatedly not solved or collected,
-         * the system transitions to Cash Shop state after reaching the missed rune tolerance
+         * the system transitions to Login state after reaching the missed rune tolerance
          * threshold
          * 
          * When the bot detects a rune on the minimap but fails to successfully solve it, the
          * system increments a missed rune counter. If the bot continues to solve runes but fails
          * them, and the missed rune count reaches the configured tolerance threshold,
-         * the system transitions to the Cash Shop state. This allows the bot to take a break,
+         * the system transitions to the Login state. This allows the bot to take a break,
          * before re-entering the map.
          */
-        private void _testExecutorTransitionsToCashShopOnMissedRunes()
+        private void _testExecutorTransitionsToLoginOnMissedRunes()
         {
             for (int i = 1; i < 10; i++)
             {
                 var macroExecutorStateSolvedCheck = _fixture();
                 _context.SolveCheckTimeout = 123;
-                _context.CashShopTolerance = i;
+                _context.LoginTolerance = i;
                 _bottingModel.GetMapModel().SetTemplatePosition(MapIconInfo.Rune, 12, 23);
                 for (int j = 0; j < i; j++)
                 {
@@ -1249,7 +1249,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                     Debug.Assert(
                         (j < i - 1) ?
                         result == (int)MacroExecutorStateTypes.Runeing :
-                        result == (int)MacroExecutorStateTypes.CashShop
+                        result == (int)MacroExecutorStateTypes.Login
                     );
                 }
             }
@@ -1322,7 +1322,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             _testExecutorActivatesSolvedCheckState();
             _testExecutorTransitionsToBottingOnTimeout();
             _testExecutorTransitionsToRuneingOnDetectedRune();
-            _testExecutorTransitionsToCashShopOnMissedRunes();
+            _testExecutorTransitionsToLoginOnMissedRunes();
             _testExecutorTransitionsToSolvedCheckOnNoRune();
             _testExecutorSetsRuneingTimestampOnTimeout();
             _testExecutorSetsRuneActivationPeriodOnTimeout();
@@ -1330,7 +1330,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
     }
 
 
-    public class MacroExecutorStateCashShopTests
+    public class MacroExecutorStateLoginTests
     {
         private MacroExecutorThreadContext _context = new MacroExecutorThreadContext(
             new MockOrchestratorController(),
@@ -1343,79 +1343,79 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             MapIconInfo.Rune
         );
 
-        private MockOrchestratorController _cashShopController = new MockOrchestratorController();
+        private MockOrchestratorController _loginController = new MockOrchestratorController();
 
         private MockExecutorStateActivator _activator = new MockExecutorStateActivator();
 
         public AbstractExecutorState _fixture()
         {
-            _cashShopController = new MockOrchestratorController();
+            _loginController = new MockOrchestratorController();
             _context = new MacroExecutorThreadContext(
                 new MockOrchestratorController(),
                 new MockOrchestratorController(),
                 new MockOrchestratorController(),
-                _cashShopController,
+                _loginController,
                 new MockOrchestratorController(),
                 new StopwatchTimestamp(),
                 new StopwatchTimestamp(),
                 MapIconInfo.Rune
             );
             _activator = new MockExecutorStateActivator();
-            return new MacroExecutorStateCashShop(
+            return new MacroExecutorStateLogin(
                 _context,
                 _activator
             );
         }
 
         /**
-         * @brief Verifies that the CashShop state triggers the activator to configure the
-         * executor for cash shop map reset operations
+         * @brief Verifies that the Login state triggers the activator to configure the
+         * executor for login map reset operations
          * 
-         * When the macro executor enters the CashShop state to reset the map (after
-         * repeated missed runes or stuck puzzles), it must activate the CashShop state
+         * When the macro executor enters the Login state to reset the map (after
+         * repeated missed runes or stuck puzzles), it must activate the Login state
          * through the activator. The activator then ensures the correct orchestrators
-         * are stopped and the cash shop orchestrator is started to handle the map reset
+         * are stopped and the login orchestrator is started to handle the map reset
          * sequence.
          */
-        private void _testExecutorActivatesCashShopCheckState()
+        private void _testExecutorActivatesLoginCheckState()
         {
-            var macroExecutorStateCashShop = _fixture();
-            _cashShopController.GetStateReturn.Add(123);
-            macroExecutorStateCashShop.Execute();
+            var macroExecutorStateLogin = _fixture();
+            _loginController.GetStateReturn.Add(123);
+            macroExecutorStateLogin.Execute();
             Debug.Assert(_activator.ActivateCalls == 1);
-            Debug.Assert(_activator.ActivateCallArg_stateType[0] == MacroExecutorStateTypes.CashShop);
+            Debug.Assert(_activator.ActivateCallArg_stateType[0] == MacroExecutorStateTypes.Login);
         }
 
         /**
-         * @brief Verifies that the macro executor transitions from Cash Shop state to
+         * @brief Verifies that the macro executor transitions from Login state to
          * Botting state when the map reset times out, allowing the character to resume
          * monster killing while waiting for runes to respawn.
          * 
-         * Entering the cash shop forces the game map to reload, which resets any stuck
-         * rune puzzles. However, after exiting the cash shop, the map needs time for
-         * runes to respawn naturally. The Timed Out state indicates the cash shop map
+         * Entering the login forces the game map to reload, which resets any stuck
+         * rune puzzles. However, after exiting the login, the map needs time for
+         * runes to respawn naturally. The Timed Out state indicates the login map
          * reset operation has completed, and the system should transition to Botting
          * state so the character can resume killing monsters while waiting for new
          * runes to appear.
          */
         private void _testExecutorTransitionsToBottingOnTimeout()
         {
-            foreach (var state in new[] { (int)CashShopExecutorThreadedUpdate.TimedOut, 123 })
+            foreach (var state in new[] { (int)LoginExecutorThreadedUpdate.TimedOut, 123 })
             {
-                var macroExecutorStateCashShop = _fixture();
-                _cashShopController.GetStateReturn.Add(state);
-                var result = macroExecutorStateCashShop.Execute();
+                var macroExecutorStateLogin = _fixture();
+                _loginController.GetStateReturn.Add(state);
+                var result = macroExecutorStateLogin.Execute();
                 Debug.Assert(
-                    state == (int)CashShopExecutorThreadedUpdate.TimedOut ?
+                    state == (int)LoginExecutorThreadedUpdate.TimedOut ?
                     result == (int)MacroExecutorStateTypes.Botting :
-                    result == (int)MacroExecutorStateTypes.CashShop
+                    result == (int)MacroExecutorStateTypes.Login
                 );
             }
         }
 
         public void Run()
         {
-            _testExecutorActivatesCashShopCheckState();
+            _testExecutorActivatesLoginCheckState();
             _testExecutorTransitionsToBottingOnTimeout();
         }
     }
@@ -1468,7 +1468,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
          * When the macro executor enters the Ailments state to handle status ailments
          * (e.g., seal, weakness, curse, petrification), it must activate the Ailments
          * state through the activator. The activator then ensures the correct orchestrators
-         * are stopped (botting, runeing, solving, cash shop) and the ailments orchestrator
+         * are stopped (botting, runeing, solving, login) and the ailments orchestrator
          * is started to begin monitoring for status effects and sending cure keystrokes.
          */
         private void _testExecutorActivatesAilmentCheckState()
@@ -1947,7 +1947,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
 
         private MockOrchestratorController _solvingController = new MockOrchestratorController();
 
-        private MockOrchestratorController _cashShopController = new MockOrchestratorController();
+        private MockOrchestratorController _loginController = new MockOrchestratorController();
 
         private MockOrchestratorController _ailmentsController = new MockOrchestratorController();
 
@@ -1967,13 +1967,13 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             _bottingController = new MockOrchestratorController();
             _runeingController = new MockOrchestratorController();
             _solvingController = new MockOrchestratorController();
-            _cashShopController = new MockOrchestratorController();
+            _loginController = new MockOrchestratorController();
             _ailmentsController = new MockOrchestratorController();
             _context = new MacroExecutorThreadContext(
                 _bottingController,
                 _runeingController,
                 _solvingController,
-                _cashShopController,
+                _loginController,
                 _ailmentsController,
                 new StopwatchTimestamp(),
                 new StopwatchTimestamp(),
@@ -2052,28 +2052,28 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
         }
 
         /**
-         * @brief Verifies that the cash shop orchestrator controller thread and state are
+         * @brief Verifies that the login orchestrator controller thread and state are
          * properly injected into the state machine
          * 
          * When the bot initializes, it needs to provide the state machine with the thread
-         * that controls cash shop operations. The cash shop orchestrator handles
+         * that controls login operations. The login orchestrator handles
          * automated interactions with in-game shops after repeated rune solve failures.
-         * This test ensures that the cash shop thread and its state object are correctly
-         * wired to the state machine's cash shop controller, allowing the state machine
-         * to start and stop cash shop routines when the system determines the bot needs
+         * This test ensures that the login thread and its state object are correctly
+         * wired to the state machine's login controller, allowing the state machine
+         * to start and stop login routines when the system determines the bot needs
          * to take a break from rune attempts.
          */
-        private void _testInjectingCashShopControllerThreadDependency()
+        private void _testInjectingLoginControllerThreadDependency()
         {
             var stateMachine = _fixture();
             var thread = new MockThread(new ThreadRunningState());
-            var state = new KeystrokeTransmitterThreadState(0, KeystrokeTransmitterThreadType.CashShop);
+            var state = new KeystrokeTransmitterThreadState(0, KeystrokeTransmitterThreadType.Login);
             thread.ThreadStateReturn.Add(state);
             stateMachine.Inject(SystemInjectType.ThreadDependency, thread);
-            Debug.Assert(_cashShopController.SetOrchestratorCalls == 1);
-            Debug.Assert(_cashShopController.SetOrchestratorCallArg_orchestrator[0] == thread);
-            Debug.Assert(_cashShopController.SetOrchestratorThreadStateCalls == 1);
-            Debug.Assert(_cashShopController.SetOrchestratorThreadStateCallArg_threadState[0] == state);
+            Debug.Assert(_loginController.SetOrchestratorCalls == 1);
+            Debug.Assert(_loginController.SetOrchestratorCallArg_orchestrator[0] == thread);
+            Debug.Assert(_loginController.SetOrchestratorThreadStateCalls == 1);
+            Debug.Assert(_loginController.SetOrchestratorThreadStateCallArg_threadState[0] == state);
         }
 
         /**
@@ -2121,13 +2121,13 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 {
                     CheckFrequency = 12,
                     SolveCheckTimeout = 34,
-                    CashShopTolerance = 1234
+                    LoginTolerance = 1234
                 }
             };
             stateMachine.Inject(SystemInjectType.Configuration, data);
             Debug.Assert(_context.ExecutionFrequency == 12);
             Debug.Assert(_context.SolveCheckTimeout == 34);
-            Debug.Assert(_context.CashShopTolerance == 1234);
+            Debug.Assert(_context.LoginTolerance == 1234);
         }
 
         /**
@@ -2173,7 +2173,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             _testInjectingBottingControllerThreadDependency();
             _testInjectingRuneingControllerThreadDependency();
             _testInjectingSolvingControllerThreadDependency();
-            _testInjectingCashShopControllerThreadDependency();
+            _testInjectingLoginControllerThreadDependency();
             _testInjectingAilmentControllerThreadDependency();
             _testInjectingConfiguration();
             _testInjectingBottingModel();
@@ -2967,7 +2967,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             new MacroExecutorStateRuneingTests().Run();
             new MacroExecutorStateSolvingTests().Run();
             new MacroExecutorStateSolvedCheckTests().Run();
-            new MacroExecutorStateCashShopTests().Run();
+            new MacroExecutorStateLoginTests().Run();
             new MacroExecutorStateAilmentsTests().Run();
             new MacroExecutorThreadAilmentTransitionHandlerTests().Run();
             new MacroExecutorThreadMacroTransitionHandlerTests().Run();

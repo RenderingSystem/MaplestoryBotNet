@@ -59,8 +59,7 @@ namespace MaplestoryBotNet.Xaml
                 ArrowRightTextBox,
                 ArrowDownTextBox,
                 InteractKeyTextBox,
-                CashShopKey,
-                CashShopTimeout,
+                LoginTimeout,
                 RuneRetriesTextBox
             );
         }
@@ -78,8 +77,7 @@ namespace MaplestoryBotNet.Xaml
                 ArrowRightTextBox,
                 ArrowDownTextBox,
                 InteractKeyTextBox,
-                CashShopKey,
-                CashShopTimeout,
+                LoginTimeout,
                 RuneRetriesTextBox
             );
         }
@@ -106,9 +104,9 @@ namespace MaplestoryBotNet.Xaml
         public List<AbstractWindowActionHandler> InstantiateActionHandlers()
         {
             return [
-                _instantiateNumericTextBoxPropertyActionHandler(CashShopTimeout, 999),
+                _instantiateNumericTextBoxPropertyActionHandler(LoginTimeout, 999),
                 _instantiateNumericTextBoxPropertyActionHandler(RuneRetriesTextBox, 99),
-                _instantiateNumericTextBoxPropertyPasteActionHandler(CashShopTimeout, 999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(LoginTimeout, 999),
                 _instantiateNumericTextBoxPropertyPasteActionHandler(RuneRetriesTextBox, 99),
                 _instantiateWindowMenuItemHideActionHandler(),
                 _instantiateAPILoadActionHandler(),

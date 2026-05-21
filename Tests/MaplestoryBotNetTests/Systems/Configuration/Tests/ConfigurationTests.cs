@@ -133,8 +133,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 "macro_check_frequency": {
                     "check_frequency": 0.123,
                     "solve_check_timeout": 0.234,
-                    "cash_shop_tolerance": 1234,
-                    "cash_shop_timeout": 2345,
+                    "login_tolerance": 1234,
+                    "login_timeout": 2345,
                     "potion_frequency": 0.3456,
                 },
                 "rune_detection": {
@@ -156,8 +156,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 },
                 "macro_key_settings": {
                     "ailments_allcure_key": "some_allcure_key",
-                    "rune_interact_key": "key",
-                    "cash_shop_key": "cs_key"
+                    "rune_interact_key": "key"
                 }
             }
             """;
@@ -336,8 +335,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
             Debug.Assert(output.MacroSettings.CheckFrequency == 0.123);
             Debug.Assert(output.MacroSettings.SolveCheckTimeout == 0.234);
-            Debug.Assert(output.MacroSettings.CashShopTolerance == 1234);
-            Debug.Assert(output.MacroSettings.CashShopTimeout == 2345);
+            Debug.Assert(output.MacroSettings.LoginTolerance == 1234);
+            Debug.Assert(output.MacroSettings.LoginTimeout == 2345);
             Debug.Assert(output.MacroSettings.PotionFrequency == 0.3456);
         }
 
@@ -546,8 +545,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 {
                     CheckFrequency=0.123,
                     SolveCheckTimeout=0.234,
-                    CashShopTolerance=1234,
-                    CashShopTimeout=2345,
+                    LoginTolerance=1234,
+                    LoginTimeout=2345,
                     PotionFrequency=0.3456
                 },
                 RuneDetection = new RuneDetection
@@ -572,8 +571,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 MacroKeySettings = new MacroKeySettings
                 {
                     AilmentsAllcureKey = "some_allcure_key",
-                    RuneInteractKey = "key",
-                    CashShopKey = "cs_key"
+                    RuneInteractKey = "key"
                 }
             };
             return configuration;
@@ -712,8 +710,8 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 "macro_check_frequency": {
                     "check_frequency": 0.123,
                     "solve_check_timeout": 0.234,
-                    "cash_shop_tolerance": 1234,
-                    "cash_shop_timeout": 2345,
+                    "login_tolerance": 1234,
+                    "login_timeout": 2345,
                     "potion_frequency": 0.3456
                 },
                 "rune_detection": {
@@ -735,8 +733,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 },
                 "macro_key_settings": {
                     "ailments_allcure_key": "some_allcure_key",
-                    "rune_interact_key": "key",
-                    "cash_shop_key": "cs_key"
+                    "rune_interact_key": "key"
                 }
             }
             """;
