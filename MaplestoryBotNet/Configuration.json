@@ -21,7 +21,7 @@
             5,
             5
         ],
-        "key": "PAGE_UP",
+        "key": "PAGE_DOWN",
         "active": 1
     },
     "mp": {
@@ -142,13 +142,13 @@
             "active": 1,
             "active_delay": 1000,
             "check_delay": 1000,
-            "threshold": 900,
+            "threshold": 800,
             "overlap": 0.9,
             "static_rect": [
-                988,
-                695,
-                1062,
-                769
+                989,
+                639,
+                1063,
+                713
             ],
             "stop_bot": 1
         }

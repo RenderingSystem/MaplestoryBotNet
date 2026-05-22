@@ -553,7 +553,7 @@ namespace MaplestoryBotNet.Systems.Consumables
                     _macroState != MacroExecutorStateTypes.Reset
                 )
                 {
-                    _consumptionThreadHelper.Run();
+                    _consumptionThreadHelper.Run(); 
                 }
                 var elapsed = _consumableTimestamp.GetTimestamp();
                 _macroSleeper.Sleep((int)((_potionPeriod - elapsed) * 1000));
