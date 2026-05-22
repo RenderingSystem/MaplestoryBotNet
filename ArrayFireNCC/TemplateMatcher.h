@@ -77,14 +77,14 @@ namespace ArrayFireNCC {
 
     public:
 
-        virtual af::array convert(
+        virtual std::vector<af::array> convert(
             UINT32* image,
             int image_width,
             int image_height,
             int image_stride
         ) abstract;
 
-        virtual af::array convert(Bitmap^ bitmap) abstract;
+        virtual std::vector<af::array> convert(Bitmap^ bitmap) abstract;
     };
 
 
@@ -176,18 +176,18 @@ namespace ArrayFireNCC {
     };
 
 
-    public ref class BitmapToZeroMeanGrayscaleConverter : public AbstractBitmapToGrayscaleConverter {
+    public ref class BitmapToGrayscaleConverter : public AbstractBitmapToGrayscaleConverter {
 
     public:
 
-        virtual af::array convert(
+        virtual std::vector<af::array> convert(
             UINT32* image,
             int image_width,
             int image_height,
             int image_stride
         ) override;
 
-        virtual af::array convert(Bitmap^ bitmap) override;
+        virtual std::vector<af::array> convert(Bitmap^ bitmap) override;
     };
 
 
@@ -338,18 +338,18 @@ namespace ArrayFireNCC {
 
     private:
 
-        array<af::array*>^ _calculate_ncc_maps(
-            af::array& af_image,
-            af::array& af_image_mask
+        std::vector<af::array> BitmapTemplateMatcher::_calculate_ncc_maps(
+            std::vector<af::array> af_image_channels,
+            af::array& af_image_mask,
+            std::vector<af::array> af_templ_channels,
+            af::array& af_templ_mask
         );
 
-        List<Tuple<int, int, int, int, float>^>^ _calculate_matches(
-            array<af::array*>^ ncc_maps,
+        List<Tuple<int, int, int, int, float>^>^ _calculate_ncc_matches(
+            std::vector<af::array> ncc_maps,
+            int templ_width,
+            int templ_height,
             float threshold
-        );
-
-        void _delete_ncc_maps(
-            array<af::array*>^ ncc_maps
         );
 
     public:
@@ -404,4 +404,41 @@ namespace ArrayFireNCC {
 
     };
 
+
+    public ref class BitmapTemplateRGBMatcherBuilder : AbstractBitmapTemplateMatcherBuilder {
+
+    private:
+
+        List<Bitmap^>^ _templates;
+
+    private:
+
+        List<Bitmap^>^ _deep_clone_templates(void);
+
+    public:
+
+        BitmapTemplateRGBMatcherBuilder();
+
+        virtual AbstractBitmapTemplateMatcherBuilder^ with_templates(
+            List<Bitmap^>^ templates
+        ) override;
+
+        virtual AbstractBitmapTemplateMatcher^ build(void) override;
+
+    };
+
+
+    public ref class BitmapToRGBGrayscaleConverter : AbstractBitmapToGrayscaleConverter
+    {
+        public:
+
+        virtual std::vector<af::array> convert(
+            UINT32* image,
+            int image_width,
+            int image_height,
+            int image_stride
+        ) override;
+
+        virtual std::vector<af::array> convert(Bitmap^ bitmap) override;
+    };
 }

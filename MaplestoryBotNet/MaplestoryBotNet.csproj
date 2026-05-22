@@ -140,6 +140,9 @@
     <None Update="Images\Ailments\death\death-0.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Images\Ailments\lie\lie-0.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Images\Ailments\petrification.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -242,10 +245,6 @@
     <None Update="Macros\TestMacro.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Images\Ailments\" />
   </ItemGroup>
 
   <ItemGroup>

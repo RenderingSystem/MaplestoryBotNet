@@ -22,7 +22,7 @@
             5
         ],
         "key": "PAGE_UP",
-        "active": 0
+        "active": 1
     },
     "mp": {
         "rect": [
@@ -46,15 +46,15 @@
             5
         ],
         "key": "PAGE_DOWN",
-        "active": 0
+        "active": 1
     },
     "consumables": [
         {
             "name": "petfood",
             "min_delay": 290,
             "max_delay": 310,
-            "key": "END",
-            "active": 0
+            "key": "PAGE_UP",
+            "active": 1
         }
     ],
     "ailments": {
@@ -117,7 +117,7 @@
             "active": 1,
             "active_delay": 1000,
             "check_delay": 1000,
-            "threshold": 990,
+            "threshold": 900,
             "overlap": 0.9,
             "all_cure": 0,
             "arrow_keys": 1
@@ -127,13 +127,28 @@
             "active": 1,
             "active_delay": 1000,
             "check_delay": 1000,
-            "threshold": 990,
+            "threshold": 900,
             "overlap": 0.9,
             "static_rect": [
                 496,
                 311,
                 540,
                 354
+            ],
+            "stop_bot": 1
+        },
+        "lie": {
+            "image_directory": "images/ailments/lie",
+            "active": 1,
+            "active_delay": 1000,
+            "check_delay": 1000,
+            "threshold": 900,
+            "overlap": 0.9,
+            "static_rect": [
+                988,
+                695,
+                1062,
+                769
             ],
             "stop_bot": 1
         }
@@ -180,7 +195,6 @@
     },
     "macro_key_settings": {
         "ailments_allcure_key": "c",
-        "rune_interact_key": " ",
-        "login_key": "\\"
+        "rune_interact_key": " "
     }
 }

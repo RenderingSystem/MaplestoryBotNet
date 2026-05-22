@@ -125,8 +125,8 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
             _activeStopwatch.SetTimestamp();
             while (_activeStopwatch.GetTimestamp() < (activeDelay / 1000.0))
             {
-                _macroCommandsExecutor!.Execute(["key press {ARROW_LEFT} {50} {100}"]);
-                _macroCommandsExecutor.Execute(["key press {ARROW_RIGHT} {50} {100}"]);
+                _macroCommandsExecutor!.Execute(["key press {ARROW_LEFT} {25} {50}"]);
+                _macroCommandsExecutor.Execute(["key press {ARROW_RIGHT} {25} {50}"]);
             }
         }
 

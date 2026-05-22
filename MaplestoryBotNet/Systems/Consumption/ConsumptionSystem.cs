@@ -539,7 +539,7 @@ namespace MaplestoryBotNet.Systems.Consumables
             _consumableTimestamp = consumableTimestamp;
             _macroSleeper = macroSleeper;
             _consumptionThreadHelper = consumptionThreadHelper;
-            _macroState = MacroExecutorStateTypes.MaxNum;
+            _macroState = MacroExecutorStateTypes.Idle;
         }
 
         public override void ThreadLoop()

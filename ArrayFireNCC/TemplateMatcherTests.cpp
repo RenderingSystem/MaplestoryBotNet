@@ -44,11 +44,11 @@ namespace ArrayFireNCCTests {
         float sum = 0.0f;
         UINT32 bitmap_space[15] = { 0 };
         _bitmap_fixture(bitmap_space);
-        auto converter = gcnew BitmapToZeroMeanGrayscaleConverter();
+        auto converter = gcnew BitmapToGrayscaleConverter();
         auto converted = converter->convert(bitmap_space, 3, 5, 3);
         float converted_buffer[15] = { 0 };
         float converted_mask[15] = { 0 };
-        converted.host(converted_buffer);
+        converted[0].host(converted_buffer);
         // Row 0: Black to white gradient
         _assertions.Assert(std::abs(converted_buffer[0] - 0.000000000) < 0.00001f);
         _assertions.Assert(std::abs(converted_buffer[1] - 0.501960814) < 0.00001f);
@@ -660,17 +660,17 @@ namespace ArrayFireNCCTests {
         fixture->Add(
             dynamic_cast<Bitmap^>(
                 Bitmap::FromFile("TemplateMatcherTestTemplate1.png")
-                )
+            )
         );
         fixture->Add(
             dynamic_cast<Bitmap^>(
                 Bitmap::FromFile("TemplateMatcherTestTemplate2.png")
-                )
+            )
         );
         fixture->Add(
             dynamic_cast<Bitmap^>(
                 Bitmap::FromFile("TemplateMatcherTestTemplate3.png")
-                )
+            )
         );
         return fixture;
     }
@@ -678,6 +678,13 @@ namespace ArrayFireNCCTests {
     AbstractBitmapTemplateMatcher^ BitmapTemplateMatcherTest::_matcher_fixture(void) {
         auto templates = _template_fixture();
         auto builder = gcnew BitmapTemplateMatcherBuilder();
+        return builder->with_templates(templates)->build();
+    }
+
+    AbstractBitmapTemplateMatcher^ BitmapTemplateMatcherTest::_rgb_matcher_fixture(void)
+    {
+        auto templates = _template_fixture();
+        auto builder = gcnew BitmapTemplateRGBMatcherBuilder();
         return builder->with_templates(templates)->build();
     }
 
@@ -728,21 +735,27 @@ namespace ArrayFireNCCTests {
     }
 
     void BitmapTemplateMatcherTest::test_calculate(void) {
-        auto image = _image_fixture();
-        auto matcher = _matcher_fixture();
-        auto matches = matcher->calculate(image, 0.6f);
-        matches = RectangleMerger().merge(matches, 0.3f);
-        _assertions.Assert(matches->Count == 8);
-        _assertions.Assert(_matches_gt_threshold_area(matches, 900));
-        _assertions.Assert(_matches_lt_threshold_area(matches, 1200));
-        _assertions.Assert(_point_in_matches(matches, 150, 110));
-        _assertions.Assert(_point_in_matches(matches, 795, 125));
-        _assertions.Assert(_point_in_matches(matches, 1125, 155));
-        _assertions.Assert(_point_in_matches(matches, 640, 360));
-        _assertions.Assert(_point_in_matches(matches, 1165, 395));
-        _assertions.Assert(_point_in_matches(matches, 75, 390));
-        _assertions.Assert(_point_in_matches(matches, 290, 630));
-        _assertions.Assert(_point_in_matches(matches, 775, 700));
+        auto matchers = gcnew List<AbstractBitmapTemplateMatcher^>();
+        matchers->Add(_matcher_fixture());
+        matchers->Add(_rgb_matcher_fixture());
+        for (int i = 0; i < matchers->Count; i++)
+        {
+            auto image = _image_fixture();
+            auto matcher = matchers[i];
+            auto matches = matcher->calculate(image, 0.6f);
+            matches = RectangleMerger().merge(matches, 0.3f);
+            _assertions.Assert(matches->Count == 8);
+            _assertions.Assert(_matches_gt_threshold_area(matches, 900));
+            _assertions.Assert(_matches_lt_threshold_area(matches, 1200));
+            _assertions.Assert(_point_in_matches(matches, 150, 110));
+            _assertions.Assert(_point_in_matches(matches, 795, 125));
+            _assertions.Assert(_point_in_matches(matches, 1125, 155));
+            _assertions.Assert(_point_in_matches(matches, 640, 360));
+            _assertions.Assert(_point_in_matches(matches, 1165, 395));
+            _assertions.Assert(_point_in_matches(matches, 75, 390));
+            _assertions.Assert(_point_in_matches(matches, 290, 630));
+            _assertions.Assert(_point_in_matches(matches, 775, 700));
+        }
     }
 
 }

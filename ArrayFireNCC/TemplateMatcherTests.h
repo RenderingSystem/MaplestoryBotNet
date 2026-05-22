@@ -315,6 +315,8 @@ namespace ArrayFireNCCTests {
 
         AbstractBitmapTemplateMatcher^ _matcher_fixture(void);
 
+        AbstractBitmapTemplateMatcher^ _rgb_matcher_fixture(void);
+
         bool _point_in_matches(
             List<Tuple<int, int, int, int, float>^>^ matches, int x, int y
         );

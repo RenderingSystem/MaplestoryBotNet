@@ -606,7 +606,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
                     new ScreenAilmentDetectionThreadsBuilder(
                         new ImagesharpTemplateMatcherBuilder(
                             new ImageCropper(new ImageSharpConverter()),
-                            new BitmapTemplateMatcherBuilder()
+                            new BitmapTemplateRGBMatcherBuilder()
                         ),
                         new SingleAilmentThreadBuilder()
                     )

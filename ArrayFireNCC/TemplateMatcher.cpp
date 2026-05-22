@@ -57,7 +57,7 @@ namespace ArrayFireNCC {
 
 namespace ArrayFireNCC {
 
-    af::array BitmapToZeroMeanGrayscaleConverter::convert(
+    std::vector<af::array> BitmapToGrayscaleConverter::convert(
         UINT32* image,
         int image_width,
         int image_height,
@@ -80,11 +80,12 @@ namespace ArrayFireNCC {
             }
         }
         // Create ArrayFire array
-        af::array grayscale_image(image_width, image_height, host_buffer.data());
-        return grayscale_image.as(f32);
+        std::vector<af::array> result;
+        result.push_back(af::array(image_width, image_height, host_buffer.data()));
+        return result;
     }
 
-    af::array BitmapToZeroMeanGrayscaleConverter::convert(Bitmap^ bitmap)
+    std::vector<af::array> BitmapToGrayscaleConverter::convert(Bitmap^ bitmap)
     {
         auto rect = System::Drawing::Rectangle(
             0,
@@ -494,60 +495,66 @@ namespace ArrayFireNCC {
 
 namespace ArrayFireNCC {
 
-    array<af::array*>^ BitmapTemplateMatcher::_calculate_ncc_maps(
-        af::array& af_image, af::array& af_image_mask
-    )
-    {
-        auto ncc_maps = gcnew array<af::array*>(_templates->Count);
-        for (int active_frame = 0; active_frame < _templates->Count; active_frame++)
-        {
-            auto bmp_templ = _templates[active_frame];
-            auto af_templ_mask = _mask->convert(bmp_templ);
-            auto af_templ = _grayscale->convert(bmp_templ);
-            auto ncc_map = _matcher->calculate(
-                af_image, af_image_mask, af_templ, af_templ_mask
-            );
-            auto new_ncc_map = new af::array(ncc_map);
-            ncc_maps[active_frame] = new_ncc_map;
-        }
-        return ncc_maps;
-    }
-
-    List<Tuple<int, int, int, int, float>^>^ BitmapTemplateMatcher::_calculate_matches(
-        array<af::array*>^ ncc_maps, float threshold
+    List<Tuple<int, int, int, int, float>^>^ BitmapTemplateMatcher::_calculate_ncc_matches(
+        std::vector<af::array> ncc_maps,
+        int templ_width,
+        int templ_height,
+        float threshold
     )
     {
         auto detected = gcnew List<Tuple<int, int, int, int, float>^>();
-        for (int active_frame = 0; active_frame < _templates->Count; active_frame++)
+        auto detected_points_list = gcnew List<List<Tuple<int, int, float>^>^>();
+        for (int active_channel = 0; active_channel < ncc_maps.size(); active_channel++)
         {
-            auto bmp_templ = _templates[active_frame];
-            auto& ncc_map = *ncc_maps[active_frame];
+            auto& ncc_map = ncc_maps[active_channel];
             auto current_detected = _detector->detect(ncc_map, threshold);
-            for (int j = 0; j < current_detected->Count; j++)
+            detected_points_list->Add(current_detected);
+        }
+        if (detected_points_list->Count == 0)
+        {
+            return detected;
+        }
+        auto majority_threshold = (detected_points_list->Count / 2) + 1;
+        auto matched_points = gcnew List<Tuple<int, int, float>^>();
+        auto reference_detected_points = detected_points_list[0];
+        for (int i = 0; i < reference_detected_points->Count; i++)
+        {
+            auto reference_detected_point = reference_detected_points[i];
+            auto matched_count = 1;
+            for (int j = 1; j < detected_points_list->Count; j++)
             {
-                auto current = current_detected[j];
-                auto templ_width = bmp_templ->Width;
-                auto templ_height = bmp_templ->Height;
-                auto tuple = gcnew Tuple<int, int, int, int, float>(
-                    (current->Item1 - (templ_width / 2)),
-                    (current->Item2 - (templ_height / 2)),
-                    templ_width,
-                    templ_height,
-                    current->Item3
-                );
-                detected->Add(tuple);
+                auto current_detected_points = detected_points_list[j];
+                for (int k = 0; k < current_detected_points->Count; k++)
+                {
+                    auto current_detected_point = current_detected_points[k];
+                    if (
+                        current_detected_point->Item1 == reference_detected_point->Item1 &&
+                        current_detected_point->Item2 == reference_detected_point->Item2
+                    )
+                    {
+                        matched_count++;
+                        break;
+                    }
+                }
+            }
+            if (matched_count >= majority_threshold)
+            {
+                matched_points->Add(reference_detected_point);
             }
         }
-        return detected;
-    }
-
-    void BitmapTemplateMatcher::_delete_ncc_maps(array<af::array*>^ ncc_maps)
-    {
-        for (int map_index = 0; map_index < ncc_maps->Length; map_index++)
+        for (int i = 0; i < matched_points->Count; i++)
         {
-            delete ncc_maps[map_index];
-            ncc_maps[map_index] = nullptr;
+            auto current = matched_points[i];
+            auto tuple = gcnew Tuple<int, int, int, int, float>(
+                (current->Item1 - (templ_width / 2)),
+                (current->Item2 - (templ_height / 2)),
+                templ_width,
+                templ_height,
+                current->Item3
+            );
+            detected->Add(tuple);
         }
+        return detected;
     }
 
     BitmapTemplateMatcher::BitmapTemplateMatcher(
@@ -580,13 +587,57 @@ namespace ArrayFireNCC {
         auto af_image_mask = _mask->convert(
             image, image_width, image_height, image_stride
         );
-        auto af_image = _grayscale->convert(
+        auto af_image_channels = _grayscale->convert(
             image, image_width, image_height, image_stride
         );
-        auto ncc_maps = _calculate_ncc_maps(af_image, af_image_mask);
-        auto matches = _calculate_matches(ncc_maps, threshold);
-        _delete_ncc_maps(ncc_maps);
+        auto matches = gcnew List<Tuple<int, int, int, int, float>^>();
+        for (int i = 0; i < _templates->Count; i++)
+        {
+            auto bmp_templ = _templates[i];
+            auto templ_width = _templates[i]->Width;
+            auto af_templ_mask = _mask->convert(_templates[i]);
+            auto af_templ_channels = _grayscale->convert(_templates[i]);
+            auto ncc_maps = _calculate_ncc_maps(
+                af_image_channels,
+                af_image_mask,
+                af_templ_channels,
+                af_templ_mask
+            );
+            auto ncc_matches = _calculate_ncc_matches(
+                ncc_maps,
+                _templates[i]->Width,
+                _templates[i]->Height,
+                threshold
+            );
+            for (int j = 0; j < ncc_matches->Count; j++)
+            {
+                matches->Add(ncc_matches[j]);
+            }
+        }
         return matches;
+    }
+
+    std::vector<af::array> BitmapTemplateMatcher::_calculate_ncc_maps(
+        std::vector<af::array> af_image_channels,
+        af::array& af_image_mask,
+        std::vector<af::array> af_templ_channels,
+        af::array& af_templ_mask
+    )
+    {
+        auto ncc_maps = std::vector<af::array>(af_image_channels.size());
+        for (int i = 0; i < af_image_channels.size(); i++)
+        {
+            auto af_image = af_image_channels[i];
+            auto af_templ = af_templ_channels[i];
+            auto ncc_map = _matcher->calculate(
+                af_image,
+                af_image_mask,
+                af_templ,
+                af_templ_mask
+            );
+            ncc_maps[i] = ncc_map;
+        }
+        return ncc_maps;
     }
 
     List<Tuple<int, int, int, int, float>^>^ BitmapTemplateMatcher::calculate(
@@ -657,7 +708,112 @@ namespace ArrayFireNCC {
         return gcnew BitmapTemplateMatcher(
             _deep_clone_templates(),
             gcnew NormalizedCrossCorrelationFacade(),
-            gcnew BitmapToZeroMeanGrayscaleConverter(),
+            gcnew BitmapToGrayscaleConverter(),
+            gcnew BitmapToMaskConverter(),
+            gcnew LocationDetector()
+        );
+    }
+
+}
+
+
+namespace ArrayFireNCC {
+
+    std::vector<af::array> BitmapToRGBGrayscaleConverter::convert(
+        UINT32* image,
+        int image_width,
+        int image_height,
+        int image_stride
+    )
+    {
+        // Create buffers for each color channel
+        std::vector<float> red_buffer(image_width * image_height);
+        std::vector<float> green_buffer(image_width * image_height);
+        std::vector<float> blue_buffer(image_width * image_height);
+        // Extract each color channel as separate grayscale values
+        for (int y = 0; y < image_height; ++y)
+        for (int x = 0; x < image_width; ++x)
+        {
+            auto argb = image[y * image_stride + x];
+            // Extract RGB components and normalize to 0-1 range
+            auto r = float((argb & 0x00FF0000) >> 0x10) / 255.0f;
+            auto g = float((argb & 0x0000FF00) >> 0x08) / 255.0f;
+            auto b = float((argb & 0x000000FF) >> 0x00) / 255.0f;
+            // Store each channel in its own buffer
+            red_buffer[y * image_width + x] = r;
+            green_buffer[y * image_width + x] = g;
+            blue_buffer[y * image_width + x] = b;
+        }
+        // Create ArrayFire arrays for each channel
+        auto result = std::vector<af::array>();
+        result.push_back(af::array(image_width, image_height, red_buffer.data()).as(f32));
+        result.push_back(af::array(image_width, image_height, green_buffer.data()).as(f32));
+        result.push_back(af::array(image_width, image_height, blue_buffer.data()).as(f32));
+        return result;
+    }
+
+    std::vector<af::array> BitmapToRGBGrayscaleConverter::convert(Bitmap^ bitmap)
+    {
+        auto rect = System::Drawing::Rectangle(
+            0,
+            0,
+            bitmap->Width,
+            bitmap->Height
+        );
+        auto bitmap_data = bitmap->LockBits(
+            rect,
+            ImageLockMode::ReadOnly,
+            PixelFormat::Format32bppArgb
+        );
+        try
+        {
+            return convert(
+                static_cast<UINT32*>(bitmap_data->Scan0.ToPointer()),
+                static_cast<int>(bitmap_data->Width),
+                static_cast<int>(bitmap_data->Height),
+                static_cast<int>(bitmap_data->Stride / sizeof(UINT32))
+            );
+        }
+        finally
+        {
+            bitmap->UnlockBits(bitmap_data);
+        }
+    }
+
+}
+
+
+namespace ArrayFireNCC {
+
+    List<Bitmap^>^ BitmapTemplateRGBMatcherBuilder::_deep_clone_templates(void)
+    {
+        auto templates = gcnew List<Bitmap^>();
+        for (int active_frame = 0; active_frame < _templates->Count; active_frame++)
+        {
+            auto stream = gcnew System::IO::MemoryStream();
+            _templates[active_frame]->Save(stream, ImageFormat::Png);
+            stream->Position = 0;
+            templates->Add(gcnew Bitmap(stream));
+        }
+        return templates;
+    }
+
+    BitmapTemplateRGBMatcherBuilder::BitmapTemplateRGBMatcherBuilder() {
+        _templates = nullptr;
+    }
+
+    AbstractBitmapTemplateMatcherBuilder^ BitmapTemplateRGBMatcherBuilder::with_templates(
+        List<Bitmap^>^ templates
+    ) {
+        _templates = templates;
+        return this;
+    }
+
+    AbstractBitmapTemplateMatcher^ BitmapTemplateRGBMatcherBuilder::build(void) {
+        return gcnew BitmapTemplateMatcher(
+            _deep_clone_templates(),
+            gcnew NormalizedCrossCorrelationFacade(),
+            gcnew BitmapToRGBGrayscaleConverter(),
             gcnew BitmapToMaskConverter(),
             gcnew LocationDetector()
         );
