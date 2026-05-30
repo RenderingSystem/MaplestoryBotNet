@@ -1,4 +1,5 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.Utilities

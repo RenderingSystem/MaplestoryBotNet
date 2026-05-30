@@ -2,7 +2,7 @@
 using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.Systems.ScreenProcessing.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
-using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.ThreadingUtils;

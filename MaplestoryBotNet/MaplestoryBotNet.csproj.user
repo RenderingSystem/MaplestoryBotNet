@@ -17,5 +17,8 @@
     <Compile Update="Xaml\RuneSolverWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Xaml\SkillsWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 </Project>

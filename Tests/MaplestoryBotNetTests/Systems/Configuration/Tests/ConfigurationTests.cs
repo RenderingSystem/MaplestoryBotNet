@@ -130,6 +130,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 "frame_points_directory": "cool_frame_points",
                 "frame_movements_directory": "cool_frame_movements",
                 "map_directory": "cool_maps",
+                "skills_directory": "cool_skills",
                 "macro_check_frequency": {
                     "check_frequency": 0.123,
                     "solve_check_timeout": 0.234,
@@ -307,6 +308,22 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
         }
 
         /**
+         * @brief Tests correct parsing of the skills directory location
+         * 
+         * Validates that the bot will look for skill configuration files in the
+         * correct folder. The skills directory contains definitions for each skill
+         * the character can use, including skill keys, cooldown timers, and usage.
+         * This ensures the bot can properly load and execute combat rotations and
+         * skill macros during automated gameplay.
+         */
+        private void _testDeserializeSkillsDirectory()
+        {
+            var deserializer = new MaplestoryBotConfigurationDeserializer();
+            var output = (MaplestoryBotConfiguration)deserializer.Deserialize(_fixture());
+            Debug.Assert(output.SkillsDirectory == "cool_skills");
+        }
+
+        /**
          * @brief Tests correct parsing of the map directory location
          * 
          * This test validates that the bot will look for map configuration files
@@ -425,6 +442,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
             _testDeserializeMacroDirectory();
             _testDeserializeFramePointsDirectory();
             _testDeserializeFrameMovementsDirectory();
+            _testDeserializeSkillsDirectory();
             _testDeserializeMapDirectory();
             _testDeserializeMacroSettings();
             _testDeserializeRuneDetection();
@@ -541,6 +559,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 FramePointsDirectory="cool_frame_points",
                 FrameMovementsDirectory="cool_frame_movements",
                 MapDirectory="cool_maps",
+                SkillsDirectory="cool_skills",
                 MacroSettings = new MacroSettings
                 {
                     CheckFrequency=0.123,
@@ -707,6 +726,7 @@ namespace MaplestoryBotNetTests.Systems.Configuration.Tests
                 "frame_points_directory": "cool_frame_points",
                 "frame_movements_directory": "cool_frame_movements",
                 "map_directory": "cool_maps",
+                "skills_directory": "cool_skills",
                 "macro_check_frequency": {
                     "check_frequency": 0.123,
                     "solve_check_timeout": 0.234,

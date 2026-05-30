@@ -30,6 +30,8 @@
                 <MenuItem x:Name="RuneSolverMenuItem" Header="Rune solver"/>
             </MenuItem>
             <Separator/>
+            <MenuItem x:Name="SkillsMenuItem" Header="Skills"/>
+            <Separator/>
             <MenuItem x:Name="MacroMenuItem" Header="Botting"/>
             <Separator/>
             <Separator/>

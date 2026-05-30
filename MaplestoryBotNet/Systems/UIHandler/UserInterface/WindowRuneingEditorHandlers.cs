@@ -1,5 +1,6 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using System.Windows;
 using System.Windows.Controls;
 

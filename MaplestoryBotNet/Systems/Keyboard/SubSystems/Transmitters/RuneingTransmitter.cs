@@ -1,5 +1,5 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
-using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
 using System.Collections.Concurrent;
 using System.Windows;

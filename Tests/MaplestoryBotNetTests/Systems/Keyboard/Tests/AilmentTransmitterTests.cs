@@ -2,7 +2,7 @@
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
-using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.Tests;
@@ -234,8 +234,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             Debug.Assert(_macroCommandsExecutor.ExecuteCalls == 2);
             Debug.Assert(macroCommands[0].Count == 1);
             Debug.Assert(macroCommands[1].Count == 1);
-            Debug.Assert(macroCommands[0][0] == "key press {ARROW_LEFT} {50} {100}");
-            Debug.Assert(macroCommands[1][0] == "key press {ARROW_RIGHT} {50} {100}");
+            Debug.Assert(macroCommands[0][0] == "key press {ARROW_LEFT} {25} {50}");
+            Debug.Assert(macroCommands[1][0] == "key press {ARROW_RIGHT} {25} {50}");
         }
 
         public void Run()
@@ -250,7 +250,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
     {
         private Dictionary<string, Ailment> _ailments = [];
 
-        private AbstractBottingModel _bottingModel = new BottingModel();
+        private AbstractAilmentsModel _ailmentsModel = new AilmentsModel();
 
         private MockAilmentExecutorThreadHandler _allCureHandler = (
             new MockAilmentExecutorThreadHandler()
@@ -269,7 +269,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _allCureHandler = new MockAilmentExecutorThreadHandler();
             _arrowKeysHandler = new MockAilmentExecutorThreadHandler();
             _threadState = new MockKeystrokeTransmitterThreadState();
-            _bottingModel = new BottingModel();
+            _ailmentsModel = new AilmentsModel();
             var helper = new AilmentExecutorThreadHelper(
                 _allCureHandler,
                 _arrowKeysHandler,
@@ -342,10 +342,10 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                         }
                     }
                 );
-                _bottingModel.GetAilmentsModel().SetAilment("meow1", count);
-                _bottingModel.GetAilmentsModel().SetAilment("meow2", 0);
-                _bottingModel.GetAilmentsModel().SetAilment("meow3", 0);
-                helper.Inject(SystemInjectType.BottingModel, _bottingModel);
+                _ailmentsModel.SetAilment("meow1", count);
+                _ailmentsModel.SetAilment("meow2", 0);
+                _ailmentsModel.SetAilment("meow3", 0);
+                helper.Inject(SystemInjectType.AilmentsModel, _ailmentsModel);
                 helper.Transmit();
                 if (count != 0)
                 {
@@ -386,10 +386,10 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                         }
                     }
                 );
-                _bottingModel.GetAilmentsModel().SetAilment("meow1", count);
-                _bottingModel.GetAilmentsModel().SetAilment("meow2", 0);
-                _bottingModel.GetAilmentsModel().SetAilment("meow3", 0);
-                helper.Inject(SystemInjectType.BottingModel, _bottingModel);
+                _ailmentsModel.SetAilment("meow1", count);
+                _ailmentsModel.SetAilment("meow2", 0);
+                _ailmentsModel.SetAilment("meow3", 0);
+                helper.Inject(SystemInjectType.AilmentsModel, _ailmentsModel);
                 helper.Transmit();
                 if (count != 0)
                 {
@@ -430,10 +430,10 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                         }
                     }
                 );
-                _bottingModel.GetAilmentsModel().SetAilment("meow1", count);
-                _bottingModel.GetAilmentsModel().SetAilment("meow2", 0);
-                _bottingModel.GetAilmentsModel().SetAilment("meow3", 0);
-                helper.Inject(SystemInjectType.BottingModel, _bottingModel);
+                _ailmentsModel.SetAilment("meow1", count);
+                _ailmentsModel.SetAilment("meow2", 0);
+                _ailmentsModel.SetAilment("meow3", 0);
+                helper.Inject(SystemInjectType.AilmentsModel, _ailmentsModel);
                 helper.Transmit();
                 if (count != 0)
                 {
@@ -474,10 +474,10 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                     }
                 }
             );
-            _bottingModel.GetAilmentsModel().SetAilment("meow1", 0);
-            _bottingModel.GetAilmentsModel().SetAilment("meow2", 0);
-            _bottingModel.GetAilmentsModel().SetAilment("meow3", 0);
-            helper.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _ailmentsModel.SetAilment("meow1", 0);
+            _ailmentsModel.SetAilment("meow2", 0);
+            _ailmentsModel.SetAilment("meow3", 0);
+            helper.Inject(SystemInjectType.AilmentsModel, _ailmentsModel);
             helper.Transmit();
             Debug.Assert(_allCureHandler.HandleCalls == 0);
             Debug.Assert(_arrowKeysHandler.HandleCalls == 0);
@@ -513,10 +513,10 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                     }
                 }
             );
-            _bottingModel.GetAilmentsModel().SetAilment("meow1", 123);
-            _bottingModel.GetAilmentsModel().SetAilment("meow2", 123);
-            _bottingModel.GetAilmentsModel().SetAilment("meow3", 123);
-            helper.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _ailmentsModel.SetAilment("meow1", 123);
+            _ailmentsModel.SetAilment("meow2", 123);
+            _ailmentsModel.SetAilment("meow3", 123);
+            helper.Inject(SystemInjectType.AilmentsModel, _ailmentsModel);
             helper.Transmit();
             Debug.Assert(_arrowKeysHandler.HandleCalls == 0);
             Debug.Assert(_threadState.SetStateCalls == 1);
@@ -551,10 +551,10 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                     }
                 }
             );
-            _bottingModel.GetAilmentsModel().SetAilment("meow1", 123);
-            _bottingModel.GetAilmentsModel().SetAilment("meow2", 123);
-            _bottingModel.GetAilmentsModel().SetAilment("meow3", 0);
-            helper.Inject(SystemInjectType.BottingModel, _bottingModel);
+            _ailmentsModel.SetAilment("meow1", 123);
+            _ailmentsModel.SetAilment("meow2", 123);
+            _ailmentsModel.SetAilment("meow3", 0);
+            helper.Inject(SystemInjectType.AilmentsModel, _ailmentsModel);
             helper.Transmit();
             Debug.Assert(_arrowKeysHandler.HandleCalls == 1);
         }

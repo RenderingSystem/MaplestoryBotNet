@@ -311,6 +311,9 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
         [JsonPropertyName("map_directory")]
         public string MapDirectory { get; set; } = "";
 
+        [JsonPropertyName("skills_directory")]
+        public string SkillsDirectory { get; set; } = "";
+
         [JsonPropertyName("macro_check_frequency")]
         public MacroSettings MacroSettings { get; set; } = new MacroSettings();
 
@@ -340,6 +343,7 @@ namespace MaplestoryBotNet.Systems.Configuration.SubSystems
             configuration.MacroDirectory = new string(MacroDirectory);
             configuration.FramePointsDirectory = new string(FramePointsDirectory);
             configuration.FrameMovementsDirectory = new string(FrameMovementsDirectory);
+            configuration.SkillsDirectory = new string(SkillsDirectory);
             configuration.MapDirectory = new string(MapDirectory);
             configuration.MacroSettings = (MacroSettings)MacroSettings.Copy();
             configuration.RuneDetection = (RuneDetection)RuneDetection.Copy();

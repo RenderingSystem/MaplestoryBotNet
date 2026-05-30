@@ -5,6 +5,7 @@ using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
 using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.Macro.Tests.Mocks;
@@ -1592,7 +1593,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 MapIconInfo.Rune
             )
             {
-                BottingModel = new BottingModel()
+                AilmentsModel = new AilmentsModel()
             };
             _activator = (
                 new MockExecutorStateActivator()
@@ -1618,7 +1619,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             foreach (var matchCount in new[] { 123, 0 })
             {
                 var handler = _fixture();
-                var ailmentsModel = _context.BottingModel!.GetAilmentsModel();
+                var ailmentsModel = _context.AilmentsModel!;
                 ailmentsModel.SetAilment("meow1", matchCount);
                 ailmentsModel.SetAilment("meow2", 0);
                 handler.ProcessState(123);
@@ -1648,7 +1649,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             foreach (var matchCount in new[] { 123, 0 })
             {
                 var handler = _fixture();
-                var ailmentsModel = _context.BottingModel!.GetAilmentsModel();
+                var ailmentsModel = _context.AilmentsModel!;
                 var injectType = new List<object>();
                 var injectAction = new InjectAction((_, __) => { injectType.Add(_); });
                 ailmentsModel.SetAilment("meow1", matchCount);
@@ -1683,7 +1684,7 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
             foreach (var matchCount in new[] { 123, 0 })
             {
                 var handler = _fixture();
-                var ailmentsModel = _context.BottingModel!.GetAilmentsModel();
+                var ailmentsModel = _context.AilmentsModel!;
                 ailmentsModel.SetAilment("meow1", matchCount);
                 ailmentsModel.SetAilment("meow2", 0);
                 if (matchCount > 0)

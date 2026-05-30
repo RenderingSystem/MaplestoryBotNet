@@ -4,6 +4,7 @@ using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.ScreenProcessing.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.ScreenCapture.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.ScreenProcessing.Tests.Mocks;

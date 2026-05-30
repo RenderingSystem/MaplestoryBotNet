@@ -66,6 +66,16 @@ namespace MaplestoryBotNet
                 .Build();
         }
 
+        private AbstractWindowActionHandler _instantiateSkillsWindowMenuItemPopupActionHandler(
+            AbstractSystemWindow skillsWindow
+        )
+        {
+            return new WindowMenuItemPopupHandlerBuilder()
+                .WithArgs(skillsWindow)
+                .WithArgs(SkillsMenuItem)
+                .Build();
+        }
+
         private AbstractWindowActionHandler _instantiateWindowMenuItemTextActionHandler()
         {
             return new WindowMenuItemStartTextActionHandlerFacade(
@@ -112,7 +122,8 @@ namespace MaplestoryBotNet
             AbstractSystemWindow mapWindow,
             AbstractSystemWindow solverWindow,
             AbstractSystemWindow ailmentsWindow,
-            AbstractSystemWindow potionsWindow
+            AbstractSystemWindow potionsWindow,
+            AbstractSystemWindow skillsWindow
         )
         {
             return [
@@ -122,6 +133,7 @@ namespace MaplestoryBotNet
                 _instantiateSolverWindowMenuItemPopupActionHandler(solverWindow),
                 _instantiateAilmentsWindowMenuItemPopupActionHandler(ailmentsWindow),
                 _instantiatePotionsWindowMenuItemPopupActionHandler(potionsWindow),
+                _instantiateSkillsWindowMenuItemPopupActionHandler(skillsWindow),
                 _instantiateWindowMenuItemTextActionHandler(),
                 _instantiateWindowMenuItemStartActionHandler(),
                 _instantiateWindowBottingTextStatusActionHandler()

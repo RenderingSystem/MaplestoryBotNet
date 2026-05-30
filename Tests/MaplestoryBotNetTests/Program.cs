@@ -2,7 +2,6 @@
 using MaplestoryBotNetTests.Systems.Configuration.Tests;
 using MaplestoryBotNetTests.Systems.Consumption;
 using MaplestoryBotNetTests.Systems.GPUSelector.Tests;
-using MaplestoryBotNetTests.Systems.Keyboard;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests;
 using MaplestoryBotNetTests.Systems.Macro.Tests;
 using MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests;
@@ -26,6 +25,7 @@ void UnitTestSuite()
     new ConfigurationImagesTestSuite().Run();
     new ConfigurationSystemTestSuite().Run();
     new ConfigurationMapModelTestSuite().Run();
+    new ConfigurationSkillsTestSuite().Run();
     // Test the screen capture system
     new CaptureModuleTestSuite().Run();
     new ScreenCaptureSystemTestSuite().Run();
@@ -65,6 +65,7 @@ void UnitTestSuite()
     new WindowRuneSolverEditorHandlersTestSuite().Run();
     new WindowAilmentsMenuHandlersTestSuite().Run();
     new WindowPotionsMenuHandlersTests().Run();
+    new WindowSkillsMenuTestSuite().Run();
 }
 
 

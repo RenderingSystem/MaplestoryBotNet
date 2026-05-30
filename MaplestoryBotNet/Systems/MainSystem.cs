@@ -11,7 +11,7 @@ using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.Systems.ScreenProcessing;
 using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
-using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
 
 
@@ -471,9 +471,12 @@ namespace MaplestoryBotNet.Systems
             {
                 mainSystem.Inject(SystemInjectType.ActionHandler, _uiHandlers[i]);
             }
+            var injectAction = new InjectAction((_, __) => { mainSystem.Inject(_, __); });
             mainSystem.Inject(SystemInjectType.ConfigurationUpdate, 0);
             mainSystem.Inject(SystemInjectType.BottingModel, new BottingModel());
-            mainSystem.Inject(SystemInjectType.InjectAction, new InjectAction((_, __) => { mainSystem.Inject(_, __); }));
+            mainSystem.Inject(SystemInjectType.AilmentsModel, new AilmentsModel());
+            mainSystem.Inject(SystemInjectType.SkillsModel, new SkillsModel());
+            mainSystem.Inject(SystemInjectType.InjectAction, injectAction);
         }
     }
 

@@ -4,6 +4,7 @@ using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.ScreenAilmentsProcessing;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.ScreenAilments.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.ScreenProcessing.Tests.Mocks;
@@ -166,7 +167,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
 
         private Ailment _ailment = new Ailment();
 
-        private AbstractBottingModel _bottingModel = new BottingModel();
+        private AbstractAilmentsModel _ailmentsModel = new AilmentsModel();
 
         private MockResetEvent _mockResetEvent = new MockResetEvent();
 
@@ -184,7 +185,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
                 CheckDelay = 234,
                 Threshold = 345
             };
-            _bottingModel = new BottingModel();
+            _ailmentsModel = new AilmentsModel();
             _mockResetEvent = new MockResetEvent();
             _helper = new MockScreenAilmentDetectionHelper();
             _image = new Image<Bgra32>(1, 1);
@@ -194,7 +195,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
             var thread = new ScreenAilmentDetectionThread(
                 _ailmentKey,
                 _ailment,
-                _bottingModel,
+                _ailmentsModel,
                 _mockResetEvent,
                 _helper,
                 _runningState
@@ -235,7 +236,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
                 var thread = _fixture();
                 var resetRef = new TestUtilities().Reference(_mockResetEvent);
                 var helperRef = new TestUtilities().Reference(_helper);
-                var ailmentsModel = _bottingModel.GetAilmentsModel();
+                var ailmentsModel = _ailmentsModel;
                 var detectedAilments = new List<Tuple<int, int, int, int, float>>();
                 _ailment.Active = 1;
                 for (int j = 0; j < i; j++)
@@ -279,7 +280,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
         private void _testThreadCropsToStaticRect()
         {
             var thread = _fixture();
-            var ailmentsModel = _bottingModel.GetAilmentsModel();
+            var ailmentsModel = _ailmentsModel;
             var detectedAilments = new List<Tuple<int, int, int, int, float>>();
             _ailment.Active = 1;
             _ailment.StaticRect = [1, 1, 2, 2];
@@ -321,7 +322,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
                 var thread = _fixture();
                 var resetRef = new TestUtilities().Reference(_mockResetEvent);
                 var helperRef = new TestUtilities().Reference(_helper);
-                var ailmentsModel = _bottingModel.GetAilmentsModel();
+                var ailmentsModel = _ailmentsModel;
                 var detectedAilments = new List<Tuple<int, int, int, int, float>>();
                 _ailment.Active = 0;
                 for (int j = 0; j < i; j++)
@@ -356,7 +357,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
                 var thread = _fixture();
                 var resetRef = new TestUtilities().Reference(_mockResetEvent);
                 var helperRef = new TestUtilities().Reference(_helper);
-                var ailmentsModel = _bottingModel.GetAilmentsModel();
+                var ailmentsModel = _ailmentsModel;
                 var detectedAilments = new List<Tuple<int, int, int, int, float>>();
                 _ailment.Active = 1;
                 for (int j = 0; j < i; j++)
@@ -389,7 +390,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
             for (int i = 1; i < 10; i++)
             {
                 var thread = _fixture();
-                var ailmentsModel = _bottingModel.GetAilmentsModel();
+                var ailmentsModel = _ailmentsModel;
                 var detectedAilments = new List<Tuple<int, int, int, int, float>>();
                 _ailment.Active = 1;
                 _runningState.IsRunningReturn.Add(true);
@@ -425,7 +426,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
         private void _testInjectingConfigurationUpdatesAilment()
         {
             var thread = _fixture();
-            var ailmentsModel = _bottingModel.GetAilmentsModel();
+            var ailmentsModel = _ailmentsModel;
             var detectedAilments = new List<Tuple<int, int, int, int, float>>();
             var dict = new Dictionary<string, Ailment>();
             dict["meow"] = new Ailment { Active = 1, CheckDelay = 123, Threshold = 234 };
@@ -457,7 +458,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
         private void _testInjectingConfigurationUpdatesAilmentActive()
         {
             var thread = _fixture();
-            var ailmentsModel = _bottingModel.GetAilmentsModel();
+            var ailmentsModel = _ailmentsModel;
             var detectedAilments = new List<Tuple<int, int, int, int, float>>();
             var dict = new Dictionary<string, Ailment>();
             dict["meow"] = new Ailment { Active = 0, CheckDelay = 123, Threshold = 234 };
@@ -630,8 +631,8 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
             new ConfigurationImages()
         );
 
-        private AbstractBottingModel _bottingModel = (
-            new BottingModel()
+        private AbstractAilmentsModel _ailmentsModel = (
+            new AilmentsModel()
         );
 
         private List<MockBitmapTemplateMatcher> _templateMatchers = [];
@@ -654,7 +655,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
                 }
             };
             _configurationImages = new ConfigurationImages();
-            _bottingModel = new BottingModel();
+            _ailmentsModel = new AilmentsModel();
             return new ScreenAilmentDetectionThreadsBuilder(
                 _bitmapTemplateMatcherBuilder,
                 _singleAilmentThreadBuilder
@@ -700,8 +701,8 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
                 builder.WithArg(
                     new ScreenAilmentDetectionThreadsBuilderArgs
                     {
-                        DataType = SystemInjectType.BottingModel,
-                        Data = _bottingModel
+                        DataType = SystemInjectType.AilmentsModel,
+                        Data = _ailmentsModel
                     }
                 );
             }
@@ -843,7 +844,7 @@ namespace MaplestoryBotNetTests.Systems.ScreenAilments.Tests
             Debug.Assert(((Ailment)ailmentCallArg[1]!).Active == 12);
             Debug.Assert(((Ailment)ailmentCallArg[1]!).Threshold == 23);
             Debug.Assert(((Ailment)ailmentCallArg[1]!).CheckDelay == 34);
-            Debug.Assert(ailmentCallArg[2]! == _bottingModel);
+            Debug.Assert(ailmentCallArg[2]! == _ailmentsModel);
             Debug.Assert(ailmentCallArg[3] == _templateMatchers[0]);
         }   
 

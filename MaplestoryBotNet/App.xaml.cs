@@ -24,6 +24,8 @@ namespace MaplestoryBotNet
 
         PotionsWindow? _potionsWindow = null;
 
+        SkillsWindow? _skillsWindow = null;
+
         MacroBottingWindow? _windowMacroBottingPopup = null;
 
         MacroRuneingWindow? _windowMacroRuneingPopup = null;
@@ -45,6 +47,7 @@ namespace MaplestoryBotNet
             _runeSolverWindow = new RuneSolverWindow();
             _ailmentsWindow = new AilmentsWindow();
             _potionsWindow = new PotionsWindow();
+            _skillsWindow = new SkillsWindow();
             _mainApplication = new MainApplicationFacade();
             _mapWindow = new MapWindow(_bottingEditMenuState, _runeingEditMenuState);
             _splashScreen = new SplashScreen(_mainApplication.System());
@@ -76,6 +79,7 @@ namespace MaplestoryBotNet
                 .. _runeSolverWindow!.InstantiateActionHandlers(),
                 .. _ailmentsWindow!.InstantiateActionHandlers(),
                 .. _potionsWindow!.InstantiateActionHandlers(),
+                .. _skillsWindow!.InstantiateActionHandlers(),
                 .. _splashScreen!.InstantiateActionHandlers(
                     _mainWindow!.GetSystemWindow()
                 ),
@@ -83,7 +87,8 @@ namespace MaplestoryBotNet
                     _mapWindow!.GetSystemWindow(),
                     _runeSolverWindow.GetSystemWindow(),
                     _ailmentsWindow.GetSystemWindow(),
-                    _potionsWindow.GetSystemWindow()
+                    _potionsWindow.GetSystemWindow(),
+                    _skillsWindow.GetSystemWindow()
                 ),
                 .. _mapWindow!.InstantiateActionHandlers(
                     _windowMacroBottingPopup.GetSystemWindow(),
@@ -100,6 +105,7 @@ namespace MaplestoryBotNet
                 _windowMacroRuneingPopup!.GetSystemWindow(),
                 _runeSolverWindow!.GetSystemWindow(),
                 _ailmentsWindow!.GetSystemWindow(),
+                _skillsWindow!.GetSystemWindow(),
                 _mapWindow!.GetSystemWindow(),
                 _potionsWindow!.GetSystemWindow()
             ];

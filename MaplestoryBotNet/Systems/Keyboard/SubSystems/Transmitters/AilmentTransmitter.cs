@@ -1,5 +1,5 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
-using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
 using System.Collections.Concurrent;
 
@@ -149,7 +149,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     {
         private Dictionary<string, Ailment> _ailments;
 
-        private AbstractBottingModel? _bottingModel;
+        private AbstractAilmentsModel? _ailmentsModel;
 
         private AbstractAilmentExecutorThreadHandler _allCureHandler;
 
@@ -168,14 +168,13 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
             _allCureHandler = allCureHandler;
             _arrowKeysHandler = arrowKeysHandler;
             _threadState = threadState;
-            _bottingModel = null;
+            _ailmentsModel = null;
         }
 
         public override bool Transmit()
         {
             if (
-                _bottingModel is AbstractBottingModel bottingModel &&
-                bottingModel.GetAilmentsModel() is AbstractAilmentsModel ailmentsModel &&
+                _ailmentsModel is AbstractAilmentsModel ailmentsModel &&
                 ailmentsModel.GetAilments() is List<Tuple<string, int>> ailments &&
                 ailments.FindAll(t => t.Item2 > 0) is List<Tuple<string, int>> detectedAilments &&
                 detectedAilments.Count > 0   
@@ -225,11 +224,11 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
         public override void Inject(object dataType, object? data)
         {
             if (
-                dataType is SystemInjectType.BottingModel &&
-                data is AbstractBottingModel bottingModel
+                dataType is SystemInjectType.AilmentsModel &&
+                data is AbstractAilmentsModel bottingModel
             )
             {
-                _bottingModel = bottingModel;
+                _ailmentsModel = bottingModel;
             }
             else if (
                 dataType is SystemInjectType.ConfigurationUpdate &&

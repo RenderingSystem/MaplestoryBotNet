@@ -168,6 +168,7 @@
     "macro_directory": "./Macros",
     "frame_points_directory": "./FramePoints",
     "frame_movements_directory": "./FrameMovements",
+    "skills_directory":  "./Skills",
     "map_directory": "./Maps",
     "macro_check_frequency": {
         "check_frequency": 2,

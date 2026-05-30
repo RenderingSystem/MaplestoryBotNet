@@ -3,6 +3,7 @@ using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -128,7 +129,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
 
         private AbstractResetEvent _resetEvent;
 
-        private AbstractBottingModel _bottingModel;
+        private AbstractAilmentsModel _ailmentsModel;
 
         private AbstractScreenAilmentDetectionHelper _helper;
 
@@ -137,7 +138,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
         public ScreenAilmentDetectionThread(
             string ailmentKey,
             Ailment ailment,
-            AbstractBottingModel bottingModel,
+            AbstractAilmentsModel ailmentsModel,
             AbstractResetEvent resetEvent,
             AbstractScreenAilmentDetectionHelper helper,
             AbstractThreadRunningState runningState
@@ -145,7 +146,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
         {
             _ailmentKey = ailmentKey;
             _ailment = ailment;
-            _bottingModel = bottingModel;
+            _ailmentsModel = ailmentsModel;
             _resetEvent = resetEvent;
             _helper = helper;
             _image = null;
@@ -182,8 +183,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
                         imageToProcess = _cropIfNeeded(imageToProcess, ailment);
                     }
                     var detected = _helper.AilmentDetected(imageToProcess, ailment.Threshold / 1000.0f);
-                    var ailmentsModel = _bottingModel.GetAilmentsModel();
-                    ailmentsModel.SetAilment(_ailmentKey, detected.Count);
+                    _ailmentsModel.SetAilment(_ailmentKey, detected.Count);
                 }
             }
         }
@@ -267,7 +267,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
 
         private Ailment? _ailment;
 
-        private AbstractBottingModel? _bottingModel;
+        private AbstractAilmentsModel? _ailmentsModel;
 
         private AbstractBitmapTemplateMatcher? _bitmapTemplateMatcher;
 
@@ -275,7 +275,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
         {
             _ailmentKey = "";
             _ailment = null;
-            _bottingModel = null;
+            _ailmentsModel = null;
             _bitmapTemplateMatcher = null;
         }
 
@@ -284,7 +284,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
             if (
                 _ailmentKey != "" &&
                 _ailment != null &&
-                _bottingModel != null &&
+                _ailmentsModel != null &&
                 _bitmapTemplateMatcher != null
             )
             {
@@ -293,7 +293,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
                     [_ailmentKey] = new ScreenAilmentDetectionThread(
                         _ailmentKey,
                         _ailment,
-                        _bottingModel,
+                        _ailmentsModel,
                         new ExecutionEvent(),
                         new ScreenAilmentDetectionThreadHelper(
                             _bitmapTemplateMatcher,
@@ -320,9 +320,9 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
             {
                 _ailment = (Ailment)ailment.Copy();
             }
-            else if (arg is AbstractBottingModel bottingModel)
+            else if (arg is AbstractAilmentsModel ailmentsModel)
             {
-                _bottingModel = bottingModel;
+                _ailmentsModel = ailmentsModel;
             }
             else if (arg is AbstractBitmapTemplateMatcher bitmapTemplateMatcher)
             {
@@ -351,7 +351,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
 
         private ConfigurationImages? _configurationImages;
 
-        private AbstractBottingModel? _bottingModel;
+        private AbstractAilmentsModel? _ailmentsModel;
 
         public ScreenAilmentDetectionThreadsBuilder(
             AbstractTemplateMatcherBuilder templateMatcherBuilder,
@@ -362,7 +362,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
             _singleAilmentThreadBuilder = singleAilmentThreadBuilder;
             _maplestoryBotConfiguration = null;
             _configurationImages = null;
-            _bottingModel = null;
+            _ailmentsModel = null;
         }
 
         private ConcurrentDictionary<string, AbstractThread> _buildDetectionThreads()
@@ -380,7 +380,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
                 var detectionThreadDict = _singleAilmentThreadBuilder
                     .WithArg(ailmentKey)
                     .WithArg(ailment)
-                    .WithArg(_bottingModel!)
+                    .WithArg(_ailmentsModel!)
                     .WithArg(templateMatcher)
                     .Build();
                 if (detectionThreadDict != null)
@@ -399,7 +399,7 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
             if (
                 _maplestoryBotConfiguration == null ||
                 _configurationImages == null ||
-                _bottingModel == null
+                _ailmentsModel == null
             )
             {
                 return [];
@@ -428,11 +428,11 @@ namespace MaplestoryBotNet.Systems.ScreenAilmentsProcessing
                 _configurationImages = configurationImages;
             }
             else if (
-                parameters.DataType is SystemInjectType.BottingModel &&
-                parameters.Data is AbstractBottingModel bottingModel
+                parameters.DataType is SystemInjectType.AilmentsModel &&
+                parameters.Data is AbstractAilmentsModel ailmentsModel
             )
             {
-                _bottingModel = bottingModel;
+                _ailmentsModel = ailmentsModel;
             }
             return this;
         }

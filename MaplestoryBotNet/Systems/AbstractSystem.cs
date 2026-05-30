@@ -15,6 +15,8 @@ namespace MaplestoryBotNet.Systems
         ShutDown,
         ActionHandler,
         BottingModel,
+        AilmentsModel,
+        SkillsModel,
         InjectAction,
         ThreadDependency,
         SystemInjectTypeMaxNum,

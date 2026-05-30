@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
@@ -113,20 +114,20 @@ namespace MaplestoryBotNet.Systems.UIHandler
 
     public class WindowLoadMenuActionHandler : AbstractWindowActionHandler
     {
-        private Button _saveButton;
+        private Button _loadButton;
 
         private AbstractWindowStateModifier _windowLoadMenuModifier;
 
         private string? _initialDirectory;
 
         public WindowLoadMenuActionHandler(
-            Button saveButton,
+            Button loadButton,
             AbstractWindowStateModifier windowLoadMenuModifier
         )
         {
-            _saveButton = saveButton;
+            _loadButton = loadButton;
             _windowLoadMenuModifier = windowLoadMenuModifier;
-            _saveButton.Click += OnEvent;
+            _loadButton.Click += OnEvent;
             _initialDirectory = null;
         }
 

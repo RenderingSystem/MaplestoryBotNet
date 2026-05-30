@@ -2,7 +2,7 @@
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
-using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
 using System.Collections.Concurrent;
 
@@ -572,6 +572,8 @@ namespace MaplestoryBotNet.Systems.Macro
 
         public AbstractBottingModel? BottingModel;
 
+        public AbstractAilmentsModel? AilmentsModel;
+
         public AbstractTimestamp RuneingStopwatch;
 
         public AbstractTimestamp SolvingStopwatch;
@@ -646,8 +648,7 @@ namespace MaplestoryBotNet.Systems.Macro
         {
             if (
                 currentState is not (int)MacroExecutorStateTypes.Ailments &&
-                _context.BottingModel is AbstractBottingModel bottingModel &&
-                bottingModel.GetAilmentsModel() is AbstractAilmentsModel ailmentsModel &&
+                _context.AilmentsModel is AbstractAilmentsModel ailmentsModel &&
                 ailmentsModel.GetAilments() is List<Tuple<string, int>> ailmentsList &&
                 ailmentsList.FindAll(t => t.Item2 > 0).Count > 0
             )

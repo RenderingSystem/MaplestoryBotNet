@@ -8,7 +8,7 @@ using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.Systems.ScreenProcessing;
 using MaplestoryBotNet.Systems.UIHandler;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
-using MaplestoryBotNet.Systems.UIHandler.Utilities;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
@@ -868,7 +868,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
         {
             var mainApplicationInitializer = _fixture();
             mainApplicationInitializer.Initialize();
-            Debug.Assert(_mainSystem.InjectCalls == 6);
+            Debug.Assert(_mainSystem.InjectCalls == 8);
             Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_windowViewUpdaterActionHandler) != -1);
             Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_windowViewCheckboxActionHandler) != -1);
             Debug.Assert(_mainSystem.InjectCallArg_data.IndexOf(_splashScreenCompleteActionHandler) != -1);
@@ -916,6 +916,42 @@ namespace MaplestoryBotNetTests.Systems.Tests
         }
 
         /**
+         * @brief Tests that the AilmentsModel is properly created and injected into the main system
+         * 
+         * This test verifies that the initializer creates a valid AilmentsModel instance
+         * and injects it with the correct injection type identifier, ensuring the main
+         * system can locate and use the model when status ailments need to be handled
+         * during automated gameplay.
+         */
+        private void _testInitializeInjectsAilmentsModelToMainSystem()
+        {
+            var mainApplicationInitializer = _fixture();
+            mainApplicationInitializer.Initialize();
+            var ailmentsIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.AilmentsModel);
+            var ailmentsData = _mainSystem.InjectCallArg_data[ailmentsIndex];
+            Debug.Assert(ailmentsIndex != -1);
+            Debug.Assert(ailmentsData is AbstractAilmentsModel);
+        }
+
+        /**
+         * @brief Tests that the SkillsModel is properly created and injected into the main system
+         * 
+         * This test verifies that the initializer creates a valid SkillsModel instance
+         * and injects it with the correct injection type identifier, ensuring the main
+         * system can locate and use the model when executing combat rotations and skill
+         * macros during automated gameplay.
+         */
+        private void _testInitializeInjectsSkillsModelToMainSystem()
+        {
+            var mainApplicationInitializer = _fixture();
+            mainApplicationInitializer.Initialize();
+            var skillsIndex = _mainSystem.InjectCallArg_dataType.IndexOf(SystemInjectType.SkillsModel);
+            var skillsData = _mainSystem.InjectCallArg_data[skillsIndex];
+            Debug.Assert(skillsIndex != -1);
+            Debug.Assert(skillsData is AbstractSkillsModel);
+        }
+
+        /**
          * @brief Executes all application initialization validation tests
          * 
          * Runs the complete test suite to ensure the application initializer properly
@@ -928,6 +964,8 @@ namespace MaplestoryBotNetTests.Systems.Tests
             _testInitializeInjectsModifiersToMainSystem();
             _testInitializeInjectsUpdaterToMainSystem();
             _testInitializeInjectsMapModelToMainSystem();
+            _testInitializeInjectsAilmentsModelToMainSystem();
+            _testInitializeInjectsSkillsModelToMainSystem();
         }
     }
 
