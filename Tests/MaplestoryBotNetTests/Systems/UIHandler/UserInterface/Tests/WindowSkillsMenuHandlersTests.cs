@@ -488,15 +488,19 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private ComboBox _comboBoxTemplate = new ComboBox();
 
+        private MockWindowActionHandlerRegistry _mockRegistry = new MockWindowActionHandlerRegistry();
+
         private AbstractWindowActionHandler _fixture()
         {
             _addMacroButton = new Button();
             _macroListBox = new ListBox();
             _comboBoxTemplate = ComboBoxFixture.Fixture();
+            _mockRegistry = new MockWindowActionHandlerRegistry();
             return new WindowSkillsMenuMacroCommandAddActionHandlerFacade(
                 _addMacroButton,
                 _comboBoxTemplate,
-                _macroListBox
+                _macroListBox,
+                _mockRegistry
             );
         }
 
@@ -614,13 +618,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private ListBox _macroListBox = new ListBox();
 
+        private MockWindowActionHandlerRegistry _mockRegistry = new MockWindowActionHandlerRegistry();
+
         private AbstractWindowActionHandler _fixture()
         {
             _removeMacroButton = new Button();
             _macroListBox = new ListBox();
+            _mockRegistry = new MockWindowActionHandlerRegistry();
             return new WindowSkillsMenuMacroCommandRemoveActionHandlerFacade(
                 _removeMacroButton,
-                _macroListBox
+                _macroListBox,
+                _mockRegistry
             );
         }
 
@@ -653,7 +661,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingRemoveButtonRemovesSelectedMacro()
         {
             var handler = _fixture();
-            var listBoxItems = new[] { new object(), new object(), new object() };
+            var listBoxItems = new[] {
+                new ListBoxItem { Content = new ComboBox() },
+                new ListBoxItem { Content = new ComboBox() },
+                new ListBoxItem { Content = new ComboBox() },
+            };
             _macroListBox.Items.Add(listBoxItems[0]);
             _macroListBox.Items.Add(listBoxItems[1]);
             _macroListBox.Items.Add(listBoxItems[2]);
@@ -678,7 +690,11 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         private void _testClickingRemoveButtonRemovesLastMacro()
         {
             var handler = _fixture();
-            var listBoxItems = new[] { new object(), new object(), new object() };
+            var listBoxItems = new[] {
+                new ListBoxItem { Content = new ComboBox() },
+                new ListBoxItem { Content = new ComboBox() },
+                new ListBoxItem { Content = new ComboBox() },
+            };
             _macroListBox.Items.Add(listBoxItems[0]);
             _macroListBox.Items.Add(listBoxItems[1]);
             _macroListBox.Items.Add(listBoxItems[2]);
@@ -710,6 +726,8 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private ComboBox _comboBoxTemplate = ComboBoxFixture.Fixture();
 
+        private MockWindowActionHandlerRegistry _mockRegistry = new MockWindowActionHandlerRegistry();
+
         private AbstractWindowActionHandler _fixture()
         {
             _skillsListBox = new ListBox();
@@ -717,12 +735,14 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             _minDelay = new TextBox();
             _maxDelay = new TextBox();
             _comboBoxTemplate = ComboBoxFixture.Fixture();
+            _mockRegistry = new MockWindowActionHandlerRegistry();
             return new WindowSkillsMenuSkillSelectedActionHandlerFacade(
                 _skillsListBox,
                 _macroListBox,
                 _minDelay,
                 _maxDelay,
-                _comboBoxTemplate
+                _comboBoxTemplate,
+                _mockRegistry
             );
         }
 
@@ -740,7 +760,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             var handler = _fixture();
             var skill = (Skill)SkillListBoxFixture.Fixture().Tag;
             _skillsListBox.Items.Add(SkillListBoxFixture.Fixture());
-            _macroListBox.Items.Add(new object());
+            _macroListBox.Items.Add(new ListBoxItem { Content = new ComboBox() });
             _skillsListBox.SelectedIndex = 0;
             Debug.Assert(_minDelay.Text == skill.MinDelay.ToString());
             Debug.Assert(_maxDelay.Text == skill.MaxDelay.ToString());
@@ -806,17 +826,21 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private TextBox _maxDelay = new TextBox();
 
+        private MockWindowActionHandlerRegistry _mockRegistry = new MockWindowActionHandlerRegistry();
+
         private AbstractWindowActionHandler _fixture()
         {
             _skillsListBox = new ListBox();
             _macroListBox = new ListBox();
             _minDelay = new TextBox();
             _maxDelay = new TextBox();
+            _mockRegistry = new MockWindowActionHandlerRegistry();
             return new WindowSkillsMenuSkillDeselectedActionHandlerFacade(
                 _skillsListBox,
                 _macroListBox,
                 _minDelay,
-                _maxDelay
+                _maxDelay,
+                _mockRegistry
             );
         }
 
@@ -1317,6 +1341,62 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
     }
 
 
+    public class WindowSkillsMenuAccessibilityActionHandlerTests
+    {
+        private ListBox _skillsListBox = new ListBox();
+
+        private List<FrameworkElement> _accesibilityElements = [];
+
+        private AbstractWindowActionHandler _fixture()
+        {
+            _skillsListBox = new ListBox();
+            _accesibilityElements = [
+                new FrameworkElement { IsEnabled = true },
+                new FrameworkElement { IsEnabled = true },
+                new FrameworkElement { IsEnabled = true }
+            ];
+            _skillsListBox.Items.Add(new object());
+            return new WindowSkillsMenuAccessibilityActionHandlerFacade(
+                _skillsListBox,
+                _accesibilityElements
+            );
+        }
+
+        /**
+         * @brief Tests that accessibility elements (buttons, controls) enable/disable
+         * correctly based on whether a skill is selected in the skills list
+         * 
+         * When the user is configuring skills for the bot's combat automation, certain UI
+         * controls (such as Add Skill, Remove Skill, Edit Macro, etc.) should only be enabled
+         * when a skill is actually selected. This prevents users from attempting to perform
+         * actions on non-existent skills, which would cause confusion or errors.
+         */
+        private void _testSkillSelectionEditsElementAccesibility()
+        {
+            var handler = _fixture();
+            foreach (var element in _accesibilityElements)
+            {
+                Debug.Assert(element.IsEnabled == false);
+            }
+            _skillsListBox.SelectedIndex = 0;
+            foreach (var element in _accesibilityElements)
+            {
+                Debug.Assert(element.IsEnabled == true);
+            }
+            _skillsListBox.SelectedIndex = -1;
+            foreach (var element in _accesibilityElements)
+            {
+                Debug.Assert(element.IsEnabled == false);
+            }
+        }
+
+        public void Run()
+        {
+            _testSkillSelectionEditsElementAccesibility();
+        }
+    }
+
+
     public class WindowSkillsMenuTestSuite
     {
         public void Run()
@@ -1332,6 +1412,7 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
             new WindowSkillsMenuSkillSavingActionHandlerTests().Run();
             new WindowSkillsMenuSkillLoadActionHandlerTests().Run();
             new WindowSkillsMenuSkillLoadConfigurationActionHandlerTests().Run();
+            new WindowSkillsMenuAccessibilityActionHandlerTests().Run();
         }
     }
 }

@@ -2,7 +2,7 @@
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using System.Windows;
-using static MaplestoryBotNet.Systems.UIHandler.UserInterface.WindowSkillsMenuSkillSelectedModifier;
+using System.Windows.Controls;
 
 
 namespace MaplestoryBotNet.Xaml
@@ -15,6 +15,8 @@ namespace MaplestoryBotNet.Xaml
 
         private AbstractLoadFileDialog _loadFileDialog;
 
+        private AbstractWindowActionHandlerRegistry _comboBoxScaleRegistry;
+
         public SkillsWindow()
         {
             _systemWindow = null;
@@ -23,6 +25,31 @@ namespace MaplestoryBotNet.Xaml
             SkillsMacroListBox.Items.Clear();
             _saveFileDialog = new WindowSaveFileDialog("Save Skills", "JSON files (*.json)|*.json", ".json");
             _loadFileDialog = new WindowLoadFileDialog("Load Skills", "JSON files (*.json)|*.json");
+            _comboBoxScaleRegistry = new WindowComboBoxScaleActionHandlerRegistry();
+        }
+
+        private AbstractWindowActionHandler _instantiateNumericTextBoxPropertyActionHandler(
+            TextBox numericTextBox, int maxValue
+        )
+        {
+            return (
+                new NumericTextBoxValidationActionHandlerBuilder()
+                    .WithArgs(maxValue)
+                    .WithArgs(numericTextBox)
+                    .Build()
+            );
+        }
+
+        private AbstractWindowActionHandler _instantiateNumericTextBoxPropertyPasteActionHandler(
+            TextBox numericTextBox, int maxValue
+        )
+        {
+            return (
+                new NumericTextBoxPasteValidationActionHandlerBuilder()
+                    .WithArgs(maxValue)
+                    .WithArgs(numericTextBox)
+                    .Build()
+            );
         }
 
         private AbstractWindowActionHandler _instantiateWindowMenuItemHideActionHandler()
@@ -54,7 +81,8 @@ namespace MaplestoryBotNet.Xaml
             return new WindowSkillsMenuMacroCommandAddActionHandlerFacade(
                 SkillsAddCommandButton,
                 SkillsMacroComboBoxTemplate,
-                SkillsMacroListBox
+                SkillsMacroListBox,
+                _comboBoxScaleRegistry
             );
         }
 
@@ -62,7 +90,8 @@ namespace MaplestoryBotNet.Xaml
         {
             return new WindowSkillsMenuMacroCommandRemoveActionHandlerFacade(
                 SkillsRemoveCommandButton,
-                SkillsMacroListBox
+                SkillsMacroListBox,
+                _comboBoxScaleRegistry
             );
         }
 
@@ -72,7 +101,8 @@ namespace MaplestoryBotNet.Xaml
                 SkillsListBox,
                 SkillsMacroListBox,
                 SkillsMinDelayTextBox,
-                SkillsMaxDelayTextBox
+                SkillsMaxDelayTextBox,
+                _comboBoxScaleRegistry
             );
         }
 
@@ -83,7 +113,8 @@ namespace MaplestoryBotNet.Xaml
                 SkillsMacroListBox,
                 SkillsMinDelayTextBox,
                 SkillsMaxDelayTextBox,
-                SkillsMacroComboBoxTemplate
+                SkillsMacroComboBoxTemplate,
+                _comboBoxScaleRegistry
             );
         }
 
@@ -128,6 +159,20 @@ namespace MaplestoryBotNet.Xaml
             );
         }
 
+
+        private AbstractWindowActionHandler _instantiateAccessibilityActionHandler()
+        {
+            return new WindowSkillsMenuAccessibilityActionHandlerFacade(
+                SkillsListBox,
+                [
+                    SkillsMinDelayTextBox,
+                    SkillsMaxDelayTextBox,
+                    SkillsAddCommandButton,
+                    SkillsRemoveCommandButton,
+                ]
+            );
+        }
+
         public AbstractSystemWindow GetSystemWindow()
         {
             if (_systemWindow == null)
@@ -140,6 +185,10 @@ namespace MaplestoryBotNet.Xaml
         public List<AbstractWindowActionHandler> InstantiateActionHandlers()
         {
             return [
+                _instantiateNumericTextBoxPropertyActionHandler(SkillsMinDelayTextBox, 9999),
+                _instantiateNumericTextBoxPropertyActionHandler(SkillsMaxDelayTextBox, 9999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(SkillsMinDelayTextBox, 9999),
+                _instantiateNumericTextBoxPropertyPasteActionHandler(SkillsMaxDelayTextBox, 9999),
                 _instantiateWindowMenuItemHideActionHandler(),
                 _instantiatAddSkillActionHandler(),
                 _instantiateRemoveSkillActionHandler(),
@@ -151,7 +200,8 @@ namespace MaplestoryBotNet.Xaml
                 _instantiateSkillSaveConfigurationActionHandler(),
                 _instantiateSkillSavingActionHandler(),
                 _instantiateSkillLoadActionHandler(),
-                _instantiateSkillLoadConfigurationActionHandler()
+                _instantiateSkillLoadConfigurationActionHandler(),
+                _instantiateAccessibilityActionHandler()
             ];
         }
     }

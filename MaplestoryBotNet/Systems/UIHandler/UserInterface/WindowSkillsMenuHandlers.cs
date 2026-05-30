@@ -229,13 +229,17 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractComboBoxFactory _comboBoxFactory;
 
+        private AbstractWindowActionHandlerRegistry _comboBoxRegistry;
+
         public WindowSkillsMenuMacroCommandAddModifier(
             ListBox macroListBox,
-            AbstractComboBoxFactory comboBoxFactory
+            AbstractComboBoxFactory comboBoxFactory,
+            AbstractWindowActionHandlerRegistry comboBoxRegistry
         )
         {
             _macroListBox = macroListBox;
             _comboBoxFactory = comboBoxFactory;
+            _comboBoxRegistry = comboBoxRegistry;
         }
 
         public override void Modify(object? value)
@@ -243,9 +247,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             var selectedIndex = _macroListBox.SelectedIndex >= 0 ?
                 _macroListBox.SelectedIndex + 1 :
                 _macroListBox.Items.Count;
-            var listBoxItem = new ListBoxItem { Content = _comboBoxFactory.Create() };
+            var comboBox = _comboBoxFactory.Create();
+            var listBoxItem = new ListBoxItem { Content = comboBox };
+            var parameters = new WindowComboBoxScaleActionHandlerParameters(comboBox);
             _macroListBox.Items.Insert(selectedIndex, listBoxItem);
             _macroListBox.SelectedIndex = selectedIndex;
+            _comboBoxRegistry.RegisterHandler(parameters);
         }
     }
 
@@ -285,14 +292,16 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public WindowSkillsMenuMacroCommandAddActionHandlerFacade(
             Button macroAddButton,
             ComboBox comboBoxTemplate,
-            ListBox macroListBox
+            ListBox macroListBox,
+            AbstractWindowActionHandlerRegistry comboBoxRegistry
         )
         {
             _macroCommandAddActionHandler = new WindowSkillsMenuAddSkillActionHandler(
                 macroAddButton,
                 new WindowSkillsMenuMacroCommandAddModifier(
                     macroListBox,
-                    new ComboBoxTemplateFactory(comboBoxTemplate)
+                    new ComboBoxTemplateFactory(comboBoxTemplate),
+                    comboBoxRegistry
                 )
             );
         }
@@ -313,9 +322,15 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private ListBox _macroListBox;
 
-        public WindowSkillsMenuMacroCommandRemoveModifier(ListBox macroListBox)
+        private AbstractWindowActionHandlerRegistry _comboBoxRegistry;
+
+        public WindowSkillsMenuMacroCommandRemoveModifier(
+            ListBox macroListBox,
+            AbstractWindowActionHandlerRegistry comboBoxRegistry
+        )
         {
             _macroListBox = macroListBox;
+            _comboBoxRegistry = comboBoxRegistry;
         }
 
         public override void Modify(object? value)
@@ -323,10 +338,14 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             var selectedIndex = _macroListBox.SelectedIndex;
             if (selectedIndex >= 0)
             {
+                var comboBox = (ComboBox)((ListBoxItem)_macroListBox.SelectedItem).Content;
+                _comboBoxRegistry.UnregisterHandler(comboBox);
                 _macroListBox.Items.RemoveAt(selectedIndex);
             }
             else if (_macroListBox.Items.Count > 0)
             {
+                var comboBox = (ComboBox)((ListBoxItem)_macroListBox.Items[_macroListBox.Items.Count - 1]).Content;
+                _comboBoxRegistry.UnregisterHandler(comboBox);
                 _macroListBox.Items.RemoveAt(_macroListBox.Items.Count - 1);
             }
         }
@@ -367,13 +386,17 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         public WindowSkillsMenuMacroCommandRemoveActionHandlerFacade(
             Button removeMacroButton,
-            ListBox macroListBox
+            ListBox macroListBox,
+            AbstractWindowActionHandlerRegistry comboBoxRegistry
         )
         {
             _removeMacroActionHandler = (
                 new WindowSkillsMenuMacroCommandRemoveActionHandler(
                     removeMacroButton,
-                    new WindowSkillsMenuMacroCommandRemoveModifier(macroListBox)
+                    new WindowSkillsMenuMacroCommandRemoveModifier(
+                        macroListBox,
+                        comboBoxRegistry
+                    )
                 )
             );
         }
@@ -401,17 +424,21 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractComboBoxFactory _comboBoxFactory;
 
+        private AbstractWindowActionHandlerRegistry _comboBoxRegistry;
+
         public WindowSkillsMenuSkillSelectedModifier(
             ListBox macroListBox,
             TextBox minDelay,
             TextBox maxDelay,
-            AbstractComboBoxFactory comboBoxFactory
+            AbstractComboBoxFactory comboBoxFactory,
+            AbstractWindowActionHandlerRegistry comboBoxRegistry
         )
         {
             _macroListBox = macroListBox;
             _minDelay = minDelay;
             _maxDelay = maxDelay;
             _comboBoxFactory = comboBoxFactory;
+            _comboBoxRegistry = comboBoxRegistry;
         }
 
         public override void Modify(object? value)
@@ -420,6 +447,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 var skill = (Skill)selectedSkill.Tag;
                 _macroListBox.Items.Clear();
+                _comboBoxRegistry.ClearHandlers();
                 _minDelay.Text = skill.MinDelay.ToString();
                 _maxDelay.Text = skill.MaxDelay.ToString();
                 foreach (var macro in skill.Macros)
@@ -427,6 +455,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     var comboBox = _comboBoxFactory.Create();
                     comboBox.Text = macro;
                     _macroListBox.Items.Add(new ListBoxItem { Content = comboBox });
+                    var parameters = new WindowComboBoxScaleActionHandlerParameters(comboBox);
+                    _comboBoxRegistry.RegisterHandler(parameters);
                 }
             }
         }
@@ -478,7 +508,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             ListBox macroListBox,
             TextBox minDelay,
             TextBox maxDelay,
-            ComboBox comboBoxTemplate
+            ComboBox comboBoxTemplate,
+            AbstractWindowActionHandlerRegistry comboBoxRegistry
         )
         {
             _skillSelectedActionHandler = (
@@ -488,7 +519,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                         macroListBox,
                         minDelay,
                         maxDelay,
-                        new ComboBoxTemplateFactory(comboBoxTemplate)
+                        new ComboBoxTemplateFactory(comboBoxTemplate),
+                        comboBoxRegistry
                     )
                 )
             );
@@ -515,15 +547,19 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private TextBox _maxDelay;
 
+        private AbstractWindowActionHandlerRegistry _comboBoxRegistry;
+
         public WindowSkillsMenuSkillDeselectedModifier(
             ListBox macroListBox,
             TextBox minDelay,
-            TextBox maxDelay
+            TextBox maxDelay,
+            AbstractWindowActionHandlerRegistry comboBoxRegistry
         )
         {
             _macroListBox = macroListBox;
             _minDelay = minDelay;
             _maxDelay = maxDelay;
+            _comboBoxRegistry = comboBoxRegistry;
         }
 
         public override void Modify(object? value)
@@ -539,6 +575,7 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     skill.Macros.Add(((ComboBox)macro.Content).Text);
                 }
                 _macroListBox.Items.Clear();
+                _comboBoxRegistry.ClearHandlers();
             }
         }
     }
@@ -588,7 +625,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             ListBox skillsListBox,
             ListBox macroListBox,
             TextBox minDelay,
-            TextBox maxDelay
+            TextBox maxDelay,
+            AbstractWindowActionHandlerRegistry comboBoxRegistry
         )
         {
             _deselectedActionHandler = (
@@ -597,7 +635,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     new WindowSkillsMenuSkillDeselectedModifier(
                         macroListBox,
                         minDelay,
-                        maxDelay
+                        maxDelay,
+                        comboBoxRegistry
                     )
                 )
             );
@@ -1144,6 +1183,85 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public override AbstractWindowStateModifier Modifier()
         {
             return _loadConfigurationActionHandler.Modifier();
+        }
+    }
+
+
+    public class WindowSkillsMenuAccessibilityModifier : AbstractWindowStateModifier
+    {
+        private List<FrameworkElement> _accessibilityElements;
+
+        public WindowSkillsMenuAccessibilityModifier(
+            List<FrameworkElement> accessibilityElements
+        )
+        {
+            _accessibilityElements = accessibilityElements;
+        }
+
+        public override void Modify(object? value)
+        {
+            if (value is bool isAccessible)
+            {
+                foreach (var element in _accessibilityElements)
+                {
+                    element.IsEnabled = isAccessible;
+                }
+            }
+        }
+    }
+
+
+    public class WindowSkillsMenuAccessibilityActionHandler : AbstractWindowActionHandler
+    {
+        private ListBox _skillsListBox;
+
+        private AbstractWindowStateModifier _accessibilityModifier;
+
+        public WindowSkillsMenuAccessibilityActionHandler(
+            ListBox skillsListBox,
+            AbstractWindowStateModifier accessibilityModifier
+        )
+        {
+            _skillsListBox = skillsListBox;
+            _accessibilityModifier = accessibilityModifier;
+            _skillsListBox.SelectionChanged += OnEvent;
+            OnEvent(null, new EventArgs());
+        }
+
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _accessibilityModifier;
+        }
+
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _accessibilityModifier.Modify(_skillsListBox.SelectedIndex >= 0);
+        }
+    }
+
+
+    public class WindowSkillsMenuAccessibilityActionHandlerFacade : AbstractWindowActionHandler
+    {
+        private AbstractWindowActionHandler _accessibilityActionHandler;
+        public WindowSkillsMenuAccessibilityActionHandlerFacade(
+            ListBox skillsListBox,
+            List<FrameworkElement> accessibilityElements
+        )
+        {
+            _accessibilityActionHandler = (
+                new WindowSkillsMenuAccessibilityActionHandler(
+                    skillsListBox,
+                    new WindowSkillsMenuAccessibilityModifier(accessibilityElements)
+                )
+            );
+        }
+        public override AbstractWindowStateModifier Modifier()
+        {
+            return _accessibilityActionHandler.Modifier();
+        }
+        public override void OnEvent(object? sender, EventArgs e)
+        {
+            _accessibilityActionHandler.OnEvent(sender, e);
         }
     }
 }
