@@ -841,6 +841,13 @@ namespace MaplestoryBotNet.Systems.Macro
                 _context.BottingModel = bottingModel;
             }
             if (
+                dataType is SystemInjectType.AilmentsModel &&
+                data is AbstractAilmentsModel ailmentsModel
+            )
+            {
+                _context.AilmentsModel = ailmentsModel;
+            }
+            if (
                 dataType is SystemInjectType.ActionHandler &&
                 data is WindowMenuItemStartActionHandler stopActionHandler
             )
