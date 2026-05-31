@@ -215,17 +215,22 @@ namespace MaplestoryBotNet.Systems.Macro
         where UpdateType : Enum
     {
         private InjectType _startValue;
-        private UpdateType _startValueCheck;
+
+        private List<UpdateType> _startValueCheck;
+
         private InjectType _stopValue;
-        private UpdateType _stopValueCheck;
+
+        private List<UpdateType> _stopValueCheck;
+
         private AbstractThread? _orchestrator;
+
         private AbstractKeystrokeTransmitterThreadState? _threadState;
 
         public OrchestratorController(
             InjectType startValue,
-            UpdateType startValueCheck,
+            List<UpdateType> startValueCheck,
             InjectType stopValue,
-            UpdateType stopValueCheck
+            List<UpdateType> stopValueCheck
         )
         {
             _startValue = startValue;
@@ -241,8 +246,16 @@ namespace MaplestoryBotNet.Systems.Macro
             if (_orchestrator != null && _threadState != null)
             {
                 _orchestrator.Inject(_startValue, 0);
-                while (_threadState.GetState() != Convert.ToInt32(_startValueCheck))
+                while (true)
                 {
+                    var threadState = _threadState.GetState();
+                    foreach (var startValue in _startValueCheck)
+                    {
+                        if (Convert.ToInt32(startValue) == threadState)
+                        {
+                            return;
+                        }
+                    }
                     Thread.Yield();
                 }
             }
@@ -253,8 +266,16 @@ namespace MaplestoryBotNet.Systems.Macro
             if (_orchestrator != null && _threadState != null)
             {
                 _orchestrator.Inject(_stopValue, 0);
-                while (_threadState.GetState() != Convert.ToInt32(_stopValueCheck))
+                while (true)
                 {
+                    var threadState = _threadState.GetState();
+                    foreach (var stopValue in _stopValueCheck)
+                    {
+                        if (Convert.ToInt32(stopValue) == threadState)
+                        {
+                            return;
+                        }
+                    }
                     Thread.Yield();
                 }
             }
@@ -1030,45 +1051,73 @@ namespace MaplestoryBotNet.Systems.Macro
                     BottingExecutorThreadedUpdate
                 >(
                     BottingOrchestratorThreadInjectType.Start,
-                    BottingExecutorThreadedUpdate.Started,
+                    [BottingExecutorThreadedUpdate.Started],
                     BottingOrchestratorThreadInjectType.Stop,
-                    BottingExecutorThreadedUpdate.Stopped
+                    [BottingExecutorThreadedUpdate.Stopped]
                 ),
                 new OrchestratorController<
                     RuneingOrchestratorThreadInjectType,
                     RuneingExecutorThreadedUpdate
                 >(
                     RuneingOrchestratorThreadInjectType.Start,
-                    RuneingExecutorThreadedUpdate.Started,
+                    [
+                        RuneingExecutorThreadedUpdate.Started,
+                        RuneingExecutorThreadedUpdate.Arrived
+                    ],
                     RuneingOrchestratorThreadInjectType.Stop,
-                    RuneingExecutorThreadedUpdate.Stopped
+                    [
+                        RuneingExecutorThreadedUpdate.Stopped,
+                        RuneingExecutorThreadedUpdate.Arrived
+                    ]
                 ),
                 new OrchestratorController<
                     SolvingOrchestratorThreadInjectType,
                     SolvingExecutorThreadedUpdate
                 >(
                     SolvingOrchestratorThreadInjectType.Start,
-                    SolvingExecutorThreadedUpdate.Started,
+                    [
+                        SolvingExecutorThreadedUpdate.Started,
+                        SolvingExecutorThreadedUpdate.Solved,
+                        SolvingExecutorThreadedUpdate.Failed
+                    ],
                     SolvingOrchestratorThreadInjectType.Stop,
-                    SolvingExecutorThreadedUpdate.Stopped
+                    [
+                        SolvingExecutorThreadedUpdate.Stopped,
+                        SolvingExecutorThreadedUpdate.Solved,
+                        SolvingExecutorThreadedUpdate.Failed
+                    ]
                 ),
                 new OrchestratorController<
                     LoginOrchestratorThreadInjectType,
                     LoginExecutorThreadedUpdate
                 >(
                     LoginOrchestratorThreadInjectType.Start,
-                    LoginExecutorThreadedUpdate.Started,
+                    [
+                        LoginExecutorThreadedUpdate.Started,
+                        LoginExecutorThreadedUpdate.TimedOut
+                    ],
                     LoginOrchestratorThreadInjectType.Stop,
-                    LoginExecutorThreadedUpdate.Stopped
+                    [
+                        LoginExecutorThreadedUpdate.Stopped,
+                        LoginExecutorThreadedUpdate.TimedOut
+                    ]
                 ),
                 new OrchestratorController<
                     AilmentOrchestratorThreadInjectType,
                     AilmentExecutorThreadedUpdate
                 >(
                     AilmentOrchestratorThreadInjectType.Start,
-                    AilmentExecutorThreadedUpdate.Started,
+                    [
+                        AilmentExecutorThreadedUpdate.Started,
+                        AilmentExecutorThreadedUpdate.StopBot,
+                        AilmentExecutorThreadedUpdate.Cured
+                    ],
                     AilmentOrchestratorThreadInjectType.Stop,
-                    AilmentExecutorThreadedUpdate.Stopped
+                    [
+                        AilmentExecutorThreadedUpdate.Stopped,
+                        AilmentExecutorThreadedUpdate.StopBot,
+                        AilmentExecutorThreadedUpdate.Cured
+                    ]
                 ),
                 new StopwatchTimestamp(),
                 new StopwatchTimestamp(),

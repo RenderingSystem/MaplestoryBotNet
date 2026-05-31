@@ -1,4 +1,6 @@
 ﻿using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
+using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNetTests.TestHelpers;
 
 
@@ -119,6 +121,80 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks
                 return TypeReturn[TypeIndex++];
             }
             throw new IndexOutOfRangeException();
+        }
+    }
+
+
+    public class MockSkillMacroCommandsSelector : AbstractSkillMacroCommandsSelector
+    {
+        public List<string> CallOrder = [];
+
+        public int ClearCalls = 0;
+        public override void Clear()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Clear";
+            CallOrder.Add(callReference);
+            ClearCalls++;
+        }
+
+        public int SelectCalls = 0;
+        public int SelectIndex = 0;
+        public List<AbstractSkillsModel> SelectCallArg_skillsModel = [];
+        public List<List<string>> SelectReturn = [];
+        public override List<string> Select(AbstractSkillsModel skillsModel)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Select";
+            CallOrder.Add(callReference);
+            SelectCalls++;
+            SelectCallArg_skillsModel.Add(skillsModel);
+            if (SelectIndex < SelectReturn.Count)
+            {
+                return SelectReturn[SelectIndex++];
+            }
+            throw new IndexOutOfRangeException();
+        }
+
+        public int UpdateCalls = 0;
+        public List<AbstractSkillsModel> UpdateCallArg_skillsModel = [];
+        public override void Update(AbstractSkillsModel skillsModel)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Update";
+            CallOrder.Add(callReference);
+            UpdateCalls++;
+            UpdateCallArg_skillsModel.Add(skillsModel);
+        }
+    }
+
+
+    public class MockBottingCommandsExecutor : AbstractBottingCommandsExecutor
+    {
+        public List<string> CallOrder = [];
+
+        public int ExecuteCalls = 0;
+        public int ExecuteIndex = 0;
+        public List<bool> ExecuteReturn = [];
+        public override bool Execute()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Execute";
+            CallOrder.Add(callReference);
+            ExecuteCalls++;
+            if (ExecuteIndex < ExecuteReturn.Count)
+            {
+                return ExecuteReturn[ExecuteIndex++];
+            }
+            throw new IndexOutOfRangeException();
+        }
+
+        public int InjectCalls = 0;
+        public List<object> InjectCallArg_dataType = [];
+        public List<object?> InjectCallArg_data = [];
+        public override void Inject(object dataType, object? data)
+        {
+            var callReference = new TestUtilities().Reference(this) + "Inject";
+            CallOrder.Add(callReference);
+            InjectCalls++;
+            InjectCallArg_dataType.Add(dataType);
+            InjectCallArg_data.Add(data);
         }
     }
 }

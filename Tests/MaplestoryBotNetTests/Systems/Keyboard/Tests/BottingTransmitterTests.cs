@@ -1,6 +1,7 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems;
 using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
+using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
@@ -160,7 +161,589 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
     }
 
 
-    public class BottingExecutorThreadHelperTests
+    public class SkillMacroCommandsSelectorTests
+    {
+        private OrderedDictionary<string, SkillTimeout> _skillTimeouts = [];
+
+        private MockTimestampFactory _stopwatchFactory = new MockTimestampFactory();
+
+        private MockMacroRandom _macroRandom = new MockMacroRandom();
+
+        private AbstractSkillsModel _skillsModel = new SkillsModel();
+
+        private AbstractSkillMacroCommandsSelector _fixture()
+        {
+            _skillTimeouts = _timeouts();
+            _stopwatchFactory = new MockTimestampFactory();
+            _macroRandom = new MockMacroRandom();
+            _skillsModel = new SkillsModel();
+            return new SkillMacroCommandsSelector(
+                _skillTimeouts,
+                _stopwatchFactory,
+                _macroRandom
+            );
+        }
+        
+        private List<Skill> _skills()
+        {
+            return [
+                new Skill
+                {
+                    Name = "skill1",
+                    Active = 123,
+                    MinDelay = 234,
+                    MaxDelay = 345,
+                    Macros = ["macro1", "macro2"]
+                },
+                new Skill
+                {
+                    Name = "skill2",
+                    Active = 0,
+                    MinDelay = 12,
+                    MaxDelay = 23,
+                    Macros = ["macro2", "macro3"]
+                },
+                new Skill
+                {
+                    Name = "skill3",
+                    Active = 234,
+                    MinDelay = 345,
+                    MaxDelay = 456,
+                    Macros = ["macro3", "macro4"]
+                },
+                new Skill
+                {
+                    Name = "skill4",
+                    Active = 0,
+                    MinDelay = 23,
+                    MaxDelay = 34,
+                    Macros = ["macro4", "macro5"]
+                },
+                new Skill
+                {
+                    Name = "skill5",
+                    Active = 0,
+                    MinDelay = 34,
+                    MaxDelay = 45,
+                    Macros = ["macro5", "macro6"]
+                }
+            ];
+        }
+
+        private OrderedDictionary<string, SkillTimeout> _timeouts()
+        {
+            var skillTimeouts = new OrderedDictionary<string, SkillTimeout>();
+            skillTimeouts["s1"] = new SkillTimeout(new Skill { Macros = ["1", "2"] }, new MockTimestamp(), 10.0);
+            skillTimeouts["s2"] = new SkillTimeout(new Skill { Macros = ["2", "3"] }, new MockTimestamp(), 10.0);
+            skillTimeouts["s3"] = new SkillTimeout(new Skill { Macros = ["3", "4"] }, new MockTimestamp(), 10.0);
+            return skillTimeouts;
+        }
+
+        /**
+         * @brief Tests that clearing the skill timeout dictionary removes all tracked skills
+         * 
+         * When the bot clears its skill tracking state (e.g., during configuration reload
+         * or when the user stops the bot), all previously tracked skill cooldowns should
+         * be removed. This prevents old skill states from persisting across different
+         * automation sessions or skill configurations.
+         */
+        private void _testClearingSkillTimeouts()
+        {
+            var selector = _fixture();
+            for (int i = 0; i < 10; i++)
+            {
+                _skillTimeouts.Add(
+                    "meow" + i.ToString(),
+                    new SkillTimeout(new Skill(), new StopwatchTimestamp(), 123)
+                );
+            }
+            selector.Clear();
+            Debug.Assert(_skillTimeouts.Count == 0);
+        }
+
+        /**
+         * @brief Tests that only active skills are added to the timeout tracking system
+         * 
+         * When updating skill timers from the skills model, the bot must only track skills
+         * marked as active (Active != 0). Inactive skills should be ignored and not receive
+         * stopwatches or cooldown timers. This ensures the bot doesn't waste resources
+         * tracking disabled skills and doesn't accidentally execute skills the user has
+         * turned off.
+         */
+        private void _testUpdateSkillTimerAddsActiveSkills()
+        {
+            var selector = _fixture();
+            _skillsModel.SetSkills(_skills());
+            var skills = _skills()
+                .Where(s => s.Name == "skill1" || s.Name == "skill3")
+                .ToList();
+            for (int i = 0; i < skills.Count; i++)
+            {
+                _stopwatchFactory.CreateReturn.Add(new MockTimestamp());
+                _macroRandom.NextReturn.Add(0);
+            }
+            selector.Update(_skillsModel);
+            Debug.Assert(_skillTimeouts.Count == 2);
+            Debug.Assert(_skillTimeouts.ContainsKey("skill1"));
+            Debug.Assert(_skillTimeouts.ContainsKey("skill3"));
+            var skillTimeouts = new[] { _skillTimeouts["skill1"], _skillTimeouts["skill3"] };
+            for (int i = 0; i < skills.Count; i++)
+            {
+                Debug.Assert(skills[i].Active == skillTimeouts[i].Skill.Active);
+                Debug.Assert(skills[i].Name == skillTimeouts[i].Skill.Name);
+                Debug.Assert(skills[i].MinDelay == skillTimeouts[i].Skill.MinDelay);
+                Debug.Assert(skills[i].MaxDelay == skillTimeouts[i].Skill.MaxDelay);
+                Debug.Assert(skills[i].Macros.Count == skillTimeouts[i].Skill.Macros.Count);
+                for (int j = 0; j < skills[i].Macros.Count; j++)
+                {
+                    Debug.Assert(skills[i].Macros[j] == skillTimeouts[i].Skill.Macros[j]);
+                }
+            }
+        }
+
+        /**
+         * @brief Tests that each active skill receives a stopwatch for tracking cooldown elapsed time
+         * 
+         * For each active skill, the bot must create a stopwatch that records when the skill
+         * was last used. This stopwatch is used to measure elapsed time against the skill's
+         * randomized cooldown period to determine when the skill becomes available again.
+         */
+        private void _testUpdateSkillTimerSetsStopwatches()
+        {
+            var selector = _fixture();
+            _skillsModel.SetSkills(_skills());
+            var stopwatches = new[] { new MockTimestamp(), new MockTimestamp() };
+            _stopwatchFactory.CreateReturn.Add(stopwatches[0]);
+            _stopwatchFactory.CreateReturn.Add(stopwatches[1]);
+            _macroRandom.NextReturn.Add(0);
+            _macroRandom.NextReturn.Add(0);
+            selector.Update(_skillsModel);
+            var skillTimeouts = new[] { _skillTimeouts["skill1"], _skillTimeouts["skill3"] };
+            Debug.Assert(stopwatches[0].SetTimestampCalls == 1);
+            Debug.Assert(stopwatches[1].SetTimestampCalls == 1);
+            Debug.Assert(skillTimeouts[0].Stopwatch == stopwatches[0]);
+            Debug.Assert(skillTimeouts[1].Stopwatch == stopwatches[1]);
+        }
+
+        /**
+         * @brief Tests that each active skill receives a randomized cooldown timeout within its
+         * delay range
+         * 
+         * To appear more human-like and avoid detection, the bot randomizes the cooldown
+         * period for each skill between MinDelay and MaxDelay (converted from seconds to
+         * milliseconds). This prevents the bot from using skills on predictable, fixed
+         * intervals that anti-cheat systems might detect as automation.
+         */
+        private void _testUpdateSkillTimerSetsTimeouts()
+        {
+            var selector = _fixture();
+            _skillsModel.SetSkills(_skills());
+            _stopwatchFactory.CreateReturn.Add(new MockTimestamp());
+            _stopwatchFactory.CreateReturn.Add(new MockTimestamp());
+            _macroRandom.NextReturn.Add(1234);
+            _macroRandom.NextReturn.Add(2345);
+            selector.Update(_skillsModel);
+            var skillTimeouts = new[] { _skillTimeouts["skill1"], _skillTimeouts["skill3"] };
+            Debug.Assert(skillTimeouts[0].Timeout == 1.234);
+            Debug.Assert(skillTimeouts[1].Timeout == 2.345);
+            Debug.Assert(_macroRandom.NextCalls == 2);
+            Debug.Assert(_macroRandom.NextCallArg_minValue[0] == 234000);
+            Debug.Assert(_macroRandom.NextCallArg_maxValue[0] == 345000);
+            Debug.Assert(_macroRandom.NextCallArg_minValue[1] == 345000);
+            Debug.Assert(_macroRandom.NextCallArg_maxValue[1] == 456000);
+        }
+
+        /**
+         * @brief Tests that skill timers are correctly updated when skill configurations change
+         * 
+         * When the user modifies a skill's configuration (such as changing its name, delays,
+         * or macros), the bot must detect these changes and create new stopwatches for the
+         * updated skills. This ensures that changes to skill delay parameters take effect
+         * immediately without requiring a bot restart.
+         */
+        private void _testUpdateSkillTimerUpdatesStopwatches()
+        {
+            var selector = _fixture();
+            _skillsModel.SetSkills(_skills());
+            var stopwatches = new[]
+            {
+                new MockTimestamp(),
+                new MockTimestamp(),
+                new MockTimestamp(),
+                new MockTimestamp(),
+            };
+            _stopwatchFactory.CreateReturn.Add(stopwatches[0]);
+            _stopwatchFactory.CreateReturn.Add(stopwatches[1]);
+            _stopwatchFactory.CreateReturn.Add(stopwatches[2]);
+            _stopwatchFactory.CreateReturn.Add(stopwatches[3]);
+            _macroRandom.NextReturn.Add(0);
+            _macroRandom.NextReturn.Add(0);
+            _macroRandom.NextReturn.Add(0);
+            _macroRandom.NextReturn.Add(0);
+            selector.Update(_skillsModel);
+            selector.Update(_skillsModel);
+            Debug.Assert(_skillTimeouts["skill1"].Stopwatch == stopwatches[0]);
+            Debug.Assert(_skillTimeouts["skill3"].Stopwatch == stopwatches[1]);
+            Debug.Assert(stopwatches[0].SetTimestampCalls == 1);
+            Debug.Assert(stopwatches[1].SetTimestampCalls == 1);
+            _skillsModel.SetSkill(
+                new Skill
+                {
+                    Name = "skill1",
+                    Active = 123,
+                    MinDelay = 12,
+                    MaxDelay = 345,
+                    Macros = ["macro1", "macro2"]
+                }
+            );
+            _skillsModel.SetSkill(
+                new Skill
+                {
+                    Name = "skill3",
+                    Active = 234,
+                    MinDelay = 345,
+                    MaxDelay = 1234,
+                    Macros = ["macro3", "macro4"]
+                }
+            );
+            selector.Update(_skillsModel);
+            Debug.Assert(_skillTimeouts["skill1"].Stopwatch == stopwatches[2]);
+            Debug.Assert(_skillTimeouts["skill3"].Stopwatch == stopwatches[3]);
+            Debug.Assert(stopwatches[2].SetTimestampCalls == 1);
+            Debug.Assert(stopwatches[3].SetTimestampCalls == 1);
+        }
+
+        /**
+         * @brief Tests that skill timeout values are recalculated when skill delays change
+         * 
+         * When the user modifies a skill's MinDelay or MaxDelay values, the bot must
+         * regenerate the randomized cooldown timeout using the new delay range. This ensures
+         * that updated delay settings are immediately applied to the skill's cooldown
+         * behavior.
+         */
+        private void _testUpdateSkillTimerUpdatesTimeouts()
+        {
+            var selector = _fixture();
+            _skillsModel.SetSkills(_skills());
+            _stopwatchFactory.CreateReturn.Add(new MockTimestamp());
+            _stopwatchFactory.CreateReturn.Add(new MockTimestamp());
+            _stopwatchFactory.CreateReturn.Add(new MockTimestamp());
+            _stopwatchFactory.CreateReturn.Add(new MockTimestamp());
+            _macroRandom.NextReturn.Add(1234);
+            _macroRandom.NextReturn.Add(2345);
+            _macroRandom.NextReturn.Add(3456);
+            _macroRandom.NextReturn.Add(4567);
+            selector.Update(_skillsModel);
+            selector.Update(_skillsModel);
+            Debug.Assert(_macroRandom.NextCalls == 2);
+            Debug.Assert(_skillTimeouts["skill1"].Timeout == 1.234);
+            Debug.Assert(_skillTimeouts["skill3"].Timeout == 2.345);
+            _skillsModel.SetSkill(
+                new Skill
+                {
+                    Name = "skill1",
+                    Active = 123,
+                    MinDelay = 12,
+                    MaxDelay = 345,
+                    Macros = ["macro1", "macro2"]
+                }
+            );
+            _skillsModel.SetSkill(
+                new Skill
+                {
+                    Name = "skill3",
+                    Active = 234,
+                    MinDelay = 345,
+                    MaxDelay = 1234,
+                    Macros = ["macro3", "macro4"]
+                }
+            );
+            selector.Update(_skillsModel);
+            Debug.Assert(_skillTimeouts.Count == 2);
+            Debug.Assert(_skillTimeouts["skill1"].Timeout == 3.456);
+            Debug.Assert(_skillTimeouts["skill3"].Timeout == 4.567);
+            Debug.Assert(_macroRandom.NextCalls == 4);
+            Debug.Assert(_macroRandom.NextCallArg_minValue[2] == 12000);
+            Debug.Assert(_macroRandom.NextCallArg_maxValue[2] == 345000);
+            Debug.Assert(_macroRandom.NextCallArg_minValue[3] == 345000);
+            Debug.Assert(_macroRandom.NextCallArg_maxValue[3] == 1234000);
+        }
+
+        /**
+         * @brief Tests that skills marked inactive are removed from the timeout tracking system
+         * 
+         * When the user deactivates a skill (Active = 0) that was previously active, the bot
+         * must remove that skill from the timeout dictionary. This prevents the bot from
+         * continuing to track cooldowns for skills that are no longer enabled and ensures
+         * that disabled skills are never executed during combat automation.
+         */
+        private void _testUpdateSkillTimerRemovesInactiveSkills()
+        {
+            var selector = _fixture();
+            _skillsModel.SetSkills(_skills());
+            _stopwatchFactory.CreateReturn.Add(new MockTimestamp());
+            _stopwatchFactory.CreateReturn.Add(new MockTimestamp());
+            _macroRandom.NextReturn.Add(1234);
+            _macroRandom.NextReturn.Add(2345);
+            selector.Update(_skillsModel);
+            _skillsModel.SetSkill(
+                new Skill
+                {
+                    Name = "skill3",
+                    Active = 0,
+                    MinDelay = 345,
+                    MaxDelay = 1234,
+                    Macros = ["macro3", "macro4"]
+                }
+            );
+            selector.Update(_skillsModel);
+            Debug.Assert(_skillTimeouts.ContainsKey("skill1"));
+            Debug.Assert(!_skillTimeouts.ContainsKey("skill3"));
+        }
+
+        /**
+         * @brief Tests that when a skill's cooldown has expired, its macro commands are returned
+         * 
+         * This test creates three skills with different elapsed times:
+         * - s1: 9.99s elapsed (not ready - still on cooldown)
+         * - s2: 10.01s elapsed (ready - cooldown expired)
+         * - s3: 10.00s elapsed (not ready - equal does not exceed threshold)
+         */
+        private void _testSelectSkillMacroCommandsReturnsReadySkillMacros()
+        {
+            var selector = _fixture();
+            _macroRandom.NextReturn.Add(1234);
+            ((MockTimestamp)_skillTimeouts["s1"].Stopwatch).GetTimestampReturn.Add(9.99);
+            ((MockTimestamp)_skillTimeouts["s2"].Stopwatch).GetTimestampReturn.Add(10.01);
+            ((MockTimestamp)_skillTimeouts["s3"].Stopwatch).GetTimestampReturn.Add(10.00);
+            var result = selector.Select(_skillsModel);
+            Debug.Assert(result.Count == 2);
+            Debug.Assert(result[0] == "2");
+            Debug.Assert(result[1] == "3");
+        }
+
+        /**
+         * @brief Tests that when a skill's cooldown expires, its timer is reset for the next cycle
+         * 
+         * When a skill is selected for execution (s2 with elapsed 10.01 > timeout 10.0),
+         * the bot must reset that skill's stopwatch and generate a new random timeout.
+         * This prevents the skill from being used again immediately and creates randomized
+         * cooldown periods for more human-like behavior.
+         */
+        private void _testSelectSkillMacroCommandsResetsSkillTimer()
+        {
+            var selector = _fixture();
+            _macroRandom.NextReturn.Add(1234);
+            ((MockTimestamp)_skillTimeouts["s1"].Stopwatch).GetTimestampReturn.Add(9.99);
+            ((MockTimestamp)_skillTimeouts["s2"].Stopwatch).GetTimestampReturn.Add(10.01);
+            ((MockTimestamp)_skillTimeouts["s3"].Stopwatch).GetTimestampReturn.Add(10.00);
+            var result = selector.Select(_skillsModel);
+            Debug.Assert(((MockTimestamp)_skillTimeouts["s2"].Stopwatch).SetTimestampCalls == 1);
+            Debug.Assert(_skillTimeouts["s2"].Timeout == 1.234);
+        }
+
+        /**
+         * @brief Tests that skills are checked in insertion order and each can be selected over time
+         * 
+         * Skills are stored in an ordered dictionary and evaluated in the order they were added.
+         * This test performs two sequential Select calls:
+         * 
+         * First call: s1 has 0s elapsed (not ready), s2 has 10.01s elapsed (ready).
+         * The selector returns s2's macros ["2", "3"].
+         * 
+         * Second call: After s2's timer was reset, both s1 and s2 show 0s elapsed (not ready),
+         * but s3 now has 10.01s elapsed (ready). The selector returns s3's macros ["3", "4"].
+         */
+        private void _testSelectSkillMacroCommandsChecksSkillsInOrder()
+        {
+            var selector = _fixture();
+            _macroRandom.NextReturn.Add(1234);
+            _macroRandom.NextReturn.Add(1234);
+            ((MockTimestamp)_skillTimeouts["s1"].Stopwatch).GetTimestampReturn.Add(0);
+            ((MockTimestamp)_skillTimeouts["s2"].Stopwatch).GetTimestampReturn.Add(10.01);
+            ((MockTimestamp)_skillTimeouts["s1"].Stopwatch).GetTimestampReturn.Add(0);
+            ((MockTimestamp)_skillTimeouts["s2"].Stopwatch).GetTimestampReturn.Add(0);
+            ((MockTimestamp)_skillTimeouts["s3"].Stopwatch).GetTimestampReturn.Add(10.01);
+            var result1 = selector.Select(_skillsModel);
+            Debug.Assert(result1.Count == 2);
+            Debug.Assert(result1[0] == "2");
+            Debug.Assert(result1[1] == "3");
+            var result2 = selector.Select(_skillsModel);
+            Debug.Assert(result2.Count == 2);
+            Debug.Assert(result2[0] == "3");
+            Debug.Assert(result2[1] == "4");
+        }
+
+        /**
+         * @brief Tests that no macro commands are returned when all skills are on cooldown
+         * 
+         * All three skills have elapsed time (0s) less than their timeout values (10.0s),
+         * meaning none are ready for execution. The selector should return an empty list.
+         * This prevents the bot from attempting to execute skills when all are still
+         * within their randomized cooldown periods.
+         */
+        private void _testSelectSkillMacroCommandsReturnsEmptyOnCooldown()
+        {
+            var selector = _fixture();
+            ((MockTimestamp)_skillTimeouts["s1"].Stopwatch).GetTimestampReturn.Add(0);
+            ((MockTimestamp)_skillTimeouts["s2"].Stopwatch).GetTimestampReturn.Add(0);
+            ((MockTimestamp)_skillTimeouts["s3"].Stopwatch).GetTimestampReturn.Add(0);
+            var result = selector.Select(_skillsModel);
+            Debug.Assert(result.Count == 0);
+        }
+
+        public void Run()
+        {
+            _testClearingSkillTimeouts();
+            _testUpdateSkillTimerAddsActiveSkills();
+            _testUpdateSkillTimerSetsStopwatches();
+            _testUpdateSkillTimerSetsTimeouts();
+            _testUpdateSkillTimerUpdatesStopwatches();
+            _testUpdateSkillTimerUpdatesTimeouts();
+            _testUpdateSkillTimerRemovesInactiveSkills();
+            _testSelectSkillMacroCommandsReturnsReadySkillMacros();
+            _testSelectSkillMacroCommandsResetsSkillTimer();
+            _testSelectSkillMacroCommandsChecksSkillsInOrder();
+            _testSelectSkillMacroCommandsReturnsEmptyOnCooldown();
+        }
+    }
+
+
+    public class SkillCommandsExecutorTests
+    {
+        private MockSkillMacroCommandsSelector _skillCommandsSelector = (
+            new MockSkillMacroCommandsSelector()
+        );
+
+        private MockMacroCommandsExecutorBuilder _executorBuilder = (
+            new MockMacroCommandsExecutorBuilder()
+        );
+
+        private MockMacroCommandsExecutor _executor = (
+            new MockMacroCommandsExecutor()
+        );
+
+        private AbstractSkillsModel _skillsModel = new SkillsModel();
+
+        private List<string> _callOrder = [];
+
+        private AbstractBottingCommandsExecutor _fixture()
+        {
+            _skillCommandsSelector = new MockSkillMacroCommandsSelector();
+            _executorBuilder = new MockMacroCommandsExecutorBuilder();
+            _executor = new MockMacroCommandsExecutor();
+            _executorBuilder.BuildReturn.Add(_executor);
+            _skillsModel = new SkillsModel();
+            _callOrder = [];
+            _skillCommandsSelector.CallOrder = _callOrder;
+            _executor.CallOrder = _callOrder;
+            var executor = new SkillCommandsExecutor(
+                _skillCommandsSelector,
+                _executorBuilder
+            );
+            executor.Inject(SystemInjectType.SkillsModel, _skillsModel);
+            executor.Inject(
+                SystemInjectType.KeystrokeTransmitter,
+                new MockKeystrokeTransmitter()
+            );
+            return executor;
+        }
+
+        /**
+         * @brief Tests that the skill commands executor follows the correct execution sequence
+         * 
+         * When the bot executes skill commands, it must first update the skill timers to
+         * recalculate cooldowns, then select which skill's macro commands are ready, and
+         * finally execute those commands through the macro executor. This order ensures
+         * that skill cooldowns are current before selection and that selected commands
+         * are properly executed.
+         */
+        private void _testExecuteCallOrder()
+        {
+            var executor = _fixture();
+            var selectorRef = new TestUtilities().Reference(_skillCommandsSelector);
+            var executeRef = new TestUtilities().Reference(_executor);
+            _skillCommandsSelector.SelectReturn.Add(["1"]);
+            executor.Execute();
+            Debug.Assert(_callOrder.Count == 3);
+            Debug.Assert(_callOrder[0] == selectorRef + "Update");
+            Debug.Assert(_callOrder[1] == selectorRef + "Select");
+            Debug.Assert(_callOrder[2] == executeRef + "Execute");
+        }
+
+        /**
+         * @brief Tests that macro commands are only executed when skills are actually selected
+         * 
+         * When the skill selector returns macro commands (indicating a skill is ready),
+         * the executor must pass those commands to the macro executor for execution.
+         * When the selector returns an empty list (no skills ready), the executor should
+         * do nothing and not invoke the macro executor.
+         */
+        private void _testExecuteCallsWhenCommandsSelected()
+        {
+            foreach (var commands in new[] { new List<string> { "1", "2" }, [] })
+            {
+                var executor = _fixture();
+                _skillCommandsSelector.SelectReturn.Add(commands);
+                Debug.Assert(executor.Execute() == commands.Count > 0);
+                if (commands.Count > 0)
+                {
+                    Debug.Assert(_executor.ExecuteCalls == 1);
+                    Debug.Assert(_executor.ExecuteCallArg_macroCommands[0].Count == commands.Count);
+                    for (int i = 0; i < commands.Count; i++)
+                    {
+                        Debug.Assert(_executor.ExecuteCallArg_macroCommands[0][i] == commands[i]);
+                    }
+                }
+                else
+                {
+                    Debug.Assert(_executor.ExecuteCalls == 0);
+                }
+            }
+        }
+
+        /**
+         * @brief Tests that the correct skills model is passed to the selector methods
+         * 
+         * The skill commands executor holds a reference to the skills model containing
+         * all skill configurations. When updating and selecting skills, it must pass this
+         * same model instance to the selector's Update and Select methods. This ensures
+         * the selector has access to the most current skill data.
+         */
+        private void _testSelectorParameters()
+        {
+            var executor = _fixture();
+            _skillCommandsSelector.SelectReturn.Add([]);
+            executor.Execute();
+            Debug.Assert(_skillCommandsSelector.UpdateCallArg_skillsModel[0] == _skillsModel);
+            Debug.Assert(_skillCommandsSelector.SelectCallArg_skillsModel[0] == _skillsModel);
+        }
+
+        /**
+         * @brief Tests that the skill selector is cleared when the macro stops
+         * 
+         * When the bot's macro execution stops, the skill selector's internal state
+         * should be cleared. This prevents stale skill timers from persisting across
+         * different botting sessions and ensures a fresh state when automation resumes.
+         */
+        private void _testSelectorClearsWhenMacroStopped()
+        {
+            var executor = _fixture();
+            executor.Inject(MacroExecutorThreadedUpdate.Stopped, 0);
+            Debug.Assert(_skillCommandsSelector.ClearCalls == 1);
+        }
+
+        public void Run()
+        {
+            _testExecuteCallOrder();
+            _testExecuteCallsWhenCommandsSelected();
+            _testSelectorParameters();
+            _testSelectorClearsWhenMacroStopped();
+        }
+    }
+
+
+    public class BottingCommandsExecutorTests
     {
         private MockMacroCommandsExecutorBuilder _executorBuilder = new MockMacroCommandsExecutorBuilder();
 
@@ -192,7 +775,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             ];
         }
 
-        private AbstractKeystrokeTransmitterThreadHelper _fixture()
+        private AbstractBottingCommandsExecutor _fixture()
         {
             _executorBuilder = new MockMacroCommandsExecutorBuilder();
             _executor = new MockMacroCommandsExecutor();
@@ -223,7 +806,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
                 );
             }
             _executorBuilder.BuildReturn.Add(_executor);
-            return new BottingExecutorThreadHelper(
+            return new BottingCommandsExecutor(
                 new BottingPointDataSelector("some key"),
                 new BottingRandomMacroCommandsSelector(new MacroRandom()),
                 _executorBuilder
@@ -239,8 +822,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
          */
         private void _testInjectingBottingBuildsExecutor()
         {
-            var executorThreadHelper = _fixture();
-            executorThreadHelper.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
+            var bottingCommandsExecutor = _fixture();
+            bottingCommandsExecutor.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
             Debug.Assert(_executorBuilder.WithArgCalls == 1);
             Debug.Assert(_executorBuilder.WithArgCallArg_arg[0] == _keystrokeTransmitter);
             Debug.Assert(_executorBuilder.BuildCalls == 1);
@@ -259,12 +842,12 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             var closestPoints = _closestPoints();
             for (int i = 0; i < closestPoints.Count(); i++)
             {
-                var executorThreadHelper = _fixture();
+                var bottingCommandsExecutor = _fixture();
                 var (pX, pY) = ((int) closestPoints[i].X, (int) closestPoints[i].Y);
                 _bottingModel.GetMapModel().SetTemplatePosition("some key", pX, pY);
-                executorThreadHelper.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
-                executorThreadHelper.Inject(SystemInjectType.BottingModel, _bottingModel);
-                executorThreadHelper.Transmit();
+                bottingCommandsExecutor.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
+                bottingCommandsExecutor.Inject(SystemInjectType.BottingModel, _bottingModel);
+                bottingCommandsExecutor.Execute();
                 Debug.Assert(_executor.ExecuteCalls == 1);
                 Debug.Assert(_executor.ExecuteCallArg_macroCommands.Count == 1);
                 Debug.Assert(_executor.ExecuteCallArg_macroCommands[0].Count == 1);
@@ -279,6 +862,86 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         }
     }
     
+
+    public class BottingExecutorThreadHelperTests
+    {
+        private List<AbstractBottingCommandsExecutor> _bottingCommandsExecutor = [];
+
+        private AbstractKeystrokeTransmitterThreadHelper _fixture()
+        {
+            _bottingCommandsExecutor = [
+                new MockBottingCommandsExecutor(),
+                new MockBottingCommandsExecutor(),
+                new MockBottingCommandsExecutor(),
+                new MockBottingCommandsExecutor(),
+            ];
+            return new BottingExecutorThreadHelper(_bottingCommandsExecutor);
+        }
+
+        /**
+         * @brief Tests that the botting executor thread helper executes executors in order until one succeeds
+         * 
+         * The botting system may have multiple executors (e.g., macro executor, skill executor,
+         * consumable executor) that are tried in priority order. The thread helper must iterate
+         * through each executor, call its Execute method, and stop at the first one that returns true
+         * (indicating a successful execution). This prevents multiple actions from being taken
+         * in a single cycle and establishes execution priority.
+         */
+        private void _testTransmitExecutesUntilSuccessful()
+        {
+            for (int i = 0; i < _bottingCommandsExecutor.Count; i++)
+            {
+                var helper = _fixture();
+                for (int j = 0; j < i; j++)
+                {
+                    var failExecutor = (MockBottingCommandsExecutor)_bottingCommandsExecutor[j];
+                    failExecutor.ExecuteReturn.Add(false);
+                }
+                var successfulExecutor = (MockBottingCommandsExecutor)_bottingCommandsExecutor[i];
+                successfulExecutor.ExecuteReturn.Add(true);
+                helper.Transmit();
+                for (int j = 0; j <= i; j++)
+                {
+                    var calledExecutor = (MockBottingCommandsExecutor)_bottingCommandsExecutor[j];
+                    Debug.Assert(calledExecutor.ExecuteCalls == 1);
+                }
+                for (int j = i + 1; j < _bottingCommandsExecutor.Count; j++)
+                {
+                    var calledExecutor = (MockBottingCommandsExecutor)_bottingCommandsExecutor[j];
+                    Debug.Assert(calledExecutor.ExecuteCalls == 0);
+                }
+            }
+        }
+
+        /**
+         * @brief Tests that injection data is forwarded to all botting executors
+         * 
+         * When external data (such as configuration updates, keystroke transmitters, or
+         * threshold values) is injected into the thread helper, it must forward that data
+         * to every botting executor in the collection. This ensures all executors stay
+         * synchronized with the latest bot configuration and system state.
+         */
+        private void _testInjectionIntoAllExecutors()
+        {
+            var helper = _fixture();
+            helper.Inject(123, 234);
+            foreach (var executor in _bottingCommandsExecutor)
+            {
+                var calledExecutor = (MockBottingCommandsExecutor)executor;
+                Debug.Assert(calledExecutor.InjectCalls == 1);
+                Debug.Assert((int)calledExecutor.InjectCallArg_dataType[0] == 123);
+                Debug.Assert((int)calledExecutor.InjectCallArg_data[0]! == 234);
+            }
+
+        }
+
+        public void Run()
+        {
+            _testTransmitExecutesUntilSuccessful();
+            _testInjectionIntoAllExecutors();
+        }
+    }
+
 
     public class BottingExecutorThreadTests
     {
@@ -832,6 +1495,9 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         {
             new RandomBottingMacroCommandsSelectorTests().Run();
             new BottingPointDataSelectorTests().Run();
+            new SkillMacroCommandsSelectorTests().Run();
+            new SkillCommandsExecutorTests().Run();
+            new BottingCommandsExecutorTests().Run();
             new BottingExecutorThreadHelperTests().Run();
             new BottingExecutorThreadTests().Run();
             new BottingOrchestratorThreadTests().Run();

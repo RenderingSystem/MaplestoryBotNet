@@ -1,4 +1,5 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
 using System.Collections.Concurrent;
@@ -107,7 +108,202 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
     }
 
 
-    public class BottingExecutorThreadHelper : AbstractKeystrokeTransmitterThreadHelper
+    public abstract class AbstractSkillMacroCommandsSelector
+    {
+        public abstract void Clear();
+
+        public abstract void Update(AbstractSkillsModel skillsModel);
+
+        public abstract List<string> Select(AbstractSkillsModel skillsModel);
+    }
+
+
+    public class SkillTimeout
+    {
+        public Skill Skill;
+
+        public AbstractTimestamp Stopwatch;
+
+        public double Timeout;
+
+        public SkillTimeout(
+            Skill skill,
+            AbstractTimestamp stopwatch,
+            double timeout
+        )
+        {
+            Skill = skill;
+            Stopwatch = stopwatch;
+            Timeout = timeout;
+        }
+    }
+
+
+    public class SkillMacroCommandsSelector : AbstractSkillMacroCommandsSelector
+    {
+        private object _skillsLock;
+
+        private OrderedDictionary<string, SkillTimeout> _skillTimeouts;
+
+        private AbstractTimestampFactory _stopwatchFactory;
+
+        private AbstractMacroRandom _macroRandom;
+
+        public SkillMacroCommandsSelector(
+            OrderedDictionary<string, SkillTimeout> skillTimeouts,
+            AbstractTimestampFactory stopwatchFactory,
+            AbstractMacroRandom macroRandom
+        )
+        {
+            _skillsLock = new object();
+            _skillTimeouts = skillTimeouts;
+            _stopwatchFactory = stopwatchFactory;
+            _macroRandom = macroRandom;
+        }
+
+        public override void Clear()
+        {
+            lock (_skillsLock)
+            {
+                _skillTimeouts.Clear();
+            }
+        }
+
+        public override void Update(
+            AbstractSkillsModel skillsModel
+        )
+        {
+            lock (_skillsLock)
+            {
+                var skills = skillsModel
+                    .GetSkills()
+                    .Where(s => s.Active != 0)
+                    .ToList();
+
+                foreach (var skill in skills)
+                {
+                    if (
+                        !_skillTimeouts.ContainsKey(skill.Name) ||
+                        _skillTimeouts[skill.Name].Skill.MinDelay != skill.MinDelay ||
+                        _skillTimeouts[skill.Name].Skill.MaxDelay != skill.MaxDelay
+                    )
+                    {
+                        var stopwatch = _stopwatchFactory.Create();
+                        var min = Math.Min(skill.MinDelay, skill.MaxDelay) * 1000;
+                        var max = Math.Max(skill.MinDelay, skill.MaxDelay) * 1000;
+                        var random = _macroRandom.Next(min, max) / 1000.0;
+                        var skillTimeout = new SkillTimeout(skill, stopwatch, random);
+                        stopwatch.SetTimestamp();
+                        _skillTimeouts[skill.Name] = skillTimeout;
+                    }
+                }
+
+                var keysToRemove = _skillTimeouts
+                    .Where(kv => !skills.Any(s => s.Name == kv.Key))
+                    .Select(kv => kv.Key)
+                    .ToList();
+                foreach (var key in keysToRemove)
+                {
+                    _skillTimeouts.Remove(key);
+                }
+            }
+        }
+
+        public override List<string> Select(
+            AbstractSkillsModel skillsModel
+        )
+        {
+            lock (_skillsLock)
+            {
+                foreach (var skillTimeout in _skillTimeouts.Values)
+                {
+                    if (skillTimeout.Stopwatch.GetTimestamp() > skillTimeout.Timeout)
+                    {
+                        skillTimeout.Stopwatch.SetTimestamp();
+                        skillTimeout.Timeout = _macroRandom.Next(
+                            skillTimeout.Skill.MinDelay * 1000,
+                            skillTimeout.Skill.MaxDelay * 1000
+                        ) / 1000.0;
+                        return [.. skillTimeout.Skill.Macros];
+                    }
+                }
+                return [];
+            }
+        }
+    }
+
+
+    public abstract class AbstractBottingCommandsExecutor : IDataInjectable
+    {
+        public abstract bool Execute();
+
+        public abstract void Inject(object dataType, object? data);
+    }
+
+
+    public class SkillCommandsExecutor : AbstractBottingCommandsExecutor
+    {
+        private AbstractSkillMacroCommandsSelector _skillCommandsSelector;
+
+        private AbstractMacroCommandsExecutorBuilder _macroCommandsExecutorBuilder;
+
+        private AbstractMacroCommandsExecutor? _macroCommandsExecutor;
+
+        private AbstractSkillsModel? _skillsModel;
+
+        public SkillCommandsExecutor(
+            AbstractSkillMacroCommandsSelector skillCommandsSelector,
+            AbstractMacroCommandsExecutorBuilder macroCommandsExecutorBuilder
+        )
+        {
+            _skillCommandsSelector = skillCommandsSelector;
+            _macroCommandsExecutorBuilder = macroCommandsExecutorBuilder;
+            _macroCommandsExecutor = null;
+            _skillsModel = null;
+        }
+
+        public override bool Execute()
+        {
+            _skillCommandsSelector.Update(_skillsModel!);
+            if (
+                _skillCommandsSelector.Select(_skillsModel!)
+                is List<string> skillCommands
+                && skillCommands.Count > 0
+            )
+            {
+                _macroCommandsExecutor!.Execute(skillCommands);
+                return true;
+            }
+            return false;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (
+                dataType is SystemInjectType.KeystrokeTransmitter &&
+                data is AbstractKeystrokeTransmitter keystrokeTransmitter
+            )
+            {
+                _macroCommandsExecutor = _macroCommandsExecutorBuilder
+                    .WithArg(keystrokeTransmitter)
+                    .Build();
+            }
+            else if (
+                dataType is SystemInjectType.SkillsModel &&
+                data is AbstractSkillsModel skillsModel
+            )
+            {
+                _skillsModel = skillsModel;
+            }
+            else if (dataType is MacroExecutorThreadedUpdate.Stopped)
+            {
+                _skillCommandsSelector.Clear();
+            }
+        }
+    }
+
+
+    public class BottingCommandsExecutor : AbstractBottingCommandsExecutor
     {
         private AbstractBottingPointDataSelector _pointDataSelector;
 
@@ -119,29 +315,32 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
 
         private AbstractBottingModel? _bottingModel;
 
-        public BottingExecutorThreadHelper(
+        public BottingCommandsExecutor(
             AbstractBottingPointDataSelector pointDataSelector,
             AbstractBottingMacroCommandsSelector macroCommandsSelector,
-            AbstractMacroCommandsExecutorBuilder executorBuilder
-
+            AbstractMacroCommandsExecutorBuilder macroCommandsExecutorBuilder
         )
         {
             _pointDataSelector = pointDataSelector;
             _macroCommandsSelector = macroCommandsSelector;
-            _macroCommandsExecutorBuilder = executorBuilder;
+            _macroCommandsExecutorBuilder = macroCommandsExecutorBuilder;
             _macroCommandsExecutor = null;
+            _bottingModel = null;
         }
 
-        public override bool Transmit()
+        public override bool Execute()
         {
-            var transmitData = _pointDataSelector.SelectPoint(_bottingModel!);
-            if (transmitData != null)
+            if (
+                _pointDataSelector.SelectPoint(_bottingModel!)
+                is MinimapPointData transmitData
+            )
             {
                 var commands = transmitData.Commands;
                 var macroCommands = _macroCommandsSelector.SelectMacroCommands(commands);
                 _macroCommandsExecutor!.Execute(macroCommands);
+                return true;
             }
-            return true;
+            return false;
         }
 
         public override void Inject(object dataType, object? data)
@@ -163,10 +362,43 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
                 _bottingModel = bottingModel;
             }
         }
+    }
+
+
+    public class BottingExecutorThreadHelper : AbstractKeystrokeTransmitterThreadHelper
+    {
+        private List<AbstractBottingCommandsExecutor> _commandExecutors;
+
+        public BottingExecutorThreadHelper(
+            List<AbstractBottingCommandsExecutor> commandExecutors
+        )
+        {
+            _commandExecutors = commandExecutors;
+        }
+
+        public override bool Transmit()
+        {
+            foreach (var executor in _commandExecutors)
+            {
+                if (executor.Execute())
+                {
+                    return true;
+                }
+            }
+            return true;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            foreach (var executor in _commandExecutors)
+            {
+                executor.Inject(dataType, data);
+            }
+        }
 
         public override void Reset()
         {
-            return;
+
         }
     }
 
@@ -284,9 +516,21 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
                 new BottingExecutorThread(
                     new ExecutionEvent(),
                     new BottingExecutorThreadHelper(
-                        new BottingPointDataSelector(_templateKey),
-                        new BottingRandomMacroCommandsSelector(new MacroRandom()),
-                        new MacroCommandsExecutorBuilder()
+                        [
+                            new SkillCommandsExecutor(
+                                new SkillMacroCommandsSelector(
+                                    [],
+                                    new StopwatchTimestampFactory(),
+                                    new MacroRandom()
+                                ),
+                                new MacroCommandsExecutorBuilder()
+                            ),
+                            new BottingCommandsExecutor(
+                                new BottingPointDataSelector(_templateKey),
+                                new BottingRandomMacroCommandsSelector(new MacroRandom()),
+                                new MacroCommandsExecutorBuilder()
+                            )
+                        ]
                     ),
                     new KeystrokeTransmitterThreadState(
                         (int)BottingExecutorThreadedUpdate.Stopped,

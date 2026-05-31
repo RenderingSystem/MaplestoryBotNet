@@ -32,6 +32,8 @@
 
         public abstract void SetSkills(List<Skill> skills);
 
+        public abstract void SetSkill(Skill skill);
+
         public abstract void SetSkillsModel(AbstractSkillsModel skillsModel);
 
         public abstract AbstractSkillsModel Copy();
@@ -61,6 +63,18 @@
         public override void SetSkillsModel(AbstractSkillsModel skillsModel)
         {
             _skills = skillsModel.GetSkills();
+        }
+
+        public override void SetSkill(Skill skill)
+        {
+            skill = skill.Copy();
+            var skills = GetSkills();
+            var index = skills.FindIndex((s => s.Name == skill.Name));
+            if (index >= 0)
+            {
+                skills[index] = skill;
+            }
+            _skills = skills;
         }
     }
 }

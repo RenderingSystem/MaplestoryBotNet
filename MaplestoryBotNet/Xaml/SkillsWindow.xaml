@@ -29,7 +29,7 @@
     <Viewbox Stretch="Fill">
         <Grid Width="500" Height="300">
             <TextBox
-                x:Name="SkillsMaxDelayTextBox"
+                x:Name="SkillsMinDelayTextBox"
                 Margin="324,204,125,73"
                 Text="0"
                 VerticalContentAlignment="Center"
@@ -124,7 +124,7 @@
                 FontFamily="Courier New"
             />
             <TextBox
-                x:Name="SkillsMinDelayTextBox"
+                x:Name="SkillsMaxDelayTextBox"
                 Margin="444,205,5,72"
                 Text="0"
                 VerticalContentAlignment="Center"

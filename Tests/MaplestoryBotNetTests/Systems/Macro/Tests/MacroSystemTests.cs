@@ -43,9 +43,9 @@ namespace MaplestoryBotNetTests.Systems.Macro.Tests
                 MockThreadedUpdateType
             >(
                 MockOrchestratorInjectType.Start,
-                MockThreadedUpdateType.Started,
+                [MockThreadedUpdateType.Started],
                 MockOrchestratorInjectType.Stop,
-                MockThreadedUpdateType.Stopped
+                [MockThreadedUpdateType.Stopped]
             );
             controller.SetOrchestrator(_mockOrchestrator);
             controller.SetOrchestratorThreadState(_mockState);
