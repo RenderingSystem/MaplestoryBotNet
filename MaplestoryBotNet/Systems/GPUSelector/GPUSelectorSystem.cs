@@ -47,14 +47,7 @@ namespace MaplestoryBotNet.Systems.GPUSelector
 
         AbstractGPUSelection _gpuSelection;
 
-        private volatile AbstractWindowStateModifier? __modifier;
-
-        private AbstractWindowStateModifier? _modifier
-        {
-            set => __modifier = value;
-
-            get => __modifier;
-        }
+        private volatile AbstractWindowActionHandler? _splashScreenActionHandler;
 
         public GPUSelectorThread(
             AbstractThreadRunningState runningState,
@@ -64,7 +57,7 @@ namespace MaplestoryBotNet.Systems.GPUSelector
         {
             _deviceSelectionSystem = deviceSelectionSystem;
             _gpuSelection = gpuSelection;
-            _modifier = null;
+            _splashScreenActionHandler = null;
         }
 
         public override void ThreadLoop()
@@ -74,10 +67,10 @@ namespace MaplestoryBotNet.Systems.GPUSelector
             _gpuSelection.SetSelection(selected);
             while (_runningState.IsRunning())
             {
-                var modifier = _modifier;
-                if (modifier != null)
+                var splashScreenActionHandler = _splashScreenActionHandler;
+                if (splashScreenActionHandler != null)
                 {
-                    modifier.Modify(_gpuSelection);
+                    splashScreenActionHandler.Inject(0, _gpuSelection);
                     return;
                 }
             }
@@ -87,10 +80,11 @@ namespace MaplestoryBotNet.Systems.GPUSelector
         {
             if (
                 dataType is SystemInjectType.ActionHandler
-                && value is WindowSplashScreenCompleteActionHandler handler
+                && value is AbstractWindowActionHandler splashScreenActionHandler
+                && splashScreenActionHandler.Modifier().State(0) is SplashScreenTypes.StartSplash
             )
             {
-                _modifier = handler.Modifier();
+                _splashScreenActionHandler = splashScreenActionHandler;
             }
         }
     }

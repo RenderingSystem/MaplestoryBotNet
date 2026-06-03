@@ -4,7 +4,7 @@ using MaplestoryBotNet.ThreadingUtils;
 using System.Collections.Concurrent;
 
 
-namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
+namespace MaplestoryBotNet.Systems.Device.SubSystems.Transmitters
 {
     public enum AilmentOrchestratorThreadInjectType
     {

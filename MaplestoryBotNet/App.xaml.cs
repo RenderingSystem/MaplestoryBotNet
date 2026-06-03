@@ -50,7 +50,7 @@ namespace MaplestoryBotNet
             _skillsWindow = new SkillsWindow();
             _mainApplication = new MainApplicationFacade();
             _mapWindow = new MapWindow(_bottingEditMenuState, _runeingEditMenuState);
-            _splashScreen = new SplashScreen(_mainApplication.System());
+            _splashScreen = new SplashScreen();
             Initialize();
         }
 

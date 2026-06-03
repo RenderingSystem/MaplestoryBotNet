@@ -1,10 +1,10 @@
 ﻿using Interception;
 using MaplestoryBotNet.Systems.Configuration;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+using MaplestoryBotNet.Systems.Device.SubSystems;
 using MaplestoryBotNetTests.TestHelpers;
 
 
-namespace MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks
+namespace MaplestoryBotNetTests.Systems.Device.Tests.Mocks
 {
     public class MockMacroSleeper : AbstractMacroSleeper
     {
@@ -50,8 +50,8 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks
         public List<string> CallOrder = [];
 
         public int InjectKeyboardDeviceCalls = 0;
-        public List<KeyboardDeviceContext> InjectKeyboardDeviceCallArg_keyboardDevice = [];
-        public override void InjectKeyboardDevice(KeyboardDeviceContext keyboardDevice)
+        public List<DeviceContext> InjectKeyboardDeviceCallArg_keyboardDevice = [];
+        public override void InjectKeyboardDevice(DeviceContext keyboardDevice)
         {
             var callReference = new TestUtilities().Reference(this) + "InjectKeyboardDevice";
             CallOrder.Add(callReference);

@@ -1,8 +1,8 @@
-﻿using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
+﻿using MaplestoryBotNet.Systems.Device.SubSystems.Transmitters;
 using MaplestoryBotNetTests.TestHelpers;
 
 
-namespace MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks
+namespace MaplestoryBotNetTests.Systems.Device.Tests.Mocks
 {
     public class MockAilmentExecutorThreadHandler : AbstractAilmentExecutorThreadHandler
     {

@@ -1,13 +1,13 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
+using MaplestoryBotNet.Systems.Device.SubSystems;
+using MaplestoryBotNet.Systems.Device.SubSystems.Transmitters;
 using MaplestoryBotNetTests.TestHelpers;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Text.Json;
 
 
-namespace MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks
+namespace MaplestoryBotNetTests.Systems.Device.Tests.Mocks
 {
 
     public class MockRuneSolverManager : AbstractRuneSolverManager

@@ -11,6 +11,7 @@ namespace MaplestoryBotNet.Systems
         ConfigurationSave,
         KeyboardMapping,
         KeyboardDevice,
+        MouseDevice,
         KeystrokeTransmitter,
         ShutDown,
         ActionHandler,

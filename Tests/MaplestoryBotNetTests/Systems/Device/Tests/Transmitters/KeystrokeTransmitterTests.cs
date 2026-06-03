@@ -1,13 +1,13 @@
 ﻿using System.Diagnostics;
 using Interception;
 using MaplestoryBotNet.Systems.Configuration;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+using MaplestoryBotNet.Systems.Device.SubSystems;
 using MaplestoryBotNetTests.LibraryWrappers.Tests;
-using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
 
 
-namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
+namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
 {
     /**
      * @class KeystrokeTransmitterTests
@@ -116,7 +116,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private void _testKeydownIsSentIfKeyboardDeviceIsInjected()
         {
             var keystrokeTransmitter = _fixture();
-            keystrokeTransmitter.InjectKeyboardDevice(new KeyboardDeviceContext(0x1234, 0x2345));
+            keystrokeTransmitter.InjectKeyboardDevice(new DeviceContext(0x1234, 0x2345));
             keystrokeTransmitter.Keydown("c1");
             keystrokeTransmitter.Keydown("c2");
             keystrokeTransmitter.Keydown("c3");
@@ -166,7 +166,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private void _testKeyupIsSentIfKeyboardDeviceIsInjected()
         {
             var keystrokeTransmitter = _fixture();
-            keystrokeTransmitter.InjectKeyboardDevice(new KeyboardDeviceContext(0x1234, 0x2345));
+            keystrokeTransmitter.InjectKeyboardDevice(new DeviceContext(0x1234, 0x2345));
             keystrokeTransmitter.Keyup("c1");
             keystrokeTransmitter.Keyup("c2");
             keystrokeTransmitter.Keyup("c3");

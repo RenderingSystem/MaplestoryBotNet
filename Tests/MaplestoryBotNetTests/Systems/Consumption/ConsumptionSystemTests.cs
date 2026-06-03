@@ -6,7 +6,7 @@ using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.Consumption.Mocks;
-using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;

@@ -1,5 +1,5 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+using MaplestoryBotNet.Systems.Device.SubSystems;
 using MaplestoryBotNet.ThreadingUtils;
 using System.Diagnostics;
 using System.IO;

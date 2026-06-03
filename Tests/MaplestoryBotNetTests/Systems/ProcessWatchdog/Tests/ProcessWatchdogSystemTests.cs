@@ -2,7 +2,7 @@
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.ProcessWatchdog;
 using MaplestoryBotNet.ThreadingUtils;
-using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.ProcessWatchdog.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;

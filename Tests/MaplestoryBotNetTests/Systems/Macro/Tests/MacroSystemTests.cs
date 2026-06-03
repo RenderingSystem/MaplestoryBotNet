@@ -1,13 +1,13 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
+using MaplestoryBotNet.Systems.Device.SubSystems;
+using MaplestoryBotNet.Systems.Device.SubSystems.Transmitters;
 using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.Systems.UIHandler.Utilities;
 using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
-using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.Macro.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;

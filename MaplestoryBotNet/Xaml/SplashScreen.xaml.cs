@@ -10,13 +10,8 @@ namespace MaplestoryBotNet
     {
         private AbstractSystemWindow? _systemWindow = null;
 
-        private IDataInjectable _keyboardDeviceContextInjectable;
-
-        public SplashScreen(
-            IDataInjectable keyboardDeviceContextInjectable
-        )
+        public SplashScreen()
         {
-            _keyboardDeviceContextInjectable = keyboardDeviceContextInjectable;
             InitializeComponent();
         }
 
@@ -28,7 +23,6 @@ namespace MaplestoryBotNet
                 .WithArgs(GetSystemWindow())
                 .WithArgs(mainSystemWindow)
                 .WithArgs(new SystemAsyncDispatcher(Dispatcher, DispatcherPriority.Background))
-                .WithArgs(_keyboardDeviceContextInjectable)
                 .Build();
         }
 

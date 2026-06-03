@@ -1,15 +1,15 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration;
-using MaplestoryBotNet.Systems.Keyboard;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
+using MaplestoryBotNet.Systems.Device;
+using MaplestoryBotNet.Systems.Device.SubSystems;
+using MaplestoryBotNet.Systems.Device.SubSystems.Transmitters;
 using MaplestoryBotNet.ThreadingUtils;
-using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.Mocks;
 using MaplestoryBotNetTests.ThreadingUtils;
 using System.Diagnostics;
 
 
-namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
+namespace MaplestoryBotNetTests.Systems.Device.Tests
 {
     public class KeyboardSystemTests
     {
@@ -42,7 +42,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
             _keyboardSubSystemsThreadFactories.Add([new MockThreadFactory()]);
             _keyboardSubSystemsThreadFactories.Add([new MockThreadFactory()]);
             _keyboardSubSystems = [];
-            _keyboardSubSystems.Add(new KeyboardDeviceDetectorSystem(_keyboardSubSystemsThreadFactories[0][0]));
+            _keyboardSubSystems.Add(new DeviceDetectorSystem([_keyboardSubSystemsThreadFactories[0][0]]));
             _keyboardSubSystems.Add(new BottingOrchestratorSystem(_keyboardSubSystemsThreadFactories[1]));
             _keyboardSubSystems.Add(new RuneingOrchestratorSystem(_keyboardSubSystemsThreadFactories[2]));
             _keyboardSubSystems.Add(new SolvingOrchestratorSystem(_keyboardSubSystemsThreadFactories[3]));
@@ -167,7 +167,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private void _testInjectKeyboardTransmitterOnKeyboardDeviceInjection()
         {
             var keyboardSystem = _fixture();
-            var deviceContext = new KeyboardDeviceContext(0x1234, 0x2345);
+            var deviceContext = new DeviceContext(0x1234, 0x2345);
             keyboardSystem.Initialize();
             keyboardSystem.Inject(SystemInjectType.Configuration, new KeyboardMapping());
             keyboardSystem.Inject(SystemInjectType.KeyboardDevice, deviceContext);
@@ -194,7 +194,7 @@ namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
         private void _testInjectKeyboardTransmitterFailsIfNoKeyboardMapping()
         {
             var keyboardSystem = _fixture();
-            var deviceContext = new KeyboardDeviceContext(0x1234, 0x2345);
+            var deviceContext = new DeviceContext(0x1234, 0x2345);
             keyboardSystem.Initialize();
             keyboardSystem.Inject(SystemInjectType.KeyboardDevice, deviceContext);
             for (int i = 0; i < _keyboardSubSystemsThreads.Count; i++)

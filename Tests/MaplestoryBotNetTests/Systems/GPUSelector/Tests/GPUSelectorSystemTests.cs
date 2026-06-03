@@ -10,17 +10,6 @@ using MaplestoryBotNetTests.ThreadingUtils;
 
 namespace MaplestoryBotNetTests.Systems.GPUSelector.Tests
 {
-    /**
-     * @class GPUSelectorThreadTests
-     * 
-     * @brief Unit tests for GPU selector thread functionality and coordination.
-     * 
-     * @details
-     * This test class validates the behavior of the GPUSelectorThread, which manages
-     * asynchronous GPU device selection during application startup. Tests ensure that
-     * GPU context selection occurs in the correct sequence and properly notifies the
-     * splash screen completion system when GPU selection is complete.
-     */
     public class GPUSelectorThreadTests
     {
         private AcceleratedDeviceSelectionSystemMock _deviceSelectionSystemMock;
@@ -31,13 +20,6 @@ namespace MaplestoryBotNetTests.Systems.GPUSelector.Tests
 
         private AbstractWindowActionHandler _actionHandler;
 
-        /**
-         * @brief Constructor initializing test components with clean state.
-         * 
-         * @details
-         * Each test method starts from this clean state to ensure consistent
-         * behavior and isolation between test executions.
-         */
         public GPUSelectorThreadTests()
         {
             _deviceSelectionSystemMock = new AcceleratedDeviceSelectionSystemMock();
@@ -46,26 +28,13 @@ namespace MaplestoryBotNetTests.Systems.GPUSelector.Tests
             _actionHandler = new WindowSplashScreenCompleteActionHandler(_modifierMock);
         }
 
-        /**
-         * @brief Creates and configures a test GPUSelectorThread instance with all
-         * dependencies.
-         * 
-         * @details
-         * Sets up a complete test environment with:
-         * - Fresh mock GPU device selection system
-         * - GPU selection data structure
-         * - Mock window state modifier
-         * - Action handler for splash screen completion
-         * - GPUSelectorThread instance configured with all dependencies
-         * 
-         * @return GPUSelectorThread Fully configured test thread instance ready for testing
-         */
         private GPUSelectorThread _fixture()
         {
             _deviceSelectionSystemMock = new AcceleratedDeviceSelectionSystemMock();
             _gpuSelection = new GPUSelection();
             _modifierMock = new MockWindowStateModifier();
             _actionHandler = new WindowSplashScreenCompleteActionHandler(_modifierMock);
+            _modifierMock.StateReturn.Add(SplashScreenTypes.StartSplash);
             return new GPUSelectorThread(
                 new ThreadRunningState(),
                 _deviceSelectionSystemMock,
@@ -122,20 +91,11 @@ namespace MaplestoryBotNetTests.Systems.GPUSelector.Tests
             thread.Start();
             thread.Join(10000);
             Debug.Assert(_modifierMock.ModifyCalls == 1);
-            Debug.Assert((GPUSelection)_modifierMock.ModifyCallArg_value[0]! == _gpuSelection);
+            var value = (WindowSplashScreenCompleterParameters)_modifierMock.ModifyCallArg_value[0]!;
+            Debug.Assert(value.GpuSelection! == _gpuSelection);
             Debug.Assert(_gpuSelection.GetSelection() == 123);
         }
 
-
-        /**
-         * @brief Executes the complete test suite for GPU selector thread functionality.
-         * 
-         * @details
-         * Runs all test methods to validate the comprehensive behavior of the
-         * GPUSelectorThread, ensuring that GPU device selection occurs in the
-         * correct sequence and properly coordinates with the splash screen
-         * completion system for smooth application startup.
-         */
         public void Run()
         {
             _testGPUSelectorSelectsContextBeforeGettingContext();

@@ -1,10 +1,10 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
+using MaplestoryBotNet.Systems.Device.SubSystems;
+using MaplestoryBotNet.Systems.Device.SubSystems.Transmitters;
 using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.ThreadingUtils;
-using MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.Mocks;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
@@ -17,7 +17,7 @@ using System.IO;
 using System.Text.Json;
 
 
-namespace MaplestoryBotNetTests.Systems.Keyboard.Tests
+namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
 {
     public class RuneSolverCallerTests
     {

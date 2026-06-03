@@ -1,4 +1,4 @@
-﻿using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+﻿using MaplestoryBotNet.Systems.Device.SubSystems;
 using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.ThreadingUtils;
 using System.ComponentModel;

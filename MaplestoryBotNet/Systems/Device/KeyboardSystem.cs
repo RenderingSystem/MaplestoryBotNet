@@ -1,12 +1,11 @@
 ﻿using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Consumables;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
+using MaplestoryBotNet.Systems.Device.SubSystems;
+using MaplestoryBotNet.Systems.Device.SubSystems.Transmitters;
 
 
-namespace MaplestoryBotNet.Systems.Keyboard
+namespace MaplestoryBotNet.Systems.Device
 {
-
     public class KeyboardSystem : AbstractSystem
     {
         private List<AbstractSystem> _keyboardSubSystems;
@@ -68,7 +67,7 @@ namespace MaplestoryBotNet.Systems.Keyboard
             }
             else if (
                 dataType is SystemInjectType.KeyboardDevice
-                && data is KeyboardDeviceContext keyboardDevice
+                && data is DeviceContext keyboardDevice
             )
             {
                 if (_keystrokeTransmitter != null)
@@ -111,7 +110,7 @@ namespace MaplestoryBotNet.Systems.Keyboard
 
         public KeyboardSystemBuilder()
         {
-            _keyboardDeviceDetectorSystemBuilder = new KeyboardDeviceDetectorSystemBuilder();
+            _keyboardDeviceDetectorSystemBuilder = new DeviceDetectorSystemBuilder();
             _bottingOrchestratorSystemBuilder = new BottingOrchestratorSystemBuilder();
             _runeingOrchestratorSystemBuilder = new RuneingOrchestratorSystemBuilder();
             _solvingOrchestratorSystemBuilder = new SolvingOrchestratorSystemBuilder();

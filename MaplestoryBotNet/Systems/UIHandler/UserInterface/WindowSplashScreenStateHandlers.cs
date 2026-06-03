@@ -1,10 +1,28 @@
 ﻿using MaplestoryBotNet.Systems.GPUSelector;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems;
-using System.Diagnostics;
+using MaplestoryBotNet.Systems.Device.SubSystems;
 
 
 namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 {
+    public enum SplashScreenTypes
+    {
+        StartSplash = 0,
+        MaxNum
+    }
+
+
+    public class WindowSplashScreenCompleterParameters
+    {
+        public DeviceContext? KeyboardDeviceContext;
+
+        public DeviceContext? MouseDeviceContext;
+
+        public AbstractGPUSelection? GpuSelection;
+
+        public AbstractInjectAction? InjectAction;
+    }
+
+
     public class WindowSplashScreenCompleter : AbstractWindowStateModifier
     {
         private AbstractSystemWindow _splashScreen;
@@ -13,56 +31,50 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractDispatcher _dispatcher;
 
-        private IDataInjectable _keyboardDeviceInjectable;
-
-        private KeyboardDeviceContext? _keyboardDeviceContext;
-
-        private AbstractGPUSelection? _gpuSelection;
-
         public WindowSplashScreenCompleter(
             AbstractSystemWindow splashScreen,
             AbstractSystemWindow mainWindow,
-            AbstractDispatcher dispatcher,
-            IDataInjectable keyboardDeviceInjectable
+            AbstractDispatcher dispatcher
         )
         {
             _splashScreen = splashScreen;
             _mainWindow = mainWindow;
             _dispatcher = dispatcher;
-            _keyboardDeviceInjectable = keyboardDeviceInjectable;
-            _keyboardDeviceContext = null;
-            _gpuSelection = null;
         }
 
         public override void Modify(object? value)
         {
-            if (value is KeyboardDeviceContext keyboardDeviceContext)
-            {
-                _keyboardDeviceContext = keyboardDeviceContext;
-            }
-            if (value is AbstractGPUSelection gpuSelection)
-            {
-                _gpuSelection = gpuSelection;
-            }
-            if (_keyboardDeviceContext == null)
+            if (value is not WindowSplashScreenCompleterParameters parameters)
             {
                 return;
             }
-            if (_gpuSelection == null)
+            if (
+                parameters.KeyboardDeviceContext is DeviceContext keyboardDeviceContext &&
+                parameters.MouseDeviceContext is DeviceContext mouseDeviceContext &&
+                parameters.GpuSelection is AbstractGPUSelection gpuSelection &&
+                parameters.InjectAction is AbstractInjectAction injectAction
+            )
             {
-                return;
+                _dispatcher.Dispatch(
+                    () =>
+                    {
+                        injectAction.GetAction()(
+                            SystemInjectType.KeyboardDevice, keyboardDeviceContext
+                        );
+                        injectAction.GetAction()(
+                            SystemInjectType.MouseDevice, mouseDeviceContext
+                        );
+                        _splashScreen.ShutdownFlag = true;
+                        _splashScreen.Close();
+                        _mainWindow.Show();
+                    }
+                );
             }
-            _dispatcher.Dispatch(
-                () =>
-                {
-                    _keyboardDeviceInjectable.Inject(
-                        SystemInjectType.KeyboardDevice, _keyboardDeviceContext
-                    );
-                    _splashScreen.ShutdownFlag = true;
-                    _splashScreen.Close();
-                    _mainWindow.Show();
-                }
-            );
+        }
+
+        public override object? State(int stateType)
+        {
+            return SplashScreenTypes.StartSplash;
         }
     }
 
@@ -71,16 +83,49 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
     {
         private AbstractWindowStateModifier _splashScreenCompleter;
 
+        private WindowSplashScreenCompleterParameters _parameters;
+
         public WindowSplashScreenCompleteActionHandler(
             AbstractWindowStateModifier splashScreenCompleter
         )
         {
             _splashScreenCompleter = splashScreenCompleter;
+            _parameters = new();
         }
 
         public override AbstractWindowStateModifier Modifier()
         {
             return _splashScreenCompleter;
+        }
+
+        public override void Inject(object dataType, object? data)
+        {
+            if (
+                dataType is InputDeviceTypes.Keyboard &&
+                data is DeviceContext keyboardDeviceContext
+            )
+            {
+                _parameters.KeyboardDeviceContext = keyboardDeviceContext;
+            }
+            if (
+                dataType is InputDeviceTypes.Mouse &&
+                data is DeviceContext mouseDeviceContext
+            )
+            {
+                _parameters.MouseDeviceContext = mouseDeviceContext;
+            }
+            if (data is AbstractGPUSelection gpuSelection)
+            {
+                _parameters.GpuSelection = gpuSelection;
+            }
+            if (
+                dataType is SystemInjectType.InjectAction &&
+                data is AbstractInjectAction injectAction
+            )
+            {
+                _parameters.InjectAction = injectAction;
+            }
+            _splashScreenCompleter.Modify(_parameters);
         }
     }
 
@@ -93,28 +138,20 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractDispatcher? _dispatcher;
 
-        private IDataInjectable? _keyboardDeviceContextInjectable;
-
         public WindowSplashScreenCompleteActionHandlerBuilder()
         {
             _splashScreen = null;
             _mainWindow = null;
             _dispatcher = null;
-            _keyboardDeviceContextInjectable = null;
         }
 
         public override AbstractWindowActionHandler Build()
         {
-            Debug.Assert(_splashScreen != null);
-            Debug.Assert(_mainWindow != null);
-            Debug.Assert(_dispatcher != null);
-            Debug.Assert(_keyboardDeviceContextInjectable != null);
             return new WindowSplashScreenCompleteActionHandler(
                 new WindowSplashScreenCompleter(
-                    _splashScreen,
-                    _mainWindow,
-                    _dispatcher,
-                    _keyboardDeviceContextInjectable
+                    _splashScreen!,
+                    _mainWindow!,
+                    _dispatcher!
                 )
             );
         }
@@ -135,10 +172,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             else if (args is AbstractDispatcher dispatcher)
             {
                 _dispatcher = dispatcher;
-            }
-            else if (args is IDataInjectable systemInjectable)
-            {
-                _keyboardDeviceContextInjectable = systemInjectable;
             }
             return this;
         }

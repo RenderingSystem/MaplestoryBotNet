@@ -1,6 +1,6 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration;
-using MaplestoryBotNet.Systems.Keyboard;
+using MaplestoryBotNet.Systems.Device;
 using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.Systems.ProcessWatchdog;
 using MaplestoryBotNet.Systems.ScreenAilmentsProcessing;

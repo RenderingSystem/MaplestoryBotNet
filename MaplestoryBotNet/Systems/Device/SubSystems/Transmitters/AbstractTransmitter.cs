@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 
 
-namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
+namespace MaplestoryBotNet.Systems.Device.SubSystems.Transmitters
 {
     public abstract class AbstractOrchestratorThread<TInjectType> : AbstractThread
         where TInjectType : Enum

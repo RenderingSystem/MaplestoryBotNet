@@ -11,7 +11,7 @@ using System.Text;
 using System.Text.Json;
 
 
-namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
+namespace MaplestoryBotNet.Systems.Device.SubSystems.Transmitters
 {
     public enum SolvingOrchestratorThreadInjectType
     {

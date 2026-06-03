@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 using System.Windows;
 
 
-namespace MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters
+namespace MaplestoryBotNet.Systems.Device.SubSystems.Transmitters
 {
     public enum RuneingOrchestratorThreadInjectType
     {

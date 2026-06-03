@@ -2,8 +2,8 @@
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.Consumables;
 using MaplestoryBotNet.Systems.GPUSelector;
-using MaplestoryBotNet.Systems.Keyboard;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems.Transmitters;
+using MaplestoryBotNet.Systems.Device;
+using MaplestoryBotNet.Systems.Device.SubSystems.Transmitters;
 using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.Systems.ProcessWatchdog;
 using MaplestoryBotNet.Systems.ScreenAilmentsProcessing;

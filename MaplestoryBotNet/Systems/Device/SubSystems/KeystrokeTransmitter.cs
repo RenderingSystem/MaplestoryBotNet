@@ -4,7 +4,7 @@ using MaplestoryBotNet.Systems.Configuration;
 using System.Globalization;
 
 
-namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
+namespace MaplestoryBotNet.Systems.Device.SubSystems
 {
     public abstract class AbstractMacroSleeper
     {
@@ -60,7 +60,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
 
     public abstract class AbstractKeystrokeTransmitter
     {
-        public abstract void InjectKeyboardDevice(KeyboardDeviceContext keyboardDevice);
+        public abstract void InjectKeyboardDevice(DeviceContext keyboardDevice);
 
         public abstract void Keydown(string keystroke);
 
@@ -217,11 +217,11 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
 
         private AbstractKeystrokeConverter _keystrokeConverter;
 
-        private volatile KeyboardDeviceContext? _keyboardDeviceValue;
+        private volatile DeviceContext? _keyboardDeviceValue;
 
         private object _sendLock;
 
-        private KeyboardDeviceContext? _keyboardDevice
+        private DeviceContext? _keyboardDevice
         {
             get => _keyboardDeviceValue;
 
@@ -261,7 +261,7 @@ namespace MaplestoryBotNet.Systems.Keyboard.SubSystems
             }
         }
 
-        public override void InjectKeyboardDevice(KeyboardDeviceContext keyboardDevice)
+        public override void InjectKeyboardDevice(DeviceContext keyboardDevice)
         {
             _keyboardDevice = keyboardDevice;
         }

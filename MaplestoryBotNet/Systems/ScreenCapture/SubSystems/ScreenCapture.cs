@@ -22,6 +22,7 @@ namespace MaplestoryBotNet.Systems.ScreenCapture
         public abstract MONITORINFOEX? GetMonitorInfo(nint windowHandle);
     }
 
+
     public abstract class AbstractWindowHandleHelper
     {
         public abstract nint FindByProcess(string processName);

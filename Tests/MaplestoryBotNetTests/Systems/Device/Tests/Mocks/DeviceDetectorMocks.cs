@@ -1,17 +1,17 @@
-﻿using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+﻿using MaplestoryBotNet.Systems.Device.SubSystems;
 using MaplestoryBotNetTests.TestHelpers;
 
 
-namespace MaplestoryBotNetTests.Systems.Keyboard.Tests.Mocks
+namespace MaplestoryBotNetTests.Systems.Device.Tests.Mocks
 {
-    internal class MockKeyboardDeviceDetector : AbstractKeyboardDeviceDetector
+    internal class MockDeviceDetector : AbstractDeviceDetector
     {
         public List<string> CallOrder = [];
 
         public int DetectCalls = 0;
         public int DetectIndex = 0;
-        public List<KeyboardDeviceContext> DetectReturn = [];
-        public override KeyboardDeviceContext Detect()
+        public List<DeviceContext> DetectReturn = [];
+        public override DeviceContext Detect()
         {
             var callReference = new TestUtilities().Reference(this) + "Detect";
             CallOrder.Add(callReference);

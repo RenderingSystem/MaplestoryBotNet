@@ -1,8 +1,6 @@
-﻿
-
-using MaplestoryBotNet.Systems;
+﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.GPUSelector;
-using MaplestoryBotNet.Systems.Keyboard.SubSystems;
+using MaplestoryBotNet.Systems.Device.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNetTests.Systems.Tests;
 using System.Diagnostics;
@@ -10,16 +8,6 @@ using System.Diagnostics;
 
 namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 {
-    /**
-     * @class WindowSplashScreenCompleterTests
-     * 
-     * @brief Unit tests for splash screen to main window transition coordination
-     * 
-     * This test class validates that the splash screen completer correctly manages
-     * the transition from initial splash screen to the main application window,
-     * ensuring proper window management, UI thread coordination, and device context
-     * injection during application startup sequence.
-     */
     public class WindowSplashScreenCompleterTests
     {
         private MockSystemWindow _splashScreen = new MockSystemWindow();
@@ -28,59 +16,83 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private MockDispatcher _dispatcher = new MockDispatcher();
 
-        private MockSystemInjectable _keyboardDeviceInjectable = new MockSystemInjectable();
-
-        /**
-         * @brief Creates test environment with window and dispatcher dependencies
-         * 
-         * @return Configured WindowSplashScreenCompleter instance for testing
-         * 
-         * Prepares a test environment with mock windows, UI dispatcher, and device
-         * injection components to isolate splash screen transition behavior from
-         * actual UI framework dependencies.
-         */
-        public AbstractWindowStateModifier _fixture()
+        public AbstractWindowActionHandler _fixture()
         {
             _splashScreen = new MockSystemWindow();
             _mainWindow = new MockSystemWindow();
             _dispatcher = new MockDispatcher();
-            _keyboardDeviceInjectable = new MockSystemInjectable();
-            return new WindowSplashScreenCompleter(
-                _splashScreen, _mainWindow, _dispatcher, _keyboardDeviceInjectable
+            return new WindowSplashScreenCompleteActionHandler(
+                new WindowSplashScreenCompleter(_splashScreen, _mainWindow, _dispatcher)
             );
         }
 
-        /**
-         * @brief Tests UI thread-safe modification event dispatching
-         * 
-         * Validates that window state modifications are correctly dispatched to
-         * the UI thread, ensuring thread-safe window operations and preventing
-         * cross-thread access violations during the splash screen transition.
-         */
-        public void _testModifyDispatchesModificationEvent()
+        private IEnumerable<List<int>> _permutations(List<int> list, int length)
         {
-            var completer = _fixture();
-            var keyboardDeviceContext = new KeyboardDeviceContext(123, 234);
-            var gpuSelection = new GPUSelection();
-            completer.Modify(keyboardDeviceContext);
-            completer.Modify(gpuSelection);
-            Debug.Assert(_dispatcher.DispatchCalls == 1);
+            if (length == 1)
+            {
+                return list.Select(t => new List<int> { t });
+            }
+            return _permutations(list, length - 1)
+                .SelectMany(
+                    t => list.Where(
+                        e => !t.Contains(e)
+                    ),
+                    (t1, t2) =>
+                    {
+                        return t1.Concat(new List<int> { t2 }).ToList();
+                    }
+                );
         }
 
         /**
-         * @brief Tests proper window visibility transition sequence
+         * @brief Tests that the completion event dispatches exactly once when all dependencies
+         * are injected
          * 
-         * Validates that the splash screen is properly hidden and the main window
-         * is shown in the correct sequence during the transition, ensuring a
-         * smooth visual handoff between application startup and main interface.
+         * The splash screen completer requires four dependencies to be fully initialized:
+         * keyboard device, mouse device, GPU selection, and the final inject action trigger.
+         * The completer should only dispatch the completion event after ALL dependencies have
+         * been received, regardless of the order they are injected.
          */
-        public void _testModifyHidesSplashScreenAndShowsMainWindow()
+        public void _testInjectionDispatchesModificationEvent()
+        {
+            var injections = new List<(object dataType, object data)>
+            {
+                (InputDeviceTypes.Keyboard, new DeviceContext(123, 234)),
+                (InputDeviceTypes.Mouse, new DeviceContext(234, 345)),
+                (0, new GPUSelection()),
+                (SystemInjectType.InjectAction, new InjectAction((_, __) => { }))
+            };
+            var indices = Enumerable.Range(0, injections.Count).ToList();
+            var permutations = _permutations(indices, indices.Count);
+            foreach (var order in permutations)
+            {
+                var completer = _fixture();
+                _dispatcher.DispatchCalls = 0;
+                for (var i = 0; i < order.Count; i++)
+                {
+                    var (dataType, data) = injections[order[i]];
+                    completer.Inject(dataType, data);
+                    Debug.Assert(_dispatcher.DispatchCalls == (i == order.Count - 1 ? 1 : 0));
+                }
+            }
+        }
+
+        /**
+         * @brief Tests that when completion is triggered, the splash screen closes and main window
+         * opens
+         * 
+         * After all dependencies have been successfully injected, the bot must transition from
+         * the initialization phase to the main application. This involves closing the splash
+         * screen window and showing the main bot window where users can configure settings
+         * and start automation.
+         */
+        public void _testInjectionHidesSplashScreenAndShowsMainWindow()
         {
             var completer = _fixture();
-            var keyboardDeviceContext = new KeyboardDeviceContext(123, 234);
-            var gpuSelection = new GPUSelection();
-            completer.Modify(keyboardDeviceContext);
-            completer.Modify(gpuSelection);
+            completer.Inject(InputDeviceTypes.Keyboard, new DeviceContext(123, 234));
+            completer.Inject(InputDeviceTypes.Mouse, new DeviceContext(234, 345));
+            completer.Inject(0, new GPUSelection());
+            completer.Inject(SystemInjectType.InjectAction, new InjectAction((_, __) => { }));
             Debug.Assert(_splashScreen.CloseCalls == 0);
             Debug.Assert(_mainWindow.ShowCalls == 0);
             _dispatcher.DispatchCallArg_action[0]();
@@ -89,80 +101,38 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
         }
 
         /**
-         * @brief Tests keyboard device context injection after window transition
+         * @brief Tests that upon completion, input devices are properly injected into the main system
          * 
-         * Validates that the keyboard device context is properly injected into
-         * the system after the window transition completes, ensuring input devices
-         * are correctly configured and available when the main window becomes active.
+         * When the splash screen completer finishes initialization, it must forward the
+         * initialized device contexts (keyboard and mouse) to the main system via the dispatcher.
+         * This ensures the automation system has access to the configured input devices.
          */
-        private void _testModifyInjectsKeyboardDevice()
+        private void _testInjectCompletionInjectsDevices()
         {
             var completer = _fixture();
-            var keyboardDeviceContext = new KeyboardDeviceContext(123, 234);
+            var dataTypes = new List<object>();
+            var data = new List<object?>();
+            var keyboardDeviceContext = new DeviceContext(123, 234);
+            var mouseDeviceContext = new DeviceContext(234, 345);
             var gpuSelection = new GPUSelection();
-            completer.Modify(keyboardDeviceContext);
-            completer.Modify(gpuSelection);
-            Debug.Assert(_keyboardDeviceInjectable.InjectCalls == 0);
+            var injectAction = new InjectAction((_, __) => { dataTypes.Add(_); data.Add(__); });
+            completer.Inject(InputDeviceTypes.Keyboard, keyboardDeviceContext);
+            completer.Inject(InputDeviceTypes.Mouse, mouseDeviceContext);
+            completer.Inject(0, gpuSelection);
+            completer.Inject(SystemInjectType.InjectAction, injectAction);
             _dispatcher.DispatchCallArg_action[0]();
-            Debug.Assert(_keyboardDeviceInjectable.InjectCalls == 1);
-            Debug.Assert(
-                _keyboardDeviceInjectable.InjectCallArg_dataType[0]
-                is SystemInjectType.KeyboardDevice
-            );
-            Debug.Assert(
-                _keyboardDeviceInjectable.InjectCallArg_data[0]
-                == keyboardDeviceContext
-            );
+            Debug.Assert(dataTypes.Count == 2);
+            Debug.Assert(dataTypes.IndexOf(SystemInjectType.KeyboardDevice) != -1);
+            Debug.Assert(dataTypes.IndexOf(SystemInjectType.MouseDevice) != -1);
+            Debug.Assert(data.IndexOf(keyboardDeviceContext) == dataTypes.IndexOf(SystemInjectType.KeyboardDevice));
+            Debug.Assert(data.IndexOf(mouseDeviceContext) == dataTypes.IndexOf(SystemInjectType.MouseDevice));
         }
 
-        /**
-         * @brief Tests that modification without keyboard device context does not dispatch
-         * 
-         * @test Validates that transitions require keyboard device context for dispatch.
-         * 
-         * Verifies that the splash screen transition does not initiate when the
-         * keyboard device context is missing, ensuring that critical input devices
-         * are configured before the main window becomes active.
-         */
-        public void _testModifyWithoutKeyboardDeviceContextDoesntDispatch()
-        {
-            var completer = _fixture();
-            var gpuSelection = new GPUSelection();
-            completer.Modify(gpuSelection);
-            Debug.Assert(_dispatcher.DispatchCalls == 0);
-        }
-
-        /**
-         * @brief Tests that modification without GPU selection does not dispatch
-         * 
-         * @test Validates that transitions require GPU selection for dispatch.
-         * 
-         * Verifies that the splash screen transition does not initiate when the
-         * GPU selection is missing, ensuring that graphics hardware is properly
-         * configured before the main window becomes active.
-         */
-        public void _testModifyWithoutGpuSelectionDoesntDispatch()
-        {
-            var completer = _fixture();
-            var keyboardDeviceContext = new KeyboardDeviceContext(123, 234);
-            completer.Modify(keyboardDeviceContext);
-            Debug.Assert(_dispatcher.DispatchCalls == 0);
-        }
-
-        /**
-         * @brief Executes all splash screen transition validation tests
-         * 
-         * Runs the complete test suite to ensure the splash screen completer
-         * properly coordinates window transitions and device configuration,
-         * providing confidence in smooth application startup sequences.
-         */
         public void Run()
         {
-            _testModifyDispatchesModificationEvent();
-            _testModifyHidesSplashScreenAndShowsMainWindow();
-            _testModifyInjectsKeyboardDevice();
-            _testModifyWithoutKeyboardDeviceContextDoesntDispatch();
-            _testModifyWithoutGpuSelectionDoesntDispatch();
+            _testInjectionDispatchesModificationEvent();
+            _testInjectionHidesSplashScreenAndShowsMainWindow();
+            _testInjectCompletionInjectsDevices();
         }
     }
 
