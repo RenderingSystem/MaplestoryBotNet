@@ -18,12 +18,6 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
 
         private AbstractImageSharpConverter _converter;
 
-        private bool SettingImage
-        {
-            set { _settingImage = value; }
-            get { return _settingImage; }
-        }
-
         public WindowViewUpdater(
             AbstractDispatcher dispatcher,
             AbstractImageSharpConverter converter,
@@ -42,13 +36,13 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 var bitmapSource = _converter.ConvertToBitmap(imagesharpImage);
                 bitmapSource.Freeze();
-                if (SettingImage == false)
+                if (_settingImage == false)
                 {
-                    SettingImage = true;
+                    _settingImage = true;
                     _dispatcher.Dispatch(
                         () =>
                         {
-                            SettingImage = false;
+                            _settingImage = false;
                             _image.Source = bitmapSource;
                         }
                     );

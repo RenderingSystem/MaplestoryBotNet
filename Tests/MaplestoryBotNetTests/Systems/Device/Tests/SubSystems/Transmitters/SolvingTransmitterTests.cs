@@ -1,10 +1,12 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.Systems.Device;
 using MaplestoryBotNet.Systems.Device.SubSystems;
 using MaplestoryBotNet.Systems.Device.SubSystems.Transmitters;
 using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.ThreadingUtils;
-using MaplestoryBotNetTests.Systems.Device.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Transmitters.Mocks;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
@@ -17,7 +19,7 @@ using System.IO;
 using System.Text.Json;
 
 
-namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
+namespace MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Transmitters
 {
     public class RuneSolverCallerTests
     {
@@ -216,7 +218,10 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
                 RuneDetection = new RuneDetection(),
                 MacroKeySettings = new MacroKeySettings { RuneInteractKey = "meow" }
             };
-            workflow.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
+            workflow.Inject(
+                SystemInjectType.Transmitters,
+                new TransmitterInfo { KeystrokeTransmitter = _keystrokeTransmitter }
+            );
             workflow.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);
             var result = workflow.ValidatePrerequisites();
             Debug.Assert(result != null);
@@ -239,7 +244,10 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
                 RuneDetection = new RuneDetection(),
                 MacroKeySettings = new MacroKeySettings { RuneInteractKey = "" }
             };
-            workflow.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
+            workflow.Inject(
+                SystemInjectType.Transmitters,
+                new TransmitterInfo { KeystrokeTransmitter = _keystrokeTransmitter }
+            );
             workflow.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);
             var result = workflow.ValidatePrerequisites();
             Debug.Assert(result == null);
@@ -283,7 +291,10 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
                 RuneDetection = new RuneDetection(),
                 MacroKeySettings = new MacroKeySettings { RuneInteractKey = "meow" }
             };
-            workflow.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
+            workflow.Inject(
+                SystemInjectType.Transmitters,
+                new TransmitterInfo { KeystrokeTransmitter = _keystrokeTransmitter }
+            );
             workflow.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);
             var result = workflow.ExecuteInteraction();
             Debug.Assert(_macroCommandsExecutor.ExecuteCalls == 2);
@@ -377,7 +388,10 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
             };
             var predictions = _predictions();
             var workflow = _fixture();
-            workflow.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
+            workflow.Inject(
+                SystemInjectType.Transmitters,
+                new TransmitterInfo { KeystrokeTransmitter = _keystrokeTransmitter }
+            );
             var result = workflow.ExecuteArrowSequence(runeDetection, predictions);
             Debug.Assert(_macroCommandsExecutor.ExecuteCalls == 8);
             var commands = _macroCommandsExecutor.ExecuteCallArg_macroCommands;
@@ -418,7 +432,10 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
             };
             var predictions = _predictions();
             var workflow = _fixture();
-            workflow.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
+            workflow.Inject(
+                SystemInjectType.Transmitters,
+                new TransmitterInfo { KeystrokeTransmitter = _keystrokeTransmitter }
+            );
             var result = workflow.ExecuteArrowSequence(runeDetection, predictions);
             Debug.Assert(_macroCommandsExecutor.ExecuteCalls == 0);
             Debug.Assert(!result);
@@ -446,7 +463,10 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
             };
             var predictions = _predictions();
             var workflow = _fixture();
-            workflow.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
+            workflow.Inject(
+                SystemInjectType.Transmitters,
+                new TransmitterInfo { KeystrokeTransmitter = _keystrokeTransmitter }
+            );
             var result = workflow.ExecuteArrowSequence(runeDetection, predictions);
             Debug.Assert(_macroCommandsExecutor.ExecuteCalls == 0);
             Debug.Assert(!result);

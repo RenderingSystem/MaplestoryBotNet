@@ -1,4 +1,5 @@
 ﻿using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.Systems.Device;
 using MaplestoryBotNet.Systems.Device.SubSystems;
 using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.Systems.ScreenCapture;
@@ -380,15 +381,13 @@ namespace MaplestoryBotNet.Systems.Consumables
         public override void Inject(object dataType, object? data)
         {
             if (
-                dataType is SystemInjectType.KeystrokeTransmitter &&
-                data is AbstractKeystrokeTransmitter keystrokeTransmitter
+                dataType is SystemInjectType.Transmitters &&
+                data is TransmitterInfo transmitterInfo
             )
             {
-                _macroCommandsExecutor = (
-                    _macroCommandsExecutorBuilder
-                        .WithArg(keystrokeTransmitter)
-                        .Build()
-                );
+                _macroCommandsExecutor = _macroCommandsExecutorBuilder
+                    .WithArg(transmitterInfo)
+                    .Build();
             }
             else if (
                 dataType is SystemInjectType.ConfigurationUpdate &&
@@ -459,15 +458,13 @@ namespace MaplestoryBotNet.Systems.Consumables
         public override void Inject(object dataType, object? data)
         {
             if (
-                dataType is SystemInjectType.KeystrokeTransmitter &&
-                data is AbstractKeystrokeTransmitter keystrokeTransmitter
+                dataType is SystemInjectType.Transmitters &&
+                data is TransmitterInfo transmitterInfo
             )
             {
-                _macroCommandsExecutor = (
-                    _macroCommandsExecutorBuilder
-                        .WithArg(keystrokeTransmitter)
-                        .Build()
-                );
+                _macroCommandsExecutor = _macroCommandsExecutorBuilder
+                    .WithArg(transmitterInfo)
+                    .Build();
             }
         }
     }

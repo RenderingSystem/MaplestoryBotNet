@@ -7,7 +7,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using System.Text.Json;
 
 
-namespace MaplestoryBotNetTests.Systems.Device.Tests.Mocks
+namespace MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Transmitters.Mocks
 {
 
     public class MockRuneSolverManager : AbstractRuneSolverManager

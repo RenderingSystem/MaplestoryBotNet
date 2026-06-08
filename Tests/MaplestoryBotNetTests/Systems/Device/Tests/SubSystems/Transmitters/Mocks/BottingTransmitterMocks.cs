@@ -4,7 +4,7 @@ using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNetTests.TestHelpers;
 
 
-namespace MaplestoryBotNetTests.Systems.Device.Tests.Mocks
+namespace MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Transmitters.Mocks
 {
     public class MockMacroCommandsExecutorBuilder : AbstractMacroCommandsExecutorBuilder
     {

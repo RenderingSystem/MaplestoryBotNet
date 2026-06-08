@@ -1,10 +1,12 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.Systems.Device;
 using MaplestoryBotNet.Systems.Device.SubSystems;
 using MaplestoryBotNet.Systems.Device.SubSystems.Transmitters;
 using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
-using MaplestoryBotNetTests.Systems.Device.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Transmitters.Mocks;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
@@ -12,7 +14,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 
 
-namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
+namespace MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Transmitters
 {
     public class AllCureExecutorThreadHandlerTests
     {
@@ -63,9 +65,8 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
                 _macroCommandsExecutorBuilder
             );
             handler.Inject(
-                SystemInjectType.KeystrokeTransmitter,
-                _keystrokeTransmitter
-
+                SystemInjectType.Transmitters,
+                new TransmitterInfo { KeystrokeTransmitter = _keystrokeTransmitter }
             );
             handler.Inject(
                 SystemInjectType.ConfigurationUpdate,
@@ -174,7 +175,8 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
                 _macroCommandsExecutorBuilder
             );
             handler.Inject(
-                SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter
+                SystemInjectType.Transmitters,
+                new TransmitterInfo { KeystrokeTransmitter = _keystrokeTransmitter }
             );
             _callOrder = [];
             _activeStopwatch.CallOrder = _callOrder;

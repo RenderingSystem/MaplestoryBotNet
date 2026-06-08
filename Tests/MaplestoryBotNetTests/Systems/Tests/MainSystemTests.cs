@@ -464,7 +464,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
             var subSystemInfoList = new MainSubSystemInfoList();
             var subSystemInfo = subSystemInfoList.GetSubSystemInfo();
             var keyboardInfo = subSystemInfo.FirstOrDefault(
-                info => info.SystemBuilder is KeyboardSystemBuilder
+                info => info.SystemBuilder is DeviceSystemBuilder
             );
             Debug.Assert(keyboardInfo != null);
             Debug.Assert(keyboardInfo.BuildDependencies.Count == 0);
@@ -517,7 +517,7 @@ namespace MaplestoryBotNetTests.Systems.Tests
             );
             Debug.Assert(
                 configInfo.BuildDependencies.Any(
-                    dep => dep.SystemBuilder is KeyboardSystemBuilder
+                    dep => dep.SystemBuilder is DeviceSystemBuilder
                 )
             );
             Debug.Assert(
@@ -826,7 +826,10 @@ namespace MaplestoryBotNetTests.Systems.Tests
             _mainApplication = new MockApplication();
             _mainSystem = new MockSystem();
             _mainApplication.SystemReturn.Add(_mainSystem);
-            _splashScreenCompleteActionHandler = new WindowSplashScreenCompleteActionHandler(_splashScreenModifier);
+            _splashScreenCompleteActionHandler = new WindowSplashScreenCompleteActionHandler(
+                _splashScreenModifier,
+                new WindowSplashScreenCompleterParameters()
+            );
             return new MainApplicationInitializer(
                 _mainApplication,
                 [

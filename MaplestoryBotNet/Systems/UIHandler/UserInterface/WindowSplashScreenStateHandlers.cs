@@ -20,6 +20,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         public AbstractGPUSelection? GpuSelection;
 
         public AbstractInjectAction? InjectAction;
+
+        public bool Completed = false;
     }
 
 
@@ -52,9 +54,11 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                 parameters.KeyboardDeviceContext is DeviceContext keyboardDeviceContext &&
                 parameters.MouseDeviceContext is DeviceContext mouseDeviceContext &&
                 parameters.GpuSelection is AbstractGPUSelection gpuSelection &&
-                parameters.InjectAction is AbstractInjectAction injectAction
+                parameters.InjectAction is AbstractInjectAction injectAction &&
+                !parameters.Completed
             )
             {
+                parameters.Completed = true;
                 _dispatcher.Dispatch(
                     () =>
                     {
@@ -86,11 +90,12 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
         private WindowSplashScreenCompleterParameters _parameters;
 
         public WindowSplashScreenCompleteActionHandler(
-            AbstractWindowStateModifier splashScreenCompleter
+            AbstractWindowStateModifier splashScreenCompleter,
+            WindowSplashScreenCompleterParameters parameters
         )
         {
             _splashScreenCompleter = splashScreenCompleter;
-            _parameters = new();
+            _parameters = parameters;
         }
 
         public override AbstractWindowStateModifier Modifier()
@@ -107,18 +112,18 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
             {
                 _parameters.KeyboardDeviceContext = keyboardDeviceContext;
             }
-            if (
+            else if (
                 dataType is InputDeviceTypes.Mouse &&
                 data is DeviceContext mouseDeviceContext
             )
             {
                 _parameters.MouseDeviceContext = mouseDeviceContext;
             }
-            if (data is AbstractGPUSelection gpuSelection)
+            else if (data is AbstractGPUSelection gpuSelection)
             {
                 _parameters.GpuSelection = gpuSelection;
             }
-            if (
+            else if (
                 dataType is SystemInjectType.InjectAction &&
                 data is AbstractInjectAction injectAction
             )
@@ -152,7 +157,8 @@ namespace MaplestoryBotNet.Systems.UIHandler.UserInterface
                     _splashScreen!,
                     _mainWindow!,
                     _dispatcher!
-                )
+                ),
+                new WindowSplashScreenCompleterParameters()
             );
         }
 

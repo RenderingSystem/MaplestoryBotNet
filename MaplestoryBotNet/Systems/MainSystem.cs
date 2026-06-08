@@ -200,7 +200,7 @@ namespace MaplestoryBotNet.Systems
         private SystemInformation _keyboardInfo()
         {
             return new SystemInformation(
-                new KeyboardSystemBuilder(),
+                new DeviceSystemBuilder(),
                 [],
                 [],
                 2,

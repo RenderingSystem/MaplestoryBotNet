@@ -12,7 +12,8 @@ using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.Systems.UIHandler.Tests;
 using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests;
 using MaplestoryBotNetTests.UserInterface.Tests;
-using MaplestoryBotNetTests.Systems.Device.Tests.Transmitters;
+using MaplestoryBotNetTests.Systems.Device.Tests.SubSystems;
+using MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Transmitters;
 
 
 void UnitTestSuite()
@@ -35,7 +36,7 @@ void UnitTestSuite()
     new ScreenAilmentsSystemTestSuite().Run();
     // Test the keyboard system
     new DeviceDetectorTestSuite().Run();
-    new KeystrokeTransmitterCommandsTestSuite().Run();
+    new MacroCommandsExecutorTestSuite().Run();
     new KeyboardSystemTestSuite().Run();
     // Test the process watchdog system
     new ProcessWatchdogSystemTestSuite().Run();

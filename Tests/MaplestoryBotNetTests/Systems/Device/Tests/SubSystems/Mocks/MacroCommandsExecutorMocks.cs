@@ -2,9 +2,10 @@
 using MaplestoryBotNet.Systems.Configuration;
 using MaplestoryBotNet.Systems.Device.SubSystems;
 using MaplestoryBotNetTests.TestHelpers;
+using System.Windows.Controls;
 
 
-namespace MaplestoryBotNetTests.Systems.Device.Tests.Mocks
+namespace MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Mocks
 {
     public class MockMacroSleeper : AbstractMacroSleeper
     {
@@ -134,15 +135,93 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Mocks
             throw new IndexOutOfRangeException();
         }
 
-        public int WithKeyboardMappingCalls = 0;
-        public int WithKeyboardMappingIndex = 0;
-        public List<KeyboardMapping> WithKeyboardMappingCallArg_keyboardMapping = [];
-        public override AbstractKeystrokeTransmitterBuilder WithKeyboardMapping(KeyboardMapping keyboardMapping)
+        public int WithArgCalls = 0;
+        public int WithArgIndex = 0;
+        public List<object> WithArgCallArg_arg = [];
+        public override AbstractKeystrokeTransmitterBuilder WithArg(object arg)
         {
-            var callReference = new TestUtilities().Reference(this) + "WithKeyboardMapping";
+            var callReference = new TestUtilities().Reference(this) + "WithArg";
             CallOrder.Add(callReference);
-            WithKeyboardMappingCalls++;
-            WithKeyboardMappingCallArg_keyboardMapping.Add(keyboardMapping);
+            WithArgCalls++;
+            WithArgCallArg_arg.Add(arg);
+            return this;
+        }
+    }
+
+
+    public class MockMouseTransmitter : AbstractMouseTransmitter
+    {
+        public List<string> CallOrder = [];
+        public int InjectMouseDeviceCalls = 0;
+        public List<DeviceContext> InjectMouseDeviceCallArg_mouseDevice = [];
+        public override void InjectMouseDevice(DeviceContext mouseDevice)
+        {
+            var callReference = new TestUtilities().Reference(this) + "InjectMouseDevice";
+            CallOrder.Add(callReference);
+            InjectMouseDeviceCalls++;
+            InjectMouseDeviceCallArg_mouseDevice.Add(mouseDevice);
+        }
+
+        public int MouseDownCalls = 0;
+        public List<MouseButton> MouseDownCallArg_button = [];
+        public override void MouseDown(MouseButton button)
+        {
+            var callReference = new TestUtilities().Reference(this) + "MouseDown";
+            CallOrder.Add(callReference);
+            MouseDownCalls++;
+            MouseDownCallArg_button.Add(button);
+        }
+
+        public int MouseMoveCalls = 0;
+        public List<int> MouseMoveCallArg_x = [];
+        public List<int> MouseMoveCallArg_y = [];
+        public override void MouseMove(int x, int y)
+        {
+            var callReference = new TestUtilities().Reference(this) + "MouseMove";
+            CallOrder.Add(callReference);
+            MouseMoveCalls++;
+            MouseMoveCallArg_x.Add(x);
+            MouseMoveCallArg_y.Add(y);
+        }
+
+        public int MouseUpCalls = 0;
+        public List<MouseButton> MouseUpCallArg_button = [];
+        public override void MouseUp(MouseButton button)
+        {
+            var callReference = new TestUtilities().Reference(this) + "MouseUp";
+            CallOrder.Add(callReference);
+            MouseUpCalls++;
+            MouseUpCallArg_button.Add(button);
+        }
+    }
+
+
+    public class MockMouseTransmitterBuilder : AbstractMouseTransmitterBuilder
+    {
+        public List<string> CallOrder = [];
+
+        public int BuildCalls = 0;
+        public int BuildIndex = 0;
+        public List<AbstractMouseTransmitter> BuildReturn = [];
+        public override AbstractMouseTransmitter Build()
+        {
+            var callReference = new TestUtilities().Reference(this) + "Build";
+            CallOrder.Add(callReference);
+            BuildCalls++;
+            if (BuildIndex < BuildReturn.Count)
+                return BuildReturn[BuildIndex++];
+            throw new IndexOutOfRangeException();
+        }
+
+        public int WithArgCalls = 0;
+        public int WithArgIndex = 0;
+        public List<object> WithArgCallArg_arg = [];
+        public override MockMouseTransmitterBuilder WithArg(object arg)
+        {
+            var callReference = new TestUtilities().Reference(this) + "WithArg";
+            CallOrder.Add(callReference);
+            WithArgCalls++;
+            WithArgCallArg_arg.Add(arg);
             return this;
         }
     }
@@ -227,5 +306,4 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Mocks
             ExecuteCallArg_macroCommands.Add(macroCommands);
         }
     }
-
 }

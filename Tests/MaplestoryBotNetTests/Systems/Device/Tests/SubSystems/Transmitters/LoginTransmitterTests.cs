@@ -1,9 +1,11 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
+using MaplestoryBotNet.Systems.Device;
 using MaplestoryBotNet.Systems.Device.SubSystems;
 using MaplestoryBotNet.Systems.Device.SubSystems.Transmitters;
 using MaplestoryBotNet.ThreadingUtils;
-using MaplestoryBotNetTests.Systems.Device.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Transmitters.Mocks;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
@@ -11,7 +13,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 
 
-namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
+namespace MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Transmitters
 {
     public class LoginExecutorThreadHelperTests
     {
@@ -55,7 +57,10 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
                 _threadState,
                 _macroCommandsExecutorBuilder
             );
-            helper.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
+            helper.Inject(
+                SystemInjectType.Transmitters,
+                new TransmitterInfo { KeystrokeTransmitter = _keystrokeTransmitter }
+            );
             helper.Inject(SystemInjectType.ConfigurationUpdate, _maplestoryBotConfiguration);
             return helper;
         }

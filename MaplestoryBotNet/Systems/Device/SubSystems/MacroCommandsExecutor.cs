@@ -1,6 +1,7 @@
 ﻿using Interception;
 using MaplestoryBotNet.LibraryWrappers;
 using MaplestoryBotNet.Systems.Configuration;
+using MaplestoryBotNet.ThreadingUtils;
 using System.Globalization;
 
 
@@ -68,23 +69,49 @@ namespace MaplestoryBotNet.Systems.Device.SubSystems
     }
 
 
+    public abstract class AbstractKeystrokeTransmitterBuilder
+    {
+        public abstract AbstractKeystrokeTransmitterBuilder WithArg(object arg);
+
+        public abstract AbstractKeystrokeTransmitter Build();
+    }
+
+
+    public enum MouseButton
+    {
+        Left = 0,
+        Middle,
+        Right,
+        MaxNum
+    }
+
+
+    public abstract class AbstractMouseTransmitter
+    {
+        public abstract void InjectMouseDevice(DeviceContext mouseDevice);
+
+        public abstract void MouseMove(int x, int y);
+
+        public abstract void MouseDown(MouseButton button);
+
+        public abstract void MouseUp(MouseButton button);
+    }
+
+
+    public abstract class AbstractMouseTransmitterBuilder
+    {
+        public abstract AbstractMouseTransmitterBuilder WithArg(object arg);
+
+        public abstract AbstractMouseTransmitter Build();
+    }
+
+
     public abstract class AbstractKeystrokeConverter
     {
-
         public abstract InterceptionInterop.KeyStroke ConvertToKeydown(string stroke);
 
         public abstract InterceptionInterop.KeyStroke ConvertToKeyup(string stroke);
 
-    }
-
-
-    public abstract class AbstractKeystrokeTransmitterBuilder
-    {
-        public abstract AbstractKeystrokeTransmitterBuilder WithKeyboardMapping(
-            KeyboardMapping keyboardMapping
-        );
-
-        public abstract AbstractKeystrokeTransmitter Build();
     }
 
 
@@ -217,28 +244,22 @@ namespace MaplestoryBotNet.Systems.Device.SubSystems
 
         private AbstractKeystrokeConverter _keystrokeConverter;
 
-        private volatile DeviceContext? _keyboardDeviceValue;
+        private LockObject _sendLock;
 
-        private object _sendLock;
-
-        private DeviceContext? _keyboardDevice
-        {
-            get => _keyboardDeviceValue;
-
-            set => _keyboardDeviceValue = value;
-        }
+        private volatile DeviceContext? _keyboardDevice;
 
         public KeystrokeTransmitter(
             AbstractInterceptionLibrary interceptionLibrary,
             AbstractKeystrokeConverter keystrokeConverter,
-            KeyboardMapping KeyboardMapping
+            KeyboardMapping KeyboardMapping,
+            LockObject sendLock
         )
         {
             _interceptionLibrary = interceptionLibrary;
             _keyboardMapping = KeyboardMapping;
             _keystrokeConverter = keystrokeConverter;
-            _keyboardDeviceValue = null;
-            _sendLock = new object();
+            _keyboardDevice = null;
+            _sendLock = sendLock;
         }
 
 
@@ -290,13 +311,20 @@ namespace MaplestoryBotNet.Systems.Device.SubSystems
 
     public class KeystrokeTransmitterBuilder : AbstractKeystrokeTransmitterBuilder
     {
-        private KeyboardMapping? _keyboardMapping;
+        private KeyboardMapping? _keyboardMapping = null;
 
-        public override AbstractKeystrokeTransmitterBuilder WithKeyboardMapping(
-            KeyboardMapping keyboardMapping
-        )
+        private LockObject? _sendLock = null;
+
+        public override AbstractKeystrokeTransmitterBuilder WithArg(object arg)
         {
-            _keyboardMapping = keyboardMapping;
+            if (arg is KeyboardMapping keyboardMapping)
+            {
+                _keyboardMapping = (KeyboardMapping)keyboardMapping.Copy();
+            }
+            else if (arg is LockObject sendLock)
+            {
+                _sendLock = sendLock;
+            }
             return this;
         }
 
@@ -305,8 +333,135 @@ namespace MaplestoryBotNet.Systems.Device.SubSystems
             return new KeystrokeTransmitter(
                 new InterceptionLibrary(),
                 new KeystrokeConverter(),
-                _keyboardMapping ?? new KeyboardMapping()
+                _keyboardMapping ?? new KeyboardMapping(),
+                _sendLock ?? new LockObject()
             );
+        }
+    }
+
+
+    public class MouseTransmitter : AbstractMouseTransmitter
+    {
+        private AbstractInterceptionLibrary _interceptionLibrary;
+
+        private LockObject _sendLock;
+
+        private volatile DeviceContext? _mouseDevice;
+
+        public MouseTransmitter(
+            AbstractInterceptionLibrary interceptionLibrary,
+            LockObject sendLock
+        )
+        {
+            _interceptionLibrary = interceptionLibrary;
+            _sendLock = sendLock;
+        }
+
+        private void _sendMouseStroke(InterceptionInterop.MouseStroke mousestroke)
+        {
+            var mouseDevice = _mouseDevice;
+            if (mouseDevice == null)
+            {
+                return;
+            }
+            var context = mouseDevice.Context;
+            var device = mouseDevice.Device;
+            unsafe
+            {
+                var stroke = (InterceptionInterop.Stroke*)&mousestroke;
+                lock (_sendLock)
+                {
+                    _interceptionLibrary.Send(context, device, stroke, 1);
+                }
+            }
+        }
+
+        public override void InjectMouseDevice(DeviceContext mouseDevice)
+        {
+            _mouseDevice = mouseDevice;
+        }
+
+        public override void MouseMove(int x, int y)
+        {
+            _sendMouseStroke(
+                new InterceptionInterop.MouseStroke
+                {
+                    State = 0,
+                    Flags = InterceptionInterop.MouseFlag.MoveAbsolute,
+                    Rolling = 0,
+                    X = x,
+                    Y = y,
+                    Information = 0
+                }
+            );
+        }
+
+        public override void MouseDown(MouseButton button)
+        {
+            if (button < MouseButton.MaxNum)
+            {
+                var left = InterceptionInterop.MouseState.LeftButtonDown;
+                var middle = InterceptionInterop.MouseState.MiddleButtonDown;
+                var right = InterceptionInterop.MouseState.RightButtonDown;
+                var mouseStroke = new InterceptionInterop.MouseStroke
+                {
+                    State = (
+                        button == MouseButton.Left ? left :
+                        button == MouseButton.Middle ? middle :
+                        button == MouseButton.Right ? right : right
+                    ),
+                    Flags = 0,
+                    Rolling = 0,
+                    X = 0,
+                    Y = 0,
+                    Information = 0
+                };
+                _sendMouseStroke(mouseStroke);
+            }
+        }
+
+        public override void MouseUp(MouseButton button)
+        {
+            if (button < MouseButton.MaxNum)
+            {
+                var left = InterceptionInterop.MouseState.LeftButtonUp;
+                var middle = InterceptionInterop.MouseState.MiddleButtonUp;
+                var right = InterceptionInterop.MouseState.RightButtonUp;
+                var mouseStroke = new InterceptionInterop.MouseStroke
+                {
+                    State = (
+                        button == MouseButton.Left ? left :
+                        button == MouseButton.Middle ? middle :
+                        button == MouseButton.Right ? right : right
+                    ),
+                    Flags = 0,
+                    Rolling = 0,
+                    X = 0,
+                    Y = 0,
+                    Information = 0
+                };
+                _sendMouseStroke(mouseStroke);
+            }
+        }
+    }
+
+
+    public class MouseTransmitterBuilder : AbstractMouseTransmitterBuilder
+    {
+        private LockObject? _sendLock = null;
+
+        public override AbstractMouseTransmitter Build()
+        {   
+            return new MouseTransmitter(new InterceptionLibrary(), _sendLock!);
+        }
+
+        public override AbstractMouseTransmitterBuilder WithArg(object arg)
+        {
+            if (arg is LockObject sendLock)
+            {
+                _sendLock = sendLock;
+            }
+            return this;
         }
     }
 
@@ -585,6 +740,409 @@ namespace MaplestoryBotNet.Systems.Device.SubSystems
     }
 
 
+    public class MousePressMacroCommand : AbstractParsedMacroCommand
+    {
+        private MouseButton _mouseButton;
+
+        private int _waitMilliseconds;
+
+        private AbstractMouseTransmitter _mouseTransmitter;
+
+        private AbstractMacroSleeper _macroSleeper;
+
+        public MousePressMacroCommand(
+            MouseButton mouseButton,
+            int waitMilliseconds,
+            AbstractMouseTransmitter mouseTransmitter,
+            AbstractMacroSleeper macroSleeper
+        )
+        {
+            _mouseButton = mouseButton;
+            _waitMilliseconds = waitMilliseconds;
+            _mouseTransmitter = mouseTransmitter;
+            _macroSleeper = macroSleeper;
+        }
+
+        public override void Run()
+        {
+            _mouseTransmitter.MouseDown(_mouseButton);
+            _macroSleeper.Sleep(_waitMilliseconds);
+            _mouseTransmitter.MouseUp(_mouseButton);
+        }
+    }
+
+
+    public class MousePressMacroCommandBuilder : AbstractParsedMacroCommandBuilder
+    {
+        private MouseButton _mouseButton;
+
+        private int _waitMilliseconds;
+
+        private AbstractMacroSleeper _macroSleeper;
+
+        private AbstractMouseTransmitter _mouseTransmitter;
+
+        public MousePressMacroCommandBuilder(
+            AbstractMacroSleeper macroSleeper,
+            AbstractMouseTransmitter mouseTransmitter
+        )
+        {
+            _mouseButton = MouseButton.MaxNum;
+            _waitMilliseconds = 0;
+            _macroSleeper = macroSleeper;
+            _mouseTransmitter = mouseTransmitter;
+        }
+
+        public override AbstractParsedMacroCommand Build()
+        {
+            return new MousePressMacroCommand(
+                _mouseButton, _waitMilliseconds, _mouseTransmitter, _macroSleeper
+            );
+        }
+
+        public override AbstractParsedMacroCommandBuilder WithArg(object args)
+        {
+            if (args is MouseButton mouseButton)
+            {
+                _mouseButton = mouseButton;
+            }
+            else if (args is int waitMilliseconds)
+            {
+                _waitMilliseconds = waitMilliseconds;
+            }
+            return this;
+        }
+    }
+
+
+    public class MouseMoveMacroCommand : AbstractParsedMacroCommand
+    {
+        private int X;
+
+        private int Y;
+
+        private AbstractMouseTransmitter _mouseTransmitter;
+
+        public MouseMoveMacroCommand(
+            int x,
+            int y,
+            AbstractMouseTransmitter mouseTransmitter
+        )
+        {
+            X = x;
+            Y = y;
+            _mouseTransmitter = mouseTransmitter;
+        }
+
+        public override void Run()
+        {
+            _mouseTransmitter.MouseMove(X, Y);
+        }
+    }
+
+
+    public class MouseMoveMacroCommandBuilder : AbstractParsedMacroCommandBuilder
+    {
+        private int _x;
+
+        private int _y;
+
+        private AbstractMouseTransmitter _mouseTransmitter;
+
+        public MouseMoveMacroCommandBuilder(
+            AbstractMouseTransmitter mouseTransmitter
+        )
+        {
+            _mouseTransmitter = mouseTransmitter;
+        }
+
+        public override AbstractParsedMacroCommand Build()
+        {
+            return new MouseMoveMacroCommand(_x, _y, _mouseTransmitter);
+        }
+
+        public override AbstractParsedMacroCommandBuilder WithArg(object args)
+        {
+            if (args is Tuple<int, int> point)
+            {
+                _x = point.Item1;
+                _y = point.Item2;
+            }
+            return this;
+        }
+    }
+
+
+    public class MouseDownMacroCommand : AbstractParsedMacroCommand
+    {
+        private MouseButton _mouseButton;
+
+        private AbstractMouseTransmitter _mouseTransmitter;
+
+        public MouseDownMacroCommand(
+            MouseButton mouseButton,
+            AbstractMouseTransmitter mouseTransmitter
+        )
+        {
+            _mouseButton = mouseButton;
+            _mouseTransmitter = mouseTransmitter;
+        }
+
+        public override void Run()
+        {
+            _mouseTransmitter.MouseDown(_mouseButton);
+        }
+    }
+
+
+    public class MouseDownMacroCommandBuilder : AbstractParsedMacroCommandBuilder
+    {
+        private MouseButton _mouseButton;
+
+        private AbstractMouseTransmitter _mouseTransmitter;
+
+        public MouseDownMacroCommandBuilder(
+            AbstractMouseTransmitter mouseTransmitter
+        )
+        {
+            _mouseButton = MouseButton.MaxNum;
+            _mouseTransmitter = mouseTransmitter;
+        }
+
+        public override AbstractParsedMacroCommand Build()
+        {
+            return new MouseDownMacroCommand(_mouseButton, _mouseTransmitter);
+        }
+
+        public override AbstractParsedMacroCommandBuilder WithArg(object args)
+        {
+            if (args is MouseButton mouseButton)
+            {
+                _mouseButton = mouseButton;
+            }
+            return this;
+        }
+    }
+
+
+    public class MouseUpMacroCommand : AbstractParsedMacroCommand
+    {
+        private MouseButton _mouseButton;
+
+        private AbstractMouseTransmitter _mouseTransmitter;
+
+        public MouseUpMacroCommand(
+            MouseButton mouseButton,
+            AbstractMouseTransmitter mouseTransmitter
+        )
+        {
+            _mouseButton = mouseButton;
+            _mouseTransmitter = mouseTransmitter;
+        }
+
+        public override void Run()
+        {
+            _mouseTransmitter.MouseUp(_mouseButton);
+        }
+    }
+
+
+    public class MouseUpMacroCommandBuilder : AbstractParsedMacroCommandBuilder
+    {
+        private MouseButton _mouseButton;
+
+        private AbstractMouseTransmitter _mouseTransmitter;
+
+        public MouseUpMacroCommandBuilder(
+            AbstractMouseTransmitter mouseTransmitter
+        )
+        {
+            _mouseButton = MouseButton.MaxNum;
+            _mouseTransmitter = mouseTransmitter;
+        }
+
+        public override AbstractParsedMacroCommand Build()
+        {
+            return new MouseUpMacroCommand(_mouseButton, _mouseTransmitter);
+        }
+
+        public override AbstractParsedMacroCommandBuilder WithArg(object args)
+        {
+            if (args is MouseButton mouseButton)
+            {
+                _mouseButton = mouseButton;
+            }
+            return this;
+        }
+    }
+
+
+    public class MousePressMacroCommandParser : AbstractMacroCommandParser
+    {
+        private AbstractMacroRandom _macroRandom;
+
+        private AbstractBracketContentsParser _bracketContentsParser;
+
+        private AbstractParsedMacroCommandBuilder _macroCommandBuilder;
+        
+        public MousePressMacroCommandParser(
+            AbstractMacroRandom macroRandom,
+            AbstractBracketContentsParser bracketContentsParser,
+            AbstractParsedMacroCommandBuilder macroCommandBuilder
+        )
+        {
+            _macroRandom = macroRandom;
+            _bracketContentsParser = bracketContentsParser;
+            _macroCommandBuilder = macroCommandBuilder;
+        }
+
+        public override AbstractParsedMacroCommand? Parse(string macroCommand)
+        {
+            if (macroCommand.ToLower().StartsWith("mouse press"))
+            {
+                var contents = _bracketContentsParser.Parse(macroCommand);
+                if (
+                    contents.Count == 3
+                    && contents.All((content) => { return content != ""; })
+                    && int.TryParse(contents[1], out int interval1)
+                    && int.TryParse(contents[2], out int interval2)
+                )
+                {
+                    MouseButton? mouseButton = (
+                        contents[0] == "left" ? MouseButton.Left :
+                        contents[0] == "middle" ? MouseButton.Middle :
+                        contents[0] == "right" ? MouseButton.Right :
+                        null
+                    );
+                    if (mouseButton != null)
+                    {
+                        var minInterval = Math.Min(interval1, interval2);
+                        var maxInterval = Math.Max(interval1, interval2);
+                        var milliseconds = Math.Max(0, _macroRandom.Next(minInterval, maxInterval));
+                        return _macroCommandBuilder
+                            .WithArg(mouseButton)
+                            .WithArg(milliseconds)
+                            .Build();
+                    }
+                }
+            }
+            return null;
+        }
+    }
+
+
+    public class MouseMoveMacroCommandParser : AbstractMacroCommandParser
+    {
+        private AbstractBracketContentsParser _bracketContentsParser;
+
+        private AbstractParsedMacroCommandBuilder _macroCommandBuilder;
+
+        public MouseMoveMacroCommandParser(
+            AbstractBracketContentsParser bracketContentsParser,
+            AbstractParsedMacroCommandBuilder macroCommandBuilder
+        )
+        {
+            _bracketContentsParser = bracketContentsParser;
+            _macroCommandBuilder = macroCommandBuilder;
+        }
+
+        public override AbstractParsedMacroCommand? Parse(string macroCommand)
+        {
+            if (macroCommand.ToLower().StartsWith("mouse move"))
+            {
+                var contents = _bracketContentsParser.Parse(macroCommand);
+                if (
+                    contents.Count == 2
+                    && int.TryParse(contents[0], out int x)
+                    && int.TryParse(contents[1], out int y)
+                )
+                {
+                    return _macroCommandBuilder.WithArg(new Tuple<int, int>(x, y)).Build();
+                }
+            }
+            return null;
+        }
+    }
+
+
+    public class MouseDownMacroCommandParser : AbstractMacroCommandParser
+    {
+        private AbstractBracketContentsParser _bracketContentsParser;
+
+        private AbstractParsedMacroCommandBuilder _macroCommandBuilder;
+
+        public MouseDownMacroCommandParser(
+            AbstractBracketContentsParser bracketContentsParser,
+            AbstractParsedMacroCommandBuilder macroCommandBuilder
+        )
+        {
+            _bracketContentsParser = bracketContentsParser;
+            _macroCommandBuilder = macroCommandBuilder;
+        }
+
+        public override AbstractParsedMacroCommand? Parse(string macroCommand)
+        {
+            if (macroCommand.ToLower().StartsWith("mouse down"))
+            {
+                var contents = _bracketContentsParser.Parse(macroCommand);
+                if (contents.Count == 1)
+                {
+                    MouseButton? mouseButton = (
+                        contents[0] == "left" ? MouseButton.Left :
+                        contents[0] == "middle" ? MouseButton.Middle :
+                        contents[0] == "right" ? MouseButton.Right :
+                        null
+                    );
+                    if (mouseButton != null)
+                    {
+                        return _macroCommandBuilder.WithArg(mouseButton).Build();
+                    }
+                }
+            }
+            return null;
+        }
+    }
+
+
+    public class MouseUpMacroCommandParser : AbstractMacroCommandParser
+    {
+        private AbstractBracketContentsParser _bracketContentsParser;
+
+        private AbstractParsedMacroCommandBuilder _macroCommandBuilder;
+
+        public MouseUpMacroCommandParser(
+            AbstractBracketContentsParser bracketContentsParser,
+            AbstractParsedMacroCommandBuilder macroCommandBuilder
+        )
+        {
+            _bracketContentsParser = bracketContentsParser;
+            _macroCommandBuilder = macroCommandBuilder;
+        }
+
+        public override AbstractParsedMacroCommand? Parse(string macroCommand)
+        {
+            if (macroCommand.ToLower().StartsWith("mouse up"))
+            {
+                var contents = _bracketContentsParser.Parse(macroCommand);
+                if (contents.Count == 1)
+                {
+                    MouseButton? mouseButton = (
+                        contents[0] == "left" ? MouseButton.Left :
+                        contents[0] == "middle" ? MouseButton.Middle :
+                        contents[0] == "right" ? MouseButton.Right :
+                        null
+                    );
+                    if (mouseButton != null)
+                    {
+                        return _macroCommandBuilder.WithArg(mouseButton).Build();
+                    }
+                }
+            }
+            return null;
+        }
+    }
+
+
     public class WaitMacroCommandParser : AbstractMacroCommandParser
     {
         private AbstractMacroRandom _macroRandom;
@@ -761,6 +1319,8 @@ namespace MaplestoryBotNet.Systems.Device.SubSystems
     {
         private AbstractKeystrokeTransmitter? _keystrokeTransmitter;
 
+        private AbstractMouseTransmitter? _mouseTransmitter;
+
         public override AbstractMacroCommandsExecutor Build()
         {
             return new MacroCommandsExecutor(
@@ -782,6 +1342,23 @@ namespace MaplestoryBotNet.Systems.Device.SubSystems
                     new KeyUpMacroCommandParser(
                         new BracketContentsParser(),
                         new KeyUpMacroCommandBuilder(_keystrokeTransmitter!)
+                    ),
+                    new MousePressMacroCommandParser(
+                        new MacroRandom(),
+                        new BracketContentsParser(),
+                        new MousePressMacroCommandBuilder(new MacroSleeper(), _mouseTransmitter!)
+                    ),
+                    new MouseMoveMacroCommandParser(
+                        new BracketContentsParser(),
+                        new MouseMoveMacroCommandBuilder(_mouseTransmitter!)
+                    ),
+                    new MouseDownMacroCommandParser(
+                        new BracketContentsParser(),
+                        new MouseDownMacroCommandBuilder(_mouseTransmitter!)
+                    ),
+                    new MouseUpMacroCommandParser(
+                        new BracketContentsParser(),
+                        new MouseUpMacroCommandBuilder(_mouseTransmitter!)
                     )
                 ]
             );
@@ -789,9 +1366,10 @@ namespace MaplestoryBotNet.Systems.Device.SubSystems
 
         public override AbstractMacroCommandsExecutorBuilder WithArg(object arg)
         {
-            if (arg is AbstractKeystrokeTransmitter keystrokeTransmitter)
+            if (arg is TransmitterInfo transmitterInfo)
             {
-                _keystrokeTransmitter = keystrokeTransmitter;
+                _keystrokeTransmitter = transmitterInfo.KeystrokeTransmitter;
+                _mouseTransmitter = transmitterInfo.MouseTransmitter;
             }
             return this;
         }

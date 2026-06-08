@@ -1,10 +1,12 @@
 ﻿using MaplestoryBotNet.Systems;
+using MaplestoryBotNet.Systems.Device;
 using MaplestoryBotNet.Systems.Device.SubSystems;
 using MaplestoryBotNet.Systems.Device.SubSystems.Transmitters;
 using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.Systems.UIHandler.Utilities.Models;
 using MaplestoryBotNet.ThreadingUtils;
-using MaplestoryBotNetTests.Systems.Device.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Transmitters.Mocks;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
@@ -13,7 +15,7 @@ using System.Diagnostics;
 using System.Drawing;
 
 
-namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
+namespace MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Transmitters
 {
     public class RandomBottingMacroCommandsSelectorTests
     {
@@ -643,8 +645,8 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
             );
             executor.Inject(SystemInjectType.SkillsModel, _skillsModel);
             executor.Inject(
-                SystemInjectType.KeystrokeTransmitter,
-                new MockKeystrokeTransmitter()
+                SystemInjectType.Transmitters,
+                new TransmitterInfo { KeystrokeTransmitter = new MockKeystrokeTransmitter() }
             );
             return executor;
         }
@@ -823,9 +825,13 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
         private void _testInjectingBottingBuildsExecutor()
         {
             var bottingCommandsExecutor = _fixture();
-            bottingCommandsExecutor.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
+            var transmitterInfo = new TransmitterInfo { KeystrokeTransmitter = _keystrokeTransmitter };
+            bottingCommandsExecutor.Inject(
+                SystemInjectType.Transmitters,
+                transmitterInfo
+            );
             Debug.Assert(_executorBuilder.WithArgCalls == 1);
-            Debug.Assert(_executorBuilder.WithArgCallArg_arg[0] == _keystrokeTransmitter);
+            Debug.Assert(_executorBuilder.WithArgCallArg_arg[0] == transmitterInfo);
             Debug.Assert(_executorBuilder.BuildCalls == 1);
         }
 
@@ -845,7 +851,10 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests.Transmitters
                 var bottingCommandsExecutor = _fixture();
                 var (pX, pY) = ((int) closestPoints[i].X, (int) closestPoints[i].Y);
                 _bottingModel.GetMapModel().SetTemplatePosition("some key", pX, pY);
-                bottingCommandsExecutor.Inject(SystemInjectType.KeystrokeTransmitter, _keystrokeTransmitter);
+                bottingCommandsExecutor.Inject(
+                    SystemInjectType.Transmitters,
+                    new TransmitterInfo { KeystrokeTransmitter = _keystrokeTransmitter }
+                );
                 bottingCommandsExecutor.Inject(SystemInjectType.BottingModel, _bottingModel);
                 bottingCommandsExecutor.Execute();
                 Debug.Assert(_executor.ExecuteCalls == 1);

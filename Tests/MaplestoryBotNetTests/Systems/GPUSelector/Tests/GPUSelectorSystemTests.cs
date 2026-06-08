@@ -20,12 +20,15 @@ namespace MaplestoryBotNetTests.Systems.GPUSelector.Tests
 
         private AbstractWindowActionHandler _actionHandler;
 
+        private WindowSplashScreenCompleterParameters _parameters = new WindowSplashScreenCompleterParameters();
+
         public GPUSelectorThreadTests()
         {
             _deviceSelectionSystemMock = new AcceleratedDeviceSelectionSystemMock();
             _gpuSelection = new GPUSelection();
             _modifierMock = new MockWindowStateModifier();
-            _actionHandler = new WindowSplashScreenCompleteActionHandler(_modifierMock);
+            _parameters = new WindowSplashScreenCompleterParameters();
+            _actionHandler = new WindowSplashScreenCompleteActionHandler(_modifierMock, _parameters);
         }
 
         private GPUSelectorThread _fixture()
@@ -33,7 +36,7 @@ namespace MaplestoryBotNetTests.Systems.GPUSelector.Tests
             _deviceSelectionSystemMock = new AcceleratedDeviceSelectionSystemMock();
             _gpuSelection = new GPUSelection();
             _modifierMock = new MockWindowStateModifier();
-            _actionHandler = new WindowSplashScreenCompleteActionHandler(_modifierMock);
+            _actionHandler = new WindowSplashScreenCompleteActionHandler(_modifierMock, _parameters);
             _modifierMock.StateReturn.Add(SplashScreenTypes.StartSplash);
             return new GPUSelectorThread(
                 new ThreadRunningState(),

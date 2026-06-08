@@ -140,7 +140,9 @@ namespace MaplestoryBotNetTests.LibraryWrappers.Tests
             SendCallArg_stroke.Add(*stroke);
             SendCallArg_nstroke.Add(nstroke);
             if (SendIndex < SendCallArg_context.Count)
+            {
                 return SendReturn[SendIndex++];
+            }
             throw new IndexOutOfRangeException();
         }
 

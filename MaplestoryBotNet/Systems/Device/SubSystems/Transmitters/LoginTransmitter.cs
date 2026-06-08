@@ -97,13 +97,12 @@ namespace MaplestoryBotNet.Systems.Device.SubSystems.Transmitters
         public override void Inject(object dataType, object? data)
         {
             if (
-
-                dataType is SystemInjectType.KeystrokeTransmitter
-                && data is AbstractKeystrokeTransmitter keystrokeTransmitter
+                dataType is SystemInjectType.Transmitters &&
+                data is TransmitterInfo transmitterInfo
             )
             {
                 _macroCommandsExecutor = _macroCommandsExecutorBuilder
-                    .WithArg(keystrokeTransmitter)
+                    .WithArg(transmitterInfo)
                     .Build();
             }
             if (

@@ -2,10 +2,15 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Windows.Media;
-using System.Windows.Threading;
 
 namespace MaplestoryBotNet.ThreadingUtils
 {
+    public class LockObject
+    {
+
+    }
+
+
     public abstract class AbstractCountDown
     {
         public abstract void SetCountDown(int countDown);

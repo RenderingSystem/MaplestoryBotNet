@@ -16,13 +16,17 @@ namespace MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests
 
         private MockDispatcher _dispatcher = new MockDispatcher();
 
+        private WindowSplashScreenCompleterParameters _parameters = new WindowSplashScreenCompleterParameters();
+
         public AbstractWindowActionHandler _fixture()
         {
             _splashScreen = new MockSystemWindow();
             _mainWindow = new MockSystemWindow();
             _dispatcher = new MockDispatcher();
+            _parameters = new WindowSplashScreenCompleterParameters();
             return new WindowSplashScreenCompleteActionHandler(
-                new WindowSplashScreenCompleter(_splashScreen, _mainWindow, _dispatcher)
+                new WindowSplashScreenCompleter(_splashScreen, _mainWindow, _dispatcher),
+                _parameters
             );
         }
 

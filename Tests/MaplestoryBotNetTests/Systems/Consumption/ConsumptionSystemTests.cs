@@ -1,12 +1,14 @@
 ﻿using MaplestoryBotNet.Systems;
 using MaplestoryBotNet.Systems.Configuration.SubSystems;
 using MaplestoryBotNet.Systems.Consumables;
+using MaplestoryBotNet.Systems.Device;
 using MaplestoryBotNet.Systems.Macro;
 using MaplestoryBotNet.Systems.ScreenCapture;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.Systems.Consumption.Mocks;
-using MaplestoryBotNetTests.Systems.Device.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Transmitters.Mocks;
 using MaplestoryBotNetTests.Systems.Tests;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
@@ -699,8 +701,8 @@ namespace MaplestoryBotNetTests.Systems.Consumption
                 _mockRandom
             );
             executor.Inject(
-                SystemInjectType.KeystrokeTransmitter,
-                new MockKeystrokeTransmitter()
+                SystemInjectType.Transmitters,
+                new TransmitterInfo { KeystrokeTransmitter = new MockKeystrokeTransmitter() }
             );
             return executor;
         }
@@ -810,8 +812,8 @@ namespace MaplestoryBotNetTests.Systems.Consumption
                 _macroRandom
             );
             executor.Inject(
-                SystemInjectType.KeystrokeTransmitter,
-                new MockKeystrokeTransmitter()
+                SystemInjectType.Transmitters,
+                new TransmitterInfo { KeystrokeTransmitter = new MockKeystrokeTransmitter() }
             );
             return executor;
         }

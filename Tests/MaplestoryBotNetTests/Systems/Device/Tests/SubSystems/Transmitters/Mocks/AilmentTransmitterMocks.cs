@@ -2,7 +2,7 @@
 using MaplestoryBotNetTests.TestHelpers;
 
 
-namespace MaplestoryBotNetTests.Systems.Device.Tests.Mocks
+namespace MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Transmitters.Mocks
 {
     public class MockAilmentExecutorThreadHandler : AbstractAilmentExecutorThreadHandler
     {

@@ -286,15 +286,13 @@ namespace MaplestoryBotNet.Systems.Device.SubSystems.Transmitters
                 _solveImage = solveImage;
             }
             else if (
-                dataType is SystemInjectType.KeystrokeTransmitter
-                && data is AbstractKeystrokeTransmitter keystrokeTransmitter
+                dataType is SystemInjectType.Transmitters &&
+                data is TransmitterInfo transmitterInfo
             )
             {
-                _macroCommandsExecutor = (
-                    _macroCommandsExecutorBuilder
-                        .WithArg(keystrokeTransmitter)
-                        .Build()
-                );
+                _macroCommandsExecutor = _macroCommandsExecutorBuilder
+                    .WithArg(transmitterInfo)
+                    .Build();
             }
         }
     }

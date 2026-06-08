@@ -4,13 +4,13 @@ using MaplestoryBotNet.Systems.Device.SubSystems;
 using MaplestoryBotNet.Systems.UIHandler.UserInterface;
 using MaplestoryBotNet.ThreadingUtils;
 using MaplestoryBotNetTests.LibraryWrappers.Tests;
-using MaplestoryBotNetTests.Systems.Device.Tests.Mocks;
+using MaplestoryBotNetTests.Systems.Device.Tests.SubSystems.Mocks;
 using MaplestoryBotNetTests.Systems.UIHandler.UserInterface.Tests.Mocks;
 using MaplestoryBotNetTests.TestHelpers;
 using MaplestoryBotNetTests.ThreadingUtils;
 
 
-namespace MaplestoryBotNetTests.Systems.Device.Tests
+namespace MaplestoryBotNetTests.Systems.Device.Tests.SubSystems
 {
     public class KeyboardDeviceDetectorTests
     {
@@ -133,7 +133,10 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests
             _keyboardDeviceDetector = new MockDeviceDetector();
             _keyboardDeviceDetector.DetectReturn.Add(new DeviceContext(0x1234, 0x2345));
             _splashScreenModifier = new MockWindowStateModifier();
-            _splashScreenActionHandler = new WindowSplashScreenCompleteActionHandler(_splashScreenModifier);
+            _splashScreenActionHandler = new WindowSplashScreenCompleteActionHandler(
+                _splashScreenModifier,
+                new WindowSplashScreenCompleterParameters()
+            );
             var detectorThread = new KeyboardDeviceDetectorThread(_keyboardDeviceDetector, _runningState);
             _splashScreenModifier.StateReturn.Add(SplashScreenTypes.StartSplash);
             detectorThread.Inject(SystemInjectType.ActionHandler, _splashScreenActionHandler);
@@ -293,7 +296,10 @@ namespace MaplestoryBotNetTests.Systems.Device.Tests
             _mouseDeviceDetector = new MockDeviceDetector();
             _mouseDeviceDetector.DetectReturn.Add(new DeviceContext(0x1234, 0x2345));
             _splashScreenModifier = new MockWindowStateModifier();
-            _splashScreenActionHandler = new WindowSplashScreenCompleteActionHandler(_splashScreenModifier);
+            _splashScreenActionHandler = new WindowSplashScreenCompleteActionHandler(
+                _splashScreenModifier,
+                new WindowSplashScreenCompleterParameters()
+            );
             var detectorThread = new MouseDeviceDetectorThread(_mouseDeviceDetector, _runningState);
             _splashScreenModifier.StateReturn.Add(SplashScreenTypes.StartSplash);
             detectorThread.Inject(SystemInjectType.ActionHandler, _splashScreenActionHandler);
